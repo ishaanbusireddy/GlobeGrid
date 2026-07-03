@@ -35,7 +35,15 @@ explicitly confirmed working by the project owner.
 | 5 | Wire graphics to the real API from Phase 3; purge `_synthetic` rows |
 | 6 | Remaining features + Tiers 2/3 — instability index, bias view, multi-language, resilience hardening |
 
-Current status: **Phase 1 in progress.**
+Current status: **Phase 1 implemented — schema/migrations/ingestion/extraction/
+embedding built and verified locally** (real Postgres 16 + PostGIS + pgvector:
+migration applies cleanly, `db_bootstrap.sql` extension creation, per-source-type
+extraction into `events`/`extracted_facts`, pgvector `vector(384)` storage
+round-trip all confirmed). Live network calls to the actual RSS/GDELT/USGS/
+Alpha Vantage/Reddit endpoints and the sentence-transformers model download
+were not exercised in the build sandbox (network policy), so a first run on
+the real machine should be watched once for source-specific surprises. Not
+yet confirmed by the project owner — do not start Phase 2 until they say so.
 
 ## Key constraints to remember
 

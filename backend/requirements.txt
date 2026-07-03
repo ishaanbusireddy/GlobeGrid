@@ -1,4 +1,14 @@
-# TalkDiplomacy Live backend dependencies.
-# Populated during Phase 1 (Section 15) against the locked stack in Section 3.1:
-# FastAPI, SQLAlchemy, psycopg, pgvector, sentence-transformers, APScheduler,
-# feedparser (RSS), httpx, anthropic, python-dotenv, PyYAML.
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+sqlalchemy==2.0.36
+alembic==1.14.0
+psycopg2-binary==2.9.10
+geoalchemy2==0.16.0
+pgvector==0.3.6
+sentence-transformers==3.3.1
+apscheduler==3.10.4
+feedparser==6.0.11
+httpx==0.28.1
+python-dotenv==1.0.1
+pyyaml==6.0.2
+anthropic==0.40.0
