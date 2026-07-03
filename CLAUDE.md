@@ -91,8 +91,23 @@ logs (rather than silently swallows) any send failure. `GET /api/instability`
 is wired and correctly returns an empty result for now, since
 `instability_scores` isn't populated until Phase 6.
 
-Not yet confirmed by the project owner — do not start Phase 4 until they
-say so.
+Phase 4 — `scripts/generate_synthetic_data.py` (Section 12: 300 events /
+40 population centers / 60 stories / 7 days of hourly instability scores,
+all flagged `_synthetic`, written to both the DB and
+`frontend/src/data/syntheticDataset.js`) and the Tier 1 frontend:
+`Tier1Globe.jsx` (procedural three.js globe — no texture assets — with
+pulsing category-colored event points, animated correlation threads between
+story members, drag/zoom/hover/click, atmosphere glow), `TierDetector.js`
+(Section 11.2 rules + localStorage override), `LiveFeed.jsx`,
+`StoryPage.jsx` (all Section 5.3 elements including the connected-history
+panel), wired through a provider abstraction
+(`src/data/dataProvider.js`) so Phase 5 swaps data sources without touching
+rendering code. Verified in a real Chromium via Playwright at the 500-event
+Section 11.3 stress level: 1.7s to interactive (budget <4s), tier override
+switches live and persists across reload, story page renders from feed and
+map clicks. The 60fps budget could not be validated in the sandbox — no
+GPU, SwiftShader software rendering caps ~15fps — needs a check on the real
+machine's GPU.
 
 ## Key constraints to remember
 
