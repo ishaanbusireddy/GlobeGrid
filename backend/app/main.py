@@ -1,6 +1,7 @@
 """FastAPI app entrypoint (Section 13). Serves the Section 8 REST routes and
 the Section 8.2 WebSocket feed."""
 import asyncio
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -16,10 +17,22 @@ from app.websocket.feed_socket import broadcaster_loop, router as feed_router
 async def lifespan(app: FastAPI):
     setup_logging()
     task = asyncio.create_task(broadcaster_loop())
+
+    # APScheduler runs in-process with the API (Section 3.1: single user,
+    # no external job runner): ingestion per source, the Stage 2-5 pipeline,
+    # and the instability job. Disable with SCHEDULER_ENABLED=0 (used by
+    # tests and by one-shot script runs against the same DB).
+    scheduler = None
+    if os.environ.get("SCHEDULER_ENABLED", "1") != "0":
+        from app.ingestion.scheduler import start as start_scheduler
+        scheduler = start_scheduler()
+
     try:
         yield
     finally:
         task.cancel()
+        if scheduler is not None:
+            scheduler.shutdown(wait=False)
 
 
 app = FastAPI(title="TalkDiplomacy Live API", lifespan=lifespan)

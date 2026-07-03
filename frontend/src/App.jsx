@@ -8,6 +8,8 @@ import Tier2Map from './components/map/Tier2Map.jsx';
 import Tier3List from './components/map/Tier3List.jsx';
 import { detectTier, getTierOverride, setTierOverride } from './components/map/TierDetector.js';
 import LiveFeed from './components/feed/LiveFeed.jsx';
+import InstabilityTrend from './components/feed/InstabilityTrend.jsx';
+import SourceStatusPanel from './components/feed/SourceStatusPanel.jsx';
 import StoryPage from './components/story/StoryPage.jsx';
 
 export default function App() {
@@ -19,10 +21,12 @@ export default function App() {
   const [events, setEvents] = useState([]);
   const [activeStory, setActiveStory] = useState(null);
   const [connState, setConnState] = useState(provider.connectionState());
+  const [instability, setInstability] = useState({ latest: null, history: [] });
 
   useEffect(() => {
     provider.getStories().then(setStories);
     provider.getEvents().then(setEvents);
+    provider.getInstability().then(setInstability).catch(() => {});
     const unsubscribe = provider.subscribe((message) => {
       if (message.type === 'story_created' || message.type === 'story_updated') {
         setStories((prev) => {
@@ -30,6 +34,12 @@ export default function App() {
           return [message.payload, ...rest];
         });
         provider.getEvents().then(setEvents);
+      }
+      if (message.type === 'instability_updated') {
+        setInstability((prev) => ({
+          latest: message.payload,
+          history: [...prev.history, message.payload],
+        }));
       }
       if (message.type === 'connection') setConnState(message.state);
     });
@@ -82,7 +92,9 @@ export default function App() {
               )}
             </div>
             <div className="feed-pane">
+              <InstabilityTrend latest={instability.latest} history={instability.history} />
               <LiveFeed stories={stories} onSelectStory={openStory} />
+              <SourceStatusPanel />
             </div>
           </>
         )}

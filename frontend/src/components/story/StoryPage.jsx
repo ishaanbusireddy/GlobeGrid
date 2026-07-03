@@ -1,15 +1,35 @@
 // Story page (Section 5.3): headline, AI summary, confidence indicator,
 // timeline of which source lit up when, full source list with outbound
-// links (Section 6.8 — always visible), and the 'connected history' panel
-// surfacing linked past facts from the chain (the fact chain, surfaced).
-import React from 'react';
+// links (Section 6.8 — always visible), the 'connected history' panel
+// surfacing linked past facts from the chain, the Section 5.7 bias view,
+// and Section 5.8 display-time summary translation (original preserved).
+import React, { useState } from 'react';
+import BiasView from './BiasView.jsx';
+import { translateText } from '../../api/client.js';
 
 function fmt(iso) {
   return iso ? new Date(iso).toLocaleString() : 'unknown time';
 }
 
 export default function StoryPage({ story, onBack }) {
+  const [translation, setTranslation] = useState(null); // {text, language} | null
+  const [showTranslated, setShowTranslated] = useState(false);
+  const [translateError, setTranslateError] = useState(null);
+
   if (!story) return null;
+
+  const translateSummary = async () => {
+    if (translation) { setShowTranslated(!showTranslated); return; }
+    try {
+      const language = window.prompt('Translate summary into which language?', 'Spanish');
+      if (!language) return;
+      const result = await translateText(story.summary, language);
+      setTranslation({ text: result.translated, language });
+      setShowTranslated(true);
+    } catch {
+      setTranslateError('translation unavailable (CLAUDE_API_KEY not configured)');
+    }
+  };
 
   const members = story.members ?? [];
   const timeline = [...members].sort(
@@ -36,7 +56,18 @@ export default function StoryPage({ story, onBack }) {
           <span key={cat} className={`badge cat-${cat}`}>{cat}</span>
         ))}
       </div>
-      {story.summary && <p className="summary">{story.summary}</p>}
+      {story.summary && (
+        <p className="summary">
+          {showTranslated && translation ? translation.text : story.summary}
+          {' '}
+          <button className="translate-btn" onClick={translateSummary}>
+            {translation
+              ? (showTranslated ? 'show original' : `show ${translation.language}`)
+              : 'translate'}
+          </button>
+          {translateError && <span style={{ color: 'var(--low)', fontSize: 11, marginLeft: 8 }}>{translateError}</span>}
+        </p>
+      )}
 
       {narrative && (
         <>
@@ -63,6 +94,8 @@ export default function StoryPage({ story, onBack }) {
           </div>
         ))}
       </div>
+
+      <BiasView members={members} />
 
       <div className="section-label">Sources</div>
       <div className="source-list">

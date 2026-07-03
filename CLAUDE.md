@@ -126,6 +126,31 @@ then purged all `_synthetic` rows in one transaction (verified: 60 stories /
 `generate_synthetic_data.py` only if you want the Phase 4 demo data, and
 `purge_synthetic.py` after confirming real wiring.
 
+Phase 6 — remaining features + lighter tiers, all verified in-browser
+against the real backend: `backend/app/processing/instability.py`
+(Section 5.6 weighted formula, all weights/window/interval from
+config.yaml, transparent component_breakdown, registered on the scheduler
+at recompute_interval_seconds) with the trend line rendered on the
+homepage; the scheduler now also runs the full Stage 2-5 pipeline job
+(interval derived as the minimum configured ingestion interval) and is
+started by the FastAPI lifespan (disable with SCHEDULER_ENABLED=0);
+bias/blindspot view (Section 5.7) on story pages grouping member coverage
+by outlet with the curated leaning labels; POST /api/translate
+(Section 5.8 — display-time only, original always preserved, graceful 503
+without CLAUDE_API_KEY) with a translate/show-original toggle on story
+summaries; the Section 5.10 system-status panel in the UI; Tier 2
+(Leaflet flat map, category/severity pins, Section 5.2 cluster collapse
+via /api/map/clusters, click-to-expand) and Tier 3 (instant list view).
+The Section 10.2 failure-isolation policy was deliberately tested: a
+simulated dead source degraded to `down` with backoff 120→240→480→960→
+1800s (capped), never blocked the healthy source's writes, and reset to
+its base interval + `ok` on first success. Outstanding items needing the
+real machine: live end-to-end runs of every Section 4 source, the real
+Claude causal-link/translation calls, sentence-transformers model
+download, the Tier 1 60fps check on real GPU, and OSM tile loading for
+Tier 2 (all blocked by sandbox network policy / lack of GPU — the
+sandbox-testable behavior around each is verified).
+
 ## Key constraints to remember
 
 - Every rendered fact/event/story must trace back to a non-nullable `source_id` — schema-enforced (Section 6.8), not just a UI convention.

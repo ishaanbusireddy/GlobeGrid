@@ -1,10 +1,13 @@
-"""GET /api/instability, GET /api/sources/status (Section 8.1)."""
+"""GET /api/instability, GET /api/sources/status (Section 8.1), plus the
+Section 5.8 display-time translation call (POST /api/translate)."""
 import re
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.db.models import InstabilityScore, Source
 from app.db.session import get_db
 
@@ -68,3 +71,33 @@ def get_sources_status(session: Session = Depends(get_db)):
         }
         for s in sources
     ]
+
+
+class TranslateRequest(BaseModel):
+    text: str
+    target_language: str = "English"
+
+
+@router.post("/translate")
+def translate(body: TranslateRequest):
+    """Section 5.8: translation happens at display time, not ingestion time —
+    the original text is never modified; the client keeps it and toggles.
+    Short-summary translation only (full-article translation is out of
+    scope; the outbound link to the original suffices)."""
+    settings = get_settings()
+    if not settings.claude_api_key:
+        raise HTTPException(status_code=503, detail="translation unavailable: CLAUDE_API_KEY not configured")
+    if len(body.text) > 4000:
+        raise HTTPException(status_code=400, detail="display-time translation is for short summaries only")
+
+    from anthropic import Anthropic
+
+    client = Anthropic(api_key=settings.claude_api_key)
+    response = client.messages.create(
+        model=settings.claude_model,
+        max_tokens=1024,
+        system="Translate the user's text. Return only the translation, no commentary.",
+        messages=[{"role": "user", "content": f"Translate into {body.target_language}:\n\n{body.text}"}],
+    )
+    translated = "".join(block.text for block in response.content if block.type == "text")
+    return {"original": body.text, "translated": translated, "target_language": body.target_language}
