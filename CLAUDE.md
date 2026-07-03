@@ -35,15 +35,38 @@ explicitly confirmed working by the project owner.
 | 5 | Wire graphics to the real API from Phase 3; purge `_synthetic` rows |
 | 6 | Remaining features + Tiers 2/3 — instability index, bias view, multi-language, resilience hardening |
 
-Current status: **Phase 1 implemented — schema/migrations/ingestion/extraction/
-embedding built and verified locally** (real Postgres 16 + PostGIS + pgvector:
-migration applies cleanly, `db_bootstrap.sql` extension creation, per-source-type
-extraction into `events`/`extracted_facts`, pgvector `vector(384)` storage
-round-trip all confirmed). Live network calls to the actual RSS/GDELT/USGS/
-Alpha Vantage/Reddit endpoints and the sentence-transformers model download
-were not exercised in the build sandbox (network policy), so a first run on
-the real machine should be watched once for source-specific surprises. Not
-yet confirmed by the project owner — do not start Phase 2 until they say so.
+Current status: **Phase 1 and Phase 2 implemented and verified locally.**
+
+Phase 1 — schema/migrations/ingestion/extraction/embedding, verified against
+real Postgres 16 + PostGIS + pgvector: migration applies cleanly,
+`db_bootstrap.sql` extension creation, per-source-type extraction into
+`events`/`extracted_facts`, pgvector `vector(384)` storage round-trip all
+confirmed. Live network calls to the actual RSS/GDELT/USGS/Alpha
+Vantage/Reddit endpoints and the sentence-transformers model download were
+not exercised in the build sandbox (network policy), so a first run on the
+real machine should be watched once for source-specific surprises.
+
+Phase 2 — `backend/app/processing/correlate.py` (Stage 4, Section 5.4) and
+`causal_link.py` (Stage 5, Section 5.5/9), verified against real Phase 1
+schema with hand-seeded fixtures (real semantic embeddings weren't available
+in the sandbox either, same network constraint as Phase 1's model download —
+fixtures used deterministic vectors instead): confirmed a same-window
+cross-source match (two independently-sourced events describing one
+earthquake correctly merge into one story, including their extracted_facts),
+a historical-chain match (two facts ~120 days apart, well beyond
+same_window_max_gap_hours, correctly linked only via the historical path),
+and correct non-clustering of an unrelated item. One correctness bug was
+found and fixed during testing: an event and its own extracted_fact (same
+underlying raw item) were being matched against each other as if they were
+independent cross-stream evidence — correlate.py now explicitly excludes an
+item from matching its own parent/child record. The causal-linker's JSON
+shape validation, malformed-output retry, and low-confidence/null-narrative
+fallback (Section 9) were verified with a mocked Claude response, since no
+live CLAUDE_API_KEY/network was available in the sandbox — the real
+end-to-end LLM call needs a first supervised run on the real machine.
+
+Not yet confirmed by the project owner — do not start Phase 3 until they
+say so.
 
 ## Key constraints to remember
 
