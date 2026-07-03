@@ -35,7 +35,7 @@ explicitly confirmed working by the project owner.
 | 5 | Wire graphics to the real API from Phase 3; purge `_synthetic` rows |
 | 6 | Remaining features + Tiers 2/3 — instability index, bias view, multi-language, resilience hardening |
 
-Current status: **Phase 1 and Phase 2 implemented and verified locally.**
+Current status: **Phase 1, Phase 2, and Phase 3 implemented and verified locally.**
 
 Phase 1 — schema/migrations/ingestion/extraction/embedding, verified against
 real Postgres 16 + PostGIS + pgvector: migration applies cleanly,
@@ -65,7 +65,33 @@ fallback (Section 9) were verified with a mocked Claude response, since no
 live CLAUDE_API_KEY/network was available in the sandbox — the real
 end-to-end LLM call needs a first supervised run on the real machine.
 
-Not yet confirmed by the project owner — do not start Phase 3 until they
+Phase 3 — `backend/app/main.py` (FastAPI entrypoint), `backend/app/api/
+routes_{stories,events,map,status}.py` (Section 8.1), and `backend/app/
+websocket/feed_socket.py` (Section 8.2), verified against a real running
+server (uvicorn) backed by real Postgres with Phase 1/2 data: every REST
+endpoint hit with curl and returning correct data (bbox filtering on
+`/api/events` correctly narrowed 3 events to the 2 within a Chile bounding
+box; `/api/map/clusters` correctly returns individual pins below the
+15-pin/300km threshold; `/api/stories/{id}` correctly resolves outbound
+links per Section 6.8 by reading them back out of `raw_items.raw_content`,
+since that link isn't preserved on `events`/`extracted_facts` themselves).
+The WS `/ws/feed` envelope was verified end-to-end with a real WebSocket
+client: connected, triggered a new Phase 2 correlation pass in a separate
+process, and confirmed a `story_created` message arrived matching the exact
+Section 8.2 envelope shape. Two real bugs were found and fixed during this
+testing: (1) `correlate.py`'s match-logging call crashed on numpy
+`float32` values, since pgvector returns embeddings as numpy arrays, not
+plain Python floats — embeddings are now cast to `float` on load; (2) the
+WebSocket broadcaster was silently dropping every connection on its first
+send, because `WebSocket.send_json()` uses plain `json.dumps` (unlike
+FastAPI's HTTP responses, which run through `jsonable_encoder`
+automatically) and story payloads contain raw `datetime` objects —
+`ConnectionManager.broadcast()` now runs `jsonable_encoder` explicitly and
+logs (rather than silently swallows) any send failure. `GET /api/instability`
+is wired and correctly returns an empty result for now, since
+`instability_scores` isn't populated until Phase 6.
+
+Not yet confirmed by the project owner — do not start Phase 4 until they
 say so.
 
 ## Key constraints to remember

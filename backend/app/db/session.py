@@ -23,3 +23,13 @@ def get_session():
         raise
     finally:
         session.close()
+
+
+def get_db():
+    """FastAPI dependency: one session per request (Section 8, read-only
+    endpoints — no explicit commit needed, but harmless if one occurs)."""
+    session = SessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
