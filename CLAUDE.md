@@ -109,6 +109,23 @@ map clicks. The 60fps budget could not be validated in the sandbox — no
 GPU, SwiftShader software rendering caps ~15fps — needs a check on the real
 machine's GPU.
 
+Phase 5 — frontend wired to the real API: `src/api/client.js` (Section 8.1
+endpoints), `src/api/socket.js` (full Section 8.2 client contract:
+exponential-backoff reconnect, fallback to 15s REST polling of
+`/api/stories?since=` if the socket isn't back within 60s, polling stops on
+first successful reconnect), `src/api/liveProvider.js` swapped in as the
+active `dataProvider`. Verified end-to-end in a real browser against the
+real backend: feed/globe/story pages render from live `/api/*` data; a new
+story created by a real Phase 2 correlation pass appeared in the open feed
+via WS push (61→62 cards); and the resilience path was physically tested —
+backend killed → `reconnecting` at t≈0, `polling` at exactly t=60s, backend
+restarted → recovered to `websocket` at t=62s. `scripts/purge_synthetic.py`
+then purged all `_synthetic` rows in one transaction (verified: 60 stories /
+300 events / 234 members / 169 scores removed; real rows and
+`extracted_facts` untouched). On the real machine, run
+`generate_synthetic_data.py` only if you want the Phase 4 demo data, and
+`purge_synthetic.py` after confirming real wiring.
+
 ## Key constraints to remember
 
 - Every rendered fact/event/story must trace back to a non-nullable `source_id` — schema-enforced (Section 6.8), not just a UI convention.

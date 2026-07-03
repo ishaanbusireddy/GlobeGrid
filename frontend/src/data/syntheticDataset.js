@@ -3,7 +3,7 @@
 const syntheticDataset = {
  "events": [
   {
-   "id": "948f8735-0586-4867-9789-fa72e4b6dba4",
+   "id": "c2bea47b-1042-490a-95b3-ec372a7b206f",
    "title": "Ceasefire talks stall near Tehran",
    "description": "ceasefire talks stall near tehran",
    "location": [
@@ -13,14 +13,14 @@ const syntheticDataset = {
    "location_name": "Tehran",
    "category": "conflict",
    "severity": 1,
-   "occurred_at": "2026-06-30T10:00:45.862509+00:00",
+   "occurred_at": "2026-06-30T10:03:13.230528+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "b1642220-2579-4b4d-acd2-c1b5405d437f",
+   "id": "cc4f7645-7d94-49f6-8123-03614a6db896",
    "title": "Currency pressure builds in Bangkok",
    "description": "currency pressure builds in bangkok",
    "location": [
@@ -30,14 +30,14 @@ const syntheticDataset = {
    "location_name": "Bangkok",
    "category": "finance",
    "severity": 5,
-   "occurred_at": "2026-07-02T05:03:33.659935+00:00",
+   "occurred_at": "2026-07-02T05:06:01.027954+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "a0f420eb-90c2-4f87-a5bc-d5683d546eec",
+   "id": "60ce2b1e-448d-4a68-a172-d05363355884",
    "title": "Flooding reported near Lagos",
    "description": "flooding reported near lagos",
    "location": [
@@ -47,14 +47,14 @@ const syntheticDataset = {
    "location_name": "Lagos",
    "category": "disaster",
    "severity": 2,
-   "occurred_at": "2026-07-02T20:03:11.634258+00:00",
+   "occurred_at": "2026-07-02T20:05:39.002277+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "f970cfc9-3351-41d5-ab13-c9be3c66b922",
+   "id": "111843bb-3d9c-41a5-91f2-a17dc5744c2b",
    "title": "Wildfire risk elevated around Tokyo",
    "description": "wildfire risk elevated around tokyo",
    "location": [
@@ -64,14 +64,14 @@ const syntheticDataset = {
    "location_name": "Tokyo",
    "category": "disaster",
    "severity": 1,
-   "occurred_at": "2026-07-01T08:37:53.269612+00:00",
+   "occurred_at": "2026-07-01T08:40:20.637631+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "313f3a01-d41e-4ee4-afd7-3186b54c8396",
+   "id": "d427861d-33ee-4a00-a3ae-1aa5e71c5cf5",
    "title": "Supply chain alert issued for Shenzhen",
    "description": "supply chain alert issued for shenzhen",
    "location": [
@@ -81,14 +81,14 @@ const syntheticDataset = {
    "location_name": "Shenzhen",
    "category": "other",
    "severity": 3,
-   "occurred_at": "2026-06-29T15:00:34.200276+00:00",
+   "occurred_at": "2026-06-29T15:03:01.568295+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "3e70caba-307a-42a7-b5b2-0d86933a2ce8",
+   "id": "6633992c-90c5-48a9-86ee-d987bec98ddb",
    "title": "Severe storm system approaching Moscow",
    "description": "severe storm system approaching moscow",
    "location": [
@@ -98,14 +98,14 @@ const syntheticDataset = {
    "location_name": "Moscow",
    "category": "disaster",
    "severity": 4,
-   "occurred_at": "2026-07-01T06:10:06.759696+00:00",
+   "occurred_at": "2026-07-01T06:12:34.127715+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "13fbb487-e71c-440d-adc5-e4e8da1753c2",
+   "id": "26c5cf2f-207d-428e-995e-999927a7425d",
    "title": "Ceasefire talks stall near Beijing",
    "description": "ceasefire talks stall near beijing",
    "location": [
@@ -115,14 +115,14 @@ const syntheticDataset = {
    "location_name": "Beijing",
    "category": "conflict",
    "severity": 3,
-   "occurred_at": "2026-07-01T11:22:36.809720+00:00",
+   "occurred_at": "2026-07-01T11:25:04.177739+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "be0f9baa-f14c-4296-a418-9fa39bb8843e",
+   "id": "696c0154-b309-473a-87bc-7e436de6a21f",
    "title": "Flooding reported near Berlin",
    "description": "flooding reported near berlin",
    "location": [
@@ -132,14 +132,14 @@ const syntheticDataset = {
    "location_name": "Berlin",
    "category": "disaster",
    "severity": 4,
-   "occurred_at": "2026-06-30T02:42:27.249178+00:00",
+   "occurred_at": "2026-06-30T02:44:54.617197+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "ce4c820f-3979-4133-8c92-a5dcf1c475f1",
+   "id": "e329540a-4965-4496-a03f-08877ad939fe",
    "title": "Policy shift announced in Chennai",
    "description": "policy shift announced in chennai",
    "location": [
@@ -149,14 +149,14 @@ const syntheticDataset = {
    "location_name": "Chennai",
    "category": "geopolitics",
    "severity": 1,
-   "occurred_at": "2026-06-30T22:52:19.323246+00:00",
+   "occurred_at": "2026-06-30T22:54:46.691265+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "59f088e7-5a25-4d24-a369-3e30c7c859a4",
+   "id": "fb86a673-4e8a-4084-9834-ccce2a770fc7",
    "title": "Public health advisory issued for Bangkok",
    "description": "public health advisory issued for bangkok",
    "location": [
@@ -166,14 +166,14 @@ const syntheticDataset = {
    "location_name": "Bangkok",
    "category": "other",
    "severity": 2,
-   "occurred_at": "2026-07-01T05:20:27.557122+00:00",
+   "occurred_at": "2026-07-01T05:22:54.925141+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "c245d004-97c1-4a20-806b-940d742dc78f",
+   "id": "55f513d2-0774-42c4-8875-45aded2200b9",
    "title": "Flooding reported near Chengdu",
    "description": "flooding reported near chengdu",
    "location": [
@@ -183,14 +183,14 @@ const syntheticDataset = {
    "location_name": "Chengdu",
    "category": "disaster",
    "severity": 4,
-   "occurred_at": "2026-06-30T16:04:11.161508+00:00",
+   "occurred_at": "2026-06-30T16:06:38.529527+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "46960193-4ca6-4431-b025-c62f911c5159",
+   "id": "fe82f6f9-7cca-4922-9caf-9d9776a85b28",
    "title": "Border tensions escalate near Beijing",
    "description": "border tensions escalate near beijing",
    "location": [
@@ -200,14 +200,14 @@ const syntheticDataset = {
    "location_name": "Beijing",
    "category": "conflict",
    "severity": 2,
-   "occurred_at": "2026-07-02T03:18:03.971571+00:00",
+   "occurred_at": "2026-07-02T03:20:31.339590+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "0433272b-377b-4200-9282-ed8a8f95fb67",
+   "id": "31d27095-3b48-4fe8-bd27-688b8825f27a",
    "title": "Wildfire risk elevated around Hyderabad",
    "description": "wildfire risk elevated around hyderabad",
    "location": [
@@ -217,14 +217,14 @@ const syntheticDataset = {
    "location_name": "Hyderabad",
    "category": "disaster",
    "severity": 4,
-   "occurred_at": "2026-07-02T18:51:01.655502+00:00",
+   "occurred_at": "2026-07-02T18:53:29.023521+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "c13ad875-17bd-4ba0-891a-eea23085f335",
+   "id": "a0bc2bf1-3f96-47c2-9984-1c4aba5f7e12",
    "title": "Currency pressure builds in Istanbul",
    "description": "currency pressure builds in istanbul",
    "location": [
@@ -234,14 +234,14 @@ const syntheticDataset = {
    "location_name": "Istanbul",
    "category": "finance",
    "severity": 4,
-   "occurred_at": "2026-07-02T02:45:15.126702+00:00",
+   "occurred_at": "2026-07-02T02:47:42.494721+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "53f90999-cdd1-4ca2-a82d-2752a38d2c57",
+   "id": "93a0e38f-54ae-4f09-b665-305174961287",
    "title": "Currency pressure builds in Lagos",
    "description": "currency pressure builds in lagos",
    "location": [
@@ -251,14 +251,14 @@ const syntheticDataset = {
    "location_name": "Lagos",
    "category": "finance",
    "severity": 3,
-   "occurred_at": "2026-07-02T08:47:29.297451+00:00",
+   "occurred_at": "2026-07-02T08:49:56.665470+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "ec774265-d51c-4e72-a257-ce68f02a771e",
+   "id": "a38d6297-96ef-48c6-803d-bafbac3685ec",
    "title": "Communications outage affecting Shanghai",
    "description": "communications outage affecting shanghai",
    "location": [
@@ -268,14 +268,14 @@ const syntheticDataset = {
    "location_name": "Shanghai",
    "category": "other",
    "severity": 5,
-   "occurred_at": "2026-07-01T00:08:41.491981+00:00",
+   "occurred_at": "2026-07-01T00:11:08.860000+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "9ffe519c-f525-41d3-a95f-f2419a129a0b",
+   "id": "e427f140-e433-4e17-98e9-c1ebf6a18d21",
    "title": "Infrastructure disruption in Manila",
    "description": "infrastructure disruption in manila",
    "location": [
@@ -285,14 +285,14 @@ const syntheticDataset = {
    "location_name": "Manila",
    "category": "other",
    "severity": 3,
-   "occurred_at": "2026-07-02T04:06:53.141813+00:00",
+   "occurred_at": "2026-07-02T04:09:20.509832+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "6329dfc2-05e0-4fff-8536-90d1beeac9e3",
+   "id": "4c83acea-877e-4765-b897-4341217cf77a",
    "title": "Central bank intervention in Nairobi",
    "description": "central bank intervention in nairobi",
    "location": [
@@ -302,14 +302,14 @@ const syntheticDataset = {
    "location_name": "Nairobi",
    "category": "finance",
    "severity": 1,
-   "occurred_at": "2026-07-02T09:46:03.557695+00:00",
+   "occurred_at": "2026-07-02T09:48:30.925714+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "21b462a6-2b18-4e6a-85a7-7042e2eb21dd",
+   "id": "c0b1c46e-5255-4e96-b4e4-bfd072b406bc",
    "title": "Supply chain alert issued for Beijing",
    "description": "supply chain alert issued for beijing",
    "location": [
@@ -319,14 +319,14 @@ const syntheticDataset = {
    "location_name": "Beijing",
    "category": "other",
    "severity": 1,
-   "occurred_at": "2026-07-02T03:12:34.311650+00:00",
+   "occurred_at": "2026-07-02T03:15:01.679669+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "ff530fc1-171c-424a-9a10-93a873e8df73",
+   "id": "6ffaa217-a894-4702-99f2-242910e33d52",
    "title": "Public health advisory issued for Bangalore",
    "description": "public health advisory issued for bangalore",
    "location": [
@@ -336,14 +336,14 @@ const syntheticDataset = {
    "location_name": "Bangalore",
    "category": "other",
    "severity": 1,
-   "occurred_at": "2026-06-30T04:33:57.043520+00:00",
+   "occurred_at": "2026-06-30T04:36:24.411539+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "b73b6f89-0bfe-43b0-af02-a4b5a53c046d",
+   "id": "27a25499-5869-46cb-869e-db2ed97eea34",
    "title": "Election results contested in Bangkok",
    "description": "election results contested in bangkok",
    "location": [
@@ -353,14 +353,14 @@ const syntheticDataset = {
    "location_name": "Bangkok",
    "category": "geopolitics",
    "severity": 5,
-   "occurred_at": "2026-07-02T12:06:59.897853+00:00",
+   "occurred_at": "2026-07-02T12:09:27.265872+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "1e04bc0d-2098-4ba4-8671-6404a3cc6d97",
+   "id": "735e517e-23a8-4a9c-9a8d-5661407a023b",
    "title": "Election results contested in Bangkok",
    "description": "election results contested in bangkok",
    "location": [
@@ -370,14 +370,14 @@ const syntheticDataset = {
    "location_name": "Bangkok",
    "category": "geopolitics",
    "severity": 2,
-   "occurred_at": "2026-06-29T08:03:53.057201+00:00",
+   "occurred_at": "2026-06-29T08:06:20.425220+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "3eeacd05-6282-4658-bb53-0e32c81267d6",
+   "id": "e9891a16-ddb0-40e9-935c-f01918cfb2ca",
    "title": "Diplomatic summit convened in S\u00e3o Paulo",
    "description": "diplomatic summit convened in s\u00e3o paulo",
    "location": [
@@ -387,14 +387,14 @@ const syntheticDataset = {
    "location_name": "S\u00e3o Paulo",
    "category": "geopolitics",
    "severity": 1,
-   "occurred_at": "2026-07-03T03:15:13.263857+00:00",
+   "occurred_at": "2026-07-03T03:17:40.631876+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "3d0a7b40-602a-4e4b-81b2-ffd431a7e915",
+   "id": "27584a07-b4ee-4367-be72-65c2ab55ecd6",
    "title": "Ceasefire talks stall near Chengdu",
    "description": "ceasefire talks stall near chengdu",
    "location": [
@@ -404,14 +404,14 @@ const syntheticDataset = {
    "location_name": "Chengdu",
    "category": "conflict",
    "severity": 1,
-   "occurred_at": "2026-07-01T16:57:00.153044+00:00",
+   "occurred_at": "2026-07-01T16:59:27.521063+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "beb247b1-8e93-471a-a91d-ee760826e32e",
+   "id": "8ced6919-c3a2-4ac0-a019-3a9d41e3118b",
    "title": "Communications outage affecting Manila",
    "description": "communications outage affecting manila",
    "location": [
@@ -421,14 +421,14 @@ const syntheticDataset = {
    "location_name": "Manila",
    "category": "other",
    "severity": 1,
-   "occurred_at": "2026-07-02T10:14:56.158288+00:00",
+   "occurred_at": "2026-07-02T10:17:23.526307+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "ffad8dca-6e2a-4ea9-956b-d1238ebafec1",
+   "id": "7f9499b4-4a79-441d-ac4a-f6ed61b104c5",
    "title": "Security incident reported in Nairobi",
    "description": "security incident reported in nairobi",
    "location": [
@@ -438,14 +438,14 @@ const syntheticDataset = {
    "location_name": "Nairobi",
    "category": "conflict",
    "severity": 1,
-   "occurred_at": "2026-06-30T05:07:16.640051+00:00",
+   "occurred_at": "2026-06-30T05:09:44.008070+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "c74a4359-3452-4014-b54d-2ec3b7993307",
+   "id": "0982acbe-3a8a-47be-bda7-cebb89b77f01",
    "title": "Security incident reported in Mumbai",
    "description": "security incident reported in mumbai",
    "location": [
@@ -455,14 +455,14 @@ const syntheticDataset = {
    "location_name": "Mumbai",
    "category": "conflict",
    "severity": 3,
-   "occurred_at": "2026-06-30T11:08:17.083383+00:00",
+   "occurred_at": "2026-06-30T11:10:44.451402+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "36e1a678-3688-442c-9562-cd809893e354",
+   "id": "6999347b-62dd-41c1-8bfc-d947abd9b3a1",
    "title": "Seismic activity recorded near Chennai",
    "description": "seismic activity recorded near chennai",
    "location": [
@@ -472,14 +472,14 @@ const syntheticDataset = {
    "location_name": "Chennai",
    "category": "disaster",
    "severity": 3,
-   "occurred_at": "2026-07-02T18:21:26.324391+00:00",
+   "occurred_at": "2026-07-02T18:23:53.692410+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "25bb3282-d3a2-4420-b852-726367a24827",
+   "id": "b8fbcfb6-8183-4185-9519-694fbd0d913c",
    "title": "Protest movement grows in Shenzhen",
    "description": "protest movement grows in shenzhen",
    "location": [
@@ -489,14 +489,14 @@ const syntheticDataset = {
    "location_name": "Shenzhen",
    "category": "conflict",
    "severity": 3,
-   "occurred_at": "2026-06-30T02:40:40.834597+00:00",
+   "occurred_at": "2026-06-30T02:43:08.202616+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "3c18ce89-3ac4-4543-b534-b27ea2ee34d4",
+   "id": "5b6de001-d09f-4265-b35a-26581b17364c",
    "title": "Flooding reported near Osaka",
    "description": "flooding reported near osaka",
    "location": [
@@ -506,14 +506,14 @@ const syntheticDataset = {
    "location_name": "Osaka",
    "category": "disaster",
    "severity": 3,
-   "occurred_at": "2026-07-03T00:04:51.403195+00:00",
+   "occurred_at": "2026-07-03T00:07:18.771214+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "217b1517-d139-4993-b909-e3bd860db3cb",
+   "id": "14ce4a1a-e7b3-49fa-a445-cfa6991af56e",
    "title": "Supply chain alert issued for Berlin",
    "description": "supply chain alert issued for berlin",
    "location": [
@@ -523,14 +523,14 @@ const syntheticDataset = {
    "location_name": "Berlin",
    "category": "other",
    "severity": 4,
-   "occurred_at": "2026-06-30T20:48:14.706303+00:00",
+   "occurred_at": "2026-06-30T20:50:42.074322+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "ad9df0f6-f97b-4db7-bfca-59039e0c1c11",
+   "id": "6ec85341-9387-4dd1-b27c-51652801676b",
    "title": "Currency pressure builds in Mumbai",
    "description": "currency pressure builds in mumbai",
    "location": [
@@ -540,14 +540,14 @@ const syntheticDataset = {
    "location_name": "Mumbai",
    "category": "finance",
    "severity": 5,
-   "occurred_at": "2026-06-30T15:26:06.906969+00:00",
+   "occurred_at": "2026-06-30T15:28:34.274988+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "7b352aff-45ce-4335-aa2d-c10b82a027b8",
+   "id": "caf26329-72f8-46eb-9317-0dd1d66f1d68",
    "title": "Policy shift announced in S\u00e3o Paulo",
    "description": "policy shift announced in s\u00e3o paulo",
    "location": [
@@ -557,14 +557,14 @@ const syntheticDataset = {
    "location_name": "S\u00e3o Paulo",
    "category": "geopolitics",
    "severity": 1,
-   "occurred_at": "2026-07-02T21:28:21.225305+00:00",
+   "occurred_at": "2026-07-02T21:30:48.593324+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "748e06f9-641f-4b47-89a2-5f182cda7e94",
+   "id": "b1a03abf-8be4-44a3-b83e-6416d5722753",
    "title": "Seismic activity recorded near Seoul",
    "description": "seismic activity recorded near seoul",
    "location": [
@@ -574,14 +574,14 @@ const syntheticDataset = {
    "location_name": "Seoul",
    "category": "disaster",
    "severity": 2,
-   "occurred_at": "2026-06-30T14:48:05.441678+00:00",
+   "occurred_at": "2026-06-30T14:50:32.809697+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "3f6cffde-1efc-46b3-92d3-8c61692d5115",
+   "id": "c70c93f2-7b72-44b3-93e6-3597f5b73a70",
    "title": "Ceasefire talks stall near Tianjin",
    "description": "ceasefire talks stall near tianjin",
    "location": [
@@ -591,14 +591,14 @@ const syntheticDataset = {
    "location_name": "Tianjin",
    "category": "conflict",
    "severity": 1,
-   "occurred_at": "2026-07-02T06:34:38.423578+00:00",
+   "occurred_at": "2026-07-02T06:37:05.791597+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "30e51e26-d733-415c-b9f7-1398ad5d086f",
+   "id": "bff759c4-9cf8-41fe-9792-9822e4efd272",
    "title": "Ceasefire talks stall near Nairobi",
    "description": "ceasefire talks stall near nairobi",
    "location": [
@@ -608,14 +608,14 @@ const syntheticDataset = {
    "location_name": "Nairobi",
    "category": "conflict",
    "severity": 1,
-   "occurred_at": "2026-06-29T09:17:10.225903+00:00",
+   "occurred_at": "2026-06-29T09:19:37.593922+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "9eb6b1d0-0926-4758-b2d5-827333ba6396",
+   "id": "5ba5aa38-701b-4de0-b746-3a391ba4d9da",
    "title": "Central bank intervention in Dhaka",
    "description": "central bank intervention in dhaka",
    "location": [
@@ -625,14 +625,14 @@ const syntheticDataset = {
    "location_name": "Dhaka",
    "category": "finance",
    "severity": 3,
-   "occurred_at": "2026-06-30T17:31:17.445860+00:00",
+   "occurred_at": "2026-06-30T17:33:44.813879+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "dc1ce0fe-bd6b-4ba6-bfe8-3469fc44e1d2",
+   "id": "e22623fe-702d-404f-99c5-ff6506b80fbc",
    "title": "Central bank intervention in Chennai",
    "description": "central bank intervention in chennai",
    "location": [
@@ -642,14 +642,14 @@ const syntheticDataset = {
    "location_name": "Chennai",
    "category": "finance",
    "severity": 3,
-   "occurred_at": "2026-07-01T10:00:37.476702+00:00",
+   "occurred_at": "2026-07-01T10:03:04.844721+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "30df4008-5400-4647-8dea-18ef5a49058b",
+   "id": "bbedbfac-5b00-4a0f-81fc-8ce8d632b2b8",
    "title": "Currency pressure builds in Chennai",
    "description": "currency pressure builds in chennai",
    "location": [
@@ -659,14 +659,14 @@ const syntheticDataset = {
    "location_name": "Chennai",
    "category": "finance",
    "severity": 3,
-   "occurred_at": "2026-07-02T22:39:10.344617+00:00",
+   "occurred_at": "2026-07-02T22:41:37.712636+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "7f52c3c1-a733-4ec5-9783-350a5a3ac9e7",
+   "id": "613c53a5-4d6c-4e47-8f8d-a43775c655a4",
    "title": "Supply chain alert issued for Jakarta",
    "description": "supply chain alert issued for jakarta",
    "location": [
@@ -676,14 +676,14 @@ const syntheticDataset = {
    "location_name": "Jakarta",
    "category": "other",
    "severity": 2,
-   "occurred_at": "2026-07-01T13:59:55.631230+00:00",
+   "occurred_at": "2026-07-01T14:02:22.999249+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "1e3d8b37-acc9-4327-9acb-f019a23b340b",
+   "id": "1f2a9616-3422-4ec4-9ccf-5854177904ab",
    "title": "Flooding reported near Hyderabad",
    "description": "flooding reported near hyderabad",
    "location": [
@@ -693,14 +693,14 @@ const syntheticDataset = {
    "location_name": "Hyderabad",
    "category": "disaster",
    "severity": 3,
-   "occurred_at": "2026-06-29T13:48:19.021831+00:00",
+   "occurred_at": "2026-06-29T13:50:46.389850+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "4aabfcc8-df35-4d3d-99b5-2b1a5c37903a",
+   "id": "4d270c9b-5ac9-45ea-9b3f-ec8235f9bb17",
    "title": "Border tensions escalate near Sydney",
    "description": "border tensions escalate near sydney",
    "location": [
@@ -710,14 +710,14 @@ const syntheticDataset = {
    "location_name": "Sydney",
    "category": "conflict",
    "severity": 3,
-   "occurred_at": "2026-06-29T17:24:36.926792+00:00",
+   "occurred_at": "2026-06-29T17:27:04.294811+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "a4ad6d03-9171-419a-9cdf-e85af9ff0234",
+   "id": "917575ca-541a-4c59-8394-b3c2c619dcaf",
    "title": "Election results contested in Chengdu",
    "description": "election results contested in chengdu",
    "location": [
@@ -727,14 +727,14 @@ const syntheticDataset = {
    "location_name": "Chengdu",
    "category": "geopolitics",
    "severity": 4,
-   "occurred_at": "2026-07-02T16:16:59.253972+00:00",
+   "occurred_at": "2026-07-02T16:19:26.621991+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "e6c5051b-4be6-4596-aa8b-aeb50624a83c",
+   "id": "d01bb2c9-3e74-45fd-9066-abb1677485cf",
    "title": "Public health advisory issued for Lima",
    "description": "public health advisory issued for lima",
    "location": [
@@ -744,14 +744,14 @@ const syntheticDataset = {
    "location_name": "Lima",
    "category": "other",
    "severity": 4,
-   "occurred_at": "2026-07-01T11:28:54.165129+00:00",
+   "occurred_at": "2026-07-01T11:31:21.533148+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "eba61a4f-1124-4178-94e5-b9237c49671c",
+   "id": "10ef0830-8d07-4e53-80ea-19a8c33e8ea1",
    "title": "Policy shift announced in Nairobi",
    "description": "policy shift announced in nairobi",
    "location": [
@@ -761,14 +761,14 @@ const syntheticDataset = {
    "location_name": "Nairobi",
    "category": "geopolitics",
    "severity": 3,
-   "occurred_at": "2026-06-30T17:31:45.740369+00:00",
+   "occurred_at": "2026-06-30T17:34:13.108388+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "0d4c8a39-3ed8-49f4-8341-6ad075ef2d2c",
+   "id": "96fce2bf-5f05-4f48-b61e-39b0efd07bac",
    "title": "Policy shift announced in Istanbul",
    "description": "policy shift announced in istanbul",
    "location": [
@@ -778,14 +778,14 @@ const syntheticDataset = {
    "location_name": "Istanbul",
    "category": "geopolitics",
    "severity": 4,
-   "occurred_at": "2026-07-02T10:34:24.236937+00:00",
+   "occurred_at": "2026-07-02T10:36:51.604956+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "388bf70a-a776-4eee-bf41-ac3b83c06b29",
+   "id": "ba8d569e-1350-42f3-b8a2-299a2dda14e7",
    "title": "Infrastructure disruption in Chennai",
    "description": "infrastructure disruption in chennai",
    "location": [
@@ -795,14 +795,14 @@ const syntheticDataset = {
    "location_name": "Chennai",
    "category": "other",
    "severity": 1,
-   "occurred_at": "2026-07-02T08:38:51.582964+00:00",
+   "occurred_at": "2026-07-02T08:41:18.950983+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "e56eac39-4b5e-4fc9-a4b8-e5fc7abb0b60",
+   "id": "ebc41f78-9294-4f9e-a16c-c8ad4a8bb26d",
    "title": "Security incident reported in Chennai",
    "description": "security incident reported in chennai",
    "location": [
@@ -812,14 +812,14 @@ const syntheticDataset = {
    "location_name": "Chennai",
    "category": "conflict",
    "severity": 4,
-   "occurred_at": "2026-07-02T09:54:16.038812+00:00",
+   "occurred_at": "2026-07-02T09:56:43.406831+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "abd181b3-c62e-4ed9-990d-605968b7de23",
+   "id": "e119fb55-04a8-4fb1-8d65-026cf95f80c1",
    "title": "Security incident reported in Mexico City",
    "description": "security incident reported in mexico city",
    "location": [
@@ -829,14 +829,14 @@ const syntheticDataset = {
    "location_name": "Mexico City",
    "category": "conflict",
    "severity": 5,
-   "occurred_at": "2026-06-29T15:14:24.847227+00:00",
+   "occurred_at": "2026-06-29T15:16:52.215246+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "96da179d-0695-4d33-8e11-8db9e50a1510",
+   "id": "a06b66c5-2e23-48dd-8f36-1b329cc8b577",
    "title": "Port congestion reported at Hyderabad shipping hub",
    "description": "port congestion reported at hyderabad shipping hub",
    "location": [
@@ -846,14 +846,14 @@ const syntheticDataset = {
    "location_name": "Hyderabad",
    "category": "finance",
    "severity": 3,
-   "occurred_at": "2026-07-01T19:21:12.139104+00:00",
+   "occurred_at": "2026-07-01T19:23:39.507123+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "82f39799-fda3-4e1f-9100-7756d7f66005",
+   "id": "200ad901-3303-4998-9a9d-9ae3a642230c",
    "title": "Seismic activity recorded near Bangalore",
    "description": "seismic activity recorded near bangalore",
    "location": [
@@ -863,14 +863,14 @@ const syntheticDataset = {
    "location_name": "Bangalore",
    "category": "disaster",
    "severity": 3,
-   "occurred_at": "2026-06-30T04:07:47.500031+00:00",
+   "occurred_at": "2026-06-30T04:10:14.868050+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "6e29f59c-22c3-4828-9125-38b909f87d0f",
+   "id": "7d03aeca-d41a-4aec-a0db-532ec06dc0dc",
    "title": "Election results contested in Lagos",
    "description": "election results contested in lagos",
    "location": [
@@ -880,14 +880,14 @@ const syntheticDataset = {
    "location_name": "Lagos",
    "category": "geopolitics",
    "severity": 2,
-   "occurred_at": "2026-07-02T11:27:32.192387+00:00",
+   "occurred_at": "2026-07-02T11:29:59.560406+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "59077fc1-f43a-45d1-bc3c-0d48fc58942f",
+   "id": "f48fa9d1-31f1-4e92-a767-2c37dafdfd41",
    "title": "Ceasefire talks stall near Delhi",
    "description": "ceasefire talks stall near delhi",
    "location": [
@@ -897,14 +897,14 @@ const syntheticDataset = {
    "location_name": "Delhi",
    "category": "conflict",
    "severity": 5,
-   "occurred_at": "2026-07-02T03:32:04.914750+00:00",
+   "occurred_at": "2026-07-02T03:34:32.282769+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "af14b4ac-26ae-4b89-a8d1-20e8f096c3e0",
+   "id": "6330e2b4-244c-4f4a-bb02-41b83954c337",
    "title": "Currency pressure builds in Kolkata",
    "description": "currency pressure builds in kolkata",
    "location": [
@@ -914,14 +914,14 @@ const syntheticDataset = {
    "location_name": "Kolkata",
    "category": "finance",
    "severity": 4,
-   "occurred_at": "2026-06-30T13:55:18.615204+00:00",
+   "occurred_at": "2026-06-30T13:57:45.983223+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "80aeec2c-7487-41b2-8218-462b3a916883",
+   "id": "5e848bd4-d086-47de-a5da-02a8f286907d",
    "title": "Supply chain alert issued for Beijing",
    "description": "supply chain alert issued for beijing",
    "location": [
@@ -931,14 +931,14 @@ const syntheticDataset = {
    "location_name": "Beijing",
    "category": "other",
    "severity": 2,
-   "occurred_at": "2026-06-30T09:28:53.212892+00:00",
+   "occurred_at": "2026-06-30T09:31:20.580911+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "ece382cd-e8d0-40ae-a536-f76608ae4756",
+   "id": "5fbf3272-2c3f-4adf-a683-3f5be5d63bc1",
    "title": "Wildfire risk elevated around London",
    "description": "wildfire risk elevated around london",
    "location": [
@@ -948,14 +948,14 @@ const syntheticDataset = {
    "location_name": "London",
    "category": "disaster",
    "severity": 4,
-   "occurred_at": "2026-07-02T23:36:08.231403+00:00",
+   "occurred_at": "2026-07-02T23:38:35.599422+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "479d70f5-b866-4751-b68d-446127706f59",
+   "id": "cfc68adc-8d33-4e37-848d-4bd01f4f33d5",
    "title": "Ceasefire talks stall near Buenos Aires",
    "description": "ceasefire talks stall near buenos aires",
    "location": [
@@ -965,14 +965,14 @@ const syntheticDataset = {
    "location_name": "Buenos Aires",
    "category": "conflict",
    "severity": 4,
-   "occurred_at": "2026-06-30T21:22:10.126065+00:00",
+   "occurred_at": "2026-06-30T21:24:37.494084+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "268af25a-2654-46af-951d-724f4b0f345d",
+   "id": "03709645-aa4d-4d63-b06b-59b045e4ba8e",
    "title": "Protest movement grows in Sydney",
    "description": "protest movement grows in sydney",
    "location": [
@@ -982,14 +982,14 @@ const syntheticDataset = {
    "location_name": "Sydney",
    "category": "conflict",
    "severity": 1,
-   "occurred_at": "2026-07-02T05:56:39.635414+00:00",
+   "occurred_at": "2026-07-02T05:59:07.003433+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "30123044-6633-4220-b193-d5122f4c09aa",
+   "id": "8a80daab-9298-49ab-9107-59f35c7af856",
    "title": "Border tensions escalate near Shenzhen",
    "description": "border tensions escalate near shenzhen",
    "location": [
@@ -999,14 +999,14 @@ const syntheticDataset = {
    "location_name": "Shenzhen",
    "category": "conflict",
    "severity": 5,
-   "occurred_at": "2026-06-30T21:00:52.983329+00:00",
+   "occurred_at": "2026-06-30T21:03:20.351348+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "9bd2a9d2-cea2-4757-8ced-484fe25fc465",
+   "id": "b2977bb7-9e92-409f-b6b9-4384586984b8",
    "title": "Diplomatic summit convened in Paris",
    "description": "diplomatic summit convened in paris",
    "location": [
@@ -1016,14 +1016,14 @@ const syntheticDataset = {
    "location_name": "Paris",
    "category": "geopolitics",
    "severity": 3,
-   "occurred_at": "2026-07-01T23:43:37.800736+00:00",
+   "occurred_at": "2026-07-01T23:46:05.168755+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "543f6ca7-119a-4bec-a1c4-64a61d4007c0",
+   "id": "527aa451-4f32-40c6-b4a5-38180220ba07",
    "title": "Election results contested in Cairo",
    "description": "election results contested in cairo",
    "location": [
@@ -1033,14 +1033,14 @@ const syntheticDataset = {
    "location_name": "Cairo",
    "category": "geopolitics",
    "severity": 5,
-   "occurred_at": "2026-06-30T20:51:08.597308+00:00",
+   "occurred_at": "2026-06-30T20:53:35.965327+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "ad45213c-93cf-4d22-8e4d-72e505d865aa",
+   "id": "b644cacb-d48b-4dbe-a491-a67974daa134",
    "title": "Market volatility spikes in Lima exchange",
    "description": "market volatility spikes in lima exchange",
    "location": [
@@ -1050,14 +1050,14 @@ const syntheticDataset = {
    "location_name": "Lima",
    "category": "finance",
    "severity": 1,
-   "occurred_at": "2026-07-01T21:57:30.634180+00:00",
+   "occurred_at": "2026-07-01T21:59:58.002199+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "0c9c8eae-d5b8-4ce6-975a-1fa5cab3a53a",
+   "id": "73b8be1b-e99f-4c90-be20-bc1269a35f20",
    "title": "Communications outage affecting Manila",
    "description": "communications outage affecting manila",
    "location": [
@@ -1067,14 +1067,14 @@ const syntheticDataset = {
    "location_name": "Manila",
    "category": "other",
    "severity": 5,
-   "occurred_at": "2026-06-30T02:15:36.180551+00:00",
+   "occurred_at": "2026-06-30T02:18:03.548570+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "0ca77e38-bf41-4f80-a98c-2587d145ee73",
+   "id": "ca07471f-6e84-479b-91bc-d9a5c5768ab9",
    "title": "Port congestion reported at Sydney shipping hub",
    "description": "port congestion reported at sydney shipping hub",
    "location": [
@@ -1084,14 +1084,14 @@ const syntheticDataset = {
    "location_name": "Sydney",
    "category": "finance",
    "severity": 3,
-   "occurred_at": "2026-06-30T10:46:31.372143+00:00",
+   "occurred_at": "2026-06-30T10:48:58.740162+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "55cb9f02-6f31-4fe5-9227-815b93df8e2a",
+   "id": "8433c55f-e803-4d92-96e3-26302a56e83e",
    "title": "Border tensions escalate near Tehran",
    "description": "border tensions escalate near tehran",
    "location": [
@@ -1101,14 +1101,14 @@ const syntheticDataset = {
    "location_name": "Tehran",
    "category": "conflict",
    "severity": 2,
-   "occurred_at": "2026-06-30T06:27:54.477209+00:00",
+   "occurred_at": "2026-06-30T06:30:21.845228+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "dde0bfb7-4ad9-45da-a495-58cab3d37b7c",
+   "id": "b3370416-0e46-45c3-b5f7-ca0f372dcebf",
    "title": "Severe storm system approaching Chicago",
    "description": "severe storm system approaching chicago",
    "location": [
@@ -1118,14 +1118,14 @@ const syntheticDataset = {
    "location_name": "Chicago",
    "category": "disaster",
    "severity": 1,
-   "occurred_at": "2026-07-03T00:43:24.230674+00:00",
+   "occurred_at": "2026-07-03T00:45:51.598693+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "814d064d-e7c1-47d6-851c-f8b5587c48fa",
+   "id": "18ab9913-2e95-489a-9164-1939cd01236b",
    "title": "Ceasefire talks stall near Karachi",
    "description": "ceasefire talks stall near karachi",
    "location": [
@@ -1135,14 +1135,14 @@ const syntheticDataset = {
    "location_name": "Karachi",
    "category": "conflict",
    "severity": 1,
-   "occurred_at": "2026-07-01T18:39:05.868778+00:00",
+   "occurred_at": "2026-07-01T18:41:33.236797+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "62475ecc-c765-4f0b-9c53-bada0bf24df4",
+   "id": "58f48aea-90fa-4859-994c-d11c2234dc96",
    "title": "Infrastructure disruption in Berlin",
    "description": "infrastructure disruption in berlin",
    "location": [
@@ -1152,14 +1152,14 @@ const syntheticDataset = {
    "location_name": "Berlin",
    "category": "other",
    "severity": 3,
-   "occurred_at": "2026-07-01T19:31:24.443801+00:00",
+   "occurred_at": "2026-07-01T19:33:51.811820+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "b5075a22-f995-43b9-b499-10e7c381abfe",
+   "id": "e91a05d3-7797-4105-a443-4b603a4b364e",
    "title": "New sanctions announced affecting London",
    "description": "new sanctions announced affecting london",
    "location": [
@@ -1169,14 +1169,14 @@ const syntheticDataset = {
    "location_name": "London",
    "category": "geopolitics",
    "severity": 2,
-   "occurred_at": "2026-07-01T02:52:35.097435+00:00",
+   "occurred_at": "2026-07-01T02:55:02.465454+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "65ae8059-733c-445e-b47f-5884df922c2c",
+   "id": "d33c27ef-e51c-475c-b73c-7092a22b88be",
    "title": "Market volatility spikes in Shanghai exchange",
    "description": "market volatility spikes in shanghai exchange",
    "location": [
@@ -1186,14 +1186,14 @@ const syntheticDataset = {
    "location_name": "Shanghai",
    "category": "finance",
    "severity": 5,
-   "occurred_at": "2026-06-30T18:48:35.869650+00:00",
+   "occurred_at": "2026-06-30T18:51:03.237669+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "8776f0d2-9529-4e4d-b64c-f80179040555",
+   "id": "860b97b8-b4f0-435f-866f-3f491f35f6d9",
    "title": "Security incident reported in Chengdu",
    "description": "security incident reported in chengdu",
    "location": [
@@ -1203,14 +1203,14 @@ const syntheticDataset = {
    "location_name": "Chengdu",
    "category": "conflict",
    "severity": 2,
-   "occurred_at": "2026-06-30T00:15:29.924163+00:00",
+   "occurred_at": "2026-06-30T00:17:57.292182+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "231693f6-42c4-4677-a0b9-798c185bc9d8",
+   "id": "d7b721b4-58b4-4f70-9971-4f71755c991d",
    "title": "Ceasefire talks stall near Kinshasa",
    "description": "ceasefire talks stall near kinshasa",
    "location": [
@@ -1220,14 +1220,14 @@ const syntheticDataset = {
    "location_name": "Kinshasa",
    "category": "conflict",
    "severity": 2,
-   "occurred_at": "2026-06-30T01:23:24.078016+00:00",
+   "occurred_at": "2026-06-30T01:25:51.446035+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "0ca97e19-7996-424f-94d3-28c040b46357",
+   "id": "d6dff9ed-bf93-43da-8a9c-0bc76ec306ae",
    "title": "Severe storm system approaching Manila",
    "description": "severe storm system approaching manila",
    "location": [
@@ -1237,14 +1237,14 @@ const syntheticDataset = {
    "location_name": "Manila",
    "category": "disaster",
    "severity": 3,
-   "occurred_at": "2026-06-30T22:27:57.266670+00:00",
+   "occurred_at": "2026-06-30T22:30:24.634689+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "69397a6d-3709-403c-a4a5-1b9096256acb",
+   "id": "087e82c6-a087-4d7e-ae42-aafd887a599a",
    "title": "Market volatility spikes in New York exchange",
    "description": "market volatility spikes in new york exchange",
    "location": [
@@ -1254,14 +1254,14 @@ const syntheticDataset = {
    "location_name": "New York",
    "category": "finance",
    "severity": 2,
-   "occurred_at": "2026-07-03T04:49:37.845975+00:00",
+   "occurred_at": "2026-07-03T04:52:05.213994+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "42120a5c-ab2a-4f39-9538-44ce1e93b00c",
+   "id": "1198b0f9-e53e-4ef7-9b15-a74d25cc5550",
    "title": "Central bank intervention in Ho Chi Minh City",
    "description": "central bank intervention in ho chi minh city",
    "location": [
@@ -1271,14 +1271,14 @@ const syntheticDataset = {
    "location_name": "Ho Chi Minh City",
    "category": "finance",
    "severity": 2,
-   "occurred_at": "2026-07-02T00:13:21.325362+00:00",
+   "occurred_at": "2026-07-02T00:15:48.693381+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "7b410d33-c8d1-408a-9ee5-5edfca2e138c",
+   "id": "224b4029-95e0-4cd8-8ab2-e21351b1b1ad",
    "title": "Central bank intervention in Tehran",
    "description": "central bank intervention in tehran",
    "location": [
@@ -1288,14 +1288,14 @@ const syntheticDataset = {
    "location_name": "Tehran",
    "category": "finance",
    "severity": 5,
-   "occurred_at": "2026-07-02T19:55:36.620176+00:00",
+   "occurred_at": "2026-07-02T19:58:03.988195+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "ba1bb673-4833-4ca6-b920-6c61778faba0",
+   "id": "0c6aa21e-102e-449a-99a9-87c718e24fec",
    "title": "Election results contested in Paris",
    "description": "election results contested in paris",
    "location": [
@@ -1305,14 +1305,14 @@ const syntheticDataset = {
    "location_name": "Paris",
    "category": "geopolitics",
    "severity": 2,
-   "occurred_at": "2026-06-29T21:35:48.332475+00:00",
+   "occurred_at": "2026-06-29T21:38:15.700494+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "10d5c92d-6f09-4ce0-a3eb-5d9992b94b18",
+   "id": "23be74b4-e808-44dc-b089-d21342eb609a",
    "title": "New sanctions announced affecting Tianjin",
    "description": "new sanctions announced affecting tianjin",
    "location": [
@@ -1322,14 +1322,14 @@ const syntheticDataset = {
    "location_name": "Tianjin",
    "category": "geopolitics",
    "severity": 1,
-   "occurred_at": "2026-06-30T13:06:18.100024+00:00",
+   "occurred_at": "2026-06-30T13:08:45.468043+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "b7d8fafb-4cf8-4e12-b816-4ff19b3954b2",
+   "id": "ab09c689-720f-4f94-8537-cd11060387cb",
    "title": "Infrastructure disruption in New York",
    "description": "infrastructure disruption in new york",
    "location": [
@@ -1339,14 +1339,14 @@ const syntheticDataset = {
    "location_name": "New York",
    "category": "other",
    "severity": 2,
-   "occurred_at": "2026-07-01T11:33:01.378593+00:00",
+   "occurred_at": "2026-07-01T11:35:28.746612+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "dc4b1da3-33b8-4621-b9e7-baab43964e40",
+   "id": "9a2faa8b-0bdb-45d1-8a8d-a802658b7d10",
    "title": "Central bank intervention in Lima",
    "description": "central bank intervention in lima",
    "location": [
@@ -1356,14 +1356,14 @@ const syntheticDataset = {
    "location_name": "Lima",
    "category": "finance",
    "severity": 4,
-   "occurred_at": "2026-07-03T03:33:04.077043+00:00",
+   "occurred_at": "2026-07-03T03:35:31.445062+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "16f624ec-9537-4637-969c-b337212355e0",
+   "id": "a2e19d91-14a5-4740-af41-63f0b3512efa",
    "title": "Supply chain alert issued for Moscow",
    "description": "supply chain alert issued for moscow",
    "location": [
@@ -1373,14 +1373,14 @@ const syntheticDataset = {
    "location_name": "Moscow",
    "category": "other",
    "severity": 2,
-   "occurred_at": "2026-06-30T18:17:47.203991+00:00",
+   "occurred_at": "2026-06-30T18:20:14.572010+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "45c81bc2-1fb5-470a-8faa-4074282c8125",
+   "id": "8d40c9b7-6aa4-4c03-8553-716458dfbb7f",
    "title": "Border tensions escalate near Bangkok",
    "description": "border tensions escalate near bangkok",
    "location": [
@@ -1390,14 +1390,14 @@ const syntheticDataset = {
    "location_name": "Bangkok",
    "category": "conflict",
    "severity": 5,
-   "occurred_at": "2026-06-30T05:02:52.424095+00:00",
+   "occurred_at": "2026-06-30T05:05:19.792114+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "75cc3406-f9f0-4f25-805b-0e28ca0deda0",
+   "id": "e0fb7570-a470-4c07-b0ae-c1eda8605bb7",
    "title": "Severe storm system approaching Nairobi",
    "description": "severe storm system approaching nairobi",
    "location": [
@@ -1407,14 +1407,14 @@ const syntheticDataset = {
    "location_name": "Nairobi",
    "category": "disaster",
    "severity": 4,
-   "occurred_at": "2026-07-01T22:53:35.065813+00:00",
+   "occurred_at": "2026-07-01T22:56:02.433832+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "e657c3d5-b1cb-4a04-bc3b-515857953fac",
+   "id": "d0c022ab-b556-47de-b894-5566e6f850ab",
    "title": "Flooding reported near Istanbul",
    "description": "flooding reported near istanbul",
    "location": [
@@ -1424,14 +1424,14 @@ const syntheticDataset = {
    "location_name": "Istanbul",
    "category": "disaster",
    "severity": 1,
-   "occurred_at": "2026-07-03T02:41:10.394081+00:00",
+   "occurred_at": "2026-07-03T02:43:37.762100+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "fe3f6a6f-8004-4fe9-b6fc-51a36b39fde1",
+   "id": "c25856f5-a7f3-48d0-bc0e-36e2b92b57ab",
    "title": "Supply chain alert issued for Osaka",
    "description": "supply chain alert issued for osaka",
    "location": [
@@ -1441,14 +1441,14 @@ const syntheticDataset = {
    "location_name": "Osaka",
    "category": "other",
    "severity": 5,
-   "occurred_at": "2026-07-02T02:43:06.134568+00:00",
+   "occurred_at": "2026-07-02T02:45:33.502587+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "8936344c-37fd-40c4-89b8-e4b653d38181",
+   "id": "ad9775a3-b784-40a5-9b26-23224b7df1f5",
    "title": "Security incident reported in Shanghai",
    "description": "security incident reported in shanghai",
    "location": [
@@ -1458,14 +1458,14 @@ const syntheticDataset = {
    "location_name": "Shanghai",
    "category": "conflict",
    "severity": 2,
-   "occurred_at": "2026-06-30T14:44:57.178732+00:00",
+   "occurred_at": "2026-06-30T14:47:24.546751+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "87ca5925-32c3-4693-bd22-803523c6a275",
+   "id": "7ccae953-c01f-4abd-97b1-66ea2f2bf04a",
    "title": "Wildfire risk elevated around Tehran",
    "description": "wildfire risk elevated around tehran",
    "location": [
@@ -1475,14 +1475,14 @@ const syntheticDataset = {
    "location_name": "Tehran",
    "category": "disaster",
    "severity": 1,
-   "occurred_at": "2026-07-01T21:27:42.114695+00:00",
+   "occurred_at": "2026-07-01T21:30:09.482714+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "0685f746-6eda-46fa-8cd3-970537cd23c0",
+   "id": "73422247-b9d6-4a03-9b85-0f119bcb5768",
    "title": "Protest movement grows in Hyderabad",
    "description": "protest movement grows in hyderabad",
    "location": [
@@ -1492,14 +1492,14 @@ const syntheticDataset = {
    "location_name": "Hyderabad",
    "category": "conflict",
    "severity": 3,
-   "occurred_at": "2026-06-29T14:35:48.874277+00:00",
+   "occurred_at": "2026-06-29T14:38:16.242296+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "6d3a0f94-daaa-410b-afcf-58d34d163f88",
+   "id": "3167beba-1d31-4b34-b72f-3efa27b1f9f6",
    "title": "Currency pressure builds in Chennai",
    "description": "currency pressure builds in chennai",
    "location": [
@@ -1509,14 +1509,14 @@ const syntheticDataset = {
    "location_name": "Chennai",
    "category": "finance",
    "severity": 5,
-   "occurred_at": "2026-07-01T23:59:08.694052+00:00",
+   "occurred_at": "2026-07-02T00:01:36.062071+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "1eda75bd-29f9-4f38-8617-d3fd5a2aa304",
+   "id": "f232bbf3-005e-4b27-92cf-f47f1424dfa9",
    "title": "Infrastructure disruption in London",
    "description": "infrastructure disruption in london",
    "location": [
@@ -1526,14 +1526,14 @@ const syntheticDataset = {
    "location_name": "London",
    "category": "other",
    "severity": 3,
-   "occurred_at": "2026-07-01T06:27:34.990461+00:00",
+   "occurred_at": "2026-07-01T06:30:02.358480+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "0f49ca38-f8f5-4c8e-a2a8-7ab7b89f9c63",
+   "id": "56d15cfc-b693-4ca3-bce0-e225616e1d5e",
    "title": "Diplomatic summit convened in Tianjin",
    "description": "diplomatic summit convened in tianjin",
    "location": [
@@ -1543,14 +1543,14 @@ const syntheticDataset = {
    "location_name": "Tianjin",
    "category": "geopolitics",
    "severity": 1,
-   "occurred_at": "2026-07-01T10:16:32.686854+00:00",
+   "occurred_at": "2026-07-01T10:19:00.054873+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "d76356ed-4b72-4fbe-9f4a-2c92adb311a6",
+   "id": "0b2bf76a-c82d-45ec-867a-29c930b3a713",
    "title": "Port congestion reported at Berlin shipping hub",
    "description": "port congestion reported at berlin shipping hub",
    "location": [
@@ -1560,14 +1560,14 @@ const syntheticDataset = {
    "location_name": "Berlin",
    "category": "finance",
    "severity": 2,
-   "occurred_at": "2026-07-01T14:56:25.491423+00:00",
+   "occurred_at": "2026-07-01T14:58:52.859442+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "ea66806a-f147-44fe-bf82-dd8dd15da2ef",
+   "id": "0bf6ce25-bf74-4d52-b5fc-916c77b13599",
    "title": "Public health advisory issued for Paris",
    "description": "public health advisory issued for paris",
    "location": [
@@ -1577,14 +1577,14 @@ const syntheticDataset = {
    "location_name": "Paris",
    "category": "other",
    "severity": 3,
-   "occurred_at": "2026-07-02T21:48:33.798296+00:00",
+   "occurred_at": "2026-07-02T21:51:01.166315+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "26011615-3859-421a-a776-49ee4d9d2765",
+   "id": "8137c85f-700c-4f90-8e26-1d68e30a6347",
    "title": "Diplomatic summit convened in Paris",
    "description": "diplomatic summit convened in paris",
    "location": [
@@ -1594,14 +1594,14 @@ const syntheticDataset = {
    "location_name": "Paris",
    "category": "geopolitics",
    "severity": 3,
-   "occurred_at": "2026-06-30T01:42:15.467325+00:00",
+   "occurred_at": "2026-06-30T01:44:42.835344+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "ede6509e-1458-448c-b2db-b862790caf19",
+   "id": "bd2a6d63-7324-4544-b901-ab66810ebeee",
    "title": "Public health advisory issued for Delhi",
    "description": "public health advisory issued for delhi",
    "location": [
@@ -1611,14 +1611,14 @@ const syntheticDataset = {
    "location_name": "Delhi",
    "category": "other",
    "severity": 1,
-   "occurred_at": "2026-06-30T07:25:34.811489+00:00",
+   "occurred_at": "2026-06-30T07:28:02.179508+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "6773bc9c-c133-4eea-89d6-03eecdef8173",
+   "id": "6edcab17-2c60-40b3-8e5f-58d06b265f89",
    "title": "Flooding reported near Rio de Janeiro",
    "description": "flooding reported near rio de janeiro",
    "location": [
@@ -1628,14 +1628,14 @@ const syntheticDataset = {
    "location_name": "Rio de Janeiro",
    "category": "disaster",
    "severity": 1,
-   "occurred_at": "2026-07-02T14:17:28.521879+00:00",
+   "occurred_at": "2026-07-02T14:19:55.889898+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "cdaf0980-d752-4f49-8d55-419f5e83d8a7",
+   "id": "9287ce32-b4b9-445a-9815-cb373b1a381b",
    "title": "Policy shift announced in Manila",
    "description": "policy shift announced in manila",
    "location": [
@@ -1645,14 +1645,14 @@ const syntheticDataset = {
    "location_name": "Manila",
    "category": "geopolitics",
    "severity": 2,
-   "occurred_at": "2026-07-02T05:59:47.084013+00:00",
+   "occurred_at": "2026-07-02T06:02:14.452032+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "070ccfc9-ee81-4584-87b5-9e87b099d58e",
+   "id": "e8ac3a55-f298-423c-a7db-ceac656a9d77",
    "title": "Severe storm system approaching Karachi",
    "description": "severe storm system approaching karachi",
    "location": [
@@ -1662,14 +1662,14 @@ const syntheticDataset = {
    "location_name": "Karachi",
    "category": "disaster",
    "severity": 4,
-   "occurred_at": "2026-07-01T13:06:23.790922+00:00",
+   "occurred_at": "2026-07-01T13:08:51.158941+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "b1d8d94d-9834-408e-9506-6716cae9bb48",
+   "id": "f6b849a2-9771-478d-85c4-85570a1148e0",
    "title": "Policy shift announced in Chicago",
    "description": "policy shift announced in chicago",
    "location": [
@@ -1679,14 +1679,14 @@ const syntheticDataset = {
    "location_name": "Chicago",
    "category": "geopolitics",
    "severity": 1,
-   "occurred_at": "2026-06-30T01:55:03.162423+00:00",
+   "occurred_at": "2026-06-30T01:57:30.530442+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "4c20337c-cdf9-47eb-b622-8c1fc622ebbd",
+   "id": "6129d345-2095-4d3f-8d69-0eee3dbf0126",
    "title": "Seismic activity recorded near Seoul",
    "description": "seismic activity recorded near seoul",
    "location": [
@@ -1696,14 +1696,14 @@ const syntheticDataset = {
    "location_name": "Seoul",
    "category": "disaster",
    "severity": 2,
-   "occurred_at": "2026-07-01T00:12:10.307787+00:00",
+   "occurred_at": "2026-07-01T00:14:37.675806+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "f5e17716-36eb-4b89-9e69-fa789b42a0f6",
+   "id": "454e0aca-3ad8-437c-8b50-74ff276bfc1c",
    "title": "Flooding reported near Chicago",
    "description": "flooding reported near chicago",
    "location": [
@@ -1713,14 +1713,14 @@ const syntheticDataset = {
    "location_name": "Chicago",
    "category": "disaster",
    "severity": 3,
-   "occurred_at": "2026-06-30T20:17:19.258141+00:00",
+   "occurred_at": "2026-06-30T20:19:46.626160+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "08f4cec4-3c6a-44ad-a4a8-311584f13df3",
+   "id": "4df8165b-ba44-4dd3-8c8e-ef07b83b1de6",
    "title": "Infrastructure disruption in Bangkok",
    "description": "infrastructure disruption in bangkok",
    "location": [
@@ -1730,14 +1730,14 @@ const syntheticDataset = {
    "location_name": "Bangkok",
    "category": "other",
    "severity": 5,
-   "occurred_at": "2026-06-30T06:12:30.728791+00:00",
+   "occurred_at": "2026-06-30T06:14:58.096810+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "563a38d2-2482-49d6-b072-9a574a9e7000",
+   "id": "dffd1305-df15-465c-ae98-f1ba26351e11",
    "title": "Policy shift announced in Rio de Janeiro",
    "description": "policy shift announced in rio de janeiro",
    "location": [
@@ -1747,14 +1747,14 @@ const syntheticDataset = {
    "location_name": "Rio de Janeiro",
    "category": "geopolitics",
    "severity": 4,
-   "occurred_at": "2026-07-02T05:56:55.435180+00:00",
+   "occurred_at": "2026-07-02T05:59:22.803199+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "7343a2e3-877f-4a3a-8cfe-d0d0f6d75901",
+   "id": "2e76bdb5-2747-4184-84f7-3cf03aece5c5",
    "title": "Border tensions escalate near New York",
    "description": "border tensions escalate near new york",
    "location": [
@@ -1764,14 +1764,14 @@ const syntheticDataset = {
    "location_name": "New York",
    "category": "conflict",
    "severity": 2,
-   "occurred_at": "2026-07-01T02:19:53.505478+00:00",
+   "occurred_at": "2026-07-01T02:22:20.873497+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "79d943e2-3b47-4986-8065-02f20f502471",
+   "id": "dfe17554-62e6-43d9-961d-832489384523",
    "title": "Port congestion reported at Dhaka shipping hub",
    "description": "port congestion reported at dhaka shipping hub",
    "location": [
@@ -1781,14 +1781,14 @@ const syntheticDataset = {
    "location_name": "Dhaka",
    "category": "finance",
    "severity": 1,
-   "occurred_at": "2026-06-30T14:54:38.471733+00:00",
+   "occurred_at": "2026-06-30T14:57:05.839752+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "ada11c23-c9c0-4254-89a4-964c2e135bd1",
+   "id": "0153a0ad-f3a1-4c4f-b1cd-869b0268e25c",
    "title": "Central bank intervention in Delhi",
    "description": "central bank intervention in delhi",
    "location": [
@@ -1798,14 +1798,14 @@ const syntheticDataset = {
    "location_name": "Delhi",
    "category": "finance",
    "severity": 2,
-   "occurred_at": "2026-06-29T23:43:02.100526+00:00",
+   "occurred_at": "2026-06-29T23:45:29.468545+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "cc770bff-0c5c-44ff-9222-e35d34e93854",
+   "id": "f66976de-a99f-4973-ba52-31ee219b2445",
    "title": "Infrastructure disruption in Lagos",
    "description": "infrastructure disruption in lagos",
    "location": [
@@ -1815,14 +1815,14 @@ const syntheticDataset = {
    "location_name": "Lagos",
    "category": "other",
    "severity": 3,
-   "occurred_at": "2026-06-29T16:17:06.810026+00:00",
+   "occurred_at": "2026-06-29T16:19:34.178045+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "452cdecc-2d9d-4516-acfb-23c8c309941a",
+   "id": "6e79c892-e8d1-4c28-9489-0a7431284418",
    "title": "Port congestion reported at Istanbul shipping hub",
    "description": "port congestion reported at istanbul shipping hub",
    "location": [
@@ -1832,14 +1832,14 @@ const syntheticDataset = {
    "location_name": "Istanbul",
    "category": "finance",
    "severity": 1,
-   "occurred_at": "2026-07-02T03:32:30.343297+00:00",
+   "occurred_at": "2026-07-02T03:34:57.711316+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "2431c97c-040a-4aa6-97a0-92e6215e1820",
+   "id": "8688c6e4-daa9-4231-ae2e-7c5992e8f1f9",
    "title": "Seismic activity recorded near Berlin",
    "description": "seismic activity recorded near berlin",
    "location": [
@@ -1849,14 +1849,14 @@ const syntheticDataset = {
    "location_name": "Berlin",
    "category": "disaster",
    "severity": 4,
-   "occurred_at": "2026-06-29T17:15:05.884569+00:00",
+   "occurred_at": "2026-06-29T17:17:33.252588+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "e63b1cf9-f210-4682-92ae-7692048fcace",
+   "id": "59d81fd5-26a4-45a5-acc3-c41d29dba248",
    "title": "Wildfire risk elevated around Shenzhen",
    "description": "wildfire risk elevated around shenzhen",
    "location": [
@@ -1866,14 +1866,14 @@ const syntheticDataset = {
    "location_name": "Shenzhen",
    "category": "disaster",
    "severity": 2,
-   "occurred_at": "2026-06-29T09:09:12.055544+00:00",
+   "occurred_at": "2026-06-29T09:11:39.423563+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "fd42d7be-4156-4435-913e-0e9fdfec7767",
+   "id": "4d91d28c-be78-40c8-864b-f98d997ec443",
    "title": "Policy shift announced in Chicago",
    "description": "policy shift announced in chicago",
    "location": [
@@ -1883,14 +1883,14 @@ const syntheticDataset = {
    "location_name": "Chicago",
    "category": "geopolitics",
    "severity": 1,
-   "occurred_at": "2026-07-01T18:40:49.665445+00:00",
+   "occurred_at": "2026-07-01T18:43:17.033464+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "e03fdf50-a871-46f3-8fa1-c799b7777f06",
+   "id": "c9c26d9e-6048-4b27-bece-9864709b1d05",
    "title": "Protest movement grows in New York",
    "description": "protest movement grows in new york",
    "location": [
@@ -1900,14 +1900,14 @@ const syntheticDataset = {
    "location_name": "New York",
    "category": "conflict",
    "severity": 2,
-   "occurred_at": "2026-06-30T04:20:59.096177+00:00",
+   "occurred_at": "2026-06-30T04:23:26.464196+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "3eeab8c1-c58a-4b57-88bc-79385dc6e931",
+   "id": "9cfd2d3b-4bba-4a30-9f90-8a8a47214044",
    "title": "New sanctions announced affecting Tianjin",
    "description": "new sanctions announced affecting tianjin",
    "location": [
@@ -1917,14 +1917,14 @@ const syntheticDataset = {
    "location_name": "Tianjin",
    "category": "geopolitics",
    "severity": 1,
-   "occurred_at": "2026-07-02T12:28:35.530518+00:00",
+   "occurred_at": "2026-07-02T12:31:02.898537+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "f05e1c4d-8ae5-4ff9-97a0-abf24ed75265",
+   "id": "d0fb6eba-275d-4aca-8867-215989c09db3",
    "title": "Border tensions escalate near Tianjin",
    "description": "border tensions escalate near tianjin",
    "location": [
@@ -1934,14 +1934,14 @@ const syntheticDataset = {
    "location_name": "Tianjin",
    "category": "conflict",
    "severity": 4,
-   "occurred_at": "2026-07-02T02:52:38.901846+00:00",
+   "occurred_at": "2026-07-02T02:55:06.269865+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "639089d9-a204-4bed-a65a-74d24801a3d9",
+   "id": "4ab87d3d-e4e8-458d-bcad-a0c5aa3a25ac",
    "title": "Central bank intervention in Berlin",
    "description": "central bank intervention in berlin",
    "location": [
@@ -1951,14 +1951,14 @@ const syntheticDataset = {
    "location_name": "Berlin",
    "category": "finance",
    "severity": 4,
-   "occurred_at": "2026-07-01T04:37:11.100537+00:00",
+   "occurred_at": "2026-07-01T04:39:38.468556+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "f1aaa9ae-5cda-4115-944d-ebe5ad02c9ac",
+   "id": "14bee18c-fe88-4f63-ab98-f7de6cc46da4",
    "title": "Communications outage affecting Kinshasa",
    "description": "communications outage affecting kinshasa",
    "location": [
@@ -1968,14 +1968,14 @@ const syntheticDataset = {
    "location_name": "Kinshasa",
    "category": "other",
    "severity": 1,
-   "occurred_at": "2026-07-01T14:29:55.072675+00:00",
+   "occurred_at": "2026-07-01T14:32:22.440694+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "525b966a-b398-4e72-b479-97183cb01c9c",
+   "id": "700dffb8-970f-4605-98d8-23a02a986539",
    "title": "Port congestion reported at Bangkok shipping hub",
    "description": "port congestion reported at bangkok shipping hub",
    "location": [
@@ -1985,14 +1985,14 @@ const syntheticDataset = {
    "location_name": "Bangkok",
    "category": "finance",
    "severity": 4,
-   "occurred_at": "2026-07-01T13:17:38.570900+00:00",
+   "occurred_at": "2026-07-01T13:20:05.938919+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "ebfeab57-8d49-42dd-84a8-18c3b2fdd4ba",
+   "id": "46a3cd7c-d2c4-4451-a4f7-beadbb944490",
    "title": "Market volatility spikes in Tokyo exchange",
    "description": "market volatility spikes in tokyo exchange",
    "location": [
@@ -2002,14 +2002,14 @@ const syntheticDataset = {
    "location_name": "Tokyo",
    "category": "finance",
    "severity": 5,
-   "occurred_at": "2026-07-01T00:30:50.954893+00:00",
+   "occurred_at": "2026-07-01T00:33:18.322912+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "480014ec-b540-4790-8faa-5dfb5f42487d",
+   "id": "6d48cadd-bdd0-45d5-b66d-f365b7c37e55",
    "title": "New sanctions announced affecting Ho Chi Minh City",
    "description": "new sanctions announced affecting ho chi minh city",
    "location": [
@@ -2019,14 +2019,14 @@ const syntheticDataset = {
    "location_name": "Ho Chi Minh City",
    "category": "geopolitics",
    "severity": 2,
-   "occurred_at": "2026-07-01T12:23:33.404979+00:00",
+   "occurred_at": "2026-07-01T12:26:00.772998+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "8c0a80dc-2915-4ec4-949c-1b4fab9afe2c",
+   "id": "3e02c581-c9ec-4812-bcda-4c69c6a8d748",
    "title": "Diplomatic summit convened in Rio de Janeiro",
    "description": "diplomatic summit convened in rio de janeiro",
    "location": [
@@ -2036,14 +2036,14 @@ const syntheticDataset = {
    "location_name": "Rio de Janeiro",
    "category": "geopolitics",
    "severity": 4,
-   "occurred_at": "2026-06-30T16:57:24.399102+00:00",
+   "occurred_at": "2026-06-30T16:59:51.767121+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "6c6dc2a6-e226-4741-a78d-873195e06dcd",
+   "id": "ec478a83-764a-4d6b-9f04-e0919c83532b",
    "title": "Border tensions escalate near Tehran",
    "description": "border tensions escalate near tehran",
    "location": [
@@ -2053,14 +2053,14 @@ const syntheticDataset = {
    "location_name": "Tehran",
    "category": "conflict",
    "severity": 3,
-   "occurred_at": "2026-06-29T15:16:56.344456+00:00",
+   "occurred_at": "2026-06-29T15:19:23.712475+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "a84b2e0e-e11a-4d3b-aad6-3675f3722a08",
+   "id": "98f57563-e2f4-4375-90e1-e55c1cda34ee",
    "title": "Wildfire risk elevated around Jakarta",
    "description": "wildfire risk elevated around jakarta",
    "location": [
@@ -2070,14 +2070,14 @@ const syntheticDataset = {
    "location_name": "Jakarta",
    "category": "disaster",
    "severity": 2,
-   "occurred_at": "2026-07-02T07:45:00.507488+00:00",
+   "occurred_at": "2026-07-02T07:47:27.875507+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "b2c7c84d-7a8f-443e-88f5-9aa66eb8a2da",
+   "id": "af4f7b88-37f7-4b84-98ef-fdf34df41303",
    "title": "Flooding reported near Bangalore",
    "description": "flooding reported near bangalore",
    "location": [
@@ -2087,14 +2087,14 @@ const syntheticDataset = {
    "location_name": "Bangalore",
    "category": "disaster",
    "severity": 3,
-   "occurred_at": "2026-06-29T05:36:07.201517+00:00",
+   "occurred_at": "2026-06-29T05:38:34.569536+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "f47b9275-108b-4678-822f-f432d287939c",
+   "id": "2a076155-3ee3-49e7-992f-a95e5e5b1053",
    "title": "Severe storm system approaching Rio de Janeiro",
    "description": "severe storm system approaching rio de janeiro",
    "location": [
@@ -2104,14 +2104,14 @@ const syntheticDataset = {
    "location_name": "Rio de Janeiro",
    "category": "disaster",
    "severity": 5,
-   "occurred_at": "2026-07-03T01:56:53.363243+00:00",
+   "occurred_at": "2026-07-03T01:59:20.731262+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "679c181b-b6ff-4d27-996f-01a15efacdc6",
+   "id": "20245a2b-5c6c-49af-840c-2abfeef0e838",
    "title": "Currency pressure builds in Ho Chi Minh City",
    "description": "currency pressure builds in ho chi minh city",
    "location": [
@@ -2121,14 +2121,14 @@ const syntheticDataset = {
    "location_name": "Ho Chi Minh City",
    "category": "finance",
    "severity": 4,
-   "occurred_at": "2026-06-30T16:11:48.837702+00:00",
+   "occurred_at": "2026-06-30T16:14:16.205721+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "f951b400-f391-494f-b876-bb4fefda97e9",
+   "id": "67fab3ff-bf95-4ba6-8dc8-7965eb2106f5",
    "title": "Policy shift announced in Beijing",
    "description": "policy shift announced in beijing",
    "location": [
@@ -2138,14 +2138,14 @@ const syntheticDataset = {
    "location_name": "Beijing",
    "category": "geopolitics",
    "severity": 4,
-   "occurred_at": "2026-07-01T19:18:32.543168+00:00",
+   "occurred_at": "2026-07-01T19:20:59.911187+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "5911940c-6229-494f-bd62-199bcf496207",
+   "id": "3463777e-09a1-46e3-8857-7362fbf142a9",
    "title": "Flooding reported near Beijing",
    "description": "flooding reported near beijing",
    "location": [
@@ -2155,14 +2155,14 @@ const syntheticDataset = {
    "location_name": "Beijing",
    "category": "disaster",
    "severity": 2,
-   "occurred_at": "2026-06-29T14:03:37.098100+00:00",
+   "occurred_at": "2026-06-29T14:06:04.466119+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "446b7c23-adf8-4d99-89e3-07efe0ca2c2e",
+   "id": "e97ae966-b6af-443d-be16-38847e891713",
    "title": "Public health advisory issued for Seoul",
    "description": "public health advisory issued for seoul",
    "location": [
@@ -2172,14 +2172,14 @@ const syntheticDataset = {
    "location_name": "Seoul",
    "category": "other",
    "severity": 3,
-   "occurred_at": "2026-06-30T20:25:24.381367+00:00",
+   "occurred_at": "2026-06-30T20:27:51.749386+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "c7a22d3c-a77f-4bf4-b385-8696d413140e",
+   "id": "8b14f219-c373-4422-9307-d264a9a7b384",
    "title": "Flooding reported near Jakarta",
    "description": "flooding reported near jakarta",
    "location": [
@@ -2189,14 +2189,14 @@ const syntheticDataset = {
    "location_name": "Jakarta",
    "category": "disaster",
    "severity": 4,
-   "occurred_at": "2026-07-02T05:19:39.595792+00:00",
+   "occurred_at": "2026-07-02T05:22:06.963811+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "37ca586a-ec4a-4110-abf1-31adaf358cdd",
+   "id": "eb740a71-ef35-4ac3-ba3c-887ff62a558e",
    "title": "Diplomatic summit convened in Cairo",
    "description": "diplomatic summit convened in cairo",
    "location": [
@@ -2206,14 +2206,14 @@ const syntheticDataset = {
    "location_name": "Cairo",
    "category": "geopolitics",
    "severity": 1,
-   "occurred_at": "2026-07-01T13:07:21.727817+00:00",
+   "occurred_at": "2026-07-01T13:09:49.095836+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "88a8f8e7-9935-43e3-bb4f-76964da0815f",
+   "id": "cf3d0c12-edfa-4340-8c94-e2530ded7194",
    "title": "Currency pressure builds in Sydney",
    "description": "currency pressure builds in sydney",
    "location": [
@@ -2223,14 +2223,14 @@ const syntheticDataset = {
    "location_name": "Sydney",
    "category": "finance",
    "severity": 2,
-   "occurred_at": "2026-06-30T20:28:09.299277+00:00",
+   "occurred_at": "2026-06-30T20:30:36.667296+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "e2f7e7c7-fcdd-421d-bba4-5728c4f357ad",
+   "id": "d8658188-497a-487f-ba79-ad9343fc8c1f",
    "title": "Security incident reported in Tianjin",
    "description": "security incident reported in tianjin",
    "location": [
@@ -2240,14 +2240,14 @@ const syntheticDataset = {
    "location_name": "Tianjin",
    "category": "conflict",
    "severity": 5,
-   "occurred_at": "2026-06-30T07:07:39.228016+00:00",
+   "occurred_at": "2026-06-30T07:10:06.596035+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "de645c58-9fbe-4825-a66a-f18b1ac55286",
+   "id": "c43cbecc-5910-4203-bb32-74c315f7a5d9",
    "title": "Election results contested in Chengdu",
    "description": "election results contested in chengdu",
    "location": [
@@ -2257,14 +2257,14 @@ const syntheticDataset = {
    "location_name": "Chengdu",
    "category": "geopolitics",
    "severity": 5,
-   "occurred_at": "2026-06-29T14:06:36.554397+00:00",
+   "occurred_at": "2026-06-29T14:09:03.922416+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "8c043bf4-9357-499f-be18-3edde0aa9dd4",
+   "id": "24bf1e87-dee1-479b-8663-b0d536e67f82",
    "title": "Communications outage affecting Osaka",
    "description": "communications outage affecting osaka",
    "location": [
@@ -2274,14 +2274,14 @@ const syntheticDataset = {
    "location_name": "Osaka",
    "category": "other",
    "severity": 4,
-   "occurred_at": "2026-07-02T23:52:02.544368+00:00",
+   "occurred_at": "2026-07-02T23:54:29.912387+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "967e5541-50af-4a61-a7bf-a87edb447e9b",
+   "id": "6c9e9c76-cff0-40e3-92b3-9835cc891189",
    "title": "Diplomatic summit convened in Jakarta",
    "description": "diplomatic summit convened in jakarta",
    "location": [
@@ -2291,14 +2291,14 @@ const syntheticDataset = {
    "location_name": "Jakarta",
    "category": "geopolitics",
    "severity": 4,
-   "occurred_at": "2026-07-02T09:31:41.525783+00:00",
+   "occurred_at": "2026-07-02T09:34:08.893802+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "e6818b62-82d4-445f-83d5-5b45f34b8711",
+   "id": "42e0db5f-340e-4ecd-88e8-92dd39fec9f3",
    "title": "Security incident reported in Nairobi",
    "description": "security incident reported in nairobi",
    "location": [
@@ -2308,14 +2308,14 @@ const syntheticDataset = {
    "location_name": "Nairobi",
    "category": "conflict",
    "severity": 1,
-   "occurred_at": "2026-07-02T04:37:05.146035+00:00",
+   "occurred_at": "2026-07-02T04:39:32.514054+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "a6107645-db7f-40eb-9e1c-c6e6486819d1",
+   "id": "09c70d13-77c7-4723-84a2-72a1e1f4d2a4",
    "title": "Seismic activity recorded near Tokyo",
    "description": "seismic activity recorded near tokyo",
    "location": [
@@ -2325,14 +2325,14 @@ const syntheticDataset = {
    "location_name": "Tokyo",
    "category": "disaster",
    "severity": 5,
-   "occurred_at": "2026-06-30T05:06:47.335059+00:00",
+   "occurred_at": "2026-06-30T05:09:14.703078+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "6561ce7a-a84a-4be3-856b-5b75e6a35f82",
+   "id": "d3132af9-a911-4ceb-901f-a3084dc8216f",
    "title": "Communications outage affecting Berlin",
    "description": "communications outage affecting berlin",
    "location": [
@@ -2342,14 +2342,14 @@ const syntheticDataset = {
    "location_name": "Berlin",
    "category": "other",
    "severity": 1,
-   "occurred_at": "2026-06-29T10:38:45.821066+00:00",
+   "occurred_at": "2026-06-29T10:41:13.189085+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "0d4cebc3-27c9-4514-a474-68ebea575166",
+   "id": "7783e1ba-5d61-48e8-bb53-19ed406ee7a7",
    "title": "Ceasefire talks stall near Berlin",
    "description": "ceasefire talks stall near berlin",
    "location": [
@@ -2359,14 +2359,14 @@ const syntheticDataset = {
    "location_name": "Berlin",
    "category": "conflict",
    "severity": 2,
-   "occurred_at": "2026-06-30T21:46:37.121949+00:00",
+   "occurred_at": "2026-06-30T21:49:04.489968+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "f702aa1f-60d4-4444-bcd3-d7cfabfc04a3",
+   "id": "05055fde-bb13-4083-84c1-d43d854afb1a",
    "title": "Flooding reported near Delhi",
    "description": "flooding reported near delhi",
    "location": [
@@ -2376,14 +2376,14 @@ const syntheticDataset = {
    "location_name": "Delhi",
    "category": "disaster",
    "severity": 3,
-   "occurred_at": "2026-07-01T09:42:47.089859+00:00",
+   "occurred_at": "2026-07-01T09:45:14.457878+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "3a70ba0b-8b0f-4ede-a7d8-962415a9d0e9",
+   "id": "abf5f8c0-6b70-4ea7-ab3c-0b1b46dfa325",
    "title": "Ceasefire talks stall near Beijing",
    "description": "ceasefire talks stall near beijing",
    "location": [
@@ -2393,14 +2393,14 @@ const syntheticDataset = {
    "location_name": "Beijing",
    "category": "conflict",
    "severity": 4,
-   "occurred_at": "2026-06-30T17:42:55.195050+00:00",
+   "occurred_at": "2026-06-30T17:45:22.563069+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "0b729b7d-f215-447f-af47-efbd0ff3536b",
+   "id": "51a4014c-6567-4753-9176-735db3ed05ed",
    "title": "New sanctions announced affecting Beijing",
    "description": "new sanctions announced affecting beijing",
    "location": [
@@ -2410,14 +2410,14 @@ const syntheticDataset = {
    "location_name": "Beijing",
    "category": "geopolitics",
    "severity": 2,
-   "occurred_at": "2026-06-30T22:19:52.090253+00:00",
+   "occurred_at": "2026-06-30T22:22:19.458272+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "7c684895-9857-4677-bb27-65c09e2a1dc6",
+   "id": "aed23fd4-ebae-4ca9-85ad-b81d57ce043b",
    "title": "Supply chain alert issued for Bangkok",
    "description": "supply chain alert issued for bangkok",
    "location": [
@@ -2427,14 +2427,14 @@ const syntheticDataset = {
    "location_name": "Bangkok",
    "category": "other",
    "severity": 4,
-   "occurred_at": "2026-06-30T08:15:33.551656+00:00",
+   "occurred_at": "2026-06-30T08:18:00.919675+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "da5ee736-acd7-4200-b5c6-75d74d2fa47d",
+   "id": "9b05a91a-715c-48e4-8cdd-facf1caaeff8",
    "title": "Seismic activity recorded near Bangkok",
    "description": "seismic activity recorded near bangkok",
    "location": [
@@ -2444,14 +2444,14 @@ const syntheticDataset = {
    "location_name": "Bangkok",
    "category": "disaster",
    "severity": 1,
-   "occurred_at": "2026-06-30T06:18:02.483628+00:00",
+   "occurred_at": "2026-06-30T06:20:29.851647+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "bea1ac02-750f-4072-bb19-e7f9da89fee3",
+   "id": "9f94f248-6595-42cd-abfb-5df3c0ccdb5d",
    "title": "Infrastructure disruption in Tianjin",
    "description": "infrastructure disruption in tianjin",
    "location": [
@@ -2461,14 +2461,14 @@ const syntheticDataset = {
    "location_name": "Tianjin",
    "category": "other",
    "severity": 3,
-   "occurred_at": "2026-06-30T20:55:46.169581+00:00",
+   "occurred_at": "2026-06-30T20:58:13.537600+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "8e71b47a-afb6-4ec0-9797-da573b0b87f8",
+   "id": "0a837488-9203-4115-9d1a-c4d1242b7fc9",
    "title": "Currency pressure builds in Delhi",
    "description": "currency pressure builds in delhi",
    "location": [
@@ -2478,14 +2478,14 @@ const syntheticDataset = {
    "location_name": "Delhi",
    "category": "finance",
    "severity": 5,
-   "occurred_at": "2026-07-01T11:59:40.870931+00:00",
+   "occurred_at": "2026-07-01T12:02:08.238950+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "59a8fcef-a174-46d1-9184-5bd5da5bc44b",
+   "id": "f0535c85-5618-4930-9b08-b28e30622028",
    "title": "Infrastructure disruption in Cairo",
    "description": "infrastructure disruption in cairo",
    "location": [
@@ -2495,14 +2495,14 @@ const syntheticDataset = {
    "location_name": "Cairo",
    "category": "other",
    "severity": 1,
-   "occurred_at": "2026-06-29T14:59:43.116413+00:00",
+   "occurred_at": "2026-06-29T15:02:10.484432+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "ea2dd90f-68bd-4b78-b219-33433229196d",
+   "id": "97c9bc1a-b84c-4502-8439-98c6c5ec3e48",
    "title": "Infrastructure disruption in Shanghai",
    "description": "infrastructure disruption in shanghai",
    "location": [
@@ -2512,14 +2512,14 @@ const syntheticDataset = {
    "location_name": "Shanghai",
    "category": "other",
    "severity": 1,
-   "occurred_at": "2026-06-29T16:18:29.533916+00:00",
+   "occurred_at": "2026-06-29T16:20:56.901935+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "9767cea7-4d37-429d-afdb-6afdf9d8d761",
+   "id": "14a27ce7-a4cf-4d55-96e0-c9e0160f99fb",
    "title": "Communications outage affecting Chengdu",
    "description": "communications outage affecting chengdu",
    "location": [
@@ -2529,14 +2529,14 @@ const syntheticDataset = {
    "location_name": "Chengdu",
    "category": "other",
    "severity": 1,
-   "occurred_at": "2026-06-29T23:42:05.267139+00:00",
+   "occurred_at": "2026-06-29T23:44:32.635158+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "cfa05ff0-58f4-49c1-90af-6fc0ae59da8a",
+   "id": "bf542f86-c1c6-4705-a312-488ea2df4715",
    "title": "Border tensions escalate near Moscow",
    "description": "border tensions escalate near moscow",
    "location": [
@@ -2546,14 +2546,14 @@ const syntheticDataset = {
    "location_name": "Moscow",
    "category": "conflict",
    "severity": 3,
-   "occurred_at": "2026-06-30T11:06:26.627577+00:00",
+   "occurred_at": "2026-06-30T11:08:53.995596+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "823d82d6-ca07-4dba-a187-bcdf94cdf793",
+   "id": "8b91e06c-8116-4339-8dd2-9c34ed34bf65",
    "title": "Seismic activity recorded near Jakarta",
    "description": "seismic activity recorded near jakarta",
    "location": [
@@ -2563,14 +2563,14 @@ const syntheticDataset = {
    "location_name": "Jakarta",
    "category": "disaster",
    "severity": 3,
-   "occurred_at": "2026-07-03T01:30:36.651264+00:00",
+   "occurred_at": "2026-07-03T01:33:04.019283+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "12fb36e3-3b6c-446a-aca0-3ac0900e8c36",
+   "id": "5255ca9b-2e79-4ae0-ae44-45c995ca5ed7",
    "title": "Border tensions escalate near Moscow",
    "description": "border tensions escalate near moscow",
    "location": [
@@ -2580,14 +2580,14 @@ const syntheticDataset = {
    "location_name": "Moscow",
    "category": "conflict",
    "severity": 4,
-   "occurred_at": "2026-07-02T11:25:22.076700+00:00",
+   "occurred_at": "2026-07-02T11:27:49.444719+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "242d7e77-d0c9-4a61-93a4-4a412d610450",
+   "id": "993fee55-d9d9-45ca-8dfc-9b5f618806a9",
    "title": "Currency pressure builds in Lima",
    "description": "currency pressure builds in lima",
    "location": [
@@ -2597,14 +2597,14 @@ const syntheticDataset = {
    "location_name": "Lima",
    "category": "finance",
    "severity": 5,
-   "occurred_at": "2026-07-02T10:45:10.580238+00:00",
+   "occurred_at": "2026-07-02T10:47:37.948257+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "459ab2d9-7b7e-4440-aaf0-8e6f14dde53f",
+   "id": "ab59dfcd-8807-4087-9ab7-b3972fa36d63",
    "title": "Public health advisory issued for Chicago",
    "description": "public health advisory issued for chicago",
    "location": [
@@ -2614,14 +2614,14 @@ const syntheticDataset = {
    "location_name": "Chicago",
    "category": "other",
    "severity": 4,
-   "occurred_at": "2026-07-02T04:33:06.248203+00:00",
+   "occurred_at": "2026-07-02T04:35:33.616222+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "d1fa2f27-7e05-4bb5-a4e7-8dec1bbb81e3",
+   "id": "4e8823d4-2f64-4efe-9eef-39393ec82758",
    "title": "Flooding reported near Lima",
    "description": "flooding reported near lima",
    "location": [
@@ -2631,14 +2631,14 @@ const syntheticDataset = {
    "location_name": "Lima",
    "category": "disaster",
    "severity": 5,
-   "occurred_at": "2026-06-29T09:29:57.551765+00:00",
+   "occurred_at": "2026-06-29T09:32:24.919784+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "bcc7994b-77db-4d80-932c-d54d799a5fee",
+   "id": "3883eaee-e61a-4249-9ad5-78ff37fe60e9",
    "title": "Policy shift announced in Los Angeles",
    "description": "policy shift announced in los angeles",
    "location": [
@@ -2648,14 +2648,14 @@ const syntheticDataset = {
    "location_name": "Los Angeles",
    "category": "geopolitics",
    "severity": 4,
-   "occurred_at": "2026-06-29T09:17:53.226454+00:00",
+   "occurred_at": "2026-06-29T09:20:20.594473+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "b25a1073-4604-4c87-9233-5eb31a4d7012",
+   "id": "1ed36f13-845a-4f0d-9441-7e1a637a4028",
    "title": "Infrastructure disruption in Mumbai",
    "description": "infrastructure disruption in mumbai",
    "location": [
@@ -2665,14 +2665,14 @@ const syntheticDataset = {
    "location_name": "Mumbai",
    "category": "other",
    "severity": 1,
-   "occurred_at": "2026-07-02T15:11:00.926036+00:00",
+   "occurred_at": "2026-07-02T15:13:28.294055+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "30272973-9740-4a8a-a98c-75613ca0d1c9",
+   "id": "2e558476-8be5-4a1f-bcc1-8957175fa220",
    "title": "Communications outage affecting Tehran",
    "description": "communications outage affecting tehran",
    "location": [
@@ -2682,14 +2682,14 @@ const syntheticDataset = {
    "location_name": "Tehran",
    "category": "other",
    "severity": 1,
-   "occurred_at": "2026-07-02T02:43:01.685796+00:00",
+   "occurred_at": "2026-07-02T02:45:29.053815+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "2cb9d7db-b513-42a1-a54c-0e3045522092",
+   "id": "8fbc7455-84b5-4450-ae5c-35b5e7ed3a2e",
    "title": "Central bank intervention in Chennai",
    "description": "central bank intervention in chennai",
    "location": [
@@ -2699,14 +2699,14 @@ const syntheticDataset = {
    "location_name": "Chennai",
    "category": "finance",
    "severity": 2,
-   "occurred_at": "2026-07-01T06:14:48.709761+00:00",
+   "occurred_at": "2026-07-01T06:17:16.077780+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "48620bf8-009e-4e1b-84d6-34889742838b",
+   "id": "faf10103-8abd-44f1-a490-d4263765b112",
    "title": "Port congestion reported at Kinshasa shipping hub",
    "description": "port congestion reported at kinshasa shipping hub",
    "location": [
@@ -2716,14 +2716,14 @@ const syntheticDataset = {
    "location_name": "Kinshasa",
    "category": "finance",
    "severity": 1,
-   "occurred_at": "2026-07-02T15:53:16.663506+00:00",
+   "occurred_at": "2026-07-02T15:55:44.031525+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "f78575de-cd99-49b9-9797-313339f1acee",
+   "id": "84dc9d03-2d25-4d0e-94d0-2dc790fa574a",
    "title": "Policy shift announced in Mexico City",
    "description": "policy shift announced in mexico city",
    "location": [
@@ -2733,14 +2733,14 @@ const syntheticDataset = {
    "location_name": "Mexico City",
    "category": "geopolitics",
    "severity": 1,
-   "occurred_at": "2026-07-02T02:49:10.260569+00:00",
+   "occurred_at": "2026-07-02T02:51:37.628588+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "b528e2b0-2828-4af1-aa7f-0ae54e734ecc",
+   "id": "a8fd3a12-06a5-4a08-96f2-b2501657b4a6",
    "title": "Wildfire risk elevated around Karachi",
    "description": "wildfire risk elevated around karachi",
    "location": [
@@ -2750,14 +2750,14 @@ const syntheticDataset = {
    "location_name": "Karachi",
    "category": "disaster",
    "severity": 2,
-   "occurred_at": "2026-07-01T21:45:25.518533+00:00",
+   "occurred_at": "2026-07-01T21:47:52.886552+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "850646de-970c-43ee-8dc9-61e536b37006",
+   "id": "b4a405a7-2a69-4796-bb20-7e91a6b1c2f4",
    "title": "Port congestion reported at Cairo shipping hub",
    "description": "port congestion reported at cairo shipping hub",
    "location": [
@@ -2767,14 +2767,14 @@ const syntheticDataset = {
    "location_name": "Cairo",
    "category": "finance",
    "severity": 3,
-   "occurred_at": "2026-07-02T00:02:20.052253+00:00",
+   "occurred_at": "2026-07-02T00:04:47.420272+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "41cd2086-0c24-4146-8e1a-47845394cc10",
+   "id": "8a189e9d-68d5-4f4e-bc94-f1d8f7d53f26",
    "title": "Protest movement grows in Shenzhen",
    "description": "protest movement grows in shenzhen",
    "location": [
@@ -2784,14 +2784,14 @@ const syntheticDataset = {
    "location_name": "Shenzhen",
    "category": "conflict",
    "severity": 4,
-   "occurred_at": "2026-07-02T18:14:11.634767+00:00",
+   "occurred_at": "2026-07-02T18:16:39.002786+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "07ebf065-c1ab-4fde-8d94-eae7fb0e80e8",
+   "id": "670d9b34-52b3-48c4-ae8f-deab3272c6a3",
    "title": "Wildfire risk elevated around Mumbai",
    "description": "wildfire risk elevated around mumbai",
    "location": [
@@ -2801,14 +2801,14 @@ const syntheticDataset = {
    "location_name": "Mumbai",
    "category": "disaster",
    "severity": 5,
-   "occurred_at": "2026-07-03T00:33:19.706651+00:00",
+   "occurred_at": "2026-07-03T00:35:47.074670+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "27996589-d657-46d4-b156-3ae5e7ab240e",
+   "id": "41270ac2-a67a-42d0-8f51-d7c226ed31dd",
    "title": "Port congestion reported at Manila shipping hub",
    "description": "port congestion reported at manila shipping hub",
    "location": [
@@ -2818,14 +2818,14 @@ const syntheticDataset = {
    "location_name": "Manila",
    "category": "finance",
    "severity": 4,
-   "occurred_at": "2026-07-02T12:29:14.795500+00:00",
+   "occurred_at": "2026-07-02T12:31:42.163519+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "cb098f8d-3a6d-454a-a4c5-748066467674",
+   "id": "902a1b51-f93b-4349-b846-009bbbccb715",
    "title": "Diplomatic summit convened in Mexico City",
    "description": "diplomatic summit convened in mexico city",
    "location": [
@@ -2835,14 +2835,14 @@ const syntheticDataset = {
    "location_name": "Mexico City",
    "category": "geopolitics",
    "severity": 5,
-   "occurred_at": "2026-07-02T00:22:07.590332+00:00",
+   "occurred_at": "2026-07-02T00:24:34.958351+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "f3b77632-57ba-4393-862d-079a8376a551",
+   "id": "79fee816-6ac9-4328-b404-7550b9bb9b5e",
    "title": "Border tensions escalate near Karachi",
    "description": "border tensions escalate near karachi",
    "location": [
@@ -2852,14 +2852,14 @@ const syntheticDataset = {
    "location_name": "Karachi",
    "category": "conflict",
    "severity": 5,
-   "occurred_at": "2026-07-01T08:11:13.309834+00:00",
+   "occurred_at": "2026-07-01T08:13:40.677853+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "e22529f3-a279-4ba6-9321-4ce3fc7558c4",
+   "id": "4cc50750-74e1-41e7-ab91-fd4a7adb6459",
    "title": "Severe storm system approaching Karachi",
    "description": "severe storm system approaching karachi",
    "location": [
@@ -2869,14 +2869,14 @@ const syntheticDataset = {
    "location_name": "Karachi",
    "category": "disaster",
    "severity": 3,
-   "occurred_at": "2026-06-29T10:12:28.573833+00:00",
+   "occurred_at": "2026-06-29T10:14:55.941852+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "395d254b-5807-4088-a303-dfd9a6ec9aed",
+   "id": "0150355c-0e10-4366-b91b-633449335a89",
    "title": "Ceasefire talks stall near Kolkata",
    "description": "ceasefire talks stall near kolkata",
    "location": [
@@ -2886,14 +2886,14 @@ const syntheticDataset = {
    "location_name": "Kolkata",
    "category": "conflict",
    "severity": 3,
-   "occurred_at": "2026-06-30T08:30:25.108467+00:00",
+   "occurred_at": "2026-06-30T08:32:52.476486+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "e224ba29-a739-48e2-a307-7ce686a710c6",
+   "id": "18150b1e-a90b-4e59-82df-1009dea849b3",
    "title": "Market volatility spikes in London exchange",
    "description": "market volatility spikes in london exchange",
    "location": [
@@ -2903,14 +2903,14 @@ const syntheticDataset = {
    "location_name": "London",
    "category": "finance",
    "severity": 5,
-   "occurred_at": "2026-07-02T05:48:20.648470+00:00",
+   "occurred_at": "2026-07-02T05:50:48.016489+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "6cd861a0-5929-4f44-ac1f-5a776fadd1e6",
+   "id": "b0077852-3ecb-478a-9e6a-7b78d5af7844",
    "title": "Security incident reported in Rio de Janeiro",
    "description": "security incident reported in rio de janeiro",
    "location": [
@@ -2920,14 +2920,14 @@ const syntheticDataset = {
    "location_name": "Rio de Janeiro",
    "category": "conflict",
    "severity": 1,
-   "occurred_at": "2026-07-01T06:35:16.303316+00:00",
+   "occurred_at": "2026-07-01T06:37:43.671335+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "1d6bbdba-f8d6-48dd-9773-e355d42cbf64",
+   "id": "1a087027-b7d9-4c74-b435-62dff04db206",
    "title": "Communications outage affecting Seoul",
    "description": "communications outage affecting seoul",
    "location": [
@@ -2937,14 +2937,14 @@ const syntheticDataset = {
    "location_name": "Seoul",
    "category": "other",
    "severity": 5,
-   "occurred_at": "2026-06-29T23:32:28.255539+00:00",
+   "occurred_at": "2026-06-29T23:34:55.623558+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "0ac6172f-68e8-49e4-981e-aad38fb0ca80",
+   "id": "10f456c5-8fde-432a-aa9a-11d95e16d7e5",
    "title": "Diplomatic summit convened in Shanghai",
    "description": "diplomatic summit convened in shanghai",
    "location": [
@@ -2954,14 +2954,14 @@ const syntheticDataset = {
    "location_name": "Shanghai",
    "category": "geopolitics",
    "severity": 1,
-   "occurred_at": "2026-07-02T09:30:00.465849+00:00",
+   "occurred_at": "2026-07-02T09:32:27.833868+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "5f7edb92-bcda-49ff-b0a9-3f01677680c1",
+   "id": "0227ac03-647f-43a8-b330-e52ce88f6476",
    "title": "Election results contested in Mexico City",
    "description": "election results contested in mexico city",
    "location": [
@@ -2971,14 +2971,14 @@ const syntheticDataset = {
    "location_name": "Mexico City",
    "category": "geopolitics",
    "severity": 1,
-   "occurred_at": "2026-06-29T14:54:31.036889+00:00",
+   "occurred_at": "2026-06-29T14:56:58.404908+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "adac4513-6b95-4140-b361-d6b25e67bb80",
+   "id": "a53f6a49-d920-400a-8570-5bc1fbfcfbf5",
    "title": "Flooding reported near Delhi",
    "description": "flooding reported near delhi",
    "location": [
@@ -2988,14 +2988,14 @@ const syntheticDataset = {
    "location_name": "Delhi",
    "category": "disaster",
    "severity": 4,
-   "occurred_at": "2026-06-30T18:45:03.731841+00:00",
+   "occurred_at": "2026-06-30T18:47:31.099860+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "8980f66f-0fbf-4a8a-9f13-e6c694170be6",
+   "id": "0d483f19-4a8d-4102-8526-a62f24d5717a",
    "title": "New sanctions announced affecting Nairobi",
    "description": "new sanctions announced affecting nairobi",
    "location": [
@@ -3005,14 +3005,14 @@ const syntheticDataset = {
    "location_name": "Nairobi",
    "category": "geopolitics",
    "severity": 3,
-   "occurred_at": "2026-06-30T19:41:10.990351+00:00",
+   "occurred_at": "2026-06-30T19:43:38.358370+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "df16710a-9b28-4428-ba05-29d18ea90f96",
+   "id": "99d73981-3459-4a64-9f72-92ce550c67ad",
    "title": "Wildfire risk elevated around Kinshasa",
    "description": "wildfire risk elevated around kinshasa",
    "location": [
@@ -3022,14 +3022,14 @@ const syntheticDataset = {
    "location_name": "Kinshasa",
    "category": "disaster",
    "severity": 5,
-   "occurred_at": "2026-07-01T02:09:32.518613+00:00",
+   "occurred_at": "2026-07-01T02:11:59.886632+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "cd03c948-55b1-448e-b781-5b499f1c3cf2",
+   "id": "6226426e-0538-45f5-8e05-5e64ad50666a",
    "title": "Market volatility spikes in Paris exchange",
    "description": "market volatility spikes in paris exchange",
    "location": [
@@ -3039,14 +3039,14 @@ const syntheticDataset = {
    "location_name": "Paris",
    "category": "finance",
    "severity": 1,
-   "occurred_at": "2026-07-01T12:20:50.164605+00:00",
+   "occurred_at": "2026-07-01T12:23:17.532624+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "b3d5e888-d456-4638-8881-5c230276e72a",
+   "id": "4e9462ee-28d6-4ec4-9322-8e8a975ffa48",
    "title": "Flooding reported near Jakarta",
    "description": "flooding reported near jakarta",
    "location": [
@@ -3056,14 +3056,14 @@ const syntheticDataset = {
    "location_name": "Jakarta",
    "category": "disaster",
    "severity": 5,
-   "occurred_at": "2026-07-02T13:34:07.594752+00:00",
+   "occurred_at": "2026-07-02T13:36:34.962771+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "3100ff82-316a-477a-a1f3-a2e9cb97276f",
+   "id": "888ad848-aef0-4aa3-928a-38977a700ebd",
    "title": "Flooding reported near Berlin",
    "description": "flooding reported near berlin",
    "location": [
@@ -3073,14 +3073,14 @@ const syntheticDataset = {
    "location_name": "Berlin",
    "category": "disaster",
    "severity": 4,
-   "occurred_at": "2026-06-29T15:52:01.036709+00:00",
+   "occurred_at": "2026-06-29T15:54:28.404728+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "a4e2af61-d8ea-4c39-8182-0723f1d4383f",
+   "id": "0f38302f-b97a-45d3-94dd-2292476b83aa",
    "title": "Diplomatic summit convened in Beijing",
    "description": "diplomatic summit convened in beijing",
    "location": [
@@ -3090,14 +3090,14 @@ const syntheticDataset = {
    "location_name": "Beijing",
    "category": "geopolitics",
    "severity": 4,
-   "occurred_at": "2026-07-01T16:19:44.299369+00:00",
+   "occurred_at": "2026-07-01T16:22:11.667388+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "9a250c49-d13c-4f5b-8ae5-a38404b77919",
+   "id": "b082a2e9-0673-4c25-b4b9-4139ea0b6b93",
    "title": "Severe storm system approaching Kolkata",
    "description": "severe storm system approaching kolkata",
    "location": [
@@ -3107,14 +3107,14 @@ const syntheticDataset = {
    "location_name": "Kolkata",
    "category": "disaster",
    "severity": 3,
-   "occurred_at": "2026-06-30T15:29:16.492488+00:00",
+   "occurred_at": "2026-06-30T15:31:43.860507+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "4e46586e-3c67-4bd0-91cf-f91964a07fe8",
+   "id": "8d4a9e3c-92e3-460a-bc0c-d77b17305cd7",
    "title": "Election results contested in Lima",
    "description": "election results contested in lima",
    "location": [
@@ -3124,14 +3124,14 @@ const syntheticDataset = {
    "location_name": "Lima",
    "category": "geopolitics",
    "severity": 4,
-   "occurred_at": "2026-07-03T00:00:44.626107+00:00",
+   "occurred_at": "2026-07-03T00:03:11.994126+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "2fbaaf06-d2fa-4aeb-ae50-070510f0cd9c",
+   "id": "1b65eea6-021c-4695-bcb7-bb668aebc8e6",
    "title": "Election results contested in Mumbai",
    "description": "election results contested in mumbai",
    "location": [
@@ -3141,14 +3141,14 @@ const syntheticDataset = {
    "location_name": "Mumbai",
    "category": "geopolitics",
    "severity": 3,
-   "occurred_at": "2026-06-29T12:03:55.856310+00:00",
+   "occurred_at": "2026-06-29T12:06:23.224329+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "03a40242-36f3-473c-80e1-02dd4f7db765",
+   "id": "5fb9d3fb-ee4a-4e37-9fd1-1ffa4e8ff185",
    "title": "Wildfire risk elevated around London",
    "description": "wildfire risk elevated around london",
    "location": [
@@ -3158,14 +3158,14 @@ const syntheticDataset = {
    "location_name": "London",
    "category": "disaster",
    "severity": 3,
-   "occurred_at": "2026-07-01T19:59:06.468656+00:00",
+   "occurred_at": "2026-07-01T20:01:33.836675+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "f69c1475-cc4f-4d73-a46f-dfe1b7e8f754",
+   "id": "54ee8827-5e70-4ecf-a885-7f2f068c344d",
    "title": "Protest movement grows in Los Angeles",
    "description": "protest movement grows in los angeles",
    "location": [
@@ -3175,14 +3175,14 @@ const syntheticDataset = {
    "location_name": "Los Angeles",
    "category": "conflict",
    "severity": 2,
-   "occurred_at": "2026-07-01T04:51:44.572660+00:00",
+   "occurred_at": "2026-07-01T04:54:11.940679+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "214d87f7-6aac-4aa6-8876-8ead5c54efcb",
+   "id": "f5024785-90b0-463b-973a-485ae88d0a2e",
    "title": "New sanctions announced affecting Buenos Aires",
    "description": "new sanctions announced affecting buenos aires",
    "location": [
@@ -3192,14 +3192,14 @@ const syntheticDataset = {
    "location_name": "Buenos Aires",
    "category": "geopolitics",
    "severity": 1,
-   "occurred_at": "2026-07-02T09:20:17.582766+00:00",
+   "occurred_at": "2026-07-02T09:22:44.950785+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "66927e1b-a6bb-4512-8305-aa3a217d3f0d",
+   "id": "0fcfe186-9d97-449c-a624-fd50539d4275",
    "title": "Market volatility spikes in Hyderabad exchange",
    "description": "market volatility spikes in hyderabad exchange",
    "location": [
@@ -3209,14 +3209,14 @@ const syntheticDataset = {
    "location_name": "Hyderabad",
    "category": "finance",
    "severity": 3,
-   "occurred_at": "2026-06-30T01:15:52.844437+00:00",
+   "occurred_at": "2026-06-30T01:18:20.212456+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "376d8c62-d7d5-4068-91ec-c08bb9810286",
+   "id": "2e8a3e32-20d0-412b-9f2a-663016426916",
    "title": "Diplomatic summit convened in Bangkok",
    "description": "diplomatic summit convened in bangkok",
    "location": [
@@ -3226,14 +3226,14 @@ const syntheticDataset = {
    "location_name": "Bangkok",
    "category": "geopolitics",
    "severity": 3,
-   "occurred_at": "2026-07-02T03:16:55.480448+00:00",
+   "occurred_at": "2026-07-02T03:19:22.848467+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "5c4a327e-699d-4be1-bad8-7faae50f1e85",
+   "id": "0b6f1019-44bf-4140-8374-9c7d36a68ef4",
    "title": "Market volatility spikes in S\u00e3o Paulo exchange",
    "description": "market volatility spikes in s\u00e3o paulo exchange",
    "location": [
@@ -3243,14 +3243,14 @@ const syntheticDataset = {
    "location_name": "S\u00e3o Paulo",
    "category": "finance",
    "severity": 4,
-   "occurred_at": "2026-07-02T09:49:33.735722+00:00",
+   "occurred_at": "2026-07-02T09:52:01.103741+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "2ef40f35-f3c0-472e-8170-989d4952e431",
+   "id": "5f8b3ba0-fdd4-4d08-b073-c6d50e700fb0",
    "title": "Protest movement grows in Tianjin",
    "description": "protest movement grows in tianjin",
    "location": [
@@ -3260,14 +3260,14 @@ const syntheticDataset = {
    "location_name": "Tianjin",
    "category": "conflict",
    "severity": 3,
-   "occurred_at": "2026-07-01T08:17:50.270532+00:00",
+   "occurred_at": "2026-07-01T08:20:17.638551+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "10b8599b-b4b6-483e-89dc-7adce00b7d11",
+   "id": "89d8bf0c-35f9-430a-9465-149996f4fa82",
    "title": "Central bank intervention in Manila",
    "description": "central bank intervention in manila",
    "location": [
@@ -3277,14 +3277,14 @@ const syntheticDataset = {
    "location_name": "Manila",
    "category": "finance",
    "severity": 2,
-   "occurred_at": "2026-07-01T10:48:41.285807+00:00",
+   "occurred_at": "2026-07-01T10:51:08.653826+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "eb339f26-f1de-4bc6-80b5-2dba3302bd1a",
+   "id": "9d97ee37-67c7-48e8-adc0-d6d35447270d",
    "title": "Communications outage affecting Tianjin",
    "description": "communications outage affecting tianjin",
    "location": [
@@ -3294,14 +3294,14 @@ const syntheticDataset = {
    "location_name": "Tianjin",
    "category": "other",
    "severity": 3,
-   "occurred_at": "2026-07-01T11:50:27.172974+00:00",
+   "occurred_at": "2026-07-01T11:52:54.540993+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "bcc4394c-5749-4e14-ac1d-0d5da8d9badd",
+   "id": "5740f552-a9fc-46c7-a94b-a41c38d30879",
    "title": "Election results contested in Cairo",
    "description": "election results contested in cairo",
    "location": [
@@ -3311,14 +3311,14 @@ const syntheticDataset = {
    "location_name": "Cairo",
    "category": "geopolitics",
    "severity": 3,
-   "occurred_at": "2026-07-01T11:10:48.245479+00:00",
+   "occurred_at": "2026-07-01T11:13:15.613498+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "f1738934-332d-4da0-ac77-f7818a86f808",
+   "id": "225057bd-a44a-44c3-8dbb-c0efa85e1bea",
    "title": "Port congestion reported at Shenzhen shipping hub",
    "description": "port congestion reported at shenzhen shipping hub",
    "location": [
@@ -3328,14 +3328,14 @@ const syntheticDataset = {
    "location_name": "Shenzhen",
    "category": "finance",
    "severity": 3,
-   "occurred_at": "2026-07-01T06:53:28.820267+00:00",
+   "occurred_at": "2026-07-01T06:55:56.188286+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "10798ff2-caf8-4368-a884-f6df9642ce96",
+   "id": "44518e46-42db-4775-92d4-8e2be742ac07",
    "title": "Communications outage affecting Dhaka",
    "description": "communications outage affecting dhaka",
    "location": [
@@ -3345,14 +3345,14 @@ const syntheticDataset = {
    "location_name": "Dhaka",
    "category": "other",
    "severity": 4,
-   "occurred_at": "2026-07-01T22:36:26.922993+00:00",
+   "occurred_at": "2026-07-01T22:38:54.291012+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "912cae86-bd0a-4511-b65a-39da6805a835",
+   "id": "840d1670-93f9-4c3f-aba2-338251c62083",
    "title": "Currency pressure builds in Bangkok",
    "description": "currency pressure builds in bangkok",
    "location": [
@@ -3362,14 +3362,14 @@ const syntheticDataset = {
    "location_name": "Bangkok",
    "category": "finance",
    "severity": 1,
-   "occurred_at": "2026-07-01T01:08:35.908680+00:00",
+   "occurred_at": "2026-07-01T01:11:03.276699+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "f746c6bf-b88d-46c2-8a19-77f10c453cf2",
+   "id": "619a6d73-b2fe-420a-ab57-0e2661d05db9",
    "title": "Policy shift announced in Bangalore",
    "description": "policy shift announced in bangalore",
    "location": [
@@ -3379,14 +3379,14 @@ const syntheticDataset = {
    "location_name": "Bangalore",
    "category": "geopolitics",
    "severity": 2,
-   "occurred_at": "2026-07-01T02:51:54.677652+00:00",
+   "occurred_at": "2026-07-01T02:54:22.045671+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "d681395f-a5dc-44ef-995c-017dac549326",
+   "id": "a4fef782-76b4-4fd2-af2f-6243c0c168da",
    "title": "Central bank intervention in Hyderabad",
    "description": "central bank intervention in hyderabad",
    "location": [
@@ -3396,14 +3396,14 @@ const syntheticDataset = {
    "location_name": "Hyderabad",
    "category": "finance",
    "severity": 2,
-   "occurred_at": "2026-07-02T01:27:41.792427+00:00",
+   "occurred_at": "2026-07-02T01:30:09.160446+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "e5806570-680e-4fb7-904c-e5cb42fccdd4",
+   "id": "accf0834-d19b-4cb8-b174-255cf56cc5e3",
    "title": "Central bank intervention in Lima",
    "description": "central bank intervention in lima",
    "location": [
@@ -3413,14 +3413,14 @@ const syntheticDataset = {
    "location_name": "Lima",
    "category": "finance",
    "severity": 4,
-   "occurred_at": "2026-07-01T09:31:56.773891+00:00",
+   "occurred_at": "2026-07-01T09:34:24.141910+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "5310ab1e-5d31-4254-9bc2-b1d76832298f",
+   "id": "be6a2276-1c84-4058-abba-2d27b164379d",
    "title": "Border tensions escalate near Ho Chi Minh City",
    "description": "border tensions escalate near ho chi minh city",
    "location": [
@@ -3430,14 +3430,14 @@ const syntheticDataset = {
    "location_name": "Ho Chi Minh City",
    "category": "conflict",
    "severity": 3,
-   "occurred_at": "2026-06-30T11:23:43.611522+00:00",
+   "occurred_at": "2026-06-30T11:26:10.979541+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "87954b66-879d-4265-a132-12cd7f3f306d",
+   "id": "8d8d2961-f20f-4f12-8750-dac550b75a1d",
    "title": "Diplomatic summit convened in Istanbul",
    "description": "diplomatic summit convened in istanbul",
    "location": [
@@ -3447,14 +3447,14 @@ const syntheticDataset = {
    "location_name": "Istanbul",
    "category": "geopolitics",
    "severity": 4,
-   "occurred_at": "2026-07-01T02:45:33.975452+00:00",
+   "occurred_at": "2026-07-01T02:48:01.343471+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "2016b422-17d9-4c37-a0cf-e7bee625781f",
+   "id": "f170b216-1df2-4e17-bb2f-18701669f290",
    "title": "New sanctions announced affecting Kinshasa",
    "description": "new sanctions announced affecting kinshasa",
    "location": [
@@ -3464,14 +3464,14 @@ const syntheticDataset = {
    "location_name": "Kinshasa",
    "category": "geopolitics",
    "severity": 5,
-   "occurred_at": "2026-07-02T20:29:05.852364+00:00",
+   "occurred_at": "2026-07-02T20:31:33.220383+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "0cde35a8-dd97-42e3-abb9-85fb97797c56",
+   "id": "7e051a0a-addf-4276-bd2a-f0120018f734",
    "title": "Severe storm system approaching Sydney",
    "description": "severe storm system approaching sydney",
    "location": [
@@ -3481,14 +3481,14 @@ const syntheticDataset = {
    "location_name": "Sydney",
    "category": "disaster",
    "severity": 1,
-   "occurred_at": "2026-07-02T13:05:50.269678+00:00",
+   "occurred_at": "2026-07-02T13:08:17.637697+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "7999a5e6-3712-4d8b-a1ff-82b25c23928d",
+   "id": "a68032b5-ed0f-4b7d-b2dd-ff138e923c3e",
    "title": "Flooding reported near Buenos Aires",
    "description": "flooding reported near buenos aires",
    "location": [
@@ -3498,14 +3498,14 @@ const syntheticDataset = {
    "location_name": "Buenos Aires",
    "category": "disaster",
    "severity": 2,
-   "occurred_at": "2026-07-02T13:23:28.970614+00:00",
+   "occurred_at": "2026-07-02T13:25:56.338633+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "128c87d7-c5cb-4e36-a49a-0a5b97bfb14b",
+   "id": "b9b81a5a-ecd5-4f27-ae98-5b25914d19f3",
    "title": "Public health advisory issued for London",
    "description": "public health advisory issued for london",
    "location": [
@@ -3515,14 +3515,14 @@ const syntheticDataset = {
    "location_name": "London",
    "category": "other",
    "severity": 2,
-   "occurred_at": "2026-07-02T09:04:41.112618+00:00",
+   "occurred_at": "2026-07-02T09:07:08.480637+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "95f4f05a-fb3c-4de5-a7ba-dd7643612652",
+   "id": "cc0ea689-3655-4fd2-8476-9b0e04fea37a",
    "title": "New sanctions announced affecting Cairo",
    "description": "new sanctions announced affecting cairo",
    "location": [
@@ -3532,14 +3532,14 @@ const syntheticDataset = {
    "location_name": "Cairo",
    "category": "geopolitics",
    "severity": 5,
-   "occurred_at": "2026-07-01T03:47:23.489530+00:00",
+   "occurred_at": "2026-07-01T03:49:50.857549+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "bf43b8ee-4b80-441d-86bf-a8efc5931a96",
+   "id": "7168d081-7bc6-4430-9cbd-db196a5748d0",
    "title": "Central bank intervention in London",
    "description": "central bank intervention in london",
    "location": [
@@ -3549,14 +3549,14 @@ const syntheticDataset = {
    "location_name": "London",
    "category": "finance",
    "severity": 2,
-   "occurred_at": "2026-07-03T02:12:44.021482+00:00",
+   "occurred_at": "2026-07-03T02:15:11.389501+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "6dad9190-a809-44fb-83c6-48b82ae63066",
+   "id": "64fbb589-dc62-448f-a902-8d63fb00a137",
    "title": "Election results contested in Chicago",
    "description": "election results contested in chicago",
    "location": [
@@ -3566,14 +3566,14 @@ const syntheticDataset = {
    "location_name": "Chicago",
    "category": "geopolitics",
    "severity": 1,
-   "occurred_at": "2026-07-02T09:43:34.752792+00:00",
+   "occurred_at": "2026-07-02T09:46:02.120811+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "b50f0031-9fac-4082-ad8c-3e1c2c5b7ff6",
+   "id": "fb351032-9135-42cf-b496-347a02d7bd42",
    "title": "Port congestion reported at Paris shipping hub",
    "description": "port congestion reported at paris shipping hub",
    "location": [
@@ -3583,14 +3583,14 @@ const syntheticDataset = {
    "location_name": "Paris",
    "category": "finance",
    "severity": 5,
-   "occurred_at": "2026-07-03T01:02:31.478201+00:00",
+   "occurred_at": "2026-07-03T01:04:58.846220+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "87a668ec-4143-4a12-a1f1-a850c41a6205",
+   "id": "4f039ec7-1496-4336-acd8-b268f0c9c7f0",
    "title": "Currency pressure builds in Ho Chi Minh City",
    "description": "currency pressure builds in ho chi minh city",
    "location": [
@@ -3600,14 +3600,14 @@ const syntheticDataset = {
    "location_name": "Ho Chi Minh City",
    "category": "finance",
    "severity": 4,
-   "occurred_at": "2026-06-29T06:14:02.986785+00:00",
+   "occurred_at": "2026-06-29T06:16:30.354804+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "62b48c61-1b7b-408f-9355-fa23bd3319d0",
+   "id": "e504d1fe-60ff-4bcf-b03c-bfb9d63d884f",
    "title": "Protest movement grows in Kinshasa",
    "description": "protest movement grows in kinshasa",
    "location": [
@@ -3617,14 +3617,14 @@ const syntheticDataset = {
    "location_name": "Kinshasa",
    "category": "conflict",
    "severity": 5,
-   "occurred_at": "2026-07-02T16:47:46.871026+00:00",
+   "occurred_at": "2026-07-02T16:50:14.239045+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "2f35fcf8-4eba-4985-b031-29a17019f5d7",
+   "id": "e5d8da08-e662-46ad-9359-fa1fede4debd",
    "title": "Infrastructure disruption in Kinshasa",
    "description": "infrastructure disruption in kinshasa",
    "location": [
@@ -3634,14 +3634,14 @@ const syntheticDataset = {
    "location_name": "Kinshasa",
    "category": "other",
    "severity": 3,
-   "occurred_at": "2026-07-02T18:20:57.853249+00:00",
+   "occurred_at": "2026-07-02T18:23:25.221268+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "cf5262ee-106e-431e-9e66-4cee2637b98a",
+   "id": "700b7371-faec-4378-a472-9b7c792ae27e",
    "title": "Flooding reported near Chicago",
    "description": "flooding reported near chicago",
    "location": [
@@ -3651,14 +3651,14 @@ const syntheticDataset = {
    "location_name": "Chicago",
    "category": "disaster",
    "severity": 1,
-   "occurred_at": "2026-06-30T08:06:03.289907+00:00",
+   "occurred_at": "2026-06-30T08:08:30.657926+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "b4118e9c-639e-4dfd-aa5f-74cf6edd8c18",
+   "id": "03fbc563-3e71-4e9f-a29e-fa438e024d40",
    "title": "Public health advisory issued for Tokyo",
    "description": "public health advisory issued for tokyo",
    "location": [
@@ -3668,14 +3668,14 @@ const syntheticDataset = {
    "location_name": "Tokyo",
    "category": "other",
    "severity": 1,
-   "occurred_at": "2026-06-30T18:10:41.402684+00:00",
+   "occurred_at": "2026-06-30T18:13:08.770703+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "d74aaffc-70c0-463f-bea2-21c31b200a93",
+   "id": "747e9e0e-d8fa-418b-b9ea-75e74fd024f3",
    "title": "Infrastructure disruption in Chengdu",
    "description": "infrastructure disruption in chengdu",
    "location": [
@@ -3685,14 +3685,14 @@ const syntheticDataset = {
    "location_name": "Chengdu",
    "category": "other",
    "severity": 3,
-   "occurred_at": "2026-07-03T03:37:59.494304+00:00",
+   "occurred_at": "2026-07-03T03:40:26.862323+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "a435d632-5645-4db3-a6c9-3ed146230b56",
+   "id": "09a53e70-7053-47bd-8e48-cf89c3702c5c",
    "title": "Diplomatic summit convened in S\u00e3o Paulo",
    "description": "diplomatic summit convened in s\u00e3o paulo",
    "location": [
@@ -3702,14 +3702,14 @@ const syntheticDataset = {
    "location_name": "S\u00e3o Paulo",
    "category": "geopolitics",
    "severity": 4,
-   "occurred_at": "2026-06-30T16:21:18.586270+00:00",
+   "occurred_at": "2026-06-30T16:23:45.954289+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "b77ddf54-826d-4ae3-ba2c-08b538d66c80",
+   "id": "1a18b2a8-d4bc-45f7-a223-37a4667b7368",
    "title": "Central bank intervention in Ho Chi Minh City",
    "description": "central bank intervention in ho chi minh city",
    "location": [
@@ -3719,14 +3719,14 @@ const syntheticDataset = {
    "location_name": "Ho Chi Minh City",
    "category": "finance",
    "severity": 5,
-   "occurred_at": "2026-07-01T03:49:57.190127+00:00",
+   "occurred_at": "2026-07-01T03:52:24.558146+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "d9ad81be-0be7-4f3c-b382-5307539e0f04",
+   "id": "7ff1b28c-1d4d-4ee9-b161-a0a88af8ac5b",
    "title": "Currency pressure builds in Chicago",
    "description": "currency pressure builds in chicago",
    "location": [
@@ -3736,14 +3736,14 @@ const syntheticDataset = {
    "location_name": "Chicago",
    "category": "finance",
    "severity": 1,
-   "occurred_at": "2026-06-30T18:43:48.795199+00:00",
+   "occurred_at": "2026-06-30T18:46:16.163218+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "372e79cc-4e74-4362-8594-888d3e78fdc5",
+   "id": "15123143-de22-4e91-8929-48ec89a36fe1",
    "title": "New sanctions announced affecting Tehran",
    "description": "new sanctions announced affecting tehran",
    "location": [
@@ -3753,14 +3753,14 @@ const syntheticDataset = {
    "location_name": "Tehran",
    "category": "geopolitics",
    "severity": 3,
-   "occurred_at": "2026-07-03T00:49:15.567372+00:00",
+   "occurred_at": "2026-07-03T00:51:42.935391+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "d3db2165-b017-4c1e-92c4-6b6dce43ed56",
+   "id": "f8516c0b-58b7-4515-bd82-cff2454fb183",
    "title": "Currency pressure builds in Delhi",
    "description": "currency pressure builds in delhi",
    "location": [
@@ -3770,14 +3770,14 @@ const syntheticDataset = {
    "location_name": "Delhi",
    "category": "finance",
    "severity": 1,
-   "occurred_at": "2026-07-01T17:31:52.742782+00:00",
+   "occurred_at": "2026-07-01T17:34:20.110801+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "239cffcb-afcf-4f05-9e7e-72908a69a7eb",
+   "id": "7cffa87a-9895-485c-9375-77f870db245e",
    "title": "Ceasefire talks stall near Tehran",
    "description": "ceasefire talks stall near tehran",
    "location": [
@@ -3787,14 +3787,14 @@ const syntheticDataset = {
    "location_name": "Tehran",
    "category": "conflict",
    "severity": 2,
-   "occurred_at": "2026-07-01T03:11:29.852058+00:00",
+   "occurred_at": "2026-07-01T03:13:57.220077+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "8afd4f75-99cf-4fa6-8659-faf94278e8f4",
+   "id": "8c063635-0654-4b96-8352-df1a3c3cd804",
    "title": "Supply chain alert issued for Shanghai",
    "description": "supply chain alert issued for shanghai",
    "location": [
@@ -3804,14 +3804,14 @@ const syntheticDataset = {
    "location_name": "Shanghai",
    "category": "other",
    "severity": 1,
-   "occurred_at": "2026-06-29T15:48:45.626546+00:00",
+   "occurred_at": "2026-06-29T15:51:12.994565+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "f7d453f3-cbf1-45b8-a59a-ef28e4284d6a",
+   "id": "20c2f480-4113-4529-b15a-5c1408dfdf98",
    "title": "Policy shift announced in Shenzhen",
    "description": "policy shift announced in shenzhen",
    "location": [
@@ -3821,14 +3821,14 @@ const syntheticDataset = {
    "location_name": "Shenzhen",
    "category": "geopolitics",
    "severity": 4,
-   "occurred_at": "2026-07-02T03:43:39.104691+00:00",
+   "occurred_at": "2026-07-02T03:46:06.472710+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "f251a6ea-a68e-48bf-b87a-147e25e7ac04",
+   "id": "67ba4480-5fe6-48d1-9352-3ae0fc1d477f",
    "title": "Border tensions escalate near Bangkok",
    "description": "border tensions escalate near bangkok",
    "location": [
@@ -3838,14 +3838,14 @@ const syntheticDataset = {
    "location_name": "Bangkok",
    "category": "conflict",
    "severity": 5,
-   "occurred_at": "2026-07-01T18:34:51.347484+00:00",
+   "occurred_at": "2026-07-01T18:37:18.715503+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "eca1f044-5ffb-406b-8753-8b08068e6d4e",
+   "id": "a3675e6b-32b0-4390-ae24-464189fb6203",
    "title": "Market volatility spikes in Jakarta exchange",
    "description": "market volatility spikes in jakarta exchange",
    "location": [
@@ -3855,14 +3855,14 @@ const syntheticDataset = {
    "location_name": "Jakarta",
    "category": "finance",
    "severity": 2,
-   "occurred_at": "2026-07-01T06:10:39.854252+00:00",
+   "occurred_at": "2026-07-01T06:13:07.222271+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "92c17f4a-19a4-484f-9d29-685d1b0dcc35",
+   "id": "e12734b6-3016-4ff7-a295-7b12906facbb",
    "title": "Infrastructure disruption in Shenzhen",
    "description": "infrastructure disruption in shenzhen",
    "location": [
@@ -3872,14 +3872,14 @@ const syntheticDataset = {
    "location_name": "Shenzhen",
    "category": "other",
    "severity": 2,
-   "occurred_at": "2026-06-30T11:51:36.219351+00:00",
+   "occurred_at": "2026-06-30T11:54:03.587370+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "96be52b8-b55e-410a-a2f3-4778bbc88ced",
+   "id": "a90f8516-0fd2-4d5b-bf0e-aad43bd775b6",
    "title": "Currency pressure builds in Buenos Aires",
    "description": "currency pressure builds in buenos aires",
    "location": [
@@ -3889,14 +3889,14 @@ const syntheticDataset = {
    "location_name": "Buenos Aires",
    "category": "finance",
    "severity": 2,
-   "occurred_at": "2026-06-29T22:07:09.345669+00:00",
+   "occurred_at": "2026-06-29T22:09:36.713688+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "e756c497-2aba-417f-8dca-7779f81dc026",
+   "id": "6958f719-92f6-4320-8d09-3150e6cce0f6",
    "title": "Communications outage affecting Chengdu",
    "description": "communications outage affecting chengdu",
    "location": [
@@ -3906,14 +3906,14 @@ const syntheticDataset = {
    "location_name": "Chengdu",
    "category": "other",
    "severity": 3,
-   "occurred_at": "2026-06-30T16:57:48.654801+00:00",
+   "occurred_at": "2026-06-30T17:00:16.022820+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "3438e969-83ce-4639-885f-9a49ffe46d41",
+   "id": "f94b2313-7bf1-4634-84e2-0554364e1c32",
    "title": "Seismic activity recorded near Los Angeles",
    "description": "seismic activity recorded near los angeles",
    "location": [
@@ -3923,14 +3923,14 @@ const syntheticDataset = {
    "location_name": "Los Angeles",
    "category": "disaster",
    "severity": 2,
-   "occurred_at": "2026-07-01T04:47:15.287234+00:00",
+   "occurred_at": "2026-07-01T04:49:42.655253+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "ba4551a5-93f9-4397-8316-1228301e64d1",
+   "id": "f7acb4e0-70c0-4365-a28f-fb9f26a4f4b5",
    "title": "Severe storm system approaching Dhaka",
    "description": "severe storm system approaching dhaka",
    "location": [
@@ -3940,14 +3940,14 @@ const syntheticDataset = {
    "location_name": "Dhaka",
    "category": "disaster",
    "severity": 5,
-   "occurred_at": "2026-06-29T22:32:58.126401+00:00",
+   "occurred_at": "2026-06-29T22:35:25.494420+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "38de0d5c-8ca0-4876-ab60-dec934c0d6da",
+   "id": "2938eff4-b718-4d74-b1dc-43b207a06422",
    "title": "Seismic activity recorded near Lagos",
    "description": "seismic activity recorded near lagos",
    "location": [
@@ -3957,14 +3957,14 @@ const syntheticDataset = {
    "location_name": "Lagos",
    "category": "disaster",
    "severity": 4,
-   "occurred_at": "2026-06-29T14:41:17.634734+00:00",
+   "occurred_at": "2026-06-29T14:43:45.002753+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "a862f2c9-fa0e-4535-b738-9c1f075e1b4c",
+   "id": "e8d52c30-5206-4d04-b3b8-dd1903622ba1",
    "title": "Flooding reported near Los Angeles",
    "description": "flooding reported near los angeles",
    "location": [
@@ -3974,14 +3974,14 @@ const syntheticDataset = {
    "location_name": "Los Angeles",
    "category": "disaster",
    "severity": 2,
-   "occurred_at": "2026-07-02T06:26:16.552713+00:00",
+   "occurred_at": "2026-07-02T06:28:43.920732+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "47ec31d7-2277-4204-a755-4cc7db0276e6",
+   "id": "c7ed8d4a-ebaa-4b8b-986d-a3a7d430101b",
    "title": "Supply chain alert issued for Kolkata",
    "description": "supply chain alert issued for kolkata",
    "location": [
@@ -3991,14 +3991,14 @@ const syntheticDataset = {
    "location_name": "Kolkata",
    "category": "other",
    "severity": 3,
-   "occurred_at": "2026-06-30T03:24:55.791773+00:00",
+   "occurred_at": "2026-06-30T03:27:23.159792+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "4b3a7503-b948-4716-981b-fc2757e98a39",
+   "id": "9011dd92-8035-4f9b-a760-5195c678651a",
    "title": "Public health advisory issued for Chennai",
    "description": "public health advisory issued for chennai",
    "location": [
@@ -4008,14 +4008,14 @@ const syntheticDataset = {
    "location_name": "Chennai",
    "category": "other",
    "severity": 3,
-   "occurred_at": "2026-07-02T16:25:21.833566+00:00",
+   "occurred_at": "2026-07-02T16:27:49.201585+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "0dc58787-443d-439a-9e73-49d9224c3c94",
+   "id": "b68cf33a-e8a2-4dc2-b808-368f26c2ba2a",
    "title": "Severe storm system approaching Buenos Aires",
    "description": "severe storm system approaching buenos aires",
    "location": [
@@ -4025,14 +4025,14 @@ const syntheticDataset = {
    "location_name": "Buenos Aires",
    "category": "disaster",
    "severity": 5,
-   "occurred_at": "2026-07-01T22:54:55.187914+00:00",
+   "occurred_at": "2026-07-01T22:57:22.555933+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "1eb5d762-86f0-4a08-89ba-063071ac7358",
+   "id": "4fae725b-0b08-4c13-8c12-32be0741a6e7",
    "title": "Diplomatic summit convened in Berlin",
    "description": "diplomatic summit convened in berlin",
    "location": [
@@ -4042,14 +4042,14 @@ const syntheticDataset = {
    "location_name": "Berlin",
    "category": "geopolitics",
    "severity": 4,
-   "occurred_at": "2026-07-02T10:01:18.256587+00:00",
+   "occurred_at": "2026-07-02T10:03:45.624606+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "fe27843f-5daf-41dc-ad80-9fdf712ef44b",
+   "id": "9d6bb029-aa9c-4f41-a0b1-d5e8a5e8d3f9",
    "title": "Port congestion reported at Istanbul shipping hub",
    "description": "port congestion reported at istanbul shipping hub",
    "location": [
@@ -4059,14 +4059,14 @@ const syntheticDataset = {
    "location_name": "Istanbul",
    "category": "finance",
    "severity": 5,
-   "occurred_at": "2026-06-30T06:09:15.685958+00:00",
+   "occurred_at": "2026-06-30T06:11:43.053977+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "3f96328b-cd36-4d1b-ba9b-17421168f8f7",
+   "id": "dcc8e775-c049-4748-83d7-29e4b1d2ddda",
    "title": "Central bank intervention in Tianjin",
    "description": "central bank intervention in tianjin",
    "location": [
@@ -4076,14 +4076,14 @@ const syntheticDataset = {
    "location_name": "Tianjin",
    "category": "finance",
    "severity": 1,
-   "occurred_at": "2026-06-29T23:28:01.926841+00:00",
+   "occurred_at": "2026-06-29T23:30:29.294860+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "cc034a46-1bae-4de6-a201-19da568bb9e0",
+   "id": "6c7a1302-396d-428b-9785-0765ea0dc81f",
    "title": "Currency pressure builds in Ho Chi Minh City",
    "description": "currency pressure builds in ho chi minh city",
    "location": [
@@ -4093,14 +4093,14 @@ const syntheticDataset = {
    "location_name": "Ho Chi Minh City",
    "category": "finance",
    "severity": 2,
-   "occurred_at": "2026-06-29T21:08:44.735823+00:00",
+   "occurred_at": "2026-06-29T21:11:12.103842+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "4972ab36-5739-477a-851a-d405d6c47dca",
+   "id": "ec6afdd8-6e5d-4e84-a18f-22d67d4fc80f",
    "title": "Policy shift announced in New York",
    "description": "policy shift announced in new york",
    "location": [
@@ -4110,14 +4110,14 @@ const syntheticDataset = {
    "location_name": "New York",
    "category": "geopolitics",
    "severity": 2,
-   "occurred_at": "2026-07-02T12:58:40.902283+00:00",
+   "occurred_at": "2026-07-02T13:01:08.270302+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "da2e475d-e312-411a-b7c0-f802deee1790",
+   "id": "96870be2-8ea3-483b-b014-f0d55e7582a5",
    "title": "Severe storm system approaching Bangkok",
    "description": "severe storm system approaching bangkok",
    "location": [
@@ -4127,14 +4127,14 @@ const syntheticDataset = {
    "location_name": "Bangkok",
    "category": "disaster",
    "severity": 3,
-   "occurred_at": "2026-06-30T13:08:26.324499+00:00",
+   "occurred_at": "2026-06-30T13:10:53.692518+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "58627366-3f3e-4558-a571-9feea21670c7",
+   "id": "34114e12-f023-46f8-b8ef-4db4a94834e7",
    "title": "Central bank intervention in Lagos",
    "description": "central bank intervention in lagos",
    "location": [
@@ -4144,14 +4144,14 @@ const syntheticDataset = {
    "location_name": "Lagos",
    "category": "finance",
    "severity": 2,
-   "occurred_at": "2026-06-29T12:10:17.096672+00:00",
+   "occurred_at": "2026-06-29T12:12:44.464691+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "7be9a067-15e0-4a38-95da-53ca530ec1fa",
+   "id": "f00d3b86-2717-4b56-a918-e35059ee12db",
    "title": "Security incident reported in Tianjin",
    "description": "security incident reported in tianjin",
    "location": [
@@ -4161,14 +4161,14 @@ const syntheticDataset = {
    "location_name": "Tianjin",
    "category": "conflict",
    "severity": 3,
-   "occurred_at": "2026-06-30T11:11:59.841850+00:00",
+   "occurred_at": "2026-06-30T11:14:27.209869+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "c25f6117-d452-4f49-9ca6-8388f56b0f98",
+   "id": "be1458d9-1694-4f2b-906a-4d6f667ae72f",
    "title": "Election results contested in Kolkata",
    "description": "election results contested in kolkata",
    "location": [
@@ -4178,14 +4178,14 @@ const syntheticDataset = {
    "location_name": "Kolkata",
    "category": "geopolitics",
    "severity": 5,
-   "occurred_at": "2026-06-29T22:21:31.941655+00:00",
+   "occurred_at": "2026-06-29T22:23:59.309674+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "e0ec6ade-bb9d-4be1-93cb-17ee37f2e95f",
+   "id": "864e4b9d-b99e-4723-8f9e-38034306e771",
    "title": "Policy shift announced in Lagos",
    "description": "policy shift announced in lagos",
    "location": [
@@ -4195,14 +4195,14 @@ const syntheticDataset = {
    "location_name": "Lagos",
    "category": "geopolitics",
    "severity": 2,
-   "occurred_at": "2026-07-01T00:21:47.694427+00:00",
+   "occurred_at": "2026-07-01T00:24:15.062446+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "343b8a36-2b64-4001-8e75-ffe5f349c9bb",
+   "id": "9b6dc324-2490-49d0-9056-8329e1c73075",
    "title": "Border tensions escalate near Manila",
    "description": "border tensions escalate near manila",
    "location": [
@@ -4212,14 +4212,14 @@ const syntheticDataset = {
    "location_name": "Manila",
    "category": "conflict",
    "severity": 2,
-   "occurred_at": "2026-06-30T17:36:52.320527+00:00",
+   "occurred_at": "2026-06-30T17:39:19.688546+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "20670e01-f78d-49a1-8df6-74d24a8782a3",
+   "id": "16eccc33-ed4c-467f-b3d3-e69d02251120",
    "title": "Security incident reported in Nairobi",
    "description": "security incident reported in nairobi",
    "location": [
@@ -4229,14 +4229,14 @@ const syntheticDataset = {
    "location_name": "Nairobi",
    "category": "conflict",
    "severity": 3,
-   "occurred_at": "2026-07-01T05:24:44.181535+00:00",
+   "occurred_at": "2026-07-01T05:27:11.549554+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "1223fd5d-33b9-4a7c-8feb-955eccf00907",
+   "id": "f84027d5-5bac-45a1-a807-296b0bee4b1b",
    "title": "Seismic activity recorded near Tianjin",
    "description": "seismic activity recorded near tianjin",
    "location": [
@@ -4246,14 +4246,14 @@ const syntheticDataset = {
    "location_name": "Tianjin",
    "category": "disaster",
    "severity": 5,
-   "occurred_at": "2026-07-01T11:09:27.258110+00:00",
+   "occurred_at": "2026-07-01T11:11:54.626129+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "3ed83954-b3b8-4217-a495-0e61264b2b88",
+   "id": "3f3eb174-e8f1-4513-8644-422eeefe427f",
    "title": "Port congestion reported at Berlin shipping hub",
    "description": "port congestion reported at berlin shipping hub",
    "location": [
@@ -4263,14 +4263,14 @@ const syntheticDataset = {
    "location_name": "Berlin",
    "category": "finance",
    "severity": 5,
-   "occurred_at": "2026-07-02T10:16:11.978804+00:00",
+   "occurred_at": "2026-07-02T10:18:39.346823+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "fa4be087-5a43-47da-82bc-cb49b7d28e3f",
+   "id": "9381bd9f-d8f2-4afb-bef1-9ddc55c0f8f9",
    "title": "Border tensions escalate near Chengdu",
    "description": "border tensions escalate near chengdu",
    "location": [
@@ -4280,14 +4280,14 @@ const syntheticDataset = {
    "location_name": "Chengdu",
    "category": "conflict",
    "severity": 5,
-   "occurred_at": "2026-07-01T11:04:36.546745+00:00",
+   "occurred_at": "2026-07-01T11:07:03.914764+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "134d8d39-7311-4ac8-b5a9-bc75ad67703d",
+   "id": "1fa49cb5-3d62-4178-a8f0-fed1593d1585",
    "title": "New sanctions announced affecting Tokyo",
    "description": "new sanctions announced affecting tokyo",
    "location": [
@@ -4297,14 +4297,14 @@ const syntheticDataset = {
    "location_name": "Tokyo",
    "category": "geopolitics",
    "severity": 5,
-   "occurred_at": "2026-07-02T11:58:27.373550+00:00",
+   "occurred_at": "2026-07-02T12:00:54.741569+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "90f0bdd8-a8ac-4faa-89da-1811f8197053",
+   "id": "7f88c756-f3ec-4679-a730-28a309c3d60f",
    "title": "Flooding reported near Ho Chi Minh City",
    "description": "flooding reported near ho chi minh city",
    "location": [
@@ -4314,14 +4314,14 @@ const syntheticDataset = {
    "location_name": "Ho Chi Minh City",
    "category": "disaster",
    "severity": 1,
-   "occurred_at": "2026-07-02T05:41:01.535955+00:00",
+   "occurred_at": "2026-07-02T05:43:28.903974+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "173d27eb-a50b-4d82-a2b8-ebbac5979cf0",
+   "id": "8aa57c20-77d0-4d99-8464-d5b424b97ade",
    "title": "Severe storm system approaching Nairobi",
    "description": "severe storm system approaching nairobi",
    "location": [
@@ -4331,14 +4331,14 @@ const syntheticDataset = {
    "location_name": "Nairobi",
    "category": "disaster",
    "severity": 5,
-   "occurred_at": "2026-06-30T22:54:47.371856+00:00",
+   "occurred_at": "2026-06-30T22:57:14.739875+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "5d5d4205-99dc-415a-971a-e687cc9da5cf",
+   "id": "753fee80-1978-4286-801b-165bdf2e527e",
    "title": "Central bank intervention in Berlin",
    "description": "central bank intervention in berlin",
    "location": [
@@ -4348,14 +4348,14 @@ const syntheticDataset = {
    "location_name": "Berlin",
    "category": "finance",
    "severity": 4,
-   "occurred_at": "2026-07-01T19:44:57.025389+00:00",
+   "occurred_at": "2026-07-01T19:47:24.393408+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "f85ae811-47a9-4c16-b8e7-146407ba1db7",
+   "id": "382b34c0-49a9-484a-8971-f2aef16903f2",
    "title": "Central bank intervention in Kinshasa",
    "description": "central bank intervention in kinshasa",
    "location": [
@@ -4365,14 +4365,14 @@ const syntheticDataset = {
    "location_name": "Kinshasa",
    "category": "finance",
    "severity": 3,
-   "occurred_at": "2026-06-29T20:01:07.522251+00:00",
+   "occurred_at": "2026-06-29T20:03:34.890270+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "ed68e815-6cd6-4379-aef0-49ffa10543ad",
+   "id": "13a9a137-123a-4840-b0d7-0e64bb18381e",
    "title": "Wildfire risk elevated around Istanbul",
    "description": "wildfire risk elevated around istanbul",
    "location": [
@@ -4382,14 +4382,14 @@ const syntheticDataset = {
    "location_name": "Istanbul",
    "category": "disaster",
    "severity": 2,
-   "occurred_at": "2026-07-02T22:38:33.582277+00:00",
+   "occurred_at": "2026-07-02T22:41:00.950296+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "315f351d-1f6d-4ff9-a9de-06ffad486ecf",
+   "id": "47ae97fb-1306-4642-83df-dd5420f61089",
    "title": "Communications outage affecting Nagoya",
    "description": "communications outage affecting nagoya",
    "location": [
@@ -4399,14 +4399,14 @@ const syntheticDataset = {
    "location_name": "Nagoya",
    "category": "other",
    "severity": 4,
-   "occurred_at": "2026-06-29T07:45:35.807259+00:00",
+   "occurred_at": "2026-06-29T07:48:03.175278+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "2416884c-8a1c-46f9-a4cf-d490e353c203",
+   "id": "a55489be-60fb-4883-80dd-d74edf4e5f70",
    "title": "Security incident reported in Tokyo",
    "description": "security incident reported in tokyo",
    "location": [
@@ -4416,14 +4416,14 @@ const syntheticDataset = {
    "location_name": "Tokyo",
    "category": "conflict",
    "severity": 5,
-   "occurred_at": "2026-07-01T03:18:47.054610+00:00",
+   "occurred_at": "2026-07-01T03:21:14.422629+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "8a31acff-8f0e-48c6-8573-df5b17f5c90e",
+   "id": "501b9f06-26fa-4c36-a4b8-417c00b7f136",
    "title": "Election results contested in Delhi",
    "description": "election results contested in delhi",
    "location": [
@@ -4433,14 +4433,14 @@ const syntheticDataset = {
    "location_name": "Delhi",
    "category": "geopolitics",
    "severity": 4,
-   "occurred_at": "2026-07-02T21:56:45.136204+00:00",
+   "occurred_at": "2026-07-02T21:59:12.504223+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "4d1c53d1-1a4b-4998-81a0-16c4cbdee40c",
+   "id": "c02677c1-5680-479e-89db-f9a20423ecb4",
    "title": "Seismic activity recorded near Bangkok",
    "description": "seismic activity recorded near bangkok",
    "location": [
@@ -4450,14 +4450,14 @@ const syntheticDataset = {
    "location_name": "Bangkok",
    "category": "disaster",
    "severity": 5,
-   "occurred_at": "2026-06-29T11:23:36.064866+00:00",
+   "occurred_at": "2026-06-29T11:26:03.432885+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "e149bc08-ed29-459e-ad1e-55681e2701cb",
+   "id": "7bf4d070-0ac3-429d-8d0e-23371e1a7a92",
    "title": "Seismic activity recorded near Kinshasa",
    "description": "seismic activity recorded near kinshasa",
    "location": [
@@ -4467,14 +4467,14 @@ const syntheticDataset = {
    "location_name": "Kinshasa",
    "category": "disaster",
    "severity": 1,
-   "occurred_at": "2026-06-30T00:36:28.158769+00:00",
+   "occurred_at": "2026-06-30T00:38:55.526788+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "37022717-8085-4536-9eea-61339f9306bc",
+   "id": "0c4e465a-7f2e-48c8-87f0-f04a7997b4c7",
    "title": "Currency pressure builds in Chengdu",
    "description": "currency pressure builds in chengdu",
    "location": [
@@ -4484,14 +4484,14 @@ const syntheticDataset = {
    "location_name": "Chengdu",
    "category": "finance",
    "severity": 4,
-   "occurred_at": "2026-06-30T00:07:04.541824+00:00",
+   "occurred_at": "2026-06-30T00:09:31.909843+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "c699eed0-5977-4841-8270-94adbac53c8d",
+   "id": "96ce2653-c76e-4042-9a80-1661eca7eace",
    "title": "Wildfire risk elevated around Chennai",
    "description": "wildfire risk elevated around chennai",
    "location": [
@@ -4501,14 +4501,14 @@ const syntheticDataset = {
    "location_name": "Chennai",
    "category": "disaster",
    "severity": 2,
-   "occurred_at": "2026-06-30T07:59:49.183011+00:00",
+   "occurred_at": "2026-06-30T08:02:16.551030+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "0e345775-7805-44a3-ab6a-dd9d6d7d1fef",
+   "id": "d25f2020-2f1b-4bfc-baa8-22ded8022a51",
    "title": "Election results contested in Chennai",
    "description": "election results contested in chennai",
    "location": [
@@ -4518,14 +4518,14 @@ const syntheticDataset = {
    "location_name": "Chennai",
    "category": "geopolitics",
    "severity": 1,
-   "occurred_at": "2026-07-02T04:24:04.483278+00:00",
+   "occurred_at": "2026-07-02T04:26:31.851297+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "208dd6b5-300b-42e6-8479-1ea6ce40a52e",
+   "id": "0f3a5d46-28fe-4a3b-bdc6-97fe19555010",
    "title": "Ceasefire talks stall near Istanbul",
    "description": "ceasefire talks stall near istanbul",
    "location": [
@@ -4535,14 +4535,14 @@ const syntheticDataset = {
    "location_name": "Istanbul",
    "category": "conflict",
    "severity": 4,
-   "occurred_at": "2026-06-30T05:07:41.442757+00:00",
+   "occurred_at": "2026-06-30T05:10:08.810776+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "3c787e84-f29d-4d5a-b7c6-e888490c19ca",
+   "id": "3f4ad7be-53c7-4957-81a0-724906546e06",
    "title": "Market volatility spikes in Dhaka exchange",
    "description": "market volatility spikes in dhaka exchange",
    "location": [
@@ -4552,14 +4552,14 @@ const syntheticDataset = {
    "location_name": "Dhaka",
    "category": "finance",
    "severity": 5,
-   "occurred_at": "2026-07-02T03:01:00.727048+00:00",
+   "occurred_at": "2026-07-02T03:03:28.095067+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "a1c05406-b579-4752-a8e0-7aa787f9ef6e",
+   "id": "3b1bf370-9cd9-42cc-aaf0-860c9bcb35ea",
    "title": "Market volatility spikes in Ho Chi Minh City exchange",
    "description": "market volatility spikes in ho chi minh city exchange",
    "location": [
@@ -4569,14 +4569,14 @@ const syntheticDataset = {
    "location_name": "Ho Chi Minh City",
    "category": "finance",
    "severity": 5,
-   "occurred_at": "2026-06-30T10:40:02.660447+00:00",
+   "occurred_at": "2026-06-30T10:42:30.028466+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "e10ef732-0046-4a1a-b35a-eac30f4a68d3",
+   "id": "aec063a5-e7f4-493f-a430-a723ea28e7d3",
    "title": "Port congestion reported at New York shipping hub",
    "description": "port congestion reported at new york shipping hub",
    "location": [
@@ -4586,14 +4586,14 @@ const syntheticDataset = {
    "location_name": "New York",
    "category": "finance",
    "severity": 5,
-   "occurred_at": "2026-06-29T18:30:40.262679+00:00",
+   "occurred_at": "2026-06-29T18:33:07.630698+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "bb9f625d-04ce-419a-af02-e6c7b830bf18",
+   "id": "b24aba21-b1eb-4827-9548-265dc94827c4",
    "title": "Central bank intervention in Paris",
    "description": "central bank intervention in paris",
    "location": [
@@ -4603,14 +4603,14 @@ const syntheticDataset = {
    "location_name": "Paris",
    "category": "finance",
    "severity": 2,
-   "occurred_at": "2026-07-02T00:24:43.475056+00:00",
+   "occurred_at": "2026-07-02T00:27:10.843075+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "1a041f44-5b7e-4ddf-89f8-d3786baf090a",
+   "id": "20b7d0e5-80ba-458c-8c43-329ec87b5630",
    "title": "Communications outage affecting Chennai",
    "description": "communications outage affecting chennai",
    "location": [
@@ -4620,14 +4620,14 @@ const syntheticDataset = {
    "location_name": "Chennai",
    "category": "other",
    "severity": 2,
-   "occurred_at": "2026-07-02T23:29:46.396345+00:00",
+   "occurred_at": "2026-07-02T23:32:13.764364+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "0275127a-9971-446b-88de-c38ef17f33b6",
+   "id": "b8ced0ba-819b-465c-a2a2-4d63e0b33d43",
    "title": "New sanctions announced affecting Nagoya",
    "description": "new sanctions announced affecting nagoya",
    "location": [
@@ -4637,14 +4637,14 @@ const syntheticDataset = {
    "location_name": "Nagoya",
    "category": "geopolitics",
    "severity": 3,
-   "occurred_at": "2026-07-02T20:00:25.929713+00:00",
+   "occurred_at": "2026-07-02T20:02:53.297732+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "5ae881fa-4f84-4ec4-bb17-1022ddc8b623",
+   "id": "ffe94465-10a8-4822-a3bd-bc66e10bb783",
    "title": "Wildfire risk elevated around Sydney",
    "description": "wildfire risk elevated around sydney",
    "location": [
@@ -4654,14 +4654,14 @@ const syntheticDataset = {
    "location_name": "Sydney",
    "category": "disaster",
    "severity": 1,
-   "occurred_at": "2026-07-01T11:10:14.047259+00:00",
+   "occurred_at": "2026-07-01T11:12:41.415278+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "ff5e6fc3-5cd4-4ff1-9172-f0bcc3c71c44",
+   "id": "bf602d32-c175-4cad-9f66-f228e6cf222c",
    "title": "Communications outage affecting Rio de Janeiro",
    "description": "communications outage affecting rio de janeiro",
    "location": [
@@ -4671,14 +4671,14 @@ const syntheticDataset = {
    "location_name": "Rio de Janeiro",
    "category": "other",
    "severity": 3,
-   "occurred_at": "2026-06-30T02:25:17.209565+00:00",
+   "occurred_at": "2026-06-30T02:27:44.577584+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "3d8a2b8c-0dd4-4aaf-862a-b2f7669c62e4",
+   "id": "a9041b9f-f312-4838-9bc2-6b5af993e6aa",
    "title": "Severe storm system approaching Nagoya",
    "description": "severe storm system approaching nagoya",
    "location": [
@@ -4688,14 +4688,14 @@ const syntheticDataset = {
    "location_name": "Nagoya",
    "category": "disaster",
    "severity": 2,
-   "occurred_at": "2026-07-02T03:21:26.055504+00:00",
+   "occurred_at": "2026-07-02T03:23:53.423523+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "2e1b0d7f-c1c4-4829-956b-70c425e757ef",
+   "id": "e1593176-a4c6-4318-ae93-228f4360ecb6",
    "title": "Port congestion reported at Bangalore shipping hub",
    "description": "port congestion reported at bangalore shipping hub",
    "location": [
@@ -4705,14 +4705,14 @@ const syntheticDataset = {
    "location_name": "Bangalore",
    "category": "finance",
    "severity": 1,
-   "occurred_at": "2026-06-30T16:55:22.403265+00:00",
+   "occurred_at": "2026-06-30T16:57:49.771284+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "4054a279-97ae-4d2a-bb15-3d823b3809d0",
+   "id": "be1a79cf-75bf-4e82-b394-727573275405",
    "title": "Infrastructure disruption in Chengdu",
    "description": "infrastructure disruption in chengdu",
    "location": [
@@ -4722,14 +4722,14 @@ const syntheticDataset = {
    "location_name": "Chengdu",
    "category": "other",
    "severity": 4,
-   "occurred_at": "2026-07-01T21:07:28.487095+00:00",
+   "occurred_at": "2026-07-01T21:09:55.855114+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "6c94e647-7c99-40bc-b4c9-1c88fd085920",
+   "id": "0d8f9799-f9ce-4a7b-8b0a-dfa9fca41479",
    "title": "Port congestion reported at Chicago shipping hub",
    "description": "port congestion reported at chicago shipping hub",
    "location": [
@@ -4739,14 +4739,14 @@ const syntheticDataset = {
    "location_name": "Chicago",
    "category": "finance",
    "severity": 2,
-   "occurred_at": "2026-07-02T12:32:25.783100+00:00",
+   "occurred_at": "2026-07-02T12:34:53.151119+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "6f83974e-339b-4960-872c-30928fa09f7c",
+   "id": "0b636ebf-a3e3-4b5b-b4ef-c5cff5170470",
    "title": "Port congestion reported at Tianjin shipping hub",
    "description": "port congestion reported at tianjin shipping hub",
    "location": [
@@ -4756,14 +4756,14 @@ const syntheticDataset = {
    "location_name": "Tianjin",
    "category": "finance",
    "severity": 2,
-   "occurred_at": "2026-07-01T18:48:42.512488+00:00",
+   "occurred_at": "2026-07-01T18:51:09.880507+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "1b7c3098-e204-47ee-b28b-e084dc5dd440",
+   "id": "4675fc98-9afe-4c89-890b-68474c071160",
    "title": "Supply chain alert issued for Moscow",
    "description": "supply chain alert issued for moscow",
    "location": [
@@ -4773,14 +4773,14 @@ const syntheticDataset = {
    "location_name": "Moscow",
    "category": "other",
    "severity": 4,
-   "occurred_at": "2026-06-30T07:19:43.740717+00:00",
+   "occurred_at": "2026-06-30T07:22:11.108736+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "5f936ad6-580f-47dc-afaa-d60ba4ab2a19",
+   "id": "11781b14-a0db-418e-8622-38c1b69b47d2",
    "title": "Port congestion reported at Istanbul shipping hub",
    "description": "port congestion reported at istanbul shipping hub",
    "location": [
@@ -4790,14 +4790,14 @@ const syntheticDataset = {
    "location_name": "Istanbul",
    "category": "finance",
    "severity": 3,
-   "occurred_at": "2026-06-29T05:52:09.538755+00:00",
+   "occurred_at": "2026-06-29T05:54:36.906774+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "b8670754-245f-4be5-a75c-12c55ceca654",
+   "id": "72abd47a-186a-4f20-8012-d2d9c9460f72",
    "title": "Security incident reported in Kolkata",
    "description": "security incident reported in kolkata",
    "location": [
@@ -4807,14 +4807,14 @@ const syntheticDataset = {
    "location_name": "Kolkata",
    "category": "conflict",
    "severity": 1,
-   "occurred_at": "2026-06-29T13:12:43.060204+00:00",
+   "occurred_at": "2026-06-29T13:15:10.428223+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "3644948b-5cb3-4ae4-8d39-47158431679f",
+   "id": "115ce757-775d-43d4-924e-6ba1db1bf9fa",
    "title": "Central bank intervention in Ho Chi Minh City",
    "description": "central bank intervention in ho chi minh city",
    "location": [
@@ -4824,14 +4824,14 @@ const syntheticDataset = {
    "location_name": "Ho Chi Minh City",
    "category": "finance",
    "severity": 4,
-   "occurred_at": "2026-07-01T19:33:57.747285+00:00",
+   "occurred_at": "2026-07-01T19:36:25.115304+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "8d2164dc-3268-49a3-a0af-7dc3bd441768",
+   "id": "b8ea249e-260d-42e1-a284-853fd48c115e",
    "title": "Central bank intervention in Buenos Aires",
    "description": "central bank intervention in buenos aires",
    "location": [
@@ -4841,14 +4841,14 @@ const syntheticDataset = {
    "location_name": "Buenos Aires",
    "category": "finance",
    "severity": 4,
-   "occurred_at": "2026-06-30T20:45:19.646307+00:00",
+   "occurred_at": "2026-06-30T20:47:47.014326+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "86eb5e2e-b8a2-4c04-b557-e1eb7e65e663",
+   "id": "4f5a4a0d-0201-400c-aeae-e6e262f7946e",
    "title": "New sanctions announced affecting Lima",
    "description": "new sanctions announced affecting lima",
    "location": [
@@ -4858,14 +4858,14 @@ const syntheticDataset = {
    "location_name": "Lima",
    "category": "geopolitics",
    "severity": 2,
-   "occurred_at": "2026-07-01T15:25:13.632891+00:00",
+   "occurred_at": "2026-07-01T15:27:41.000910+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "ca97c690-f722-4bd1-8ef9-4db0786f4139",
+   "id": "d50b7876-25dc-4045-a3a9-31bf9ded85ec",
    "title": "Ceasefire talks stall near Los Angeles",
    "description": "ceasefire talks stall near los angeles",
    "location": [
@@ -4875,14 +4875,14 @@ const syntheticDataset = {
    "location_name": "Los Angeles",
    "category": "conflict",
    "severity": 4,
-   "occurred_at": "2026-06-30T22:31:34.520828+00:00",
+   "occurred_at": "2026-06-30T22:34:01.888847+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "545331f9-b71b-4ce1-abfd-a740e1af6746",
+   "id": "7ed5f0a1-133f-465c-aad4-6ff51914d034",
    "title": "Ceasefire talks stall near Tokyo",
    "description": "ceasefire talks stall near tokyo",
    "location": [
@@ -4892,14 +4892,14 @@ const syntheticDataset = {
    "location_name": "Tokyo",
    "category": "conflict",
    "severity": 2,
-   "occurred_at": "2026-06-29T05:48:24.779917+00:00",
+   "occurred_at": "2026-06-29T05:50:52.147936+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "103795f5-a463-4a50-bad4-f13dbf65526c",
+   "id": "3dce6281-e574-4a47-b65b-9b9f8257165a",
    "title": "Currency pressure builds in Kolkata",
    "description": "currency pressure builds in kolkata",
    "location": [
@@ -4909,14 +4909,14 @@ const syntheticDataset = {
    "location_name": "Kolkata",
    "category": "finance",
    "severity": 3,
-   "occurred_at": "2026-06-30T06:14:51.920025+00:00",
+   "occurred_at": "2026-06-30T06:17:19.288044+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "e74c5522-de6e-4c7e-89f9-7284b2681ac8",
+   "id": "c0bdbf76-c8f9-4aee-b034-fc4594f6b8c4",
    "title": "Supply chain alert issued for Manila",
    "description": "supply chain alert issued for manila",
    "location": [
@@ -4926,14 +4926,14 @@ const syntheticDataset = {
    "location_name": "Manila",
    "category": "other",
    "severity": 5,
-   "occurred_at": "2026-07-02T20:00:38.801698+00:00",
+   "occurred_at": "2026-07-02T20:03:06.169717+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "343ee37e-b861-490d-9e16-539d8eb95cd4",
+   "id": "90cced89-de46-4bfd-972b-0b15d8cc2d1b",
    "title": "Seismic activity recorded near Beijing",
    "description": "seismic activity recorded near beijing",
    "location": [
@@ -4943,14 +4943,14 @@ const syntheticDataset = {
    "location_name": "Beijing",
    "category": "disaster",
    "severity": 1,
-   "occurred_at": "2026-06-29T21:15:02.180799+00:00",
+   "occurred_at": "2026-06-29T21:17:29.548818+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "81f58e8f-212a-4d17-b85d-da17225129d8",
+   "id": "753cb999-de55-4542-a7cf-2756bed86152",
    "title": "Currency pressure builds in Sydney",
    "description": "currency pressure builds in sydney",
    "location": [
@@ -4960,14 +4960,14 @@ const syntheticDataset = {
    "location_name": "Sydney",
    "category": "finance",
    "severity": 5,
-   "occurred_at": "2026-06-30T10:28:28.517161+00:00",
+   "occurred_at": "2026-06-30T10:30:55.885180+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "34bd69ec-d34f-42c5-b7a9-fcceb777fa21",
+   "id": "ad50dd00-393c-4745-8216-6b36333a1a8e",
    "title": "Security incident reported in Istanbul",
    "description": "security incident reported in istanbul",
    "location": [
@@ -4977,14 +4977,14 @@ const syntheticDataset = {
    "location_name": "Istanbul",
    "category": "conflict",
    "severity": 3,
-   "occurred_at": "2026-07-01T19:41:09.393754+00:00",
+   "occurred_at": "2026-07-01T19:43:36.761773+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "21add73c-5049-4422-a56e-0851c91911b5",
+   "id": "3c30c515-0b78-477e-b0d0-23093af05f9f",
    "title": "Market volatility spikes in Chicago exchange",
    "description": "market volatility spikes in chicago exchange",
    "location": [
@@ -4994,14 +4994,14 @@ const syntheticDataset = {
    "location_name": "Chicago",
    "category": "finance",
    "severity": 3,
-   "occurred_at": "2026-06-30T06:04:41.557527+00:00",
+   "occurred_at": "2026-06-30T06:07:08.925546+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "29959404-1e8a-4127-beb7-c101ea4fdaaa",
+   "id": "b2fc5c88-f64a-4463-9b94-ee1141ef0fe4",
    "title": "Diplomatic summit convened in Rio de Janeiro",
    "description": "diplomatic summit convened in rio de janeiro",
    "location": [
@@ -5011,14 +5011,14 @@ const syntheticDataset = {
    "location_name": "Rio de Janeiro",
    "category": "geopolitics",
    "severity": 3,
-   "occurred_at": "2026-06-29T14:01:43.801815+00:00",
+   "occurred_at": "2026-06-29T14:04:11.169834+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "d0d3580d-0f78-4f59-8ea5-45d1fdfccad8",
+   "id": "362d5e55-a287-4ec5-bcac-c519eaa12ff5",
    "title": "Supply chain alert issued for Buenos Aires",
    "description": "supply chain alert issued for buenos aires",
    "location": [
@@ -5028,14 +5028,14 @@ const syntheticDataset = {
    "location_name": "Buenos Aires",
    "category": "other",
    "severity": 3,
-   "occurred_at": "2026-06-29T05:25:39.138801+00:00",
+   "occurred_at": "2026-06-29T05:28:06.506820+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "b8cc6b53-df3a-4aeb-8b7a-8c7253f0dea5",
+   "id": "d0a18c2d-ef0c-4930-b050-e8f478595b03",
    "title": "Port congestion reported at Chicago shipping hub",
    "description": "port congestion reported at chicago shipping hub",
    "location": [
@@ -5045,14 +5045,14 @@ const syntheticDataset = {
    "location_name": "Chicago",
    "category": "finance",
    "severity": 2,
-   "occurred_at": "2026-06-30T09:31:06.875351+00:00",
+   "occurred_at": "2026-06-30T09:33:34.243370+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "f1b9e17b-644e-44fa-9298-695aac1bca70",
+   "id": "57e521ea-1c29-43a8-b050-2bff156471e5",
    "title": "Wildfire risk elevated around S\u00e3o Paulo",
    "description": "wildfire risk elevated around s\u00e3o paulo",
    "location": [
@@ -5062,14 +5062,14 @@ const syntheticDataset = {
    "location_name": "S\u00e3o Paulo",
    "category": "disaster",
    "severity": 3,
-   "occurred_at": "2026-06-29T07:58:51.269710+00:00",
+   "occurred_at": "2026-06-29T08:01:18.637729+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "b0bc2170-b733-40b2-b26e-c90d22880828",
+   "id": "faf70163-9d31-4ac1-b1e8-068751ba089d",
    "title": "Port congestion reported at S\u00e3o Paulo shipping hub",
    "description": "port congestion reported at s\u00e3o paulo shipping hub",
    "location": [
@@ -5079,14 +5079,14 @@ const syntheticDataset = {
    "location_name": "S\u00e3o Paulo",
    "category": "finance",
    "severity": 3,
-   "occurred_at": "2026-07-02T03:48:31.497754+00:00",
+   "occurred_at": "2026-07-02T03:50:58.865773+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
    "_synthetic": true
   },
   {
-   "id": "c4d34f4d-42be-4000-8456-6eba39a8b214",
+   "id": "4d3b860a-2048-4af1-af85-7da603b485ca",
    "title": "Wildfire risk elevated around Tianjin",
    "description": "wildfire risk elevated around tianjin",
    "location": [
@@ -5096,7 +5096,7 @@ const syntheticDataset = {
    "location_name": "Tianjin",
    "category": "disaster",
    "severity": 4,
-   "occurred_at": "2026-06-30T10:44:41.611764+00:00",
+   "occurred_at": "2026-06-30T10:47:08.979783+00:00",
    "source_name": "Synthetic Generator",
    "source_leaning": "n/a",
    "outbound_link": "https://example.com/synthetic",
@@ -5105,7 +5105,7 @@ const syntheticDataset = {
  ],
  "stories": [
   {
-   "id": "33de2079-a343-4e75-a762-9e2750a1eb6b",
+   "id": "626939fb-1d1d-46e6-bcee-d7ba62c7e57f",
    "headline": "[SYNTHETIC] Diplomatic summit convened in S\u00e3o Paulo",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 3 correlated events centered on S\u00e3o Paulo. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5123,8 +5123,8 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "low",
-   "first_seen_at": "2026-06-30T09:28:53.212892+00:00",
-   "last_updated_at": "2026-07-02T04:24:04.483278+00:00",
+   "first_seen_at": "2026-06-30T09:31:20.580911+00:00",
+   "last_updated_at": "2026-07-02T04:26:31.851297+00:00",
    "member_count": 3,
    "source_count": 3,
    "categories": [
@@ -5132,14 +5132,14 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "a435d632-5645-4db3-a6c9-3ed146230b56",
-    "80aeec2c-7487-41b2-8218-462b3a916883",
-    "0e345775-7805-44a3-ab6a-dd9d6d7d1fef"
+    "09a53e70-7053-47bd-8e48-cf89c3702c5c",
+    "5e848bd4-d086-47de-a5da-02a8f286907d",
+    "d25f2020-2f1b-4bfc-baa8-22ded8022a51"
    ],
    "_synthetic": true
   },
   {
-   "id": "5f2b6ed1-f66a-49f1-a8a7-d8ead12880d4",
+   "id": "d1bbae87-2a3a-46f8-a0a4-53869d526158",
    "headline": "[SYNTHETIC] Central bank intervention in Chennai",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 5 correlated events centered on Chennai. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5158,8 +5158,8 @@ const syntheticDataset = {
     "confidence": "medium"
    },
    "confidence": "medium",
-   "first_seen_at": "2026-06-30T16:11:48.837702+00:00",
-   "last_updated_at": "2026-07-02T10:34:24.236937+00:00",
+   "first_seen_at": "2026-06-30T16:14:16.205721+00:00",
+   "last_updated_at": "2026-07-02T10:36:51.604956+00:00",
    "member_count": 5,
    "source_count": 4,
    "categories": [
@@ -5168,16 +5168,16 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "2cb9d7db-b513-42a1-a54c-0e3045522092",
-    "0d4c8a39-3ed8-49f4-8341-6ad075ef2d2c",
-    "e6c5051b-4be6-4596-aa8b-aeb50624a83c",
-    "679c181b-b6ff-4d27-996f-01a15efacdc6",
-    "c13ad875-17bd-4ba0-891a-eea23085f335"
+    "8fbc7455-84b5-4450-ae5c-35b5e7ed3a2e",
+    "96fce2bf-5f05-4f48-b61e-39b0efd07bac",
+    "d01bb2c9-3e74-45fd-9066-abb1677485cf",
+    "20245a2b-5c6c-49af-840c-2abfeef0e838",
+    "a0bc2bf1-3f96-47c2-9984-1c4aba5f7e12"
    ],
    "_synthetic": true
   },
   {
-   "id": "cb351234-1337-4215-a26e-32280a9245af",
+   "id": "f540cdaf-3ed9-45b5-acca-1ef33669b833",
    "headline": "[SYNTHETIC] Severe storm system approaching Nairobi",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 3 correlated events centered on Nairobi. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5195,8 +5195,8 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "low",
-   "first_seen_at": "2026-06-30T22:54:47.371856+00:00",
-   "last_updated_at": "2026-07-01T18:34:51.347484+00:00",
+   "first_seen_at": "2026-06-30T22:57:14.739875+00:00",
+   "last_updated_at": "2026-07-01T18:37:18.715503+00:00",
    "member_count": 3,
    "source_count": 4,
    "categories": [
@@ -5205,14 +5205,14 @@ const syntheticDataset = {
     "geopolitics"
    ],
    "member_event_ids": [
-    "173d27eb-a50b-4d82-a2b8-ebbac5979cf0",
-    "f251a6ea-a68e-48bf-b87a-147e25e7ac04",
-    "0f49ca38-f8f5-4c8e-a2a8-7ab7b89f9c63"
+    "8aa57c20-77d0-4d99-8464-d5b424b97ade",
+    "67ba4480-5fe6-48d1-9352-3ae0fc1d477f",
+    "56d15cfc-b693-4ca3-bce0-e225616e1d5e"
    ],
    "_synthetic": true
   },
   {
-   "id": "29992614-be47-4e02-ab2c-98a4e1273c13",
+   "id": "5bb9ac5b-7c41-4b21-bab8-18ff3f167fe1",
    "headline": "[SYNTHETIC] Infrastructure disruption in Bangkok",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 4 correlated events centered on Bangkok. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5231,8 +5231,8 @@ const syntheticDataset = {
     "confidence": "medium"
    },
    "confidence": "medium",
-   "first_seen_at": "2026-06-30T06:12:30.728791+00:00",
-   "last_updated_at": "2026-07-02T05:56:55.435180+00:00",
+   "first_seen_at": "2026-06-30T06:14:58.096810+00:00",
+   "last_updated_at": "2026-07-02T05:59:22.803199+00:00",
    "member_count": 4,
    "source_count": 4,
    "categories": [
@@ -5241,15 +5241,15 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "08f4cec4-3c6a-44ad-a4a8-311584f13df3",
-    "37ca586a-ec4a-4110-abf1-31adaf358cdd",
-    "e5806570-680e-4fb7-904c-e5cb42fccdd4",
-    "563a38d2-2482-49d6-b072-9a574a9e7000"
+    "4df8165b-ba44-4dd3-8c8e-ef07b83b1de6",
+    "eb740a71-ef35-4ac3-ba3c-887ff62a558e",
+    "accf0834-d19b-4cb8-b174-255cf56cc5e3",
+    "dffd1305-df15-465c-ae98-f1ba26351e11"
    ],
    "_synthetic": true
   },
   {
-   "id": "40009521-1f85-48f4-a622-55ac393d2cc6",
+   "id": "df975531-2162-4329-84fb-3305c75236d2",
    "headline": "[SYNTHETIC] Diplomatic summit convened in Rio de Janeiro",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 6 correlated events centered on Rio de Janeiro. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5270,8 +5270,8 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "low",
-   "first_seen_at": "2026-06-29T14:01:43.801815+00:00",
-   "last_updated_at": "2026-07-01T22:53:35.065813+00:00",
+   "first_seen_at": "2026-06-29T14:04:11.169834+00:00",
+   "last_updated_at": "2026-07-01T22:56:02.433832+00:00",
    "member_count": 6,
    "source_count": 2,
    "categories": [
@@ -5281,17 +5281,17 @@ const syntheticDataset = {
     "geopolitics"
    ],
    "member_event_ids": [
-    "29959404-1e8a-4127-beb7-c101ea4fdaaa",
-    "cf5262ee-106e-431e-9e66-4cee2637b98a",
-    "75cc3406-f9f0-4f25-805b-0e28ca0deda0",
-    "f746c6bf-b88d-46c2-8a19-77f10c453cf2",
-    "395d254b-5807-4088-a303-dfd9a6ec9aed",
-    "cd03c948-55b1-448e-b781-5b499f1c3cf2"
+    "b2fc5c88-f64a-4463-9b94-ee1141ef0fe4",
+    "700b7371-faec-4378-a472-9b7c792ae27e",
+    "e0fb7570-a470-4c07-b0ae-c1eda8605bb7",
+    "619a6d73-b2fe-420a-ab57-0e2661d05db9",
+    "0150355c-0e10-4366-b91b-633449335a89",
+    "6226426e-0538-45f5-8e05-5e64ad50666a"
    ],
    "_synthetic": true
   },
   {
-   "id": "4f418e1a-357f-490c-8d77-25e4418fa94f",
+   "id": "d69173eb-673e-4820-9140-358db35df212",
    "headline": "[SYNTHETIC] Communications outage affecting Manila",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 3 correlated events centered on Manila. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5308,8 +5308,8 @@ const syntheticDataset = {
     "confidence": "high"
    },
    "confidence": "medium",
-   "first_seen_at": "2026-06-29T09:17:53.226454+00:00",
-   "last_updated_at": "2026-07-02T10:14:56.158288+00:00",
+   "first_seen_at": "2026-06-29T09:20:20.594473+00:00",
+   "last_updated_at": "2026-07-02T10:17:23.526307+00:00",
    "member_count": 3,
    "source_count": 3,
    "categories": [
@@ -5318,14 +5318,14 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "beb247b1-8e93-471a-a91d-ee760826e32e",
-    "bcc7994b-77db-4d80-932c-d54d799a5fee",
-    "10b8599b-b4b6-483e-89dc-7adce00b7d11"
+    "8ced6919-c3a2-4ac0-a019-3a9d41e3118b",
+    "3883eaee-e61a-4249-9ad5-78ff37fe60e9",
+    "89d8bf0c-35f9-430a-9465-149996f4fa82"
    ],
    "_synthetic": true
   },
   {
-   "id": "43e067a8-75d1-4563-8093-2a776bcbfdf6",
+   "id": "3b53b118-7255-406b-8a6e-13d509c89838",
    "headline": "[SYNTHETIC] Ceasefire talks stall near Karachi",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 4 correlated events centered on Karachi. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5344,8 +5344,8 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "high",
-   "first_seen_at": "2026-06-30T16:57:24.399102+00:00",
-   "last_updated_at": "2026-07-02T04:33:06.248203+00:00",
+   "first_seen_at": "2026-06-30T16:59:51.767121+00:00",
+   "last_updated_at": "2026-07-02T04:35:33.616222+00:00",
    "member_count": 4,
    "source_count": 2,
    "categories": [
@@ -5355,15 +5355,15 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "814d064d-e7c1-47d6-851c-f8b5587c48fa",
-    "5d5d4205-99dc-415a-971a-e687cc9da5cf",
-    "459ab2d9-7b7e-4440-aaf0-8e6f14dde53f",
-    "8c0a80dc-2915-4ec4-949c-1b4fab9afe2c"
+    "18ab9913-2e95-489a-9164-1939cd01236b",
+    "753fee80-1978-4286-801b-165bdf2e527e",
+    "ab59dfcd-8807-4087-9ab7-b3972fa36d63",
+    "3e02c581-c9ec-4812-bcda-4c69c6a8d748"
    ],
    "_synthetic": true
   },
   {
-   "id": "e75f8a05-a775-452a-ad75-12dce3da00c3",
+   "id": "ad7183b1-1600-4922-8e7f-b9c4cd0fafc2",
    "headline": "[SYNTHETIC] Border tensions escalate near Moscow",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 2 correlated events centered on Moscow. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5380,21 +5380,21 @@ const syntheticDataset = {
     "confidence": "medium"
    },
    "confidence": "high",
-   "first_seen_at": "2026-06-30T11:06:26.627577+00:00",
-   "last_updated_at": "2026-06-30T11:11:59.841850+00:00",
+   "first_seen_at": "2026-06-30T11:08:53.995596+00:00",
+   "last_updated_at": "2026-06-30T11:14:27.209869+00:00",
    "member_count": 2,
    "source_count": 4,
    "categories": [
     "conflict"
    ],
    "member_event_ids": [
-    "cfa05ff0-58f4-49c1-90af-6fc0ae59da8a",
-    "7be9a067-15e0-4a38-95da-53ca530ec1fa"
+    "bf542f86-c1c6-4705-a312-488ea2df4715",
+    "f00d3b86-2717-4b56-a918-e35059ee12db"
    ],
    "_synthetic": true
   },
   {
-   "id": "5abda9a0-1623-45c0-84bc-d12d8c3a5a1b",
+   "id": "e4fdc160-f5c5-422f-a836-0b3e46f0c25c",
    "headline": "[SYNTHETIC] Election results contested in Lima",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 4 correlated events centered on Lima. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5413,8 +5413,8 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "medium",
-   "first_seen_at": "2026-06-30T06:04:41.557527+00:00",
-   "last_updated_at": "2026-07-03T00:00:44.626107+00:00",
+   "first_seen_at": "2026-06-30T06:07:08.925546+00:00",
+   "last_updated_at": "2026-07-03T00:03:11.994126+00:00",
    "member_count": 4,
    "source_count": 3,
    "categories": [
@@ -5423,15 +5423,15 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "4e46586e-3c67-4bd0-91cf-f91964a07fe8",
-    "21add73c-5049-4422-a56e-0851c91911b5",
-    "ebfeab57-8d49-42dd-84a8-18c3b2fdd4ba",
-    "1a041f44-5b7e-4ddf-89f8-d3786baf090a"
+    "8d4a9e3c-92e3-460a-bc0c-d77b17305cd7",
+    "3c30c515-0b78-477e-b0d0-23093af05f9f",
+    "46a3cd7c-d2c4-4451-a4f7-beadbb944490",
+    "20b7d0e5-80ba-458c-8c43-329ec87b5630"
    ],
    "_synthetic": true
   },
   {
-   "id": "5476479e-c187-4c91-a683-eb8ff35395f0",
+   "id": "7cac84b5-ab57-449a-8669-853d74200874",
    "headline": "[SYNTHETIC] New sanctions announced affecting Tianjin",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 2 correlated events centered on Tianjin. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5448,8 +5448,8 @@ const syntheticDataset = {
     "confidence": "high"
    },
    "confidence": "high",
-   "first_seen_at": "2026-06-29T10:12:28.573833+00:00",
-   "last_updated_at": "2026-06-30T13:06:18.100024+00:00",
+   "first_seen_at": "2026-06-29T10:14:55.941852+00:00",
+   "last_updated_at": "2026-06-30T13:08:45.468043+00:00",
    "member_count": 2,
    "source_count": 2,
    "categories": [
@@ -5457,13 +5457,13 @@ const syntheticDataset = {
     "geopolitics"
    ],
    "member_event_ids": [
-    "10d5c92d-6f09-4ce0-a3eb-5d9992b94b18",
-    "e22529f3-a279-4ba6-9321-4ce3fc7558c4"
+    "23be74b4-e808-44dc-b089-d21342eb609a",
+    "4cc50750-74e1-41e7-ab91-fd4a7adb6459"
    ],
    "_synthetic": true
   },
   {
-   "id": "35930c3d-8570-47bb-822a-55a142aef869",
+   "id": "2d31112d-231a-4a36-a216-407408908030",
    "headline": "[SYNTHETIC] Election results contested in Chicago",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 6 correlated events centered on Chicago. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5484,8 +5484,8 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "medium",
-   "first_seen_at": "2026-06-29T05:25:39.138801+00:00",
-   "last_updated_at": "2026-07-02T09:43:34.752792+00:00",
+   "first_seen_at": "2026-06-29T05:28:06.506820+00:00",
+   "last_updated_at": "2026-07-02T09:46:02.120811+00:00",
    "member_count": 6,
    "source_count": 3,
    "categories": [
@@ -5495,17 +5495,17 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "6dad9190-a809-44fb-83c6-48b82ae63066",
-    "9eb6b1d0-0926-4758-b2d5-827333ba6396",
-    "d0d3580d-0f78-4f59-8ea5-45d1fdfccad8",
-    "343b8a36-2b64-4001-8e75-ffe5f349c9bb",
-    "1eda75bd-29f9-4f38-8617-d3fd5a2aa304",
-    "abd181b3-c62e-4ed9-990d-605968b7de23"
+    "64fbb589-dc62-448f-a902-8d63fb00a137",
+    "5ba5aa38-701b-4de0-b746-3a391ba4d9da",
+    "362d5e55-a287-4ec5-bcac-c519eaa12ff5",
+    "9b6dc324-2490-49d0-9056-8329e1c73075",
+    "f232bbf3-005e-4b27-92cf-f47f1424dfa9",
+    "e119fb55-04a8-4fb1-8d65-026cf95f80c1"
    ],
    "_synthetic": true
   },
   {
-   "id": "a24b8b4d-e731-4e9b-b1fc-77ee4dcae64f",
+   "id": "e6635292-877e-4eee-8a4c-3de628ea1c3d",
    "headline": "[SYNTHETIC] New sanctions announced affecting Tianjin",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 2 correlated events centered on Tianjin. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5522,8 +5522,8 @@ const syntheticDataset = {
     "confidence": "medium"
    },
    "confidence": "high",
-   "first_seen_at": "2026-07-02T12:28:35.530518+00:00",
-   "last_updated_at": "2026-07-02T14:17:28.521879+00:00",
+   "first_seen_at": "2026-07-02T12:31:02.898537+00:00",
+   "last_updated_at": "2026-07-02T14:19:55.889898+00:00",
    "member_count": 2,
    "source_count": 2,
    "categories": [
@@ -5531,13 +5531,13 @@ const syntheticDataset = {
     "geopolitics"
    ],
    "member_event_ids": [
-    "3eeab8c1-c58a-4b57-88bc-79385dc6e931",
-    "6773bc9c-c133-4eea-89d6-03eecdef8173"
+    "9cfd2d3b-4bba-4a30-9f90-8a8a47214044",
+    "6edcab17-2c60-40b3-8e5f-58d06b265f89"
    ],
    "_synthetic": true
   },
   {
-   "id": "560d13a0-49c0-4b7d-a343-65b39e02106b",
+   "id": "eb36cc64-f3b3-4d37-9bfa-2badd34d3963",
    "headline": "[SYNTHETIC] Security incident reported in Tokyo",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 4 correlated events centered on Tokyo. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5556,8 +5556,8 @@ const syntheticDataset = {
     "confidence": "medium"
    },
    "confidence": "high",
-   "first_seen_at": "2026-06-30T01:55:03.162423+00:00",
-   "last_updated_at": "2026-07-02T07:45:00.507488+00:00",
+   "first_seen_at": "2026-06-30T01:57:30.530442+00:00",
+   "last_updated_at": "2026-07-02T07:47:27.875507+00:00",
    "member_count": 4,
    "source_count": 2,
    "categories": [
@@ -5566,15 +5566,15 @@ const syntheticDataset = {
     "geopolitics"
    ],
    "member_event_ids": [
-    "2416884c-8a1c-46f9-a4cf-d490e353c203",
-    "b528e2b0-2828-4af1-aa7f-0ae54e734ecc",
-    "b1d8d94d-9834-408e-9506-6716cae9bb48",
-    "a84b2e0e-e11a-4d3b-aad6-3675f3722a08"
+    "a55489be-60fb-4883-80dd-d74edf4e5f70",
+    "a8fd3a12-06a5-4a08-96f2-b2501657b4a6",
+    "f6b849a2-9771-478d-85c4-85570a1148e0",
+    "98f57563-e2f4-4375-90e1-e55c1cda34ee"
    ],
    "_synthetic": true
   },
   {
-   "id": "96e5bf71-6fd3-4501-8344-ef0c51722d40",
+   "id": "fe58f681-a4a9-4a31-b009-98e53a3e0ff3",
    "headline": "[SYNTHETIC] Wildfire risk elevated around Mumbai",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 2 correlated events centered on Mumbai. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5591,21 +5591,21 @@ const syntheticDataset = {
     "confidence": "medium"
    },
    "confidence": "high",
-   "first_seen_at": "2026-07-03T00:33:19.706651+00:00",
-   "last_updated_at": "2026-07-03T00:43:24.230674+00:00",
+   "first_seen_at": "2026-07-03T00:35:47.074670+00:00",
+   "last_updated_at": "2026-07-03T00:45:51.598693+00:00",
    "member_count": 2,
    "source_count": 4,
    "categories": [
     "disaster"
    ],
    "member_event_ids": [
-    "07ebf065-c1ab-4fde-8d94-eae7fb0e80e8",
-    "dde0bfb7-4ad9-45da-a495-58cab3d37b7c"
+    "670d9b34-52b3-48c4-ae8f-deab3272c6a3",
+    "b3370416-0e46-45c3-b5f7-ca0f372dcebf"
    ],
    "_synthetic": true
   },
   {
-   "id": "507ffe88-9f0a-46b5-b169-2b5a54c22205",
+   "id": "038ea5cd-0eb9-4373-933a-931463a5bdc4",
    "headline": "[SYNTHETIC] Flooding reported near Beijing",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 5 correlated events centered on Beijing. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5625,8 +5625,8 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "medium",
-   "first_seen_at": "2026-06-29T14:03:37.098100+00:00",
-   "last_updated_at": "2026-07-02T02:43:01.685796+00:00",
+   "first_seen_at": "2026-06-29T14:06:04.466119+00:00",
+   "last_updated_at": "2026-07-02T02:45:29.053815+00:00",
    "member_count": 5,
    "source_count": 4,
    "categories": [
@@ -5635,16 +5635,16 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "5911940c-6229-494f-bd62-199bcf496207",
-    "2e1b0d7f-c1c4-4829-956b-70c425e757ef",
-    "8d2164dc-3268-49a3-a0af-7dc3bd441768",
-    "5ae881fa-4f84-4ec4-bb17-1022ddc8b623",
-    "30272973-9740-4a8a-a98c-75613ca0d1c9"
+    "3463777e-09a1-46e3-8857-7362fbf142a9",
+    "e1593176-a4c6-4318-ae93-228f4360ecb6",
+    "b8ea249e-260d-42e1-a284-853fd48c115e",
+    "ffe94465-10a8-4822-a3bd-bc66e10bb783",
+    "2e558476-8be5-4a1f-bcc1-8957175fa220"
    ],
    "_synthetic": true
   },
   {
-   "id": "bc87fb62-b534-40e4-ad25-eec7740c2a5a",
+   "id": "e20a3950-f493-4559-b47e-55016dca0dc8",
    "headline": "[SYNTHETIC] Severe storm system approaching Buenos Aires",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 6 correlated events centered on Buenos Aires. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5665,8 +5665,8 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "low",
-   "first_seen_at": "2026-06-29T15:16:56.344456+00:00",
-   "last_updated_at": "2026-07-02T23:36:08.231403+00:00",
+   "first_seen_at": "2026-06-29T15:19:23.712475+00:00",
+   "last_updated_at": "2026-07-02T23:38:35.599422+00:00",
    "member_count": 6,
    "source_count": 2,
    "categories": [
@@ -5676,17 +5676,17 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "0dc58787-443d-439a-9e73-49d9224c3c94",
-    "9bd2a9d2-cea2-4757-8ced-484fe25fc465",
-    "1b7c3098-e204-47ee-b28b-e084dc5dd440",
-    "ece382cd-e8d0-40ae-a536-f76608ae4756",
-    "6c6dc2a6-e226-4741-a78d-873195e06dcd",
-    "7b352aff-45ce-4335-aa2d-c10b82a027b8"
+    "b68cf33a-e8a2-4dc2-b808-368f26c2ba2a",
+    "b2977bb7-9e92-409f-b6b9-4384586984b8",
+    "4675fc98-9afe-4c89-890b-68474c071160",
+    "5fbf3272-2c3f-4adf-a683-3f5be5d63bc1",
+    "ec478a83-764a-4d6b-9f04-e0919c83532b",
+    "caf26329-72f8-46eb-9317-0dd1d66f1d68"
    ],
    "_synthetic": true
   },
   {
-   "id": "fdb2e695-3eb7-41d2-89db-5ba4de979832",
+   "id": "100ad8a6-9b19-4ec2-a853-bdcfce4614f9",
    "headline": "[SYNTHETIC] Border tensions escalate near Sydney",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 2 correlated events centered on Sydney. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5703,8 +5703,8 @@ const syntheticDataset = {
     "confidence": "medium"
    },
    "confidence": "high",
-   "first_seen_at": "2026-06-29T09:09:12.055544+00:00",
-   "last_updated_at": "2026-06-29T17:24:36.926792+00:00",
+   "first_seen_at": "2026-06-29T09:11:39.423563+00:00",
+   "last_updated_at": "2026-06-29T17:27:04.294811+00:00",
    "member_count": 2,
    "source_count": 2,
    "categories": [
@@ -5712,13 +5712,13 @@ const syntheticDataset = {
     "disaster"
    ],
    "member_event_ids": [
-    "4aabfcc8-df35-4d3d-99b5-2b1a5c37903a",
-    "e63b1cf9-f210-4682-92ae-7692048fcace"
+    "4d270c9b-5ac9-45ea-9b3f-ec8235f9bb17",
+    "59d81fd5-26a4-45a5-acc3-c41d29dba248"
    ],
    "_synthetic": true
   },
   {
-   "id": "848c5852-c176-4725-96e3-06513269422f",
+   "id": "fa7a4033-9a40-4854-a327-f321ebcbd2f7",
    "headline": "[SYNTHETIC] Seismic activity recorded near Beijing",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 6 correlated events centered on Beijing. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5738,8 +5738,8 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "low",
-   "first_seen_at": "2026-06-29T21:15:02.180799+00:00",
-   "last_updated_at": "2026-07-02T13:34:07.594752+00:00",
+   "first_seen_at": "2026-06-29T21:17:29.548818+00:00",
+   "last_updated_at": "2026-07-02T13:36:34.962771+00:00",
    "member_count": 6,
    "source_count": 3,
    "categories": [
@@ -5748,17 +5748,17 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "343ee37e-b861-490d-9e16-539d8eb95cd4",
-    "6d3a0f94-daaa-410b-afcf-58d34d163f88",
-    "0cde35a8-dd97-42e3-abb9-85fb97797c56",
-    "b3d5e888-d456-4638-8881-5c230276e72a",
-    "c4d34f4d-42be-4000-8456-6eba39a8b214",
-    "eb339f26-f1de-4bc6-80b5-2dba3302bd1a"
+    "90cced89-de46-4bfd-972b-0b15d8cc2d1b",
+    "3167beba-1d31-4b34-b72f-3efa27b1f9f6",
+    "7e051a0a-addf-4276-bd2a-f0120018f734",
+    "4e9462ee-28d6-4ec4-9322-8e8a975ffa48",
+    "4d3b860a-2048-4af1-af85-7da603b485ca",
+    "9d97ee37-67c7-48e8-adc0-d6d35447270d"
    ],
    "_synthetic": true
   },
   {
-   "id": "809907ba-6068-4eb1-9403-ceafd001cd6b",
+   "id": "f05031df-94e7-4e78-87cc-8a5100b298d6",
    "headline": "[SYNTHETIC] Flooding reported near Lima",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 5 correlated events centered on Lima. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5778,8 +5778,8 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "medium",
-   "first_seen_at": "2026-06-29T09:29:57.551765+00:00",
-   "last_updated_at": "2026-07-03T02:41:10.394081+00:00",
+   "first_seen_at": "2026-06-29T09:32:24.919784+00:00",
+   "last_updated_at": "2026-07-03T02:43:37.762100+00:00",
    "member_count": 5,
    "source_count": 2,
    "categories": [
@@ -5788,16 +5788,16 @@ const syntheticDataset = {
     "geopolitics"
    ],
    "member_event_ids": [
-    "d1fa2f27-7e05-4bb5-a4e7-8dec1bbb81e3",
-    "e657c3d5-b1cb-4a04-bc3b-515857953fac",
-    "eba61a4f-1124-4178-94e5-b9237c49671c",
-    "2431c97c-040a-4aa6-97a0-92e6215e1820",
-    "bb9f625d-04ce-419a-af02-e6c7b830bf18"
+    "4e8823d4-2f64-4efe-9eef-39393ec82758",
+    "d0c022ab-b556-47de-b894-5566e6f850ab",
+    "10ef0830-8d07-4e53-80ea-19a8c33e8ea1",
+    "8688c6e4-daa9-4231-ae2e-7c5992e8f1f9",
+    "b24aba21-b1eb-4827-9548-265dc94827c4"
    ],
    "_synthetic": true
   },
   {
-   "id": "2d232c67-07e5-4849-b909-b65c03acb042",
+   "id": "25182265-4ab6-405c-a5cf-f87ae25f446f",
    "headline": "[SYNTHETIC] Security incident reported in Chengdu",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 2 correlated events centered on Chengdu. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5814,8 +5814,8 @@ const syntheticDataset = {
     "confidence": "high"
    },
    "confidence": "low",
-   "first_seen_at": "2026-06-30T00:15:29.924163+00:00",
-   "last_updated_at": "2026-07-02T00:13:21.325362+00:00",
+   "first_seen_at": "2026-06-30T00:17:57.292182+00:00",
+   "last_updated_at": "2026-07-02T00:15:48.693381+00:00",
    "member_count": 2,
    "source_count": 3,
    "categories": [
@@ -5823,13 +5823,13 @@ const syntheticDataset = {
     "finance"
    ],
    "member_event_ids": [
-    "8776f0d2-9529-4e4d-b64c-f80179040555",
-    "42120a5c-ab2a-4f39-9538-44ce1e93b00c"
+    "860b97b8-b4f0-435f-866f-3f491f35f6d9",
+    "1198b0f9-e53e-4ef7-9b15-a74d25cc5550"
    ],
    "_synthetic": true
   },
   {
-   "id": "42a2b955-96da-4360-9819-f1d8b4f684d4",
+   "id": "f1b1bb99-1e4a-4f0d-be63-aaf46b7c5633",
    "headline": "[SYNTHETIC] Supply chain alert issued for Moscow",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 6 correlated events centered on Moscow. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5850,8 +5850,8 @@ const syntheticDataset = {
     "confidence": "medium"
    },
    "confidence": "low",
-   "first_seen_at": "2026-06-29T08:03:53.057201+00:00",
-   "last_updated_at": "2026-07-01T03:11:29.852058+00:00",
+   "first_seen_at": "2026-06-29T08:06:20.425220+00:00",
+   "last_updated_at": "2026-07-01T03:13:57.220077+00:00",
    "member_count": 6,
    "source_count": 4,
    "categories": [
@@ -5861,17 +5861,17 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "16f624ec-9537-4637-969c-b337212355e0",
-    "1e04bc0d-2098-4ba4-8671-6404a3cc6d97",
-    "543f6ca7-119a-4bec-a1c4-64a61d4007c0",
-    "adac4513-6b95-4140-b361-d6b25e67bb80",
-    "239cffcb-afcf-4f05-9e7e-72908a69a7eb",
-    "8afd4f75-99cf-4fa6-8659-faf94278e8f4"
+    "a2e19d91-14a5-4740-af41-63f0b3512efa",
+    "735e517e-23a8-4a9c-9a8d-5661407a023b",
+    "527aa451-4f32-40c6-b4a5-38180220ba07",
+    "a53f6a49-d920-400a-8570-5bc1fbfcfbf5",
+    "7cffa87a-9895-485c-9375-77f870db245e",
+    "8c063635-0654-4b96-8352-df1a3c3cd804"
    ],
    "_synthetic": true
   },
   {
-   "id": "ce6655dc-2b52-4779-a3c6-2443f7707ee8",
+   "id": "bb2706fc-2068-41f0-821f-3d157744c8ff",
    "headline": "[SYNTHETIC] Infrastructure disruption in Shenzhen",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 3 correlated events centered on Shenzhen. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5889,8 +5889,8 @@ const syntheticDataset = {
     "confidence": "high"
    },
    "confidence": "high",
-   "first_seen_at": "2026-06-30T02:15:36.180551+00:00",
-   "last_updated_at": "2026-07-03T01:56:53.363243+00:00",
+   "first_seen_at": "2026-06-30T02:18:03.548570+00:00",
+   "last_updated_at": "2026-07-03T01:59:20.731262+00:00",
    "member_count": 3,
    "source_count": 3,
    "categories": [
@@ -5898,14 +5898,14 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "92c17f4a-19a4-484f-9d29-685d1b0dcc35",
-    "f47b9275-108b-4678-822f-f432d287939c",
-    "0c9c8eae-d5b8-4ce6-975a-1fa5cab3a53a"
+    "e12734b6-3016-4ff7-a295-7b12906facbb",
+    "2a076155-3ee3-49e7-992f-a95e5e5b1053",
+    "73b8be1b-e99f-4c90-be20-bc1269a35f20"
    ],
    "_synthetic": true
   },
   {
-   "id": "c9a21caf-1dbe-41fe-8762-3b7542c4113c",
+   "id": "a41bdb07-b586-4f44-97c9-bd0b2d05498a",
    "headline": "[SYNTHETIC] Border tensions escalate near Karachi",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 5 correlated events centered on Karachi. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5924,8 +5924,8 @@ const syntheticDataset = {
     "confidence": "high"
    },
    "confidence": "high",
-   "first_seen_at": "2026-06-29T14:59:43.116413+00:00",
-   "last_updated_at": "2026-07-03T01:30:36.651264+00:00",
+   "first_seen_at": "2026-06-29T15:02:10.484432+00:00",
+   "last_updated_at": "2026-07-03T01:33:04.019283+00:00",
    "member_count": 5,
    "source_count": 2,
    "categories": [
@@ -5934,16 +5934,16 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "f3b77632-57ba-4393-862d-079a8376a551",
-    "be0f9baa-f14c-4296-a418-9fa39bb8843e",
-    "823d82d6-ca07-4dba-a187-bcdf94cdf793",
-    "59a8fcef-a174-46d1-9184-5bd5da5bc44b",
-    "217b1517-d139-4993-b909-e3bd860db3cb"
+    "79fee816-6ac9-4328-b404-7550b9bb9b5e",
+    "696c0154-b309-473a-87bc-7e436de6a21f",
+    "8b91e06c-8116-4339-8dd2-9c34ed34bf65",
+    "f0535c85-5618-4930-9b08-b28e30622028",
+    "14ce4a1a-e7b3-49fa-a445-cfa6991af56e"
    ],
    "_synthetic": true
   },
   {
-   "id": "a281534f-0dfb-4176-addf-cc055dbb42b0",
+   "id": "4a4274d0-61d4-4b08-911c-118035ba81d8",
    "headline": "[SYNTHETIC] Security incident reported in Tianjin",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 3 correlated events centered on Tianjin. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5961,8 +5961,8 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "medium",
-   "first_seen_at": "2026-06-30T06:09:15.685958+00:00",
-   "last_updated_at": "2026-07-01T06:10:06.759696+00:00",
+   "first_seen_at": "2026-06-30T06:11:43.053977+00:00",
+   "last_updated_at": "2026-07-01T06:12:34.127715+00:00",
    "member_count": 3,
    "source_count": 3,
    "categories": [
@@ -5971,14 +5971,14 @@ const syntheticDataset = {
     "finance"
    ],
    "member_event_ids": [
-    "e2f7e7c7-fcdd-421d-bba4-5728c4f357ad",
-    "3e70caba-307a-42a7-b5b2-0d86933a2ce8",
-    "fe27843f-5daf-41dc-ad80-9fdf712ef44b"
+    "d8658188-497a-487f-ba79-ad9343fc8c1f",
+    "6633992c-90c5-48a9-86ee-d987bec98ddb",
+    "9d6bb029-aa9c-4f41-a0b1-d5e8a5e8d3f9"
    ],
    "_synthetic": true
   },
   {
-   "id": "3c9c8272-c5e8-4a33-b1a9-c645c0a6aea0",
+   "id": "49e6fc85-9d5c-447c-954e-a2c1d4174593",
    "headline": "[SYNTHETIC] Severe storm system approaching Nagoya",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 2 correlated events centered on Nagoya. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -5995,8 +5995,8 @@ const syntheticDataset = {
     "confidence": "medium"
    },
    "confidence": "medium",
-   "first_seen_at": "2026-07-02T03:21:26.055504+00:00",
-   "last_updated_at": "2026-07-02T20:00:38.801698+00:00",
+   "first_seen_at": "2026-07-02T03:23:53.423523+00:00",
+   "last_updated_at": "2026-07-02T20:03:06.169717+00:00",
    "member_count": 2,
    "source_count": 2,
    "categories": [
@@ -6004,13 +6004,13 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "3d8a2b8c-0dd4-4aaf-862a-b2f7669c62e4",
-    "e74c5522-de6e-4c7e-89f9-7284b2681ac8"
+    "a9041b9f-f312-4838-9bc2-6b5af993e6aa",
+    "c0bdbf76-c8f9-4aee-b034-fc4594f6b8c4"
    ],
    "_synthetic": true
   },
   {
-   "id": "0cea5009-d81c-4c7e-a7a4-48d0702ad8fe",
+   "id": "19374a48-1ff9-4a0b-8032-631bf893db68",
    "headline": "[SYNTHETIC] Wildfire risk elevated around London",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 3 correlated events centered on London. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6028,8 +6028,8 @@ const syntheticDataset = {
     "confidence": "high"
    },
    "confidence": "low",
-   "first_seen_at": "2026-06-30T09:31:06.875351+00:00",
-   "last_updated_at": "2026-07-02T19:55:36.620176+00:00",
+   "first_seen_at": "2026-06-30T09:33:34.243370+00:00",
+   "last_updated_at": "2026-07-02T19:58:03.988195+00:00",
    "member_count": 3,
    "source_count": 3,
    "categories": [
@@ -6037,14 +6037,14 @@ const syntheticDataset = {
     "finance"
    ],
    "member_event_ids": [
-    "03a40242-36f3-473c-80e1-02dd4f7db765",
-    "7b410d33-c8d1-408a-9ee5-5edfca2e138c",
-    "b8cc6b53-df3a-4aeb-8b7a-8c7253f0dea5"
+    "5fb9d3fb-ee4a-4e37-9fd1-1ffa4e8ff185",
+    "224b4029-95e0-4cd8-8ab2-e21351b1b1ad",
+    "d0a18c2d-ef0c-4930-b050-e8f478595b03"
    ],
    "_synthetic": true
   },
   {
-   "id": "03197568-3768-48a5-8d2a-8992c1dd460e",
+   "id": "9dc625dd-2eae-4726-8be3-c3556e42d7e1",
    "headline": "[SYNTHETIC] Central bank intervention in Berlin",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 2 correlated events centered on Berlin. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6061,21 +6061,21 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "medium",
-   "first_seen_at": "2026-07-01T04:37:11.100537+00:00",
-   "last_updated_at": "2026-07-03T04:49:37.845975+00:00",
+   "first_seen_at": "2026-07-01T04:39:38.468556+00:00",
+   "last_updated_at": "2026-07-03T04:52:05.213994+00:00",
    "member_count": 2,
    "source_count": 4,
    "categories": [
     "finance"
    ],
    "member_event_ids": [
-    "639089d9-a204-4bed-a65a-74d24801a3d9",
-    "69397a6d-3709-403c-a4a5-1b9096256acb"
+    "4ab87d3d-e4e8-458d-bcad-a0c5aa3a25ac",
+    "087e82c6-a087-4d7e-ae42-aafd887a599a"
    ],
    "_synthetic": true
   },
   {
-   "id": "f8a9dc46-92eb-4888-93f9-099bc9152a80",
+   "id": "be475ac0-cd05-4286-a13b-a266d94a61f9",
    "headline": "[SYNTHETIC] New sanctions announced affecting Nagoya",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 5 correlated events centered on Nagoya. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6094,8 +6094,8 @@ const syntheticDataset = {
     "confidence": "high"
    },
    "confidence": "medium",
-   "first_seen_at": "2026-07-01T19:18:32.543168+00:00",
-   "last_updated_at": "2026-07-02T20:00:25.929713+00:00",
+   "first_seen_at": "2026-07-01T19:20:59.911187+00:00",
+   "last_updated_at": "2026-07-02T20:02:53.297732+00:00",
    "member_count": 5,
    "source_count": 2,
    "categories": [
@@ -6104,16 +6104,16 @@ const syntheticDataset = {
     "geopolitics"
    ],
    "member_event_ids": [
-    "0275127a-9971-446b-88de-c38ef17f33b6",
-    "90f0bdd8-a8ac-4faa-89da-1811f8197053",
-    "f951b400-f391-494f-b876-bb4fefda97e9",
-    "36e1a678-3688-442c-9562-cd809893e354",
-    "46960193-4ca6-4431-b025-c62f911c5159"
+    "b8ced0ba-819b-465c-a2a2-4d63e0b33d43",
+    "7f88c756-f3ec-4679-a730-28a309c3d60f",
+    "67fab3ff-bf95-4ba6-8dc8-7965eb2106f5",
+    "6999347b-62dd-41c1-8bfc-d947abd9b3a1",
+    "fe82f6f9-7cca-4922-9caf-9d9776a85b28"
    ],
    "_synthetic": true
   },
   {
-   "id": "61f126c7-41b0-4eba-9d6f-269ccba6a506",
+   "id": "d0a55aa6-33c6-4718-a365-574e622ac74e",
    "headline": "[SYNTHETIC] New sanctions announced affecting Buenos Aires",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 2 correlated events centered on Buenos Aires. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6130,8 +6130,8 @@ const syntheticDataset = {
     "confidence": "medium"
    },
    "confidence": "high",
-   "first_seen_at": "2026-07-01T01:08:35.908680+00:00",
-   "last_updated_at": "2026-07-02T09:20:17.582766+00:00",
+   "first_seen_at": "2026-07-01T01:11:03.276699+00:00",
+   "last_updated_at": "2026-07-02T09:22:44.950785+00:00",
    "member_count": 2,
    "source_count": 4,
    "categories": [
@@ -6139,13 +6139,13 @@ const syntheticDataset = {
     "geopolitics"
    ],
    "member_event_ids": [
-    "214d87f7-6aac-4aa6-8876-8ead5c54efcb",
-    "912cae86-bd0a-4511-b65a-39da6805a835"
+    "f5024785-90b0-463b-973a-485ae88d0a2e",
+    "840d1670-93f9-4c3f-aba2-338251c62083"
    ],
    "_synthetic": true
   },
   {
-   "id": "58b3481c-c98f-40bc-b0b2-9aa15ae4bd4e",
+   "id": "c6534d88-8242-483c-badb-4ca00558dfcc",
    "headline": "[SYNTHETIC] Ceasefire talks stall near Tokyo",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 3 correlated events centered on Tokyo. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6163,8 +6163,8 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "low",
-   "first_seen_at": "2026-06-29T05:48:24.779917+00:00",
-   "last_updated_at": "2026-07-02T00:22:07.590332+00:00",
+   "first_seen_at": "2026-06-29T05:50:52.147936+00:00",
+   "last_updated_at": "2026-07-02T00:24:34.958351+00:00",
    "member_count": 3,
    "source_count": 2,
    "categories": [
@@ -6172,14 +6172,14 @@ const syntheticDataset = {
     "geopolitics"
    ],
    "member_event_ids": [
-    "545331f9-b71b-4ce1-abfd-a740e1af6746",
-    "cb098f8d-3a6d-454a-a4c5-748066467674",
-    "e0ec6ade-bb9d-4be1-93cb-17ee37f2e95f"
+    "7ed5f0a1-133f-465c-aad4-6ff51914d034",
+    "902a1b51-f93b-4349-b846-009bbbccb715",
+    "864e4b9d-b99e-4723-8f9e-38034306e771"
    ],
    "_synthetic": true
   },
   {
-   "id": "c6e1af23-7938-4315-978f-1e93f3abc694",
+   "id": "6b01c804-0f2b-4d56-b8fb-f452a7a31999",
    "headline": "[SYNTHETIC] Port congestion reported at Paris shipping hub",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 6 correlated events centered on Paris. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6200,8 +6200,8 @@ const syntheticDataset = {
     "confidence": "high"
    },
    "confidence": "low",
-   "first_seen_at": "2026-06-29T16:18:29.533916+00:00",
-   "last_updated_at": "2026-07-03T01:02:31.478201+00:00",
+   "first_seen_at": "2026-06-29T16:20:56.901935+00:00",
+   "last_updated_at": "2026-07-03T01:04:58.846220+00:00",
    "member_count": 6,
    "source_count": 2,
    "categories": [
@@ -6211,17 +6211,17 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "b50f0031-9fac-4082-ad8c-3e1c2c5b7ff6",
-    "b25a1073-4604-4c87-9233-5eb31a4d7012",
-    "3438e969-83ce-4639-885f-9a49ffe46d41",
-    "da2e475d-e312-411a-b7c0-f802deee1790",
-    "ea2dd90f-68bd-4b78-b219-33433229196d",
-    "13fbb487-e71c-440d-adc5-e4e8da1753c2"
+    "fb351032-9135-42cf-b496-347a02d7bd42",
+    "1ed36f13-845a-4f0d-9441-7e1a637a4028",
+    "f94b2313-7bf1-4634-84e2-0554364e1c32",
+    "96870be2-8ea3-483b-b014-f0d55e7582a5",
+    "97c9bc1a-b84c-4502-8439-98c6c5ec3e48",
+    "26c5cf2f-207d-428e-995e-999927a7425d"
    ],
    "_synthetic": true
   },
   {
-   "id": "ad41f2c4-ec8b-4baa-a65a-8c9fc8506cb1",
+   "id": "ddf6ec69-2dae-459b-ad7e-79e16d47837f",
    "headline": "[SYNTHETIC] Port congestion reported at Cairo shipping hub",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 4 correlated events centered on Cairo. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6240,8 +6240,8 @@ const syntheticDataset = {
     "confidence": "high"
    },
    "confidence": "low",
-   "first_seen_at": "2026-06-29T14:41:17.634734+00:00",
-   "last_updated_at": "2026-07-02T00:02:20.052253+00:00",
+   "first_seen_at": "2026-06-29T14:43:45.002753+00:00",
+   "last_updated_at": "2026-07-02T00:04:47.420272+00:00",
    "member_count": 4,
    "source_count": 2,
    "categories": [
@@ -6250,15 +6250,15 @@ const syntheticDataset = {
     "finance"
    ],
    "member_event_ids": [
-    "850646de-970c-43ee-8dc9-61e536b37006",
-    "34bd69ec-d34f-42c5-b7a9-fcceb777fa21",
-    "38de0d5c-8ca0-4876-ab60-dec934c0d6da",
-    "b77ddf54-826d-4ae3-ba2c-08b538d66c80"
+    "b4a405a7-2a69-4796-bb20-7e91a6b1c2f4",
+    "ad50dd00-393c-4745-8216-6b36333a1a8e",
+    "2938eff4-b718-4d74-b1dc-43b207a06422",
+    "1a18b2a8-d4bc-45f7-a223-37a4667b7368"
    ],
    "_synthetic": true
   },
   {
-   "id": "ea59521b-52fc-464d-9591-00915e91f552",
+   "id": "0d440280-3bd2-4f66-8305-76623ba9f8d2",
    "headline": "[SYNTHETIC] Policy shift announced in Manila",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 2 correlated events centered on Manila. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6275,8 +6275,8 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "high",
-   "first_seen_at": "2026-07-02T05:59:47.084013+00:00",
-   "last_updated_at": "2026-07-02T08:47:29.297451+00:00",
+   "first_seen_at": "2026-07-02T06:02:14.452032+00:00",
+   "last_updated_at": "2026-07-02T08:49:56.665470+00:00",
    "member_count": 2,
    "source_count": 4,
    "categories": [
@@ -6284,13 +6284,13 @@ const syntheticDataset = {
     "geopolitics"
    ],
    "member_event_ids": [
-    "cdaf0980-d752-4f49-8d55-419f5e83d8a7",
-    "53f90999-cdd1-4ca2-a82d-2752a38d2c57"
+    "9287ce32-b4b9-445a-9815-cb373b1a381b",
+    "93a0e38f-54ae-4f09-b665-305174961287"
    ],
    "_synthetic": true
   },
   {
-   "id": "32f3407b-e474-4b50-b0a7-56d34dfc2f07",
+   "id": "faf54035-410a-4a23-a49e-ad845186f3cf",
    "headline": "[SYNTHETIC] Election results contested in Delhi",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 5 correlated events centered on Delhi. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6310,8 +6310,8 @@ const syntheticDataset = {
     "confidence": "medium"
    },
    "confidence": "high",
-   "first_seen_at": "2026-06-30T22:19:52.090253+00:00",
-   "last_updated_at": "2026-07-02T21:56:45.136204+00:00",
+   "first_seen_at": "2026-06-30T22:22:19.458272+00:00",
+   "last_updated_at": "2026-07-02T21:59:12.504223+00:00",
    "member_count": 5,
    "source_count": 2,
    "categories": [
@@ -6320,16 +6320,16 @@ const syntheticDataset = {
     "geopolitics"
    ],
    "member_event_ids": [
-    "8a31acff-8f0e-48c6-8573-df5b17f5c90e",
-    "0b729b7d-f215-447f-af47-efbd0ff3536b",
-    "df16710a-9b28-4428-ba05-29d18ea90f96",
-    "b0bc2170-b733-40b2-b26e-c90d22880828",
-    "0ac6172f-68e8-49e4-981e-aad38fb0ca80"
+    "501b9f06-26fa-4c36-a4b8-417c00b7f136",
+    "51a4014c-6567-4753-9176-735db3ed05ed",
+    "99d73981-3459-4a64-9f72-92ce550c67ad",
+    "faf70163-9d31-4ac1-b1e8-068751ba089d",
+    "10f456c5-8fde-432a-aa9a-11d95e16d7e5"
    ],
    "_synthetic": true
   },
   {
-   "id": "9b4ca9da-bae4-4af5-b1d8-a8a1b1eff115",
+   "id": "6d9dca60-357d-4fa2-b67f-650d05407dd6",
    "headline": "[SYNTHETIC] Port congestion reported at Shenzhen shipping hub",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 5 correlated events centered on Shenzhen. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6349,8 +6349,8 @@ const syntheticDataset = {
     "confidence": "medium"
    },
    "confidence": "medium",
-   "first_seen_at": "2026-06-30T04:33:57.043520+00:00",
-   "last_updated_at": "2026-07-02T18:51:01.655502+00:00",
+   "first_seen_at": "2026-06-30T04:36:24.411539+00:00",
+   "last_updated_at": "2026-07-02T18:53:29.023521+00:00",
    "member_count": 5,
    "source_count": 4,
    "categories": [
@@ -6359,16 +6359,16 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "f1738934-332d-4da0-ac77-f7818a86f808",
-    "0433272b-377b-4200-9282-ed8a8f95fb67",
-    "ff530fc1-171c-424a-9a10-93a873e8df73",
-    "eca1f044-5ffb-406b-8753-8b08068e6d4e",
-    "452cdecc-2d9d-4516-acfb-23c8c309941a"
+    "225057bd-a44a-44c3-8dbb-c0efa85e1bea",
+    "31d27095-3b48-4fe8-bd27-688b8825f27a",
+    "6ffaa217-a894-4702-99f2-242910e33d52",
+    "a3675e6b-32b0-4390-ae24-464189fb6203",
+    "6e79c892-e8d1-4c28-9489-0a7431284418"
    ],
    "_synthetic": true
   },
   {
-   "id": "111405e5-c3d4-46a3-b765-d21325178d47",
+   "id": "2f142fa0-3895-4745-9b5b-3b581e697aa6",
    "headline": "[SYNTHETIC] Port congestion reported at Chicago shipping hub",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 2 correlated events centered on Chicago. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6385,8 +6385,8 @@ const syntheticDataset = {
     "confidence": "high"
    },
    "confidence": "low",
-   "first_seen_at": "2026-07-01T02:45:33.975452+00:00",
-   "last_updated_at": "2026-07-02T12:32:25.783100+00:00",
+   "first_seen_at": "2026-07-01T02:48:01.343471+00:00",
+   "last_updated_at": "2026-07-02T12:34:53.151119+00:00",
    "member_count": 2,
    "source_count": 4,
    "categories": [
@@ -6394,13 +6394,13 @@ const syntheticDataset = {
     "geopolitics"
    ],
    "member_event_ids": [
-    "6c94e647-7c99-40bc-b4c9-1c88fd085920",
-    "87954b66-879d-4265-a132-12cd7f3f306d"
+    "0d8f9799-f9ce-4a7b-8b0a-dfa9fca41479",
+    "8d8d2961-f20f-4f12-8750-dac550b75a1d"
    ],
    "_synthetic": true
   },
   {
-   "id": "52ad7e94-90f1-4a08-a5a4-a9779e8570be",
+   "id": "3a1072f9-04ec-47f3-a8e0-79eb860b1ecd",
    "headline": "[SYNTHETIC] Border tensions escalate near Tehran",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 2 correlated events centered on Tehran. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6417,8 +6417,8 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "low",
-   "first_seen_at": "2026-06-29T14:54:31.036889+00:00",
-   "last_updated_at": "2026-06-30T06:27:54.477209+00:00",
+   "first_seen_at": "2026-06-29T14:56:58.404908+00:00",
+   "last_updated_at": "2026-06-30T06:30:21.845228+00:00",
    "member_count": 2,
    "source_count": 2,
    "categories": [
@@ -6426,13 +6426,13 @@ const syntheticDataset = {
     "geopolitics"
    ],
    "member_event_ids": [
-    "55cb9f02-6f31-4fe5-9227-815b93df8e2a",
-    "5f7edb92-bcda-49ff-b0a9-3f01677680c1"
+    "8433c55f-e803-4d92-96e3-26302a56e83e",
+    "0227ac03-647f-43a8-b330-e52ce88f6476"
    ],
    "_synthetic": true
   },
   {
-   "id": "583b1220-cae9-4da2-9a25-abdd25ebf421",
+   "id": "5d863933-d7a3-43ea-8736-ee5bb24d43ad",
    "headline": "[SYNTHETIC] Election results contested in Kolkata",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 3 correlated events centered on Kolkata. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6450,8 +6450,8 @@ const syntheticDataset = {
     "confidence": "medium"
    },
    "confidence": "high",
-   "first_seen_at": "2026-06-29T22:21:31.941655+00:00",
-   "last_updated_at": "2026-07-02T16:47:46.871026+00:00",
+   "first_seen_at": "2026-06-29T22:23:59.309674+00:00",
+   "last_updated_at": "2026-07-02T16:50:14.239045+00:00",
    "member_count": 3,
    "source_count": 2,
    "categories": [
@@ -6460,14 +6460,14 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "c25f6117-d452-4f49-9ca6-8388f56b0f98",
-    "62b48c61-1b7b-408f-9355-fa23bd3319d0",
-    "62475ecc-c765-4f0b-9c53-bada0bf24df4"
+    "be1458d9-1694-4f2b-906a-4d6f667ae72f",
+    "e504d1fe-60ff-4bcf-b03c-bfb9d63d884f",
+    "58f48aea-90fa-4859-994c-d11c2234dc96"
    ],
    "_synthetic": true
   },
   {
-   "id": "d44a4693-ac7d-4c88-b83c-09e9688180aa",
+   "id": "ab136f61-241d-4376-9242-d51f849d7093",
    "headline": "[SYNTHETIC] Currency pressure builds in Kolkata",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 2 correlated events centered on Kolkata. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6484,8 +6484,8 @@ const syntheticDataset = {
     "confidence": "high"
    },
    "confidence": "high",
-   "first_seen_at": "2026-06-30T13:55:18.615204+00:00",
-   "last_updated_at": "2026-07-02T03:32:04.914750+00:00",
+   "first_seen_at": "2026-06-30T13:57:45.983223+00:00",
+   "last_updated_at": "2026-07-02T03:34:32.282769+00:00",
    "member_count": 2,
    "source_count": 3,
    "categories": [
@@ -6493,13 +6493,13 @@ const syntheticDataset = {
     "finance"
    ],
    "member_event_ids": [
-    "af14b4ac-26ae-4b89-a8d1-20e8f096c3e0",
-    "59077fc1-f43a-45d1-bc3c-0d48fc58942f"
+    "6330e2b4-244c-4f4a-bb02-41b83954c337",
+    "f48fa9d1-31f1-4e92-a767-2c37dafdfd41"
    ],
    "_synthetic": true
   },
   {
-   "id": "bea0ace7-ee2f-4fd9-b873-bef9b1410569",
+   "id": "195a4f98-d2a2-4df6-962c-4de729592fcf",
    "headline": "[SYNTHETIC] Supply chain alert issued for Kolkata",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 4 correlated events centered on Kolkata. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6518,8 +6518,8 @@ const syntheticDataset = {
     "confidence": "medium"
    },
    "confidence": "high",
-   "first_seen_at": "2026-06-29T23:43:02.100526+00:00",
-   "last_updated_at": "2026-07-02T05:19:39.595792+00:00",
+   "first_seen_at": "2026-06-29T23:45:29.468545+00:00",
+   "last_updated_at": "2026-07-02T05:22:06.963811+00:00",
    "member_count": 4,
    "source_count": 3,
    "categories": [
@@ -6528,15 +6528,15 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "47ec31d7-2277-4204-a755-4cc7db0276e6",
-    "c699eed0-5977-4841-8270-94adbac53c8d",
-    "c7a22d3c-a77f-4bf4-b385-8696d413140e",
-    "ada11c23-c9c0-4254-89a4-964c2e135bd1"
+    "c7ed8d4a-ebaa-4b8b-986d-a3a7d430101b",
+    "96ce2653-c76e-4042-9a80-1661eca7eace",
+    "8b14f219-c373-4422-9307-d264a9a7b384",
+    "0153a0ad-f3a1-4c4f-b1cd-869b0268e25c"
    ],
    "_synthetic": true
   },
   {
-   "id": "169abeaf-f19d-415a-ad9e-0787e9f83a65",
+   "id": "5bf6cfda-d069-4a31-b541-362d5cd8dabb",
    "headline": "[SYNTHETIC] Flooding reported near Chengdu",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 4 correlated events centered on Chengdu. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6555,8 +6555,8 @@ const syntheticDataset = {
     "confidence": "high"
    },
    "confidence": "high",
-   "first_seen_at": "2026-06-30T16:04:11.161508+00:00",
-   "last_updated_at": "2026-07-02T09:04:41.112618+00:00",
+   "first_seen_at": "2026-06-30T16:06:38.529527+00:00",
+   "last_updated_at": "2026-07-02T09:07:08.480637+00:00",
    "member_count": 4,
    "source_count": 4,
    "categories": [
@@ -6565,15 +6565,15 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "c245d004-97c1-4a20-806b-940d742dc78f",
-    "fd42d7be-4156-4435-913e-0e9fdfec7767",
-    "128c87d7-c5cb-4e36-a49a-0a5b97bfb14b",
-    "10798ff2-caf8-4368-a884-f6df9642ce96"
+    "55f513d2-0774-42c4-8875-45aded2200b9",
+    "4d91d28c-be78-40c8-864b-f98d997ec443",
+    "b9b81a5a-ecd5-4f27-ae98-5b25914d19f3",
+    "44518e46-42db-4775-92d4-8e2be742ac07"
    ],
    "_synthetic": true
   },
   {
-   "id": "9f3f5ecb-c8c4-4b85-b1a1-abbaa151f0d0",
+   "id": "636bbd12-eee0-401b-ad6a-c48e89533d85",
    "headline": "[SYNTHETIC] Supply chain alert issued for Jakarta",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 2 correlated events centered on Jakarta. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6590,8 +6590,8 @@ const syntheticDataset = {
     "confidence": "medium"
    },
    "confidence": "medium",
-   "first_seen_at": "2026-07-01T13:59:55.631230+00:00",
-   "last_updated_at": "2026-07-01T15:25:13.632891+00:00",
+   "first_seen_at": "2026-07-01T14:02:22.999249+00:00",
+   "last_updated_at": "2026-07-01T15:27:41.000910+00:00",
    "member_count": 2,
    "source_count": 4,
    "categories": [
@@ -6599,13 +6599,13 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "7f52c3c1-a733-4ec5-9783-350a5a3ac9e7",
-    "86eb5e2e-b8a2-4c04-b557-e1eb7e65e663"
+    "613c53a5-4d6c-4e47-8f8d-a43775c655a4",
+    "4f5a4a0d-0201-400c-aeae-e6e262f7946e"
    ],
    "_synthetic": true
   },
   {
-   "id": "6ccf098d-e962-475d-a2e0-e1c60a739efd",
+   "id": "2c38f284-fabe-4dfa-bd27-fba78d6e9e9e",
    "headline": "[SYNTHETIC] Policy shift announced in Chennai",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 6 correlated events centered on Chennai. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6626,8 +6626,8 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "medium",
-   "first_seen_at": "2026-06-29T23:32:28.255539+00:00",
-   "last_updated_at": "2026-07-03T03:33:04.077043+00:00",
+   "first_seen_at": "2026-06-29T23:34:55.623558+00:00",
+   "last_updated_at": "2026-07-03T03:35:31.445062+00:00",
    "member_count": 6,
    "source_count": 2,
    "categories": [
@@ -6637,17 +6637,17 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "ce4c820f-3979-4133-8c92-a5dcf1c475f1",
-    "48620bf8-009e-4e1b-84d6-34889742838b",
-    "1d6bbdba-f8d6-48dd-9773-e355d42cbf64",
-    "27996589-d657-46d4-b156-3ae5e7ab240e",
-    "3c18ce89-3ac4-4543-b534-b27ea2ee34d4",
-    "dc4b1da3-33b8-4621-b9e7-baab43964e40"
+    "e329540a-4965-4496-a03f-08877ad939fe",
+    "faf10103-8abd-44f1-a490-d4263765b112",
+    "1a087027-b7d9-4c74-b435-62dff04db206",
+    "41270ac2-a67a-42d0-8f51-d7c226ed31dd",
+    "5b6de001-d09f-4265-b35a-26581b17364c",
+    "9a2faa8b-0bdb-45d1-8a8d-a802658b7d10"
    ],
    "_synthetic": true
   },
   {
-   "id": "b991e65c-a8cb-4a60-a78d-792f43548257",
+   "id": "b621b53f-4253-4b10-a16f-e038f382314c",
    "headline": "[SYNTHETIC] Diplomatic summit convened in Berlin",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 6 correlated events centered on Berlin. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6668,8 +6668,8 @@ const syntheticDataset = {
     "confidence": "medium"
    },
    "confidence": "high",
-   "first_seen_at": "2026-06-29T06:14:02.986785+00:00",
-   "last_updated_at": "2026-07-02T10:01:18.256587+00:00",
+   "first_seen_at": "2026-06-29T06:16:30.354804+00:00",
+   "last_updated_at": "2026-07-02T10:03:45.624606+00:00",
    "member_count": 6,
    "source_count": 4,
    "categories": [
@@ -6678,17 +6678,17 @@ const syntheticDataset = {
     "geopolitics"
    ],
    "member_event_ids": [
-    "1eb5d762-86f0-4a08-89ba-063071ac7358",
-    "87a668ec-4143-4a12-a1f1-a850c41a6205",
-    "f78575de-cd99-49b9-9797-313339f1acee",
-    "070ccfc9-ee81-4584-87b5-9e87b099d58e",
-    "37022717-8085-4536-9eea-61339f9306bc",
-    "a4e2af61-d8ea-4c39-8182-0723f1d4383f"
+    "4fae725b-0b08-4c13-8c12-32be0741a6e7",
+    "4f039ec7-1496-4336-acd8-b268f0c9c7f0",
+    "84dc9d03-2d25-4d0e-94d0-2dc790fa574a",
+    "e8ac3a55-f298-423c-a7db-ceac656a9d77",
+    "0c4e465a-7f2e-48c8-87f0-f04a7997b4c7",
+    "0f38302f-b97a-45d3-94dd-2292476b83aa"
    ],
    "_synthetic": true
   },
   {
-   "id": "d9864607-aa07-4699-b7b3-c1050aaebbce",
+   "id": "033cb6ba-75e8-49e2-b4b1-d585bd2e34d0",
    "headline": "[SYNTHETIC] Market volatility spikes in Hyderabad exchange",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 6 correlated events centered on Hyderabad. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6709,8 +6709,8 @@ const syntheticDataset = {
     "confidence": "high"
    },
    "confidence": "high",
-   "first_seen_at": "2026-06-29T05:52:09.538755+00:00",
-   "last_updated_at": "2026-07-02T11:58:27.373550+00:00",
+   "first_seen_at": "2026-06-29T05:54:36.906774+00:00",
+   "last_updated_at": "2026-07-02T12:00:54.741569+00:00",
    "member_count": 6,
    "source_count": 3,
    "categories": [
@@ -6719,17 +6719,17 @@ const syntheticDataset = {
     "geopolitics"
    ],
    "member_event_ids": [
-    "66927e1b-a6bb-4512-8305-aa3a217d3f0d",
-    "5f936ad6-580f-47dc-afaa-d60ba4ab2a19",
-    "e6818b62-82d4-445f-83d5-5b45f34b8711",
-    "bcc4394c-5749-4e14-ac1d-0d5da8d9badd",
-    "134d8d39-7311-4ac8-b5a9-bc75ad67703d",
-    "8936344c-37fd-40c4-89b8-e4b653d38181"
+    "0fcfe186-9d97-449c-a624-fd50539d4275",
+    "11781b14-a0db-418e-8622-38c1b69b47d2",
+    "42e0db5f-340e-4ecd-88e8-92dd39fec9f3",
+    "5740f552-a9fc-46c7-a94b-a41c38d30879",
+    "1fa49cb5-3d62-4178-a8f0-fed1593d1585",
+    "ad9775a3-b784-40a5-9b26-23224b7df1f5"
    ],
    "_synthetic": true
   },
   {
-   "id": "11b771ef-59c9-407b-b139-e461f3c48af1",
+   "id": "6f0628a3-693d-412f-a81c-cc47bf755d45",
    "headline": "[SYNTHETIC] Security incident reported in Chennai",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 4 correlated events centered on Chennai. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6747,8 +6747,8 @@ const syntheticDataset = {
     "confidence": "high"
    },
    "confidence": "low",
-   "first_seen_at": "2026-07-01T19:33:57.747285+00:00",
-   "last_updated_at": "2026-07-02T12:06:59.897853+00:00",
+   "first_seen_at": "2026-07-01T19:36:25.115304+00:00",
+   "last_updated_at": "2026-07-02T12:09:27.265872+00:00",
    "member_count": 4,
    "source_count": 3,
    "categories": [
@@ -6757,15 +6757,15 @@ const syntheticDataset = {
     "geopolitics"
    ],
    "member_event_ids": [
-    "e56eac39-4b5e-4fc9-a4b8-e5fc7abb0b60",
-    "b1642220-2579-4b4d-acd2-c1b5405d437f",
-    "b73b6f89-0bfe-43b0-af02-a4b5a53c046d",
-    "3644948b-5cb3-4ae4-8d39-47158431679f"
+    "ebc41f78-9294-4f9e-a16c-c8ad4a8bb26d",
+    "cc4f7645-7d94-49f6-8123-03614a6db896",
+    "27a25499-5869-46cb-869e-db2ed97eea34",
+    "115ce757-775d-43d4-924e-6ba1db1bf9fa"
    ],
    "_synthetic": true
   },
   {
-   "id": "c2c57ff4-492c-49d0-b662-2f4cd6bed95a",
+   "id": "54f8531b-a334-4b58-9fef-c84a67f64994",
    "headline": "[SYNTHETIC] Protest movement grows in Shenzhen",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 6 correlated events centered on Shenzhen. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6786,8 +6786,8 @@ const syntheticDataset = {
     "confidence": "medium"
    },
    "confidence": "medium",
-   "first_seen_at": "2026-06-29T15:52:01.036709+00:00",
-   "last_updated_at": "2026-07-02T23:52:02.544368+00:00",
+   "first_seen_at": "2026-06-29T15:54:28.404728+00:00",
+   "last_updated_at": "2026-07-02T23:54:29.912387+00:00",
    "member_count": 6,
    "source_count": 4,
    "categories": [
@@ -6797,17 +6797,17 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "25bb3282-d3a2-4420-b852-726367a24827",
-    "a862f2c9-fa0e-4535-b738-9c1f075e1b4c",
-    "fa4be087-5a43-47da-82bc-cb49b7d28e3f",
-    "3100ff82-316a-477a-a1f3-a2e9cb97276f",
-    "8c043bf4-9357-499f-be18-3edde0aa9dd4",
-    "3f96328b-cd36-4d1b-ba9b-17421168f8f7"
+    "b8fbcfb6-8183-4185-9519-694fbd0d913c",
+    "e8d52c30-5206-4d04-b3b8-dd1903622ba1",
+    "9381bd9f-d8f2-4afb-bef1-9ddc55c0f8f9",
+    "888ad848-aef0-4aa3-928a-38977a700ebd",
+    "24bf1e87-dee1-479b-8663-b0d536e67f82",
+    "dcc8e775-c049-4748-83d7-29e4b1d2ddda"
    ],
    "_synthetic": true
   },
   {
-   "id": "e451a51e-f2aa-4f7e-b7a3-8c12908ccd57",
+   "id": "94bf7b0a-3955-44f0-baa9-be8075ed77df",
    "headline": "[SYNTHETIC] Ceasefire talks stall near Tehran",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 2 correlated events centered on Tehran. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6824,8 +6824,8 @@ const syntheticDataset = {
     "confidence": "high"
    },
    "confidence": "low",
-   "first_seen_at": "2026-06-30T10:00:45.862509+00:00",
-   "last_updated_at": "2026-07-02T16:16:59.253972+00:00",
+   "first_seen_at": "2026-06-30T10:03:13.230528+00:00",
+   "last_updated_at": "2026-07-02T16:19:26.621991+00:00",
    "member_count": 2,
    "source_count": 3,
    "categories": [
@@ -6833,13 +6833,13 @@ const syntheticDataset = {
     "geopolitics"
    ],
    "member_event_ids": [
-    "948f8735-0586-4867-9789-fa72e4b6dba4",
-    "a4ad6d03-9171-419a-9cdf-e85af9ff0234"
+    "c2bea47b-1042-490a-95b3-ec372a7b206f",
+    "917575ca-541a-4c59-8394-b3c2c619dcaf"
    ],
    "_synthetic": true
   },
   {
-   "id": "a5ef0b9d-b522-4b61-a213-ac7fbb45a50f",
+   "id": "4fae821a-799d-4634-b191-4ea015b6670f",
    "headline": "[SYNTHETIC] Protest movement grows in Shenzhen",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 6 correlated events centered on Shenzhen. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6860,8 +6860,8 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "low",
-   "first_seen_at": "2026-06-29T23:42:05.267139+00:00",
-   "last_updated_at": "2026-07-02T22:39:10.344617+00:00",
+   "first_seen_at": "2026-06-29T23:44:32.635158+00:00",
+   "last_updated_at": "2026-07-02T22:41:37.712636+00:00",
    "member_count": 6,
    "source_count": 3,
    "categories": [
@@ -6872,17 +6872,17 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "41cd2086-0c24-4146-8e1a-47845394cc10",
-    "7999a5e6-3712-4d8b-a1ff-82b25c23928d",
-    "9767cea7-4d37-429d-afdb-6afdf9d8d761",
-    "8980f66f-0fbf-4a8a-9f13-e6c694170be6",
-    "30df4008-5400-4647-8dea-18ef5a49058b",
-    "9ffe519c-f525-41d3-a95f-f2419a129a0b"
+    "8a189e9d-68d5-4f4e-bc94-f1d8f7d53f26",
+    "a68032b5-ed0f-4b7d-b2dd-ff138e923c3e",
+    "14a27ce7-a4cf-4d55-96e0-c9e0160f99fb",
+    "0d483f19-4a8d-4102-8526-a62f24d5717a",
+    "bbedbfac-5b00-4a0f-81fc-8ce8d632b2b8",
+    "e427f140-e433-4e17-98e9-c1ebf6a18d21"
    ],
    "_synthetic": true
   },
   {
-   "id": "22108e8d-3ae5-49f7-be55-a28715dbf55a",
+   "id": "2963bbe1-a723-4d40-8388-12d0c367ebcb",
    "headline": "[SYNTHETIC] Port congestion reported at Berlin shipping hub",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 6 correlated events centered on Berlin. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6903,8 +6903,8 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "medium",
-   "first_seen_at": "2026-06-29T13:48:19.021831+00:00",
-   "last_updated_at": "2026-07-03T03:37:59.494304+00:00",
+   "first_seen_at": "2026-06-29T13:50:46.389850+00:00",
+   "last_updated_at": "2026-07-03T03:40:26.862323+00:00",
    "member_count": 6,
    "source_count": 3,
    "categories": [
@@ -6914,17 +6914,17 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "3ed83954-b3b8-4217-a495-0e61264b2b88",
-    "d74aaffc-70c0-463f-bea2-21c31b200a93",
-    "479d70f5-b866-4751-b68d-446127706f59",
-    "3f6cffde-1efc-46b3-92d3-8c61692d5115",
-    "1e3d8b37-acc9-4327-9acb-f019a23b340b",
-    "2f35fcf8-4eba-4985-b031-29a17019f5d7"
+    "3f3eb174-e8f1-4513-8644-422eeefe427f",
+    "747e9e0e-d8fa-418b-b9ea-75e74fd024f3",
+    "cfc68adc-8d33-4e37-848d-4bd01f4f33d5",
+    "c70c93f2-7b72-44b3-93e6-3597f5b73a70",
+    "1f2a9616-3422-4ec4-9ccf-5854177904ab",
+    "e5d8da08-e662-46ad-9359-fa1fede4debd"
    ],
    "_synthetic": true
   },
   {
-   "id": "5dd2fba6-bae5-411d-a088-d08a9f9fa904",
+   "id": "c8776fc1-8bdc-4aa4-9bb6-664b7cefa083",
    "headline": "[SYNTHETIC] Currency pressure builds in Delhi",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 2 correlated events centered on Delhi. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6941,8 +6941,8 @@ const syntheticDataset = {
     "confidence": "high"
    },
    "confidence": "medium",
-   "first_seen_at": "2026-07-01T11:33:01.378593+00:00",
-   "last_updated_at": "2026-07-01T11:59:40.870931+00:00",
+   "first_seen_at": "2026-07-01T11:35:28.746612+00:00",
+   "last_updated_at": "2026-07-01T12:02:08.238950+00:00",
    "member_count": 2,
    "source_count": 2,
    "categories": [
@@ -6950,13 +6950,13 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "8e71b47a-afb6-4ec0-9797-da573b0b87f8",
-    "b7d8fafb-4cf8-4e12-b816-4ff19b3954b2"
+    "0a837488-9203-4115-9d1a-c4d1242b7fc9",
+    "ab09c689-720f-4f94-8537-cd11060387cb"
    ],
    "_synthetic": true
   },
   {
-   "id": "de78ffbb-7ca5-4eed-8adf-8e35f6ce6e03",
+   "id": "b5586306-6de8-4b93-ae0e-334b97f70e3f",
    "headline": "[SYNTHETIC] Public health advisory issued for Chennai",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 3 correlated events centered on Chennai. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -6973,8 +6973,8 @@ const syntheticDataset = {
     "confidence": "medium"
    },
    "confidence": "low",
-   "first_seen_at": "2026-07-01T02:19:53.505478+00:00",
-   "last_updated_at": "2026-07-02T16:25:21.833566+00:00",
+   "first_seen_at": "2026-07-01T02:22:20.873497+00:00",
+   "last_updated_at": "2026-07-02T16:27:49.201585+00:00",
    "member_count": 3,
    "source_count": 2,
    "categories": [
@@ -6982,14 +6982,14 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "4b3a7503-b948-4716-981b-fc2757e98a39",
-    "7343a2e3-877f-4a3a-8cfe-d0d0f6d75901",
-    "388bf70a-a776-4eee-bf41-ac3b83c06b29"
+    "9011dd92-8035-4f9b-a760-5195c678651a",
+    "2e76bdb5-2747-4184-84f7-3cf03aece5c5",
+    "ba8d569e-1350-42f3-b8a2-299a2dda14e7"
    ],
    "_synthetic": true
   },
   {
-   "id": "c798a8a7-da39-4df3-a2b9-cd2f76b97c2e",
+   "id": "e5501182-cf6b-4ad0-b063-7b306308ab1d",
    "headline": "[SYNTHETIC] Seismic activity recorded near Seoul",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 3 correlated events centered on Seoul. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -7007,8 +7007,8 @@ const syntheticDataset = {
     "confidence": "medium"
    },
    "confidence": "low",
-   "first_seen_at": "2026-06-29T15:00:34.200276+00:00",
-   "last_updated_at": "2026-07-02T11:27:32.192387+00:00",
+   "first_seen_at": "2026-06-29T15:03:01.568295+00:00",
+   "last_updated_at": "2026-07-02T11:29:59.560406+00:00",
    "member_count": 3,
    "source_count": 2,
    "categories": [
@@ -7017,14 +7017,14 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "4c20337c-cdf9-47eb-b622-8c1fc622ebbd",
-    "6e29f59c-22c3-4828-9125-38b909f87d0f",
-    "313f3a01-d41e-4ee4-afd7-3186b54c8396"
+    "6129d345-2095-4d3f-8d69-0eee3dbf0126",
+    "7d03aeca-d41a-4aec-a0db-532ec06dc0dc",
+    "d427861d-33ee-4a00-a3ae-1aa5e71c5cf5"
    ],
    "_synthetic": true
   },
   {
-   "id": "5278f1a4-68f4-4311-a821-8ff0fe76c8b1",
+   "id": "0dd141cb-645e-4c54-9116-930bd05f8173",
    "headline": "[SYNTHETIC] Diplomatic summit convened in Bangkok",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 6 correlated events centered on Bangkok. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -7044,8 +7044,8 @@ const syntheticDataset = {
     "confidence": "medium"
    },
    "confidence": "high",
-   "first_seen_at": "2026-06-29T05:36:07.201517+00:00",
-   "last_updated_at": "2026-07-02T03:16:55.480448+00:00",
+   "first_seen_at": "2026-06-29T05:38:34.569536+00:00",
+   "last_updated_at": "2026-07-02T03:19:22.848467+00:00",
    "member_count": 6,
    "source_count": 3,
    "categories": [
@@ -7054,17 +7054,17 @@ const syntheticDataset = {
     "geopolitics"
    ],
    "member_event_ids": [
-    "376d8c62-d7d5-4068-91ec-c08bb9810286",
-    "b2c7c84d-7a8f-443e-88f5-9aa66eb8a2da",
-    "82f39799-fda3-4e1f-9100-7756d7f66005",
-    "81f58e8f-212a-4d17-b85d-da17225129d8",
-    "3c787e84-f29d-4d5a-b7c6-e888490c19ca",
-    "748e06f9-641f-4b47-89a2-5f182cda7e94"
+    "2e8a3e32-20d0-412b-9f2a-663016426916",
+    "af4f7b88-37f7-4b84-98ef-fdf34df41303",
+    "200ad901-3303-4998-9a9d-9ae3a642230c",
+    "753cb999-de55-4542-a7cf-2756bed86152",
+    "3f4ad7be-53c7-4957-81a0-724906546e06",
+    "b1a03abf-8be4-44a3-b83e-6416d5722753"
    ],
    "_synthetic": true
   },
   {
-   "id": "707aabaa-8031-433c-90c9-778bf5ee3cf6",
+   "id": "5f9dcb3a-e52d-4b0a-9a18-521fbf6edca5",
    "headline": "[SYNTHETIC] Diplomatic summit convened in S\u00e3o Paulo",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 2 correlated events centered on S\u00e3o Paulo. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -7081,8 +7081,8 @@ const syntheticDataset = {
     "confidence": "medium"
    },
    "confidence": "high",
-   "first_seen_at": "2026-06-30T07:25:34.811489+00:00",
-   "last_updated_at": "2026-07-03T03:15:13.263857+00:00",
+   "first_seen_at": "2026-06-30T07:28:02.179508+00:00",
+   "last_updated_at": "2026-07-03T03:17:40.631876+00:00",
    "member_count": 2,
    "source_count": 4,
    "categories": [
@@ -7090,13 +7090,13 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "3eeacd05-6282-4658-bb53-0e32c81267d6",
-    "ede6509e-1458-448c-b2db-b862790caf19"
+    "e9891a16-ddb0-40e9-935c-f01918cfb2ca",
+    "bd2a6d63-7324-4544-b901-ab66810ebeee"
    ],
    "_synthetic": true
   },
   {
-   "id": "49d49fd9-e9c5-4345-b72b-949c066a89f4",
+   "id": "7628d314-03a2-4cb2-8082-850d0046ce31",
    "headline": "[SYNTHETIC] Public health advisory issued for Seoul",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 2 correlated events centered on Seoul. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -7113,21 +7113,21 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "low",
-   "first_seen_at": "2026-06-30T20:25:24.381367+00:00",
-   "last_updated_at": "2026-07-01T21:07:28.487095+00:00",
+   "first_seen_at": "2026-06-30T20:27:51.749386+00:00",
+   "last_updated_at": "2026-07-01T21:09:55.855114+00:00",
    "member_count": 2,
    "source_count": 3,
    "categories": [
     "other"
    ],
    "member_event_ids": [
-    "446b7c23-adf8-4d99-89e3-07efe0ca2c2e",
-    "4054a279-97ae-4d2a-bb15-3d823b3809d0"
+    "e97ae966-b6af-443d-be16-38847e891713",
+    "be1a79cf-75bf-4e82-b394-727573275405"
    ],
    "_synthetic": true
   },
   {
-   "id": "8b4c3d3f-68a2-4629-9d41-b15ee48ed848",
+   "id": "d69aadfa-ff53-41dc-9e04-6af182fe0026",
    "headline": "[SYNTHETIC] Flooding reported near Lagos",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 6 correlated events centered on Lagos. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -7148,8 +7148,8 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "low",
-   "first_seen_at": "2026-06-29T22:32:58.126401+00:00",
-   "last_updated_at": "2026-07-02T22:38:33.582277+00:00",
+   "first_seen_at": "2026-06-29T22:35:25.494420+00:00",
+   "last_updated_at": "2026-07-02T22:41:00.950296+00:00",
    "member_count": 6,
    "source_count": 4,
    "categories": [
@@ -7158,17 +7158,17 @@ const syntheticDataset = {
     "finance"
    ],
    "member_event_ids": [
-    "a0f420eb-90c2-4f87-a5bc-d5683d546eec",
-    "103795f5-a463-4a50-bad4-f13dbf65526c",
-    "ed68e815-6cd6-4379-aef0-49ffa10543ad",
-    "6f83974e-339b-4960-872c-30928fa09f7c",
-    "ffad8dca-6e2a-4ea9-956b-d1238ebafec1",
-    "ba4551a5-93f9-4397-8316-1228301e64d1"
+    "60ce2b1e-448d-4a68-a172-d05363355884",
+    "3dce6281-e574-4a47-b65b-9b9f8257165a",
+    "13a9a137-123a-4840-b0d7-0e64bb18381e",
+    "0b636ebf-a3e3-4b5b-b4ef-c5cff5170470",
+    "7f9499b4-4a79-441d-ac4a-f6ed61b104c5",
+    "f7acb4e0-70c0-4365-a28f-fb9f26a4f4b5"
    ],
    "_synthetic": true
   },
   {
-   "id": "15451626-f522-4a34-bb03-5e32b7552444",
+   "id": "82b1f956-74c5-40a2-95f2-edf9e0cf8ee5",
    "headline": "[SYNTHETIC] Port congestion reported at Sydney shipping hub",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 6 correlated events centered on Sydney. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -7189,8 +7189,8 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "medium",
-   "first_seen_at": "2026-06-30T10:46:31.372143+00:00",
-   "last_updated_at": "2026-07-02T09:31:41.525783+00:00",
+   "first_seen_at": "2026-06-30T10:48:58.740162+00:00",
+   "last_updated_at": "2026-07-02T09:34:08.893802+00:00",
    "member_count": 6,
    "source_count": 2,
    "categories": [
@@ -7200,17 +7200,17 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "0ca77e38-bf41-4f80-a98c-2587d145ee73",
-    "967e5541-50af-4a61-a7bf-a87edb447e9b",
-    "e756c497-2aba-417f-8dca-7779f81dc026",
-    "c74a4359-3452-4014-b54d-2ec3b7993307",
-    "20670e01-f78d-49a1-8df6-74d24a8782a3",
-    "6cd861a0-5929-4f44-ac1f-5a776fadd1e6"
+    "ca07471f-6e84-479b-91bc-d9a5c5768ab9",
+    "6c9e9c76-cff0-40e3-92b3-9835cc891189",
+    "6958f719-92f6-4320-8d09-3150e6cce0f6",
+    "0982acbe-3a8a-47be-bda7-cebb89b77f01",
+    "16eccc33-ed4c-467f-b3d3-e69d02251120",
+    "b0077852-3ecb-478a-9e6a-7b78d5af7844"
    ],
    "_synthetic": true
   },
   {
-   "id": "476574bc-e2a2-43e1-b3d0-e3620956aadb",
+   "id": "7c6381e2-2ef4-4bb0-9ced-47c5239b8e6f",
    "headline": "[SYNTHETIC] Currency pressure builds in Chicago",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 6 correlated events centered on Chicago. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -7231,8 +7231,8 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "medium",
-   "first_seen_at": "2026-06-29T13:12:43.060204+00:00",
-   "last_updated_at": "2026-07-02T20:29:05.852364+00:00",
+   "first_seen_at": "2026-06-29T13:15:10.428223+00:00",
+   "last_updated_at": "2026-07-02T20:31:33.220383+00:00",
    "member_count": 6,
    "source_count": 4,
    "categories": [
@@ -7243,17 +7243,17 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "d9ad81be-0be7-4f3c-b382-5307539e0f04",
-    "525b966a-b398-4e72-b479-97183cb01c9c",
-    "b8670754-245f-4be5-a75c-12c55ceca654",
-    "b4118e9c-639e-4dfd-aa5f-74cf6edd8c18",
-    "2016b422-17d9-4c37-a0cf-e7bee625781f",
-    "0ca97e19-7996-424f-94d3-28c040b46357"
+    "7ff1b28c-1d4d-4ee9-b161-a0a88af8ac5b",
+    "700dffb8-970f-4605-98d8-23a02a986539",
+    "72abd47a-186a-4f20-8012-d2d9c9460f72",
+    "03fbc563-3e71-4e9f-a29e-fa438e024d40",
+    "f170b216-1df2-4e17-bb2f-18701669f290",
+    "d6dff9ed-bf93-43da-8a9c-0bc76ec306ae"
    ],
    "_synthetic": true
   },
   {
-   "id": "894dd678-c411-495d-805f-337a261c848e",
+   "id": "7d73af85-ee33-4fb1-8118-f9560662e2f0",
    "headline": "[SYNTHETIC] Market volatility spikes in Shanghai exchange",
    "summary": "[SYNTHETIC PLACEHOLDER] Cluster of 5 correlated events centered on Shanghai. This summary is generated placeholder text, not real analysis.",
    "causal_narrative": {
@@ -7272,8 +7272,8 @@ const syntheticDataset = {
     "confidence": "low"
    },
    "confidence": "medium",
-   "first_seen_at": "2026-06-29T14:06:36.554397+00:00",
-   "last_updated_at": "2026-07-01T00:08:41.491981+00:00",
+   "first_seen_at": "2026-06-29T14:09:03.922416+00:00",
+   "last_updated_at": "2026-07-01T00:11:08.860000+00:00",
    "member_count": 5,
    "source_count": 2,
    "categories": [
@@ -7283,1659 +7283,1659 @@ const syntheticDataset = {
     "other"
    ],
    "member_event_ids": [
-    "65ae8059-733c-445e-b47f-5884df922c2c",
-    "de645c58-9fbe-4825-a66a-f18b1ac55286",
-    "ec774265-d51c-4e72-a257-ce68f02a771e",
-    "3a70ba0b-8b0f-4ede-a7d8-962415a9d0e9",
-    "231693f6-42c4-4677-a0b9-798c185bc9d8"
+    "d33c27ef-e51c-475c-b73c-7092a22b88be",
+    "c43cbecc-5910-4203-bb32-74c315f7a5d9",
+    "a38d6297-96ef-48c6-803d-bafbac3685ec",
+    "abf5f8c0-6b70-4ea7-ab3c-0b1b46dfa325",
+    "d7b721b4-58b4-4f70-9971-4f71755c991d"
    ],
    "_synthetic": true
   }
  ],
  "story_members": [
   {
-   "story_id": "33de2079-a343-4e75-a762-9e2750a1eb6b",
-   "event_id": "a435d632-5645-4db3-a6c9-3ed146230b56",
+   "story_id": "626939fb-1d1d-46e6-bcee-d7ba62c7e57f",
+   "event_id": "09a53e70-7053-47bd-8e48-cf89c3702c5c",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T04:24:04.483278+00:00"
+   "linked_at": "2026-07-02T04:26:31.851297+00:00"
   },
   {
-   "story_id": "33de2079-a343-4e75-a762-9e2750a1eb6b",
-   "event_id": "80aeec2c-7487-41b2-8218-462b3a916883",
+   "story_id": "626939fb-1d1d-46e6-bcee-d7ba62c7e57f",
+   "event_id": "5e848bd4-d086-47de-a5da-02a8f286907d",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T04:24:04.483278+00:00"
+   "linked_at": "2026-07-02T04:26:31.851297+00:00"
   },
   {
-   "story_id": "33de2079-a343-4e75-a762-9e2750a1eb6b",
-   "event_id": "0e345775-7805-44a3-ab6a-dd9d6d7d1fef",
+   "story_id": "626939fb-1d1d-46e6-bcee-d7ba62c7e57f",
+   "event_id": "d25f2020-2f1b-4bfc-baa8-22ded8022a51",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T04:24:04.483278+00:00"
+   "linked_at": "2026-07-02T04:26:31.851297+00:00"
   },
   {
-   "story_id": "5f2b6ed1-f66a-49f1-a8a7-d8ead12880d4",
-   "event_id": "2cb9d7db-b513-42a1-a54c-0e3045522092",
+   "story_id": "d1bbae87-2a3a-46f8-a0a4-53869d526158",
+   "event_id": "8fbc7455-84b5-4450-ae5c-35b5e7ed3a2e",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T10:34:24.236937+00:00"
+   "linked_at": "2026-07-02T10:36:51.604956+00:00"
   },
   {
-   "story_id": "5f2b6ed1-f66a-49f1-a8a7-d8ead12880d4",
-   "event_id": "0d4c8a39-3ed8-49f4-8341-6ad075ef2d2c",
+   "story_id": "d1bbae87-2a3a-46f8-a0a4-53869d526158",
+   "event_id": "96fce2bf-5f05-4f48-b61e-39b0efd07bac",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T10:34:24.236937+00:00"
+   "linked_at": "2026-07-02T10:36:51.604956+00:00"
   },
   {
-   "story_id": "5f2b6ed1-f66a-49f1-a8a7-d8ead12880d4",
-   "event_id": "e6c5051b-4be6-4596-aa8b-aeb50624a83c",
+   "story_id": "d1bbae87-2a3a-46f8-a0a4-53869d526158",
+   "event_id": "d01bb2c9-3e74-45fd-9066-abb1677485cf",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T10:34:24.236937+00:00"
+   "linked_at": "2026-07-02T10:36:51.604956+00:00"
   },
   {
-   "story_id": "5f2b6ed1-f66a-49f1-a8a7-d8ead12880d4",
-   "event_id": "679c181b-b6ff-4d27-996f-01a15efacdc6",
+   "story_id": "d1bbae87-2a3a-46f8-a0a4-53869d526158",
+   "event_id": "20245a2b-5c6c-49af-840c-2abfeef0e838",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T10:34:24.236937+00:00"
+   "linked_at": "2026-07-02T10:36:51.604956+00:00"
   },
   {
-   "story_id": "5f2b6ed1-f66a-49f1-a8a7-d8ead12880d4",
-   "event_id": "c13ad875-17bd-4ba0-891a-eea23085f335",
+   "story_id": "d1bbae87-2a3a-46f8-a0a4-53869d526158",
+   "event_id": "a0bc2bf1-3f96-47c2-9984-1c4aba5f7e12",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T10:34:24.236937+00:00"
+   "linked_at": "2026-07-02T10:36:51.604956+00:00"
   },
   {
-   "story_id": "cb351234-1337-4215-a26e-32280a9245af",
-   "event_id": "173d27eb-a50b-4d82-a2b8-ebbac5979cf0",
+   "story_id": "f540cdaf-3ed9-45b5-acca-1ef33669b833",
+   "event_id": "8aa57c20-77d0-4d99-8464-d5b424b97ade",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T18:34:51.347484+00:00"
+   "linked_at": "2026-07-01T18:37:18.715503+00:00"
   },
   {
-   "story_id": "cb351234-1337-4215-a26e-32280a9245af",
-   "event_id": "f251a6ea-a68e-48bf-b87a-147e25e7ac04",
+   "story_id": "f540cdaf-3ed9-45b5-acca-1ef33669b833",
+   "event_id": "67ba4480-5fe6-48d1-9352-3ae0fc1d477f",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-01T18:34:51.347484+00:00"
+   "linked_at": "2026-07-01T18:37:18.715503+00:00"
   },
   {
-   "story_id": "cb351234-1337-4215-a26e-32280a9245af",
-   "event_id": "0f49ca38-f8f5-4c8e-a2a8-7ab7b89f9c63",
+   "story_id": "f540cdaf-3ed9-45b5-acca-1ef33669b833",
+   "event_id": "56d15cfc-b693-4ca3-bce0-e225616e1d5e",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-01T18:34:51.347484+00:00"
+   "linked_at": "2026-07-01T18:37:18.715503+00:00"
   },
   {
-   "story_id": "29992614-be47-4e02-ab2c-98a4e1273c13",
-   "event_id": "08f4cec4-3c6a-44ad-a4a8-311584f13df3",
+   "story_id": "5bb9ac5b-7c41-4b21-bab8-18ff3f167fe1",
+   "event_id": "4df8165b-ba44-4dd3-8c8e-ef07b83b1de6",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T05:56:55.435180+00:00"
+   "linked_at": "2026-07-02T05:59:22.803199+00:00"
   },
   {
-   "story_id": "29992614-be47-4e02-ab2c-98a4e1273c13",
-   "event_id": "37ca586a-ec4a-4110-abf1-31adaf358cdd",
+   "story_id": "5bb9ac5b-7c41-4b21-bab8-18ff3f167fe1",
+   "event_id": "eb740a71-ef35-4ac3-ba3c-887ff62a558e",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T05:56:55.435180+00:00"
+   "linked_at": "2026-07-02T05:59:22.803199+00:00"
   },
   {
-   "story_id": "29992614-be47-4e02-ab2c-98a4e1273c13",
-   "event_id": "e5806570-680e-4fb7-904c-e5cb42fccdd4",
+   "story_id": "5bb9ac5b-7c41-4b21-bab8-18ff3f167fe1",
+   "event_id": "accf0834-d19b-4cb8-b174-255cf56cc5e3",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T05:56:55.435180+00:00"
+   "linked_at": "2026-07-02T05:59:22.803199+00:00"
   },
   {
-   "story_id": "29992614-be47-4e02-ab2c-98a4e1273c13",
-   "event_id": "563a38d2-2482-49d6-b072-9a574a9e7000",
+   "story_id": "5bb9ac5b-7c41-4b21-bab8-18ff3f167fe1",
+   "event_id": "dffd1305-df15-465c-ae98-f1ba26351e11",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T05:56:55.435180+00:00"
+   "linked_at": "2026-07-02T05:59:22.803199+00:00"
   },
   {
-   "story_id": "40009521-1f85-48f4-a622-55ac393d2cc6",
-   "event_id": "29959404-1e8a-4127-beb7-c101ea4fdaaa",
+   "story_id": "df975531-2162-4329-84fb-3305c75236d2",
+   "event_id": "b2fc5c88-f64a-4463-9b94-ee1141ef0fe4",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-01T22:53:35.065813+00:00"
+   "linked_at": "2026-07-01T22:56:02.433832+00:00"
   },
   {
-   "story_id": "40009521-1f85-48f4-a622-55ac393d2cc6",
-   "event_id": "cf5262ee-106e-431e-9e66-4cee2637b98a",
+   "story_id": "df975531-2162-4329-84fb-3305c75236d2",
+   "event_id": "700b7371-faec-4378-a472-9b7c792ae27e",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T22:53:35.065813+00:00"
+   "linked_at": "2026-07-01T22:56:02.433832+00:00"
   },
   {
-   "story_id": "40009521-1f85-48f4-a622-55ac393d2cc6",
-   "event_id": "75cc3406-f9f0-4f25-805b-0e28ca0deda0",
+   "story_id": "df975531-2162-4329-84fb-3305c75236d2",
+   "event_id": "e0fb7570-a470-4c07-b0ae-c1eda8605bb7",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T22:53:35.065813+00:00"
+   "linked_at": "2026-07-01T22:56:02.433832+00:00"
   },
   {
-   "story_id": "40009521-1f85-48f4-a622-55ac393d2cc6",
-   "event_id": "f746c6bf-b88d-46c2-8a19-77f10c453cf2",
+   "story_id": "df975531-2162-4329-84fb-3305c75236d2",
+   "event_id": "619a6d73-b2fe-420a-ab57-0e2661d05db9",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T22:53:35.065813+00:00"
+   "linked_at": "2026-07-01T22:56:02.433832+00:00"
   },
   {
-   "story_id": "40009521-1f85-48f4-a622-55ac393d2cc6",
-   "event_id": "395d254b-5807-4088-a303-dfd9a6ec9aed",
+   "story_id": "df975531-2162-4329-84fb-3305c75236d2",
+   "event_id": "0150355c-0e10-4366-b91b-633449335a89",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T22:53:35.065813+00:00"
+   "linked_at": "2026-07-01T22:56:02.433832+00:00"
   },
   {
-   "story_id": "40009521-1f85-48f4-a622-55ac393d2cc6",
-   "event_id": "cd03c948-55b1-448e-b781-5b499f1c3cf2",
+   "story_id": "df975531-2162-4329-84fb-3305c75236d2",
+   "event_id": "6226426e-0538-45f5-8e05-5e64ad50666a",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T22:53:35.065813+00:00"
+   "linked_at": "2026-07-01T22:56:02.433832+00:00"
   },
   {
-   "story_id": "4f418e1a-357f-490c-8d77-25e4418fa94f",
-   "event_id": "beb247b1-8e93-471a-a91d-ee760826e32e",
+   "story_id": "d69173eb-673e-4820-9140-358db35df212",
+   "event_id": "8ced6919-c3a2-4ac0-a019-3a9d41e3118b",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T10:14:56.158288+00:00"
+   "linked_at": "2026-07-02T10:17:23.526307+00:00"
   },
   {
-   "story_id": "4f418e1a-357f-490c-8d77-25e4418fa94f",
-   "event_id": "bcc7994b-77db-4d80-932c-d54d799a5fee",
+   "story_id": "d69173eb-673e-4820-9140-358db35df212",
+   "event_id": "3883eaee-e61a-4249-9ad5-78ff37fe60e9",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T10:14:56.158288+00:00"
+   "linked_at": "2026-07-02T10:17:23.526307+00:00"
   },
   {
-   "story_id": "4f418e1a-357f-490c-8d77-25e4418fa94f",
-   "event_id": "10b8599b-b4b6-483e-89dc-7adce00b7d11",
+   "story_id": "d69173eb-673e-4820-9140-358db35df212",
+   "event_id": "89d8bf0c-35f9-430a-9465-149996f4fa82",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T10:14:56.158288+00:00"
+   "linked_at": "2026-07-02T10:17:23.526307+00:00"
   },
   {
-   "story_id": "43e067a8-75d1-4563-8093-2a776bcbfdf6",
-   "event_id": "814d064d-e7c1-47d6-851c-f8b5587c48fa",
+   "story_id": "3b53b118-7255-406b-8a6e-13d509c89838",
+   "event_id": "18ab9913-2e95-489a-9164-1939cd01236b",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T04:33:06.248203+00:00"
+   "linked_at": "2026-07-02T04:35:33.616222+00:00"
   },
   {
-   "story_id": "43e067a8-75d1-4563-8093-2a776bcbfdf6",
-   "event_id": "5d5d4205-99dc-415a-971a-e687cc9da5cf",
+   "story_id": "3b53b118-7255-406b-8a6e-13d509c89838",
+   "event_id": "753fee80-1978-4286-801b-165bdf2e527e",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T04:33:06.248203+00:00"
+   "linked_at": "2026-07-02T04:35:33.616222+00:00"
   },
   {
-   "story_id": "43e067a8-75d1-4563-8093-2a776bcbfdf6",
-   "event_id": "459ab2d9-7b7e-4440-aaf0-8e6f14dde53f",
+   "story_id": "3b53b118-7255-406b-8a6e-13d509c89838",
+   "event_id": "ab59dfcd-8807-4087-9ab7-b3972fa36d63",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T04:33:06.248203+00:00"
+   "linked_at": "2026-07-02T04:35:33.616222+00:00"
   },
   {
-   "story_id": "43e067a8-75d1-4563-8093-2a776bcbfdf6",
-   "event_id": "8c0a80dc-2915-4ec4-949c-1b4fab9afe2c",
+   "story_id": "3b53b118-7255-406b-8a6e-13d509c89838",
+   "event_id": "3e02c581-c9ec-4812-bcda-4c69c6a8d748",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T04:33:06.248203+00:00"
+   "linked_at": "2026-07-02T04:35:33.616222+00:00"
   },
   {
-   "story_id": "e75f8a05-a775-452a-ad75-12dce3da00c3",
-   "event_id": "cfa05ff0-58f4-49c1-90af-6fc0ae59da8a",
+   "story_id": "ad7183b1-1600-4922-8e7f-b9c4cd0fafc2",
+   "event_id": "bf542f86-c1c6-4705-a312-488ea2df4715",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-06-30T11:11:59.841850+00:00"
+   "linked_at": "2026-06-30T11:14:27.209869+00:00"
   },
   {
-   "story_id": "e75f8a05-a775-452a-ad75-12dce3da00c3",
-   "event_id": "7be9a067-15e0-4a38-95da-53ca530ec1fa",
+   "story_id": "ad7183b1-1600-4922-8e7f-b9c4cd0fafc2",
+   "event_id": "f00d3b86-2717-4b56-a918-e35059ee12db",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-06-30T11:11:59.841850+00:00"
+   "linked_at": "2026-06-30T11:14:27.209869+00:00"
   },
   {
-   "story_id": "5abda9a0-1623-45c0-84bc-d12d8c3a5a1b",
-   "event_id": "4e46586e-3c67-4bd0-91cf-f91964a07fe8",
+   "story_id": "e4fdc160-f5c5-422f-a836-0b3e46f0c25c",
+   "event_id": "8d4a9e3c-92e3-460a-bc0c-d77b17305cd7",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T00:00:44.626107+00:00"
+   "linked_at": "2026-07-03T00:03:11.994126+00:00"
   },
   {
-   "story_id": "5abda9a0-1623-45c0-84bc-d12d8c3a5a1b",
-   "event_id": "21add73c-5049-4422-a56e-0851c91911b5",
+   "story_id": "e4fdc160-f5c5-422f-a836-0b3e46f0c25c",
+   "event_id": "3c30c515-0b78-477e-b0d0-23093af05f9f",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-03T00:00:44.626107+00:00"
+   "linked_at": "2026-07-03T00:03:11.994126+00:00"
   },
   {
-   "story_id": "5abda9a0-1623-45c0-84bc-d12d8c3a5a1b",
-   "event_id": "ebfeab57-8d49-42dd-84a8-18c3b2fdd4ba",
+   "story_id": "e4fdc160-f5c5-422f-a836-0b3e46f0c25c",
+   "event_id": "46a3cd7c-d2c4-4451-a4f7-beadbb944490",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T00:00:44.626107+00:00"
+   "linked_at": "2026-07-03T00:03:11.994126+00:00"
   },
   {
-   "story_id": "5abda9a0-1623-45c0-84bc-d12d8c3a5a1b",
-   "event_id": "1a041f44-5b7e-4ddf-89f8-d3786baf090a",
+   "story_id": "e4fdc160-f5c5-422f-a836-0b3e46f0c25c",
+   "event_id": "20b7d0e5-80ba-458c-8c43-329ec87b5630",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-03T00:00:44.626107+00:00"
+   "linked_at": "2026-07-03T00:03:11.994126+00:00"
   },
   {
-   "story_id": "5476479e-c187-4c91-a683-eb8ff35395f0",
-   "event_id": "10d5c92d-6f09-4ce0-a3eb-5d9992b94b18",
+   "story_id": "7cac84b5-ab57-449a-8669-853d74200874",
+   "event_id": "23be74b4-e808-44dc-b089-d21342eb609a",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-06-30T13:06:18.100024+00:00"
+   "linked_at": "2026-06-30T13:08:45.468043+00:00"
   },
   {
-   "story_id": "5476479e-c187-4c91-a683-eb8ff35395f0",
-   "event_id": "e22529f3-a279-4ba6-9321-4ce3fc7558c4",
+   "story_id": "7cac84b5-ab57-449a-8669-853d74200874",
+   "event_id": "4cc50750-74e1-41e7-ab91-fd4a7adb6459",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-06-30T13:06:18.100024+00:00"
+   "linked_at": "2026-06-30T13:08:45.468043+00:00"
   },
   {
-   "story_id": "35930c3d-8570-47bb-822a-55a142aef869",
-   "event_id": "6dad9190-a809-44fb-83c6-48b82ae63066",
+   "story_id": "2d31112d-231a-4a36-a216-407408908030",
+   "event_id": "64fbb589-dc62-448f-a902-8d63fb00a137",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T09:43:34.752792+00:00"
+   "linked_at": "2026-07-02T09:46:02.120811+00:00"
   },
   {
-   "story_id": "35930c3d-8570-47bb-822a-55a142aef869",
-   "event_id": "9eb6b1d0-0926-4758-b2d5-827333ba6396",
+   "story_id": "2d31112d-231a-4a36-a216-407408908030",
+   "event_id": "5ba5aa38-701b-4de0-b746-3a391ba4d9da",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T09:43:34.752792+00:00"
+   "linked_at": "2026-07-02T09:46:02.120811+00:00"
   },
   {
-   "story_id": "35930c3d-8570-47bb-822a-55a142aef869",
-   "event_id": "d0d3580d-0f78-4f59-8ea5-45d1fdfccad8",
+   "story_id": "2d31112d-231a-4a36-a216-407408908030",
+   "event_id": "362d5e55-a287-4ec5-bcac-c519eaa12ff5",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T09:43:34.752792+00:00"
+   "linked_at": "2026-07-02T09:46:02.120811+00:00"
   },
   {
-   "story_id": "35930c3d-8570-47bb-822a-55a142aef869",
-   "event_id": "343b8a36-2b64-4001-8e75-ffe5f349c9bb",
+   "story_id": "2d31112d-231a-4a36-a216-407408908030",
+   "event_id": "9b6dc324-2490-49d0-9056-8329e1c73075",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T09:43:34.752792+00:00"
+   "linked_at": "2026-07-02T09:46:02.120811+00:00"
   },
   {
-   "story_id": "35930c3d-8570-47bb-822a-55a142aef869",
-   "event_id": "1eda75bd-29f9-4f38-8617-d3fd5a2aa304",
+   "story_id": "2d31112d-231a-4a36-a216-407408908030",
+   "event_id": "f232bbf3-005e-4b27-92cf-f47f1424dfa9",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T09:43:34.752792+00:00"
+   "linked_at": "2026-07-02T09:46:02.120811+00:00"
   },
   {
-   "story_id": "35930c3d-8570-47bb-822a-55a142aef869",
-   "event_id": "abd181b3-c62e-4ed9-990d-605968b7de23",
+   "story_id": "2d31112d-231a-4a36-a216-407408908030",
+   "event_id": "e119fb55-04a8-4fb1-8d65-026cf95f80c1",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T09:43:34.752792+00:00"
+   "linked_at": "2026-07-02T09:46:02.120811+00:00"
   },
   {
-   "story_id": "a24b8b4d-e731-4e9b-b1fc-77ee4dcae64f",
-   "event_id": "3eeab8c1-c58a-4b57-88bc-79385dc6e931",
+   "story_id": "e6635292-877e-4eee-8a4c-3de628ea1c3d",
+   "event_id": "9cfd2d3b-4bba-4a30-9f90-8a8a47214044",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T14:17:28.521879+00:00"
+   "linked_at": "2026-07-02T14:19:55.889898+00:00"
   },
   {
-   "story_id": "a24b8b4d-e731-4e9b-b1fc-77ee4dcae64f",
-   "event_id": "6773bc9c-c133-4eea-89d6-03eecdef8173",
+   "story_id": "e6635292-877e-4eee-8a4c-3de628ea1c3d",
+   "event_id": "6edcab17-2c60-40b3-8e5f-58d06b265f89",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T14:17:28.521879+00:00"
+   "linked_at": "2026-07-02T14:19:55.889898+00:00"
   },
   {
-   "story_id": "560d13a0-49c0-4b7d-a343-65b39e02106b",
-   "event_id": "2416884c-8a1c-46f9-a4cf-d490e353c203",
+   "story_id": "eb36cc64-f3b3-4d37-9bfa-2badd34d3963",
+   "event_id": "a55489be-60fb-4883-80dd-d74edf4e5f70",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T07:45:00.507488+00:00"
+   "linked_at": "2026-07-02T07:47:27.875507+00:00"
   },
   {
-   "story_id": "560d13a0-49c0-4b7d-a343-65b39e02106b",
-   "event_id": "b528e2b0-2828-4af1-aa7f-0ae54e734ecc",
+   "story_id": "eb36cc64-f3b3-4d37-9bfa-2badd34d3963",
+   "event_id": "a8fd3a12-06a5-4a08-96f2-b2501657b4a6",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T07:45:00.507488+00:00"
+   "linked_at": "2026-07-02T07:47:27.875507+00:00"
   },
   {
-   "story_id": "560d13a0-49c0-4b7d-a343-65b39e02106b",
-   "event_id": "b1d8d94d-9834-408e-9506-6716cae9bb48",
+   "story_id": "eb36cc64-f3b3-4d37-9bfa-2badd34d3963",
+   "event_id": "f6b849a2-9771-478d-85c4-85570a1148e0",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T07:45:00.507488+00:00"
+   "linked_at": "2026-07-02T07:47:27.875507+00:00"
   },
   {
-   "story_id": "560d13a0-49c0-4b7d-a343-65b39e02106b",
-   "event_id": "a84b2e0e-e11a-4d3b-aad6-3675f3722a08",
+   "story_id": "eb36cc64-f3b3-4d37-9bfa-2badd34d3963",
+   "event_id": "98f57563-e2f4-4375-90e1-e55c1cda34ee",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T07:45:00.507488+00:00"
+   "linked_at": "2026-07-02T07:47:27.875507+00:00"
   },
   {
-   "story_id": "96e5bf71-6fd3-4501-8344-ef0c51722d40",
-   "event_id": "07ebf065-c1ab-4fde-8d94-eae7fb0e80e8",
+   "story_id": "fe58f681-a4a9-4a31-b009-98e53a3e0ff3",
+   "event_id": "670d9b34-52b3-48c4-ae8f-deab3272c6a3",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T00:43:24.230674+00:00"
+   "linked_at": "2026-07-03T00:45:51.598693+00:00"
   },
   {
-   "story_id": "96e5bf71-6fd3-4501-8344-ef0c51722d40",
-   "event_id": "dde0bfb7-4ad9-45da-a495-58cab3d37b7c",
+   "story_id": "fe58f681-a4a9-4a31-b009-98e53a3e0ff3",
+   "event_id": "b3370416-0e46-45c3-b5f7-ca0f372dcebf",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-03T00:43:24.230674+00:00"
+   "linked_at": "2026-07-03T00:45:51.598693+00:00"
   },
   {
-   "story_id": "507ffe88-9f0a-46b5-b169-2b5a54c22205",
-   "event_id": "5911940c-6229-494f-bd62-199bcf496207",
+   "story_id": "038ea5cd-0eb9-4373-933a-931463a5bdc4",
+   "event_id": "3463777e-09a1-46e3-8857-7362fbf142a9",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T02:43:01.685796+00:00"
+   "linked_at": "2026-07-02T02:45:29.053815+00:00"
   },
   {
-   "story_id": "507ffe88-9f0a-46b5-b169-2b5a54c22205",
-   "event_id": "2e1b0d7f-c1c4-4829-956b-70c425e757ef",
+   "story_id": "038ea5cd-0eb9-4373-933a-931463a5bdc4",
+   "event_id": "e1593176-a4c6-4318-ae93-228f4360ecb6",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T02:43:01.685796+00:00"
+   "linked_at": "2026-07-02T02:45:29.053815+00:00"
   },
   {
-   "story_id": "507ffe88-9f0a-46b5-b169-2b5a54c22205",
-   "event_id": "8d2164dc-3268-49a3-a0af-7dc3bd441768",
+   "story_id": "038ea5cd-0eb9-4373-933a-931463a5bdc4",
+   "event_id": "b8ea249e-260d-42e1-a284-853fd48c115e",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T02:43:01.685796+00:00"
+   "linked_at": "2026-07-02T02:45:29.053815+00:00"
   },
   {
-   "story_id": "507ffe88-9f0a-46b5-b169-2b5a54c22205",
-   "event_id": "5ae881fa-4f84-4ec4-bb17-1022ddc8b623",
+   "story_id": "038ea5cd-0eb9-4373-933a-931463a5bdc4",
+   "event_id": "ffe94465-10a8-4822-a3bd-bc66e10bb783",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T02:43:01.685796+00:00"
+   "linked_at": "2026-07-02T02:45:29.053815+00:00"
   },
   {
-   "story_id": "507ffe88-9f0a-46b5-b169-2b5a54c22205",
-   "event_id": "30272973-9740-4a8a-a98c-75613ca0d1c9",
+   "story_id": "038ea5cd-0eb9-4373-933a-931463a5bdc4",
+   "event_id": "2e558476-8be5-4a1f-bcc1-8957175fa220",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T02:43:01.685796+00:00"
+   "linked_at": "2026-07-02T02:45:29.053815+00:00"
   },
   {
-   "story_id": "bc87fb62-b534-40e4-ad25-eec7740c2a5a",
-   "event_id": "0dc58787-443d-439a-9e73-49d9224c3c94",
+   "story_id": "e20a3950-f493-4559-b47e-55016dca0dc8",
+   "event_id": "b68cf33a-e8a2-4dc2-b808-368f26c2ba2a",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T23:36:08.231403+00:00"
+   "linked_at": "2026-07-02T23:38:35.599422+00:00"
   },
   {
-   "story_id": "bc87fb62-b534-40e4-ad25-eec7740c2a5a",
-   "event_id": "9bd2a9d2-cea2-4757-8ced-484fe25fc465",
+   "story_id": "e20a3950-f493-4559-b47e-55016dca0dc8",
+   "event_id": "b2977bb7-9e92-409f-b6b9-4384586984b8",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T23:36:08.231403+00:00"
+   "linked_at": "2026-07-02T23:38:35.599422+00:00"
   },
   {
-   "story_id": "bc87fb62-b534-40e4-ad25-eec7740c2a5a",
-   "event_id": "1b7c3098-e204-47ee-b28b-e084dc5dd440",
+   "story_id": "e20a3950-f493-4559-b47e-55016dca0dc8",
+   "event_id": "4675fc98-9afe-4c89-890b-68474c071160",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T23:36:08.231403+00:00"
+   "linked_at": "2026-07-02T23:38:35.599422+00:00"
   },
   {
-   "story_id": "bc87fb62-b534-40e4-ad25-eec7740c2a5a",
-   "event_id": "ece382cd-e8d0-40ae-a536-f76608ae4756",
+   "story_id": "e20a3950-f493-4559-b47e-55016dca0dc8",
+   "event_id": "5fbf3272-2c3f-4adf-a683-3f5be5d63bc1",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T23:36:08.231403+00:00"
+   "linked_at": "2026-07-02T23:38:35.599422+00:00"
   },
   {
-   "story_id": "bc87fb62-b534-40e4-ad25-eec7740c2a5a",
-   "event_id": "6c6dc2a6-e226-4741-a78d-873195e06dcd",
+   "story_id": "e20a3950-f493-4559-b47e-55016dca0dc8",
+   "event_id": "ec478a83-764a-4d6b-9f04-e0919c83532b",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T23:36:08.231403+00:00"
+   "linked_at": "2026-07-02T23:38:35.599422+00:00"
   },
   {
-   "story_id": "bc87fb62-b534-40e4-ad25-eec7740c2a5a",
-   "event_id": "7b352aff-45ce-4335-aa2d-c10b82a027b8",
+   "story_id": "e20a3950-f493-4559-b47e-55016dca0dc8",
+   "event_id": "caf26329-72f8-46eb-9317-0dd1d66f1d68",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T23:36:08.231403+00:00"
+   "linked_at": "2026-07-02T23:38:35.599422+00:00"
   },
   {
-   "story_id": "fdb2e695-3eb7-41d2-89db-5ba4de979832",
-   "event_id": "4aabfcc8-df35-4d3d-99b5-2b1a5c37903a",
+   "story_id": "100ad8a6-9b19-4ec2-a853-bdcfce4614f9",
+   "event_id": "4d270c9b-5ac9-45ea-9b3f-ec8235f9bb17",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-06-29T17:24:36.926792+00:00"
+   "linked_at": "2026-06-29T17:27:04.294811+00:00"
   },
   {
-   "story_id": "fdb2e695-3eb7-41d2-89db-5ba4de979832",
-   "event_id": "e63b1cf9-f210-4682-92ae-7692048fcace",
+   "story_id": "100ad8a6-9b19-4ec2-a853-bdcfce4614f9",
+   "event_id": "59d81fd5-26a4-45a5-acc3-c41d29dba248",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-06-29T17:24:36.926792+00:00"
+   "linked_at": "2026-06-29T17:27:04.294811+00:00"
   },
   {
-   "story_id": "848c5852-c176-4725-96e3-06513269422f",
-   "event_id": "343ee37e-b861-490d-9e16-539d8eb95cd4",
+   "story_id": "fa7a4033-9a40-4854-a327-f321ebcbd2f7",
+   "event_id": "90cced89-de46-4bfd-972b-0b15d8cc2d1b",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T13:34:07.594752+00:00"
+   "linked_at": "2026-07-02T13:36:34.962771+00:00"
   },
   {
-   "story_id": "848c5852-c176-4725-96e3-06513269422f",
-   "event_id": "6d3a0f94-daaa-410b-afcf-58d34d163f88",
+   "story_id": "fa7a4033-9a40-4854-a327-f321ebcbd2f7",
+   "event_id": "3167beba-1d31-4b34-b72f-3efa27b1f9f6",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T13:34:07.594752+00:00"
+   "linked_at": "2026-07-02T13:36:34.962771+00:00"
   },
   {
-   "story_id": "848c5852-c176-4725-96e3-06513269422f",
-   "event_id": "0cde35a8-dd97-42e3-abb9-85fb97797c56",
+   "story_id": "fa7a4033-9a40-4854-a327-f321ebcbd2f7",
+   "event_id": "7e051a0a-addf-4276-bd2a-f0120018f734",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T13:34:07.594752+00:00"
+   "linked_at": "2026-07-02T13:36:34.962771+00:00"
   },
   {
-   "story_id": "848c5852-c176-4725-96e3-06513269422f",
-   "event_id": "b3d5e888-d456-4638-8881-5c230276e72a",
+   "story_id": "fa7a4033-9a40-4854-a327-f321ebcbd2f7",
+   "event_id": "4e9462ee-28d6-4ec4-9322-8e8a975ffa48",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T13:34:07.594752+00:00"
+   "linked_at": "2026-07-02T13:36:34.962771+00:00"
   },
   {
-   "story_id": "848c5852-c176-4725-96e3-06513269422f",
-   "event_id": "c4d34f4d-42be-4000-8456-6eba39a8b214",
+   "story_id": "fa7a4033-9a40-4854-a327-f321ebcbd2f7",
+   "event_id": "4d3b860a-2048-4af1-af85-7da603b485ca",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T13:34:07.594752+00:00"
+   "linked_at": "2026-07-02T13:36:34.962771+00:00"
   },
   {
-   "story_id": "848c5852-c176-4725-96e3-06513269422f",
-   "event_id": "eb339f26-f1de-4bc6-80b5-2dba3302bd1a",
+   "story_id": "fa7a4033-9a40-4854-a327-f321ebcbd2f7",
+   "event_id": "9d97ee37-67c7-48e8-adc0-d6d35447270d",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T13:34:07.594752+00:00"
+   "linked_at": "2026-07-02T13:36:34.962771+00:00"
   },
   {
-   "story_id": "809907ba-6068-4eb1-9403-ceafd001cd6b",
-   "event_id": "d1fa2f27-7e05-4bb5-a4e7-8dec1bbb81e3",
+   "story_id": "f05031df-94e7-4e78-87cc-8a5100b298d6",
+   "event_id": "4e8823d4-2f64-4efe-9eef-39393ec82758",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T02:41:10.394081+00:00"
+   "linked_at": "2026-07-03T02:43:37.762100+00:00"
   },
   {
-   "story_id": "809907ba-6068-4eb1-9403-ceafd001cd6b",
-   "event_id": "e657c3d5-b1cb-4a04-bc3b-515857953fac",
+   "story_id": "f05031df-94e7-4e78-87cc-8a5100b298d6",
+   "event_id": "d0c022ab-b556-47de-b894-5566e6f850ab",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-03T02:41:10.394081+00:00"
+   "linked_at": "2026-07-03T02:43:37.762100+00:00"
   },
   {
-   "story_id": "809907ba-6068-4eb1-9403-ceafd001cd6b",
-   "event_id": "eba61a4f-1124-4178-94e5-b9237c49671c",
+   "story_id": "f05031df-94e7-4e78-87cc-8a5100b298d6",
+   "event_id": "10ef0830-8d07-4e53-80ea-19a8c33e8ea1",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T02:41:10.394081+00:00"
+   "linked_at": "2026-07-03T02:43:37.762100+00:00"
   },
   {
-   "story_id": "809907ba-6068-4eb1-9403-ceafd001cd6b",
-   "event_id": "2431c97c-040a-4aa6-97a0-92e6215e1820",
+   "story_id": "f05031df-94e7-4e78-87cc-8a5100b298d6",
+   "event_id": "8688c6e4-daa9-4231-ae2e-7c5992e8f1f9",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T02:41:10.394081+00:00"
+   "linked_at": "2026-07-03T02:43:37.762100+00:00"
   },
   {
-   "story_id": "809907ba-6068-4eb1-9403-ceafd001cd6b",
-   "event_id": "bb9f625d-04ce-419a-af02-e6c7b830bf18",
+   "story_id": "f05031df-94e7-4e78-87cc-8a5100b298d6",
+   "event_id": "b24aba21-b1eb-4827-9548-265dc94827c4",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-03T02:41:10.394081+00:00"
+   "linked_at": "2026-07-03T02:43:37.762100+00:00"
   },
   {
-   "story_id": "2d232c67-07e5-4849-b909-b65c03acb042",
-   "event_id": "8776f0d2-9529-4e4d-b64c-f80179040555",
+   "story_id": "25182265-4ab6-405c-a5cf-f87ae25f446f",
+   "event_id": "860b97b8-b4f0-435f-866f-3f491f35f6d9",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T00:13:21.325362+00:00"
+   "linked_at": "2026-07-02T00:15:48.693381+00:00"
   },
   {
-   "story_id": "2d232c67-07e5-4849-b909-b65c03acb042",
-   "event_id": "42120a5c-ab2a-4f39-9538-44ce1e93b00c",
+   "story_id": "25182265-4ab6-405c-a5cf-f87ae25f446f",
+   "event_id": "1198b0f9-e53e-4ef7-9b15-a74d25cc5550",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T00:13:21.325362+00:00"
+   "linked_at": "2026-07-02T00:15:48.693381+00:00"
   },
   {
-   "story_id": "42a2b955-96da-4360-9819-f1d8b4f684d4",
-   "event_id": "16f624ec-9537-4637-969c-b337212355e0",
+   "story_id": "f1b1bb99-1e4a-4f0d-be63-aaf46b7c5633",
+   "event_id": "a2e19d91-14a5-4740-af41-63f0b3512efa",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T03:11:29.852058+00:00"
+   "linked_at": "2026-07-01T03:13:57.220077+00:00"
   },
   {
-   "story_id": "42a2b955-96da-4360-9819-f1d8b4f684d4",
-   "event_id": "1e04bc0d-2098-4ba4-8671-6404a3cc6d97",
+   "story_id": "f1b1bb99-1e4a-4f0d-be63-aaf46b7c5633",
+   "event_id": "735e517e-23a8-4a9c-9a8d-5661407a023b",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T03:11:29.852058+00:00"
+   "linked_at": "2026-07-01T03:13:57.220077+00:00"
   },
   {
-   "story_id": "42a2b955-96da-4360-9819-f1d8b4f684d4",
-   "event_id": "543f6ca7-119a-4bec-a1c4-64a61d4007c0",
+   "story_id": "f1b1bb99-1e4a-4f0d-be63-aaf46b7c5633",
+   "event_id": "527aa451-4f32-40c6-b4a5-38180220ba07",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T03:11:29.852058+00:00"
+   "linked_at": "2026-07-01T03:13:57.220077+00:00"
   },
   {
-   "story_id": "42a2b955-96da-4360-9819-f1d8b4f684d4",
-   "event_id": "adac4513-6b95-4140-b361-d6b25e67bb80",
+   "story_id": "f1b1bb99-1e4a-4f0d-be63-aaf46b7c5633",
+   "event_id": "a53f6a49-d920-400a-8570-5bc1fbfcfbf5",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T03:11:29.852058+00:00"
+   "linked_at": "2026-07-01T03:13:57.220077+00:00"
   },
   {
-   "story_id": "42a2b955-96da-4360-9819-f1d8b4f684d4",
-   "event_id": "239cffcb-afcf-4f05-9e7e-72908a69a7eb",
+   "story_id": "f1b1bb99-1e4a-4f0d-be63-aaf46b7c5633",
+   "event_id": "7cffa87a-9895-485c-9375-77f870db245e",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T03:11:29.852058+00:00"
+   "linked_at": "2026-07-01T03:13:57.220077+00:00"
   },
   {
-   "story_id": "42a2b955-96da-4360-9819-f1d8b4f684d4",
-   "event_id": "8afd4f75-99cf-4fa6-8659-faf94278e8f4",
+   "story_id": "f1b1bb99-1e4a-4f0d-be63-aaf46b7c5633",
+   "event_id": "8c063635-0654-4b96-8352-df1a3c3cd804",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T03:11:29.852058+00:00"
+   "linked_at": "2026-07-01T03:13:57.220077+00:00"
   },
   {
-   "story_id": "ce6655dc-2b52-4779-a3c6-2443f7707ee8",
-   "event_id": "92c17f4a-19a4-484f-9d29-685d1b0dcc35",
+   "story_id": "bb2706fc-2068-41f0-821f-3d157744c8ff",
+   "event_id": "e12734b6-3016-4ff7-a295-7b12906facbb",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-03T01:56:53.363243+00:00"
+   "linked_at": "2026-07-03T01:59:20.731262+00:00"
   },
   {
-   "story_id": "ce6655dc-2b52-4779-a3c6-2443f7707ee8",
-   "event_id": "f47b9275-108b-4678-822f-f432d287939c",
+   "story_id": "bb2706fc-2068-41f0-821f-3d157744c8ff",
+   "event_id": "2a076155-3ee3-49e7-992f-a95e5e5b1053",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-03T01:56:53.363243+00:00"
+   "linked_at": "2026-07-03T01:59:20.731262+00:00"
   },
   {
-   "story_id": "ce6655dc-2b52-4779-a3c6-2443f7707ee8",
-   "event_id": "0c9c8eae-d5b8-4ce6-975a-1fa5cab3a53a",
+   "story_id": "bb2706fc-2068-41f0-821f-3d157744c8ff",
+   "event_id": "73b8be1b-e99f-4c90-be20-bc1269a35f20",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T01:56:53.363243+00:00"
+   "linked_at": "2026-07-03T01:59:20.731262+00:00"
   },
   {
-   "story_id": "c9a21caf-1dbe-41fe-8762-3b7542c4113c",
-   "event_id": "f3b77632-57ba-4393-862d-079a8376a551",
+   "story_id": "a41bdb07-b586-4f44-97c9-bd0b2d05498a",
+   "event_id": "79fee816-6ac9-4328-b404-7550b9bb9b5e",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T01:30:36.651264+00:00"
+   "linked_at": "2026-07-03T01:33:04.019283+00:00"
   },
   {
-   "story_id": "c9a21caf-1dbe-41fe-8762-3b7542c4113c",
-   "event_id": "be0f9baa-f14c-4296-a418-9fa39bb8843e",
+   "story_id": "a41bdb07-b586-4f44-97c9-bd0b2d05498a",
+   "event_id": "696c0154-b309-473a-87bc-7e436de6a21f",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-03T01:30:36.651264+00:00"
+   "linked_at": "2026-07-03T01:33:04.019283+00:00"
   },
   {
-   "story_id": "c9a21caf-1dbe-41fe-8762-3b7542c4113c",
-   "event_id": "823d82d6-ca07-4dba-a187-bcdf94cdf793",
+   "story_id": "a41bdb07-b586-4f44-97c9-bd0b2d05498a",
+   "event_id": "8b91e06c-8116-4339-8dd2-9c34ed34bf65",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-03T01:30:36.651264+00:00"
+   "linked_at": "2026-07-03T01:33:04.019283+00:00"
   },
   {
-   "story_id": "c9a21caf-1dbe-41fe-8762-3b7542c4113c",
-   "event_id": "59a8fcef-a174-46d1-9184-5bd5da5bc44b",
+   "story_id": "a41bdb07-b586-4f44-97c9-bd0b2d05498a",
+   "event_id": "f0535c85-5618-4930-9b08-b28e30622028",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T01:30:36.651264+00:00"
+   "linked_at": "2026-07-03T01:33:04.019283+00:00"
   },
   {
-   "story_id": "c9a21caf-1dbe-41fe-8762-3b7542c4113c",
-   "event_id": "217b1517-d139-4993-b909-e3bd860db3cb",
+   "story_id": "a41bdb07-b586-4f44-97c9-bd0b2d05498a",
+   "event_id": "14ce4a1a-e7b3-49fa-a445-cfa6991af56e",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-03T01:30:36.651264+00:00"
+   "linked_at": "2026-07-03T01:33:04.019283+00:00"
   },
   {
-   "story_id": "a281534f-0dfb-4176-addf-cc055dbb42b0",
-   "event_id": "e2f7e7c7-fcdd-421d-bba4-5728c4f357ad",
+   "story_id": "4a4274d0-61d4-4b08-911c-118035ba81d8",
+   "event_id": "d8658188-497a-487f-ba79-ad9343fc8c1f",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T06:10:06.759696+00:00"
+   "linked_at": "2026-07-01T06:12:34.127715+00:00"
   },
   {
-   "story_id": "a281534f-0dfb-4176-addf-cc055dbb42b0",
-   "event_id": "3e70caba-307a-42a7-b5b2-0d86933a2ce8",
+   "story_id": "4a4274d0-61d4-4b08-911c-118035ba81d8",
+   "event_id": "6633992c-90c5-48a9-86ee-d987bec98ddb",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T06:10:06.759696+00:00"
+   "linked_at": "2026-07-01T06:12:34.127715+00:00"
   },
   {
-   "story_id": "a281534f-0dfb-4176-addf-cc055dbb42b0",
-   "event_id": "fe27843f-5daf-41dc-ad80-9fdf712ef44b",
+   "story_id": "4a4274d0-61d4-4b08-911c-118035ba81d8",
+   "event_id": "9d6bb029-aa9c-4f41-a0b1-d5e8a5e8d3f9",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T06:10:06.759696+00:00"
+   "linked_at": "2026-07-01T06:12:34.127715+00:00"
   },
   {
-   "story_id": "3c9c8272-c5e8-4a33-b1a9-c645c0a6aea0",
-   "event_id": "3d8a2b8c-0dd4-4aaf-862a-b2f7669c62e4",
+   "story_id": "49e6fc85-9d5c-447c-954e-a2c1d4174593",
+   "event_id": "a9041b9f-f312-4838-9bc2-6b5af993e6aa",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T20:00:38.801698+00:00"
+   "linked_at": "2026-07-02T20:03:06.169717+00:00"
   },
   {
-   "story_id": "3c9c8272-c5e8-4a33-b1a9-c645c0a6aea0",
-   "event_id": "e74c5522-de6e-4c7e-89f9-7284b2681ac8",
+   "story_id": "49e6fc85-9d5c-447c-954e-a2c1d4174593",
+   "event_id": "c0bdbf76-c8f9-4aee-b034-fc4594f6b8c4",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T20:00:38.801698+00:00"
+   "linked_at": "2026-07-02T20:03:06.169717+00:00"
   },
   {
-   "story_id": "0cea5009-d81c-4c7e-a7a4-48d0702ad8fe",
-   "event_id": "03a40242-36f3-473c-80e1-02dd4f7db765",
+   "story_id": "19374a48-1ff9-4a0b-8032-631bf893db68",
+   "event_id": "5fb9d3fb-ee4a-4e37-9fd1-1ffa4e8ff185",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T19:55:36.620176+00:00"
+   "linked_at": "2026-07-02T19:58:03.988195+00:00"
   },
   {
-   "story_id": "0cea5009-d81c-4c7e-a7a4-48d0702ad8fe",
-   "event_id": "7b410d33-c8d1-408a-9ee5-5edfca2e138c",
+   "story_id": "19374a48-1ff9-4a0b-8032-631bf893db68",
+   "event_id": "224b4029-95e0-4cd8-8ab2-e21351b1b1ad",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T19:55:36.620176+00:00"
+   "linked_at": "2026-07-02T19:58:03.988195+00:00"
   },
   {
-   "story_id": "0cea5009-d81c-4c7e-a7a4-48d0702ad8fe",
-   "event_id": "b8cc6b53-df3a-4aeb-8b7a-8c7253f0dea5",
+   "story_id": "19374a48-1ff9-4a0b-8032-631bf893db68",
+   "event_id": "d0a18c2d-ef0c-4930-b050-e8f478595b03",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T19:55:36.620176+00:00"
+   "linked_at": "2026-07-02T19:58:03.988195+00:00"
   },
   {
-   "story_id": "03197568-3768-48a5-8d2a-8992c1dd460e",
-   "event_id": "639089d9-a204-4bed-a65a-74d24801a3d9",
+   "story_id": "9dc625dd-2eae-4726-8be3-c3556e42d7e1",
+   "event_id": "4ab87d3d-e4e8-458d-bcad-a0c5aa3a25ac",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T04:49:37.845975+00:00"
+   "linked_at": "2026-07-03T04:52:05.213994+00:00"
   },
   {
-   "story_id": "03197568-3768-48a5-8d2a-8992c1dd460e",
-   "event_id": "69397a6d-3709-403c-a4a5-1b9096256acb",
+   "story_id": "9dc625dd-2eae-4726-8be3-c3556e42d7e1",
+   "event_id": "087e82c6-a087-4d7e-ae42-aafd887a599a",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T04:49:37.845975+00:00"
+   "linked_at": "2026-07-03T04:52:05.213994+00:00"
   },
   {
-   "story_id": "f8a9dc46-92eb-4888-93f9-099bc9152a80",
-   "event_id": "0275127a-9971-446b-88de-c38ef17f33b6",
+   "story_id": "be475ac0-cd05-4286-a13b-a266d94a61f9",
+   "event_id": "b8ced0ba-819b-465c-a2a2-4d63e0b33d43",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T20:00:25.929713+00:00"
+   "linked_at": "2026-07-02T20:02:53.297732+00:00"
   },
   {
-   "story_id": "f8a9dc46-92eb-4888-93f9-099bc9152a80",
-   "event_id": "90f0bdd8-a8ac-4faa-89da-1811f8197053",
+   "story_id": "be475ac0-cd05-4286-a13b-a266d94a61f9",
+   "event_id": "7f88c756-f3ec-4679-a730-28a309c3d60f",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T20:00:25.929713+00:00"
+   "linked_at": "2026-07-02T20:02:53.297732+00:00"
   },
   {
-   "story_id": "f8a9dc46-92eb-4888-93f9-099bc9152a80",
-   "event_id": "f951b400-f391-494f-b876-bb4fefda97e9",
+   "story_id": "be475ac0-cd05-4286-a13b-a266d94a61f9",
+   "event_id": "67fab3ff-bf95-4ba6-8dc8-7965eb2106f5",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T20:00:25.929713+00:00"
+   "linked_at": "2026-07-02T20:02:53.297732+00:00"
   },
   {
-   "story_id": "f8a9dc46-92eb-4888-93f9-099bc9152a80",
-   "event_id": "36e1a678-3688-442c-9562-cd809893e354",
+   "story_id": "be475ac0-cd05-4286-a13b-a266d94a61f9",
+   "event_id": "6999347b-62dd-41c1-8bfc-d947abd9b3a1",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T20:00:25.929713+00:00"
+   "linked_at": "2026-07-02T20:02:53.297732+00:00"
   },
   {
-   "story_id": "f8a9dc46-92eb-4888-93f9-099bc9152a80",
-   "event_id": "46960193-4ca6-4431-b025-c62f911c5159",
+   "story_id": "be475ac0-cd05-4286-a13b-a266d94a61f9",
+   "event_id": "fe82f6f9-7cca-4922-9caf-9d9776a85b28",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T20:00:25.929713+00:00"
+   "linked_at": "2026-07-02T20:02:53.297732+00:00"
   },
   {
-   "story_id": "61f126c7-41b0-4eba-9d6f-269ccba6a506",
-   "event_id": "214d87f7-6aac-4aa6-8876-8ead5c54efcb",
+   "story_id": "d0a55aa6-33c6-4718-a365-574e622ac74e",
+   "event_id": "f5024785-90b0-463b-973a-485ae88d0a2e",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T09:20:17.582766+00:00"
+   "linked_at": "2026-07-02T09:22:44.950785+00:00"
   },
   {
-   "story_id": "61f126c7-41b0-4eba-9d6f-269ccba6a506",
-   "event_id": "912cae86-bd0a-4511-b65a-39da6805a835",
+   "story_id": "d0a55aa6-33c6-4718-a365-574e622ac74e",
+   "event_id": "840d1670-93f9-4c3f-aba2-338251c62083",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T09:20:17.582766+00:00"
+   "linked_at": "2026-07-02T09:22:44.950785+00:00"
   },
   {
-   "story_id": "58b3481c-c98f-40bc-b0b2-9aa15ae4bd4e",
-   "event_id": "545331f9-b71b-4ce1-abfd-a740e1af6746",
+   "story_id": "c6534d88-8242-483c-badb-4ca00558dfcc",
+   "event_id": "7ed5f0a1-133f-465c-aad4-6ff51914d034",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T00:22:07.590332+00:00"
+   "linked_at": "2026-07-02T00:24:34.958351+00:00"
   },
   {
-   "story_id": "58b3481c-c98f-40bc-b0b2-9aa15ae4bd4e",
-   "event_id": "cb098f8d-3a6d-454a-a4c5-748066467674",
+   "story_id": "c6534d88-8242-483c-badb-4ca00558dfcc",
+   "event_id": "902a1b51-f93b-4349-b846-009bbbccb715",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T00:22:07.590332+00:00"
+   "linked_at": "2026-07-02T00:24:34.958351+00:00"
   },
   {
-   "story_id": "58b3481c-c98f-40bc-b0b2-9aa15ae4bd4e",
-   "event_id": "e0ec6ade-bb9d-4be1-93cb-17ee37f2e95f",
+   "story_id": "c6534d88-8242-483c-badb-4ca00558dfcc",
+   "event_id": "864e4b9d-b99e-4723-8f9e-38034306e771",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T00:22:07.590332+00:00"
+   "linked_at": "2026-07-02T00:24:34.958351+00:00"
   },
   {
-   "story_id": "c6e1af23-7938-4315-978f-1e93f3abc694",
-   "event_id": "b50f0031-9fac-4082-ad8c-3e1c2c5b7ff6",
+   "story_id": "6b01c804-0f2b-4d56-b8fb-f452a7a31999",
+   "event_id": "fb351032-9135-42cf-b496-347a02d7bd42",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T01:02:31.478201+00:00"
+   "linked_at": "2026-07-03T01:04:58.846220+00:00"
   },
   {
-   "story_id": "c6e1af23-7938-4315-978f-1e93f3abc694",
-   "event_id": "b25a1073-4604-4c87-9233-5eb31a4d7012",
+   "story_id": "6b01c804-0f2b-4d56-b8fb-f452a7a31999",
+   "event_id": "1ed36f13-845a-4f0d-9441-7e1a637a4028",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T01:02:31.478201+00:00"
+   "linked_at": "2026-07-03T01:04:58.846220+00:00"
   },
   {
-   "story_id": "c6e1af23-7938-4315-978f-1e93f3abc694",
-   "event_id": "3438e969-83ce-4639-885f-9a49ffe46d41",
+   "story_id": "6b01c804-0f2b-4d56-b8fb-f452a7a31999",
+   "event_id": "f94b2313-7bf1-4634-84e2-0554364e1c32",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-03T01:02:31.478201+00:00"
+   "linked_at": "2026-07-03T01:04:58.846220+00:00"
   },
   {
-   "story_id": "c6e1af23-7938-4315-978f-1e93f3abc694",
-   "event_id": "da2e475d-e312-411a-b7c0-f802deee1790",
+   "story_id": "6b01c804-0f2b-4d56-b8fb-f452a7a31999",
+   "event_id": "96870be2-8ea3-483b-b014-f0d55e7582a5",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-03T01:02:31.478201+00:00"
+   "linked_at": "2026-07-03T01:04:58.846220+00:00"
   },
   {
-   "story_id": "c6e1af23-7938-4315-978f-1e93f3abc694",
-   "event_id": "ea2dd90f-68bd-4b78-b219-33433229196d",
+   "story_id": "6b01c804-0f2b-4d56-b8fb-f452a7a31999",
+   "event_id": "97c9bc1a-b84c-4502-8439-98c6c5ec3e48",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T01:02:31.478201+00:00"
+   "linked_at": "2026-07-03T01:04:58.846220+00:00"
   },
   {
-   "story_id": "c6e1af23-7938-4315-978f-1e93f3abc694",
-   "event_id": "13fbb487-e71c-440d-adc5-e4e8da1753c2",
+   "story_id": "6b01c804-0f2b-4d56-b8fb-f452a7a31999",
+   "event_id": "26c5cf2f-207d-428e-995e-999927a7425d",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T01:02:31.478201+00:00"
+   "linked_at": "2026-07-03T01:04:58.846220+00:00"
   },
   {
-   "story_id": "ad41f2c4-ec8b-4baa-a65a-8c9fc8506cb1",
-   "event_id": "850646de-970c-43ee-8dc9-61e536b37006",
+   "story_id": "ddf6ec69-2dae-459b-ad7e-79e16d47837f",
+   "event_id": "b4a405a7-2a69-4796-bb20-7e91a6b1c2f4",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T00:02:20.052253+00:00"
+   "linked_at": "2026-07-02T00:04:47.420272+00:00"
   },
   {
-   "story_id": "ad41f2c4-ec8b-4baa-a65a-8c9fc8506cb1",
-   "event_id": "34bd69ec-d34f-42c5-b7a9-fcceb777fa21",
+   "story_id": "ddf6ec69-2dae-459b-ad7e-79e16d47837f",
+   "event_id": "ad50dd00-393c-4745-8216-6b36333a1a8e",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T00:02:20.052253+00:00"
+   "linked_at": "2026-07-02T00:04:47.420272+00:00"
   },
   {
-   "story_id": "ad41f2c4-ec8b-4baa-a65a-8c9fc8506cb1",
-   "event_id": "38de0d5c-8ca0-4876-ab60-dec934c0d6da",
+   "story_id": "ddf6ec69-2dae-459b-ad7e-79e16d47837f",
+   "event_id": "2938eff4-b718-4d74-b1dc-43b207a06422",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T00:02:20.052253+00:00"
+   "linked_at": "2026-07-02T00:04:47.420272+00:00"
   },
   {
-   "story_id": "ad41f2c4-ec8b-4baa-a65a-8c9fc8506cb1",
-   "event_id": "b77ddf54-826d-4ae3-ba2c-08b538d66c80",
+   "story_id": "ddf6ec69-2dae-459b-ad7e-79e16d47837f",
+   "event_id": "1a18b2a8-d4bc-45f7-a223-37a4667b7368",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T00:02:20.052253+00:00"
+   "linked_at": "2026-07-02T00:04:47.420272+00:00"
   },
   {
-   "story_id": "ea59521b-52fc-464d-9591-00915e91f552",
-   "event_id": "cdaf0980-d752-4f49-8d55-419f5e83d8a7",
+   "story_id": "0d440280-3bd2-4f66-8305-76623ba9f8d2",
+   "event_id": "9287ce32-b4b9-445a-9815-cb373b1a381b",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T08:47:29.297451+00:00"
+   "linked_at": "2026-07-02T08:49:56.665470+00:00"
   },
   {
-   "story_id": "ea59521b-52fc-464d-9591-00915e91f552",
-   "event_id": "53f90999-cdd1-4ca2-a82d-2752a38d2c57",
+   "story_id": "0d440280-3bd2-4f66-8305-76623ba9f8d2",
+   "event_id": "93a0e38f-54ae-4f09-b665-305174961287",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T08:47:29.297451+00:00"
+   "linked_at": "2026-07-02T08:49:56.665470+00:00"
   },
   {
-   "story_id": "32f3407b-e474-4b50-b0a7-56d34dfc2f07",
-   "event_id": "8a31acff-8f0e-48c6-8573-df5b17f5c90e",
+   "story_id": "faf54035-410a-4a23-a49e-ad845186f3cf",
+   "event_id": "501b9f06-26fa-4c36-a4b8-417c00b7f136",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T21:56:45.136204+00:00"
+   "linked_at": "2026-07-02T21:59:12.504223+00:00"
   },
   {
-   "story_id": "32f3407b-e474-4b50-b0a7-56d34dfc2f07",
-   "event_id": "0b729b7d-f215-447f-af47-efbd0ff3536b",
+   "story_id": "faf54035-410a-4a23-a49e-ad845186f3cf",
+   "event_id": "51a4014c-6567-4753-9176-735db3ed05ed",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T21:56:45.136204+00:00"
+   "linked_at": "2026-07-02T21:59:12.504223+00:00"
   },
   {
-   "story_id": "32f3407b-e474-4b50-b0a7-56d34dfc2f07",
-   "event_id": "df16710a-9b28-4428-ba05-29d18ea90f96",
+   "story_id": "faf54035-410a-4a23-a49e-ad845186f3cf",
+   "event_id": "99d73981-3459-4a64-9f72-92ce550c67ad",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T21:56:45.136204+00:00"
+   "linked_at": "2026-07-02T21:59:12.504223+00:00"
   },
   {
-   "story_id": "32f3407b-e474-4b50-b0a7-56d34dfc2f07",
-   "event_id": "b0bc2170-b733-40b2-b26e-c90d22880828",
+   "story_id": "faf54035-410a-4a23-a49e-ad845186f3cf",
+   "event_id": "faf70163-9d31-4ac1-b1e8-068751ba089d",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T21:56:45.136204+00:00"
+   "linked_at": "2026-07-02T21:59:12.504223+00:00"
   },
   {
-   "story_id": "32f3407b-e474-4b50-b0a7-56d34dfc2f07",
-   "event_id": "0ac6172f-68e8-49e4-981e-aad38fb0ca80",
+   "story_id": "faf54035-410a-4a23-a49e-ad845186f3cf",
+   "event_id": "10f456c5-8fde-432a-aa9a-11d95e16d7e5",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T21:56:45.136204+00:00"
+   "linked_at": "2026-07-02T21:59:12.504223+00:00"
   },
   {
-   "story_id": "9b4ca9da-bae4-4af5-b1d8-a8a1b1eff115",
-   "event_id": "f1738934-332d-4da0-ac77-f7818a86f808",
+   "story_id": "6d9dca60-357d-4fa2-b67f-650d05407dd6",
+   "event_id": "225057bd-a44a-44c3-8dbb-c0efa85e1bea",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T18:51:01.655502+00:00"
+   "linked_at": "2026-07-02T18:53:29.023521+00:00"
   },
   {
-   "story_id": "9b4ca9da-bae4-4af5-b1d8-a8a1b1eff115",
-   "event_id": "0433272b-377b-4200-9282-ed8a8f95fb67",
+   "story_id": "6d9dca60-357d-4fa2-b67f-650d05407dd6",
+   "event_id": "31d27095-3b48-4fe8-bd27-688b8825f27a",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T18:51:01.655502+00:00"
+   "linked_at": "2026-07-02T18:53:29.023521+00:00"
   },
   {
-   "story_id": "9b4ca9da-bae4-4af5-b1d8-a8a1b1eff115",
-   "event_id": "ff530fc1-171c-424a-9a10-93a873e8df73",
+   "story_id": "6d9dca60-357d-4fa2-b67f-650d05407dd6",
+   "event_id": "6ffaa217-a894-4702-99f2-242910e33d52",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T18:51:01.655502+00:00"
+   "linked_at": "2026-07-02T18:53:29.023521+00:00"
   },
   {
-   "story_id": "9b4ca9da-bae4-4af5-b1d8-a8a1b1eff115",
-   "event_id": "eca1f044-5ffb-406b-8753-8b08068e6d4e",
+   "story_id": "6d9dca60-357d-4fa2-b67f-650d05407dd6",
+   "event_id": "a3675e6b-32b0-4390-ae24-464189fb6203",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T18:51:01.655502+00:00"
+   "linked_at": "2026-07-02T18:53:29.023521+00:00"
   },
   {
-   "story_id": "9b4ca9da-bae4-4af5-b1d8-a8a1b1eff115",
-   "event_id": "452cdecc-2d9d-4516-acfb-23c8c309941a",
+   "story_id": "6d9dca60-357d-4fa2-b67f-650d05407dd6",
+   "event_id": "6e79c892-e8d1-4c28-9489-0a7431284418",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T18:51:01.655502+00:00"
+   "linked_at": "2026-07-02T18:53:29.023521+00:00"
   },
   {
-   "story_id": "111405e5-c3d4-46a3-b765-d21325178d47",
-   "event_id": "6c94e647-7c99-40bc-b4c9-1c88fd085920",
+   "story_id": "2f142fa0-3895-4745-9b5b-3b581e697aa6",
+   "event_id": "0d8f9799-f9ce-4a7b-8b0a-dfa9fca41479",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T12:32:25.783100+00:00"
+   "linked_at": "2026-07-02T12:34:53.151119+00:00"
   },
   {
-   "story_id": "111405e5-c3d4-46a3-b765-d21325178d47",
-   "event_id": "87954b66-879d-4265-a132-12cd7f3f306d",
+   "story_id": "2f142fa0-3895-4745-9b5b-3b581e697aa6",
+   "event_id": "8d8d2961-f20f-4f12-8750-dac550b75a1d",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T12:32:25.783100+00:00"
+   "linked_at": "2026-07-02T12:34:53.151119+00:00"
   },
   {
-   "story_id": "52ad7e94-90f1-4a08-a5a4-a9779e8570be",
-   "event_id": "55cb9f02-6f31-4fe5-9227-815b93df8e2a",
+   "story_id": "3a1072f9-04ec-47f3-a8e0-79eb860b1ecd",
+   "event_id": "8433c55f-e803-4d92-96e3-26302a56e83e",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-06-30T06:27:54.477209+00:00"
+   "linked_at": "2026-06-30T06:30:21.845228+00:00"
   },
   {
-   "story_id": "52ad7e94-90f1-4a08-a5a4-a9779e8570be",
-   "event_id": "5f7edb92-bcda-49ff-b0a9-3f01677680c1",
+   "story_id": "3a1072f9-04ec-47f3-a8e0-79eb860b1ecd",
+   "event_id": "0227ac03-647f-43a8-b330-e52ce88f6476",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-06-30T06:27:54.477209+00:00"
+   "linked_at": "2026-06-30T06:30:21.845228+00:00"
   },
   {
-   "story_id": "583b1220-cae9-4da2-9a25-abdd25ebf421",
-   "event_id": "c25f6117-d452-4f49-9ca6-8388f56b0f98",
+   "story_id": "5d863933-d7a3-43ea-8736-ee5bb24d43ad",
+   "event_id": "be1458d9-1694-4f2b-906a-4d6f667ae72f",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T16:47:46.871026+00:00"
+   "linked_at": "2026-07-02T16:50:14.239045+00:00"
   },
   {
-   "story_id": "583b1220-cae9-4da2-9a25-abdd25ebf421",
-   "event_id": "62b48c61-1b7b-408f-9355-fa23bd3319d0",
+   "story_id": "5d863933-d7a3-43ea-8736-ee5bb24d43ad",
+   "event_id": "e504d1fe-60ff-4bcf-b03c-bfb9d63d884f",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T16:47:46.871026+00:00"
+   "linked_at": "2026-07-02T16:50:14.239045+00:00"
   },
   {
-   "story_id": "583b1220-cae9-4da2-9a25-abdd25ebf421",
-   "event_id": "62475ecc-c765-4f0b-9c53-bada0bf24df4",
+   "story_id": "5d863933-d7a3-43ea-8736-ee5bb24d43ad",
+   "event_id": "58f48aea-90fa-4859-994c-d11c2234dc96",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T16:47:46.871026+00:00"
+   "linked_at": "2026-07-02T16:50:14.239045+00:00"
   },
   {
-   "story_id": "d44a4693-ac7d-4c88-b83c-09e9688180aa",
-   "event_id": "af14b4ac-26ae-4b89-a8d1-20e8f096c3e0",
+   "story_id": "ab136f61-241d-4376-9242-d51f849d7093",
+   "event_id": "6330e2b4-244c-4f4a-bb02-41b83954c337",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T03:32:04.914750+00:00"
+   "linked_at": "2026-07-02T03:34:32.282769+00:00"
   },
   {
-   "story_id": "d44a4693-ac7d-4c88-b83c-09e9688180aa",
-   "event_id": "59077fc1-f43a-45d1-bc3c-0d48fc58942f",
+   "story_id": "ab136f61-241d-4376-9242-d51f849d7093",
+   "event_id": "f48fa9d1-31f1-4e92-a767-2c37dafdfd41",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T03:32:04.914750+00:00"
+   "linked_at": "2026-07-02T03:34:32.282769+00:00"
   },
   {
-   "story_id": "bea0ace7-ee2f-4fd9-b873-bef9b1410569",
-   "event_id": "47ec31d7-2277-4204-a755-4cc7db0276e6",
+   "story_id": "195a4f98-d2a2-4df6-962c-4de729592fcf",
+   "event_id": "c7ed8d4a-ebaa-4b8b-986d-a3a7d430101b",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T05:19:39.595792+00:00"
+   "linked_at": "2026-07-02T05:22:06.963811+00:00"
   },
   {
-   "story_id": "bea0ace7-ee2f-4fd9-b873-bef9b1410569",
-   "event_id": "c699eed0-5977-4841-8270-94adbac53c8d",
+   "story_id": "195a4f98-d2a2-4df6-962c-4de729592fcf",
+   "event_id": "96ce2653-c76e-4042-9a80-1661eca7eace",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T05:19:39.595792+00:00"
+   "linked_at": "2026-07-02T05:22:06.963811+00:00"
   },
   {
-   "story_id": "bea0ace7-ee2f-4fd9-b873-bef9b1410569",
-   "event_id": "c7a22d3c-a77f-4bf4-b385-8696d413140e",
+   "story_id": "195a4f98-d2a2-4df6-962c-4de729592fcf",
+   "event_id": "8b14f219-c373-4422-9307-d264a9a7b384",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T05:19:39.595792+00:00"
+   "linked_at": "2026-07-02T05:22:06.963811+00:00"
   },
   {
-   "story_id": "bea0ace7-ee2f-4fd9-b873-bef9b1410569",
-   "event_id": "ada11c23-c9c0-4254-89a4-964c2e135bd1",
+   "story_id": "195a4f98-d2a2-4df6-962c-4de729592fcf",
+   "event_id": "0153a0ad-f3a1-4c4f-b1cd-869b0268e25c",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T05:19:39.595792+00:00"
+   "linked_at": "2026-07-02T05:22:06.963811+00:00"
   },
   {
-   "story_id": "169abeaf-f19d-415a-ad9e-0787e9f83a65",
-   "event_id": "c245d004-97c1-4a20-806b-940d742dc78f",
+   "story_id": "5bf6cfda-d069-4a31-b541-362d5cd8dabb",
+   "event_id": "55f513d2-0774-42c4-8875-45aded2200b9",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T09:04:41.112618+00:00"
+   "linked_at": "2026-07-02T09:07:08.480637+00:00"
   },
   {
-   "story_id": "169abeaf-f19d-415a-ad9e-0787e9f83a65",
-   "event_id": "fd42d7be-4156-4435-913e-0e9fdfec7767",
+   "story_id": "5bf6cfda-d069-4a31-b541-362d5cd8dabb",
+   "event_id": "4d91d28c-be78-40c8-864b-f98d997ec443",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T09:04:41.112618+00:00"
+   "linked_at": "2026-07-02T09:07:08.480637+00:00"
   },
   {
-   "story_id": "169abeaf-f19d-415a-ad9e-0787e9f83a65",
-   "event_id": "128c87d7-c5cb-4e36-a49a-0a5b97bfb14b",
+   "story_id": "5bf6cfda-d069-4a31-b541-362d5cd8dabb",
+   "event_id": "b9b81a5a-ecd5-4f27-ae98-5b25914d19f3",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T09:04:41.112618+00:00"
+   "linked_at": "2026-07-02T09:07:08.480637+00:00"
   },
   {
-   "story_id": "169abeaf-f19d-415a-ad9e-0787e9f83a65",
-   "event_id": "10798ff2-caf8-4368-a884-f6df9642ce96",
+   "story_id": "5bf6cfda-d069-4a31-b541-362d5cd8dabb",
+   "event_id": "44518e46-42db-4775-92d4-8e2be742ac07",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T09:04:41.112618+00:00"
+   "linked_at": "2026-07-02T09:07:08.480637+00:00"
   },
   {
-   "story_id": "9f3f5ecb-c8c4-4b85-b1a1-abbaa151f0d0",
-   "event_id": "7f52c3c1-a733-4ec5-9783-350a5a3ac9e7",
+   "story_id": "636bbd12-eee0-401b-ad6a-c48e89533d85",
+   "event_id": "613c53a5-4d6c-4e47-8f8d-a43775c655a4",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T15:25:13.632891+00:00"
+   "linked_at": "2026-07-01T15:27:41.000910+00:00"
   },
   {
-   "story_id": "9f3f5ecb-c8c4-4b85-b1a1-abbaa151f0d0",
-   "event_id": "86eb5e2e-b8a2-4c04-b557-e1eb7e65e663",
+   "story_id": "636bbd12-eee0-401b-ad6a-c48e89533d85",
+   "event_id": "4f5a4a0d-0201-400c-aeae-e6e262f7946e",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T15:25:13.632891+00:00"
+   "linked_at": "2026-07-01T15:27:41.000910+00:00"
   },
   {
-   "story_id": "6ccf098d-e962-475d-a2e0-e1c60a739efd",
-   "event_id": "ce4c820f-3979-4133-8c92-a5dcf1c475f1",
+   "story_id": "2c38f284-fabe-4dfa-bd27-fba78d6e9e9e",
+   "event_id": "e329540a-4965-4496-a03f-08877ad939fe",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T03:33:04.077043+00:00"
+   "linked_at": "2026-07-03T03:35:31.445062+00:00"
   },
   {
-   "story_id": "6ccf098d-e962-475d-a2e0-e1c60a739efd",
-   "event_id": "48620bf8-009e-4e1b-84d6-34889742838b",
+   "story_id": "2c38f284-fabe-4dfa-bd27-fba78d6e9e9e",
+   "event_id": "faf10103-8abd-44f1-a490-d4263765b112",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T03:33:04.077043+00:00"
+   "linked_at": "2026-07-03T03:35:31.445062+00:00"
   },
   {
-   "story_id": "6ccf098d-e962-475d-a2e0-e1c60a739efd",
-   "event_id": "1d6bbdba-f8d6-48dd-9773-e355d42cbf64",
+   "story_id": "2c38f284-fabe-4dfa-bd27-fba78d6e9e9e",
+   "event_id": "1a087027-b7d9-4c74-b435-62dff04db206",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-03T03:33:04.077043+00:00"
+   "linked_at": "2026-07-03T03:35:31.445062+00:00"
   },
   {
-   "story_id": "6ccf098d-e962-475d-a2e0-e1c60a739efd",
-   "event_id": "27996589-d657-46d4-b156-3ae5e7ab240e",
+   "story_id": "2c38f284-fabe-4dfa-bd27-fba78d6e9e9e",
+   "event_id": "41270ac2-a67a-42d0-8f51-d7c226ed31dd",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T03:33:04.077043+00:00"
+   "linked_at": "2026-07-03T03:35:31.445062+00:00"
   },
   {
-   "story_id": "6ccf098d-e962-475d-a2e0-e1c60a739efd",
-   "event_id": "3c18ce89-3ac4-4543-b534-b27ea2ee34d4",
+   "story_id": "2c38f284-fabe-4dfa-bd27-fba78d6e9e9e",
+   "event_id": "5b6de001-d09f-4265-b35a-26581b17364c",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T03:33:04.077043+00:00"
+   "linked_at": "2026-07-03T03:35:31.445062+00:00"
   },
   {
-   "story_id": "6ccf098d-e962-475d-a2e0-e1c60a739efd",
-   "event_id": "dc4b1da3-33b8-4621-b9e7-baab43964e40",
+   "story_id": "2c38f284-fabe-4dfa-bd27-fba78d6e9e9e",
+   "event_id": "9a2faa8b-0bdb-45d1-8a8d-a802658b7d10",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-03T03:33:04.077043+00:00"
+   "linked_at": "2026-07-03T03:35:31.445062+00:00"
   },
   {
-   "story_id": "b991e65c-a8cb-4a60-a78d-792f43548257",
-   "event_id": "1eb5d762-86f0-4a08-89ba-063071ac7358",
+   "story_id": "b621b53f-4253-4b10-a16f-e038f382314c",
+   "event_id": "4fae725b-0b08-4c13-8c12-32be0741a6e7",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T10:01:18.256587+00:00"
+   "linked_at": "2026-07-02T10:03:45.624606+00:00"
   },
   {
-   "story_id": "b991e65c-a8cb-4a60-a78d-792f43548257",
-   "event_id": "87a668ec-4143-4a12-a1f1-a850c41a6205",
+   "story_id": "b621b53f-4253-4b10-a16f-e038f382314c",
+   "event_id": "4f039ec7-1496-4336-acd8-b268f0c9c7f0",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T10:01:18.256587+00:00"
+   "linked_at": "2026-07-02T10:03:45.624606+00:00"
   },
   {
-   "story_id": "b991e65c-a8cb-4a60-a78d-792f43548257",
-   "event_id": "f78575de-cd99-49b9-9797-313339f1acee",
+   "story_id": "b621b53f-4253-4b10-a16f-e038f382314c",
+   "event_id": "84dc9d03-2d25-4d0e-94d0-2dc790fa574a",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T10:01:18.256587+00:00"
+   "linked_at": "2026-07-02T10:03:45.624606+00:00"
   },
   {
-   "story_id": "b991e65c-a8cb-4a60-a78d-792f43548257",
-   "event_id": "070ccfc9-ee81-4584-87b5-9e87b099d58e",
+   "story_id": "b621b53f-4253-4b10-a16f-e038f382314c",
+   "event_id": "e8ac3a55-f298-423c-a7db-ceac656a9d77",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T10:01:18.256587+00:00"
+   "linked_at": "2026-07-02T10:03:45.624606+00:00"
   },
   {
-   "story_id": "b991e65c-a8cb-4a60-a78d-792f43548257",
-   "event_id": "37022717-8085-4536-9eea-61339f9306bc",
+   "story_id": "b621b53f-4253-4b10-a16f-e038f382314c",
+   "event_id": "0c4e465a-7f2e-48c8-87f0-f04a7997b4c7",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T10:01:18.256587+00:00"
+   "linked_at": "2026-07-02T10:03:45.624606+00:00"
   },
   {
-   "story_id": "b991e65c-a8cb-4a60-a78d-792f43548257",
-   "event_id": "a4e2af61-d8ea-4c39-8182-0723f1d4383f",
+   "story_id": "b621b53f-4253-4b10-a16f-e038f382314c",
+   "event_id": "0f38302f-b97a-45d3-94dd-2292476b83aa",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T10:01:18.256587+00:00"
+   "linked_at": "2026-07-02T10:03:45.624606+00:00"
   },
   {
-   "story_id": "d9864607-aa07-4699-b7b3-c1050aaebbce",
-   "event_id": "66927e1b-a6bb-4512-8305-aa3a217d3f0d",
+   "story_id": "033cb6ba-75e8-49e2-b4b1-d585bd2e34d0",
+   "event_id": "0fcfe186-9d97-449c-a624-fd50539d4275",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T11:58:27.373550+00:00"
+   "linked_at": "2026-07-02T12:00:54.741569+00:00"
   },
   {
-   "story_id": "d9864607-aa07-4699-b7b3-c1050aaebbce",
-   "event_id": "5f936ad6-580f-47dc-afaa-d60ba4ab2a19",
+   "story_id": "033cb6ba-75e8-49e2-b4b1-d585bd2e34d0",
+   "event_id": "11781b14-a0db-418e-8622-38c1b69b47d2",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T11:58:27.373550+00:00"
+   "linked_at": "2026-07-02T12:00:54.741569+00:00"
   },
   {
-   "story_id": "d9864607-aa07-4699-b7b3-c1050aaebbce",
-   "event_id": "e6818b62-82d4-445f-83d5-5b45f34b8711",
+   "story_id": "033cb6ba-75e8-49e2-b4b1-d585bd2e34d0",
+   "event_id": "42e0db5f-340e-4ecd-88e8-92dd39fec9f3",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T11:58:27.373550+00:00"
+   "linked_at": "2026-07-02T12:00:54.741569+00:00"
   },
   {
-   "story_id": "d9864607-aa07-4699-b7b3-c1050aaebbce",
-   "event_id": "bcc4394c-5749-4e14-ac1d-0d5da8d9badd",
+   "story_id": "033cb6ba-75e8-49e2-b4b1-d585bd2e34d0",
+   "event_id": "5740f552-a9fc-46c7-a94b-a41c38d30879",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T11:58:27.373550+00:00"
+   "linked_at": "2026-07-02T12:00:54.741569+00:00"
   },
   {
-   "story_id": "d9864607-aa07-4699-b7b3-c1050aaebbce",
-   "event_id": "134d8d39-7311-4ac8-b5a9-bc75ad67703d",
+   "story_id": "033cb6ba-75e8-49e2-b4b1-d585bd2e34d0",
+   "event_id": "1fa49cb5-3d62-4178-a8f0-fed1593d1585",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T11:58:27.373550+00:00"
+   "linked_at": "2026-07-02T12:00:54.741569+00:00"
   },
   {
-   "story_id": "d9864607-aa07-4699-b7b3-c1050aaebbce",
-   "event_id": "8936344c-37fd-40c4-89b8-e4b653d38181",
+   "story_id": "033cb6ba-75e8-49e2-b4b1-d585bd2e34d0",
+   "event_id": "ad9775a3-b784-40a5-9b26-23224b7df1f5",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T11:58:27.373550+00:00"
+   "linked_at": "2026-07-02T12:00:54.741569+00:00"
   },
   {
-   "story_id": "11b771ef-59c9-407b-b139-e461f3c48af1",
-   "event_id": "e56eac39-4b5e-4fc9-a4b8-e5fc7abb0b60",
+   "story_id": "6f0628a3-693d-412f-a81c-cc47bf755d45",
+   "event_id": "ebc41f78-9294-4f9e-a16c-c8ad4a8bb26d",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T12:06:59.897853+00:00"
+   "linked_at": "2026-07-02T12:09:27.265872+00:00"
   },
   {
-   "story_id": "11b771ef-59c9-407b-b139-e461f3c48af1",
-   "event_id": "b1642220-2579-4b4d-acd2-c1b5405d437f",
+   "story_id": "6f0628a3-693d-412f-a81c-cc47bf755d45",
+   "event_id": "cc4f7645-7d94-49f6-8123-03614a6db896",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T12:06:59.897853+00:00"
+   "linked_at": "2026-07-02T12:09:27.265872+00:00"
   },
   {
-   "story_id": "11b771ef-59c9-407b-b139-e461f3c48af1",
-   "event_id": "b73b6f89-0bfe-43b0-af02-a4b5a53c046d",
+   "story_id": "6f0628a3-693d-412f-a81c-cc47bf755d45",
+   "event_id": "27a25499-5869-46cb-869e-db2ed97eea34",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T12:06:59.897853+00:00"
+   "linked_at": "2026-07-02T12:09:27.265872+00:00"
   },
   {
-   "story_id": "11b771ef-59c9-407b-b139-e461f3c48af1",
-   "event_id": "3644948b-5cb3-4ae4-8d39-47158431679f",
+   "story_id": "6f0628a3-693d-412f-a81c-cc47bf755d45",
+   "event_id": "115ce757-775d-43d4-924e-6ba1db1bf9fa",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T12:06:59.897853+00:00"
+   "linked_at": "2026-07-02T12:09:27.265872+00:00"
   },
   {
-   "story_id": "c2c57ff4-492c-49d0-b662-2f4cd6bed95a",
-   "event_id": "25bb3282-d3a2-4420-b852-726367a24827",
+   "story_id": "54f8531b-a334-4b58-9fef-c84a67f64994",
+   "event_id": "b8fbcfb6-8183-4185-9519-694fbd0d913c",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T23:52:02.544368+00:00"
+   "linked_at": "2026-07-02T23:54:29.912387+00:00"
   },
   {
-   "story_id": "c2c57ff4-492c-49d0-b662-2f4cd6bed95a",
-   "event_id": "a862f2c9-fa0e-4535-b738-9c1f075e1b4c",
+   "story_id": "54f8531b-a334-4b58-9fef-c84a67f64994",
+   "event_id": "e8d52c30-5206-4d04-b3b8-dd1903622ba1",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T23:52:02.544368+00:00"
+   "linked_at": "2026-07-02T23:54:29.912387+00:00"
   },
   {
-   "story_id": "c2c57ff4-492c-49d0-b662-2f4cd6bed95a",
-   "event_id": "fa4be087-5a43-47da-82bc-cb49b7d28e3f",
+   "story_id": "54f8531b-a334-4b58-9fef-c84a67f64994",
+   "event_id": "9381bd9f-d8f2-4afb-bef1-9ddc55c0f8f9",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T23:52:02.544368+00:00"
+   "linked_at": "2026-07-02T23:54:29.912387+00:00"
   },
   {
-   "story_id": "c2c57ff4-492c-49d0-b662-2f4cd6bed95a",
-   "event_id": "3100ff82-316a-477a-a1f3-a2e9cb97276f",
+   "story_id": "54f8531b-a334-4b58-9fef-c84a67f64994",
+   "event_id": "888ad848-aef0-4aa3-928a-38977a700ebd",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T23:52:02.544368+00:00"
+   "linked_at": "2026-07-02T23:54:29.912387+00:00"
   },
   {
-   "story_id": "c2c57ff4-492c-49d0-b662-2f4cd6bed95a",
-   "event_id": "8c043bf4-9357-499f-be18-3edde0aa9dd4",
+   "story_id": "54f8531b-a334-4b58-9fef-c84a67f64994",
+   "event_id": "24bf1e87-dee1-479b-8663-b0d536e67f82",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T23:52:02.544368+00:00"
+   "linked_at": "2026-07-02T23:54:29.912387+00:00"
   },
   {
-   "story_id": "c2c57ff4-492c-49d0-b662-2f4cd6bed95a",
-   "event_id": "3f96328b-cd36-4d1b-ba9b-17421168f8f7",
+   "story_id": "54f8531b-a334-4b58-9fef-c84a67f64994",
+   "event_id": "dcc8e775-c049-4748-83d7-29e4b1d2ddda",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T23:52:02.544368+00:00"
+   "linked_at": "2026-07-02T23:54:29.912387+00:00"
   },
   {
-   "story_id": "e451a51e-f2aa-4f7e-b7a3-8c12908ccd57",
-   "event_id": "948f8735-0586-4867-9789-fa72e4b6dba4",
+   "story_id": "94bf7b0a-3955-44f0-baa9-be8075ed77df",
+   "event_id": "c2bea47b-1042-490a-95b3-ec372a7b206f",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T16:16:59.253972+00:00"
+   "linked_at": "2026-07-02T16:19:26.621991+00:00"
   },
   {
-   "story_id": "e451a51e-f2aa-4f7e-b7a3-8c12908ccd57",
-   "event_id": "a4ad6d03-9171-419a-9cdf-e85af9ff0234",
+   "story_id": "94bf7b0a-3955-44f0-baa9-be8075ed77df",
+   "event_id": "917575ca-541a-4c59-8394-b3c2c619dcaf",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T16:16:59.253972+00:00"
+   "linked_at": "2026-07-02T16:19:26.621991+00:00"
   },
   {
-   "story_id": "a5ef0b9d-b522-4b61-a213-ac7fbb45a50f",
-   "event_id": "41cd2086-0c24-4146-8e1a-47845394cc10",
+   "story_id": "4fae821a-799d-4634-b191-4ea015b6670f",
+   "event_id": "8a189e9d-68d5-4f4e-bc94-f1d8f7d53f26",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T22:39:10.344617+00:00"
+   "linked_at": "2026-07-02T22:41:37.712636+00:00"
   },
   {
-   "story_id": "a5ef0b9d-b522-4b61-a213-ac7fbb45a50f",
-   "event_id": "7999a5e6-3712-4d8b-a1ff-82b25c23928d",
+   "story_id": "4fae821a-799d-4634-b191-4ea015b6670f",
+   "event_id": "a68032b5-ed0f-4b7d-b2dd-ff138e923c3e",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T22:39:10.344617+00:00"
+   "linked_at": "2026-07-02T22:41:37.712636+00:00"
   },
   {
-   "story_id": "a5ef0b9d-b522-4b61-a213-ac7fbb45a50f",
-   "event_id": "9767cea7-4d37-429d-afdb-6afdf9d8d761",
+   "story_id": "4fae821a-799d-4634-b191-4ea015b6670f",
+   "event_id": "14a27ce7-a4cf-4d55-96e0-c9e0160f99fb",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T22:39:10.344617+00:00"
+   "linked_at": "2026-07-02T22:41:37.712636+00:00"
   },
   {
-   "story_id": "a5ef0b9d-b522-4b61-a213-ac7fbb45a50f",
-   "event_id": "8980f66f-0fbf-4a8a-9f13-e6c694170be6",
+   "story_id": "4fae821a-799d-4634-b191-4ea015b6670f",
+   "event_id": "0d483f19-4a8d-4102-8526-a62f24d5717a",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T22:39:10.344617+00:00"
+   "linked_at": "2026-07-02T22:41:37.712636+00:00"
   },
   {
-   "story_id": "a5ef0b9d-b522-4b61-a213-ac7fbb45a50f",
-   "event_id": "30df4008-5400-4647-8dea-18ef5a49058b",
+   "story_id": "4fae821a-799d-4634-b191-4ea015b6670f",
+   "event_id": "bbedbfac-5b00-4a0f-81fc-8ce8d632b2b8",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T22:39:10.344617+00:00"
+   "linked_at": "2026-07-02T22:41:37.712636+00:00"
   },
   {
-   "story_id": "a5ef0b9d-b522-4b61-a213-ac7fbb45a50f",
-   "event_id": "9ffe519c-f525-41d3-a95f-f2419a129a0b",
+   "story_id": "4fae821a-799d-4634-b191-4ea015b6670f",
+   "event_id": "e427f140-e433-4e17-98e9-c1ebf6a18d21",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T22:39:10.344617+00:00"
+   "linked_at": "2026-07-02T22:41:37.712636+00:00"
   },
   {
-   "story_id": "22108e8d-3ae5-49f7-be55-a28715dbf55a",
-   "event_id": "3ed83954-b3b8-4217-a495-0e61264b2b88",
+   "story_id": "2963bbe1-a723-4d40-8388-12d0c367ebcb",
+   "event_id": "3f3eb174-e8f1-4513-8644-422eeefe427f",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T03:37:59.494304+00:00"
+   "linked_at": "2026-07-03T03:40:26.862323+00:00"
   },
   {
-   "story_id": "22108e8d-3ae5-49f7-be55-a28715dbf55a",
-   "event_id": "d74aaffc-70c0-463f-bea2-21c31b200a93",
+   "story_id": "2963bbe1-a723-4d40-8388-12d0c367ebcb",
+   "event_id": "747e9e0e-d8fa-418b-b9ea-75e74fd024f3",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-03T03:37:59.494304+00:00"
+   "linked_at": "2026-07-03T03:40:26.862323+00:00"
   },
   {
-   "story_id": "22108e8d-3ae5-49f7-be55-a28715dbf55a",
-   "event_id": "479d70f5-b866-4751-b68d-446127706f59",
+   "story_id": "2963bbe1-a723-4d40-8388-12d0c367ebcb",
+   "event_id": "cfc68adc-8d33-4e37-848d-4bd01f4f33d5",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-03T03:37:59.494304+00:00"
+   "linked_at": "2026-07-03T03:40:26.862323+00:00"
   },
   {
-   "story_id": "22108e8d-3ae5-49f7-be55-a28715dbf55a",
-   "event_id": "3f6cffde-1efc-46b3-92d3-8c61692d5115",
+   "story_id": "2963bbe1-a723-4d40-8388-12d0c367ebcb",
+   "event_id": "c70c93f2-7b72-44b3-93e6-3597f5b73a70",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T03:37:59.494304+00:00"
+   "linked_at": "2026-07-03T03:40:26.862323+00:00"
   },
   {
-   "story_id": "22108e8d-3ae5-49f7-be55-a28715dbf55a",
-   "event_id": "1e3d8b37-acc9-4327-9acb-f019a23b340b",
+   "story_id": "2963bbe1-a723-4d40-8388-12d0c367ebcb",
+   "event_id": "1f2a9616-3422-4ec4-9ccf-5854177904ab",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-03T03:37:59.494304+00:00"
+   "linked_at": "2026-07-03T03:40:26.862323+00:00"
   },
   {
-   "story_id": "22108e8d-3ae5-49f7-be55-a28715dbf55a",
-   "event_id": "2f35fcf8-4eba-4985-b031-29a17019f5d7",
+   "story_id": "2963bbe1-a723-4d40-8388-12d0c367ebcb",
+   "event_id": "e5d8da08-e662-46ad-9359-fa1fede4debd",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T03:37:59.494304+00:00"
+   "linked_at": "2026-07-03T03:40:26.862323+00:00"
   },
   {
-   "story_id": "5dd2fba6-bae5-411d-a088-d08a9f9fa904",
-   "event_id": "8e71b47a-afb6-4ec0-9797-da573b0b87f8",
+   "story_id": "c8776fc1-8bdc-4aa4-9bb6-664b7cefa083",
+   "event_id": "0a837488-9203-4115-9d1a-c4d1242b7fc9",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T11:59:40.870931+00:00"
+   "linked_at": "2026-07-01T12:02:08.238950+00:00"
   },
   {
-   "story_id": "5dd2fba6-bae5-411d-a088-d08a9f9fa904",
-   "event_id": "b7d8fafb-4cf8-4e12-b816-4ff19b3954b2",
+   "story_id": "c8776fc1-8bdc-4aa4-9bb6-664b7cefa083",
+   "event_id": "ab09c689-720f-4f94-8537-cd11060387cb",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-01T11:59:40.870931+00:00"
+   "linked_at": "2026-07-01T12:02:08.238950+00:00"
   },
   {
-   "story_id": "de78ffbb-7ca5-4eed-8adf-8e35f6ce6e03",
-   "event_id": "4b3a7503-b948-4716-981b-fc2757e98a39",
+   "story_id": "b5586306-6de8-4b93-ae0e-334b97f70e3f",
+   "event_id": "9011dd92-8035-4f9b-a760-5195c678651a",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T16:25:21.833566+00:00"
+   "linked_at": "2026-07-02T16:27:49.201585+00:00"
   },
   {
-   "story_id": "de78ffbb-7ca5-4eed-8adf-8e35f6ce6e03",
-   "event_id": "7343a2e3-877f-4a3a-8cfe-d0d0f6d75901",
+   "story_id": "b5586306-6de8-4b93-ae0e-334b97f70e3f",
+   "event_id": "2e76bdb5-2747-4184-84f7-3cf03aece5c5",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T16:25:21.833566+00:00"
+   "linked_at": "2026-07-02T16:27:49.201585+00:00"
   },
   {
-   "story_id": "de78ffbb-7ca5-4eed-8adf-8e35f6ce6e03",
-   "event_id": "388bf70a-a776-4eee-bf41-ac3b83c06b29",
+   "story_id": "b5586306-6de8-4b93-ae0e-334b97f70e3f",
+   "event_id": "ba8d569e-1350-42f3-b8a2-299a2dda14e7",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T16:25:21.833566+00:00"
+   "linked_at": "2026-07-02T16:27:49.201585+00:00"
   },
   {
-   "story_id": "c798a8a7-da39-4df3-a2b9-cd2f76b97c2e",
-   "event_id": "4c20337c-cdf9-47eb-b622-8c1fc622ebbd",
+   "story_id": "e5501182-cf6b-4ad0-b063-7b306308ab1d",
+   "event_id": "6129d345-2095-4d3f-8d69-0eee3dbf0126",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T11:27:32.192387+00:00"
+   "linked_at": "2026-07-02T11:29:59.560406+00:00"
   },
   {
-   "story_id": "c798a8a7-da39-4df3-a2b9-cd2f76b97c2e",
-   "event_id": "6e29f59c-22c3-4828-9125-38b909f87d0f",
+   "story_id": "e5501182-cf6b-4ad0-b063-7b306308ab1d",
+   "event_id": "7d03aeca-d41a-4aec-a0db-532ec06dc0dc",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T11:27:32.192387+00:00"
+   "linked_at": "2026-07-02T11:29:59.560406+00:00"
   },
   {
-   "story_id": "c798a8a7-da39-4df3-a2b9-cd2f76b97c2e",
-   "event_id": "313f3a01-d41e-4ee4-afd7-3186b54c8396",
+   "story_id": "e5501182-cf6b-4ad0-b063-7b306308ab1d",
+   "event_id": "d427861d-33ee-4a00-a3ae-1aa5e71c5cf5",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T11:27:32.192387+00:00"
+   "linked_at": "2026-07-02T11:29:59.560406+00:00"
   },
   {
-   "story_id": "5278f1a4-68f4-4311-a821-8ff0fe76c8b1",
-   "event_id": "376d8c62-d7d5-4068-91ec-c08bb9810286",
+   "story_id": "0dd141cb-645e-4c54-9116-930bd05f8173",
+   "event_id": "2e8a3e32-20d0-412b-9f2a-663016426916",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T03:16:55.480448+00:00"
+   "linked_at": "2026-07-02T03:19:22.848467+00:00"
   },
   {
-   "story_id": "5278f1a4-68f4-4311-a821-8ff0fe76c8b1",
-   "event_id": "b2c7c84d-7a8f-443e-88f5-9aa66eb8a2da",
+   "story_id": "0dd141cb-645e-4c54-9116-930bd05f8173",
+   "event_id": "af4f7b88-37f7-4b84-98ef-fdf34df41303",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T03:16:55.480448+00:00"
+   "linked_at": "2026-07-02T03:19:22.848467+00:00"
   },
   {
-   "story_id": "5278f1a4-68f4-4311-a821-8ff0fe76c8b1",
-   "event_id": "82f39799-fda3-4e1f-9100-7756d7f66005",
+   "story_id": "0dd141cb-645e-4c54-9116-930bd05f8173",
+   "event_id": "200ad901-3303-4998-9a9d-9ae3a642230c",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T03:16:55.480448+00:00"
+   "linked_at": "2026-07-02T03:19:22.848467+00:00"
   },
   {
-   "story_id": "5278f1a4-68f4-4311-a821-8ff0fe76c8b1",
-   "event_id": "81f58e8f-212a-4d17-b85d-da17225129d8",
+   "story_id": "0dd141cb-645e-4c54-9116-930bd05f8173",
+   "event_id": "753cb999-de55-4542-a7cf-2756bed86152",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T03:16:55.480448+00:00"
+   "linked_at": "2026-07-02T03:19:22.848467+00:00"
   },
   {
-   "story_id": "5278f1a4-68f4-4311-a821-8ff0fe76c8b1",
-   "event_id": "3c787e84-f29d-4d5a-b7c6-e888490c19ca",
+   "story_id": "0dd141cb-645e-4c54-9116-930bd05f8173",
+   "event_id": "3f4ad7be-53c7-4957-81a0-724906546e06",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T03:16:55.480448+00:00"
+   "linked_at": "2026-07-02T03:19:22.848467+00:00"
   },
   {
-   "story_id": "5278f1a4-68f4-4311-a821-8ff0fe76c8b1",
-   "event_id": "748e06f9-641f-4b47-89a2-5f182cda7e94",
+   "story_id": "0dd141cb-645e-4c54-9116-930bd05f8173",
+   "event_id": "b1a03abf-8be4-44a3-b83e-6416d5722753",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T03:16:55.480448+00:00"
+   "linked_at": "2026-07-02T03:19:22.848467+00:00"
   },
   {
-   "story_id": "707aabaa-8031-433c-90c9-778bf5ee3cf6",
-   "event_id": "3eeacd05-6282-4658-bb53-0e32c81267d6",
+   "story_id": "5f9dcb3a-e52d-4b0a-9a18-521fbf6edca5",
+   "event_id": "e9891a16-ddb0-40e9-935c-f01918cfb2ca",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T03:15:13.263857+00:00"
+   "linked_at": "2026-07-03T03:17:40.631876+00:00"
   },
   {
-   "story_id": "707aabaa-8031-433c-90c9-778bf5ee3cf6",
-   "event_id": "ede6509e-1458-448c-b2db-b862790caf19",
+   "story_id": "5f9dcb3a-e52d-4b0a-9a18-521fbf6edca5",
+   "event_id": "bd2a6d63-7324-4544-b901-ab66810ebeee",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-03T03:15:13.263857+00:00"
+   "linked_at": "2026-07-03T03:17:40.631876+00:00"
   },
   {
-   "story_id": "49d49fd9-e9c5-4345-b72b-949c066a89f4",
-   "event_id": "446b7c23-adf8-4d99-89e3-07efe0ca2c2e",
+   "story_id": "7628d314-03a2-4cb2-8082-850d0046ce31",
+   "event_id": "e97ae966-b6af-443d-be16-38847e891713",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T21:07:28.487095+00:00"
+   "linked_at": "2026-07-01T21:09:55.855114+00:00"
   },
   {
-   "story_id": "49d49fd9-e9c5-4345-b72b-949c066a89f4",
-   "event_id": "4054a279-97ae-4d2a-bb15-3d823b3809d0",
+   "story_id": "7628d314-03a2-4cb2-8082-850d0046ce31",
+   "event_id": "be1a79cf-75bf-4e82-b394-727573275405",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T21:07:28.487095+00:00"
+   "linked_at": "2026-07-01T21:09:55.855114+00:00"
   },
   {
-   "story_id": "8b4c3d3f-68a2-4629-9d41-b15ee48ed848",
-   "event_id": "a0f420eb-90c2-4f87-a5bc-d5683d546eec",
+   "story_id": "d69aadfa-ff53-41dc-9e04-6af182fe0026",
+   "event_id": "60ce2b1e-448d-4a68-a172-d05363355884",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T22:38:33.582277+00:00"
+   "linked_at": "2026-07-02T22:41:00.950296+00:00"
   },
   {
-   "story_id": "8b4c3d3f-68a2-4629-9d41-b15ee48ed848",
-   "event_id": "103795f5-a463-4a50-bad4-f13dbf65526c",
+   "story_id": "d69aadfa-ff53-41dc-9e04-6af182fe0026",
+   "event_id": "3dce6281-e574-4a47-b65b-9b9f8257165a",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T22:38:33.582277+00:00"
+   "linked_at": "2026-07-02T22:41:00.950296+00:00"
   },
   {
-   "story_id": "8b4c3d3f-68a2-4629-9d41-b15ee48ed848",
-   "event_id": "ed68e815-6cd6-4379-aef0-49ffa10543ad",
+   "story_id": "d69aadfa-ff53-41dc-9e04-6af182fe0026",
+   "event_id": "13a9a137-123a-4840-b0d7-0e64bb18381e",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T22:38:33.582277+00:00"
+   "linked_at": "2026-07-02T22:41:00.950296+00:00"
   },
   {
-   "story_id": "8b4c3d3f-68a2-4629-9d41-b15ee48ed848",
-   "event_id": "6f83974e-339b-4960-872c-30928fa09f7c",
+   "story_id": "d69aadfa-ff53-41dc-9e04-6af182fe0026",
+   "event_id": "0b636ebf-a3e3-4b5b-b4ef-c5cff5170470",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T22:38:33.582277+00:00"
+   "linked_at": "2026-07-02T22:41:00.950296+00:00"
   },
   {
-   "story_id": "8b4c3d3f-68a2-4629-9d41-b15ee48ed848",
-   "event_id": "ffad8dca-6e2a-4ea9-956b-d1238ebafec1",
+   "story_id": "d69aadfa-ff53-41dc-9e04-6af182fe0026",
+   "event_id": "7f9499b4-4a79-441d-ac4a-f6ed61b104c5",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T22:38:33.582277+00:00"
+   "linked_at": "2026-07-02T22:41:00.950296+00:00"
   },
   {
-   "story_id": "8b4c3d3f-68a2-4629-9d41-b15ee48ed848",
-   "event_id": "ba4551a5-93f9-4397-8316-1228301e64d1",
+   "story_id": "d69aadfa-ff53-41dc-9e04-6af182fe0026",
+   "event_id": "f7acb4e0-70c0-4365-a28f-fb9f26a4f4b5",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T22:38:33.582277+00:00"
+   "linked_at": "2026-07-02T22:41:00.950296+00:00"
   },
   {
-   "story_id": "15451626-f522-4a34-bb03-5e32b7552444",
-   "event_id": "0ca77e38-bf41-4f80-a98c-2587d145ee73",
+   "story_id": "82b1f956-74c5-40a2-95f2-edf9e0cf8ee5",
+   "event_id": "ca07471f-6e84-479b-91bc-d9a5c5768ab9",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T09:31:41.525783+00:00"
+   "linked_at": "2026-07-02T09:34:08.893802+00:00"
   },
   {
-   "story_id": "15451626-f522-4a34-bb03-5e32b7552444",
-   "event_id": "967e5541-50af-4a61-a7bf-a87edb447e9b",
+   "story_id": "82b1f956-74c5-40a2-95f2-edf9e0cf8ee5",
+   "event_id": "6c9e9c76-cff0-40e3-92b3-9835cc891189",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T09:31:41.525783+00:00"
+   "linked_at": "2026-07-02T09:34:08.893802+00:00"
   },
   {
-   "story_id": "15451626-f522-4a34-bb03-5e32b7552444",
-   "event_id": "e756c497-2aba-417f-8dca-7779f81dc026",
+   "story_id": "82b1f956-74c5-40a2-95f2-edf9e0cf8ee5",
+   "event_id": "6958f719-92f6-4320-8d09-3150e6cce0f6",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T09:31:41.525783+00:00"
+   "linked_at": "2026-07-02T09:34:08.893802+00:00"
   },
   {
-   "story_id": "15451626-f522-4a34-bb03-5e32b7552444",
-   "event_id": "c74a4359-3452-4014-b54d-2ec3b7993307",
+   "story_id": "82b1f956-74c5-40a2-95f2-edf9e0cf8ee5",
+   "event_id": "0982acbe-3a8a-47be-bda7-cebb89b77f01",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T09:31:41.525783+00:00"
+   "linked_at": "2026-07-02T09:34:08.893802+00:00"
   },
   {
-   "story_id": "15451626-f522-4a34-bb03-5e32b7552444",
-   "event_id": "20670e01-f78d-49a1-8df6-74d24a8782a3",
+   "story_id": "82b1f956-74c5-40a2-95f2-edf9e0cf8ee5",
+   "event_id": "16eccc33-ed4c-467f-b3d3-e69d02251120",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T09:31:41.525783+00:00"
+   "linked_at": "2026-07-02T09:34:08.893802+00:00"
   },
   {
-   "story_id": "15451626-f522-4a34-bb03-5e32b7552444",
-   "event_id": "6cd861a0-5929-4f44-ac1f-5a776fadd1e6",
+   "story_id": "82b1f956-74c5-40a2-95f2-edf9e0cf8ee5",
+   "event_id": "b0077852-3ecb-478a-9e6a-7b78d5af7844",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T09:31:41.525783+00:00"
+   "linked_at": "2026-07-02T09:34:08.893802+00:00"
   },
   {
-   "story_id": "476574bc-e2a2-43e1-b3d0-e3620956aadb",
-   "event_id": "d9ad81be-0be7-4f3c-b382-5307539e0f04",
+   "story_id": "7c6381e2-2ef4-4bb0-9ced-47c5239b8e6f",
+   "event_id": "7ff1b28c-1d4d-4ee9-b161-a0a88af8ac5b",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T20:29:05.852364+00:00"
+   "linked_at": "2026-07-02T20:31:33.220383+00:00"
   },
   {
-   "story_id": "476574bc-e2a2-43e1-b3d0-e3620956aadb",
-   "event_id": "525b966a-b398-4e72-b479-97183cb01c9c",
+   "story_id": "7c6381e2-2ef4-4bb0-9ced-47c5239b8e6f",
+   "event_id": "700dffb8-970f-4605-98d8-23a02a986539",
    "fact_id": null,
    "linked_via": "historical_chain",
-   "linked_at": "2026-07-02T20:29:05.852364+00:00"
+   "linked_at": "2026-07-02T20:31:33.220383+00:00"
   },
   {
-   "story_id": "476574bc-e2a2-43e1-b3d0-e3620956aadb",
-   "event_id": "b8670754-245f-4be5-a75c-12c55ceca654",
+   "story_id": "7c6381e2-2ef4-4bb0-9ced-47c5239b8e6f",
+   "event_id": "72abd47a-186a-4f20-8012-d2d9c9460f72",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T20:29:05.852364+00:00"
+   "linked_at": "2026-07-02T20:31:33.220383+00:00"
   },
   {
-   "story_id": "476574bc-e2a2-43e1-b3d0-e3620956aadb",
-   "event_id": "b4118e9c-639e-4dfd-aa5f-74cf6edd8c18",
+   "story_id": "7c6381e2-2ef4-4bb0-9ced-47c5239b8e6f",
+   "event_id": "03fbc563-3e71-4e9f-a29e-fa438e024d40",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T20:29:05.852364+00:00"
+   "linked_at": "2026-07-02T20:31:33.220383+00:00"
   },
   {
-   "story_id": "476574bc-e2a2-43e1-b3d0-e3620956aadb",
-   "event_id": "2016b422-17d9-4c37-a0cf-e7bee625781f",
+   "story_id": "7c6381e2-2ef4-4bb0-9ced-47c5239b8e6f",
+   "event_id": "f170b216-1df2-4e17-bb2f-18701669f290",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T20:29:05.852364+00:00"
+   "linked_at": "2026-07-02T20:31:33.220383+00:00"
   },
   {
-   "story_id": "476574bc-e2a2-43e1-b3d0-e3620956aadb",
-   "event_id": "0ca97e19-7996-424f-94d3-28c040b46357",
+   "story_id": "7c6381e2-2ef4-4bb0-9ced-47c5239b8e6f",
+   "event_id": "d6dff9ed-bf93-43da-8a9c-0bc76ec306ae",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-02T20:29:05.852364+00:00"
+   "linked_at": "2026-07-02T20:31:33.220383+00:00"
   },
   {
-   "story_id": "894dd678-c411-495d-805f-337a261c848e",
-   "event_id": "65ae8059-733c-445e-b47f-5884df922c2c",
+   "story_id": "7d73af85-ee33-4fb1-8118-f9560662e2f0",
+   "event_id": "d33c27ef-e51c-475c-b73c-7092a22b88be",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T00:08:41.491981+00:00"
+   "linked_at": "2026-07-01T00:11:08.860000+00:00"
   },
   {
-   "story_id": "894dd678-c411-495d-805f-337a261c848e",
-   "event_id": "de645c58-9fbe-4825-a66a-f18b1ac55286",
+   "story_id": "7d73af85-ee33-4fb1-8118-f9560662e2f0",
+   "event_id": "c43cbecc-5910-4203-bb32-74c315f7a5d9",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T00:08:41.491981+00:00"
+   "linked_at": "2026-07-01T00:11:08.860000+00:00"
   },
   {
-   "story_id": "894dd678-c411-495d-805f-337a261c848e",
-   "event_id": "ec774265-d51c-4e72-a257-ce68f02a771e",
+   "story_id": "7d73af85-ee33-4fb1-8118-f9560662e2f0",
+   "event_id": "a38d6297-96ef-48c6-803d-bafbac3685ec",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T00:08:41.491981+00:00"
+   "linked_at": "2026-07-01T00:11:08.860000+00:00"
   },
   {
-   "story_id": "894dd678-c411-495d-805f-337a261c848e",
-   "event_id": "3a70ba0b-8b0f-4ede-a7d8-962415a9d0e9",
+   "story_id": "7d73af85-ee33-4fb1-8118-f9560662e2f0",
+   "event_id": "abf5f8c0-6b70-4ea7-ab3c-0b1b46dfa325",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T00:08:41.491981+00:00"
+   "linked_at": "2026-07-01T00:11:08.860000+00:00"
   },
   {
-   "story_id": "894dd678-c411-495d-805f-337a261c848e",
-   "event_id": "231693f6-42c4-4677-a0b9-798c185bc9d8",
+   "story_id": "7d73af85-ee33-4fb1-8118-f9560662e2f0",
+   "event_id": "d7b721b4-58b4-4f70-9971-4f71755c991d",
    "fact_id": null,
    "linked_via": "same_window",
-   "linked_at": "2026-07-01T00:08:41.491981+00:00"
+   "linked_at": "2026-07-01T00:11:08.860000+00:00"
   }
  ],
  "instability_scores": [
   {
    "score": 50.54,
-   "computed_at": "2026-06-26T05:00:24.543845+00:00",
+   "computed_at": "2026-06-26T05:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 16.33,
@@ -8945,7 +8945,7 @@ const syntheticDataset = {
   },
   {
    "score": 52.04,
-   "computed_at": "2026-06-26T06:00:24.543845+00:00",
+   "computed_at": "2026-06-26T06:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 14.35,
@@ -8955,7 +8955,7 @@ const syntheticDataset = {
   },
   {
    "score": 45.95,
-   "computed_at": "2026-06-26T07:00:24.543845+00:00",
+   "computed_at": "2026-06-26T07:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 32.46,
@@ -8965,7 +8965,7 @@ const syntheticDataset = {
   },
   {
    "score": 56.12,
-   "computed_at": "2026-06-26T08:00:24.543845+00:00",
+   "computed_at": "2026-06-26T08:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 3.99,
@@ -8975,7 +8975,7 @@ const syntheticDataset = {
   },
   {
    "score": 49.23,
-   "computed_at": "2026-06-26T09:00:24.543845+00:00",
+   "computed_at": "2026-06-26T09:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 28.48,
@@ -8985,7 +8985,7 @@ const syntheticDataset = {
   },
   {
    "score": 57.13,
-   "computed_at": "2026-06-26T10:00:24.543845+00:00",
+   "computed_at": "2026-06-26T10:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 18.22,
@@ -8995,7 +8995,7 @@ const syntheticDataset = {
   },
   {
    "score": 49.85,
-   "computed_at": "2026-06-26T11:00:24.543845+00:00",
+   "computed_at": "2026-06-26T11:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 2.65,
@@ -9005,7 +9005,7 @@ const syntheticDataset = {
   },
   {
    "score": 43.64,
-   "computed_at": "2026-06-26T12:00:24.543845+00:00",
+   "computed_at": "2026-06-26T12:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 26.63,
@@ -9015,7 +9015,7 @@ const syntheticDataset = {
   },
   {
    "score": 39.23,
-   "computed_at": "2026-06-26T13:00:24.543845+00:00",
+   "computed_at": "2026-06-26T13:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 9.24,
@@ -9025,7 +9025,7 @@ const syntheticDataset = {
   },
   {
    "score": 44.8,
-   "computed_at": "2026-06-26T14:00:24.543845+00:00",
+   "computed_at": "2026-06-26T14:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 22.2,
@@ -9035,7 +9035,7 @@ const syntheticDataset = {
   },
   {
    "score": 42.19,
-   "computed_at": "2026-06-26T15:00:24.543845+00:00",
+   "computed_at": "2026-06-26T15:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 34.43,
@@ -9045,7 +9045,7 @@ const syntheticDataset = {
   },
   {
    "score": 49.91,
-   "computed_at": "2026-06-26T16:00:24.543845+00:00",
+   "computed_at": "2026-06-26T16:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 34.05,
@@ -9055,7 +9055,7 @@ const syntheticDataset = {
   },
   {
    "score": 44.17,
-   "computed_at": "2026-06-26T17:00:24.543845+00:00",
+   "computed_at": "2026-06-26T17:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 36.64,
@@ -9065,7 +9065,7 @@ const syntheticDataset = {
   },
   {
    "score": 55.34,
-   "computed_at": "2026-06-26T18:00:24.543845+00:00",
+   "computed_at": "2026-06-26T18:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 8.86,
@@ -9075,7 +9075,7 @@ const syntheticDataset = {
   },
   {
    "score": 49.07,
-   "computed_at": "2026-06-26T19:00:24.543845+00:00",
+   "computed_at": "2026-06-26T19:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 18.26,
@@ -9085,7 +9085,7 @@ const syntheticDataset = {
   },
   {
    "score": 43.09,
-   "computed_at": "2026-06-26T20:00:24.543845+00:00",
+   "computed_at": "2026-06-26T20:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 7.29,
@@ -9095,7 +9095,7 @@ const syntheticDataset = {
   },
   {
    "score": 41.74,
-   "computed_at": "2026-06-26T21:00:24.543845+00:00",
+   "computed_at": "2026-06-26T21:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 33.24,
@@ -9105,7 +9105,7 @@ const syntheticDataset = {
   },
   {
    "score": 43.64,
-   "computed_at": "2026-06-26T22:00:24.543845+00:00",
+   "computed_at": "2026-06-26T22:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 24.39,
@@ -9115,7 +9115,7 @@ const syntheticDataset = {
   },
   {
    "score": 48.23,
-   "computed_at": "2026-06-26T23:00:24.543845+00:00",
+   "computed_at": "2026-06-26T23:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 13.2,
@@ -9125,7 +9125,7 @@ const syntheticDataset = {
   },
   {
    "score": 57.51,
-   "computed_at": "2026-06-27T00:00:24.543845+00:00",
+   "computed_at": "2026-06-27T00:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 21.8,
@@ -9135,7 +9135,7 @@ const syntheticDataset = {
   },
   {
    "score": 54.08,
-   "computed_at": "2026-06-27T01:00:24.543845+00:00",
+   "computed_at": "2026-06-27T01:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 30.39,
@@ -9145,7 +9145,7 @@ const syntheticDataset = {
   },
   {
    "score": 68.6,
-   "computed_at": "2026-06-27T02:00:24.543845+00:00",
+   "computed_at": "2026-06-27T02:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 34.51,
@@ -9155,7 +9155,7 @@ const syntheticDataset = {
   },
   {
    "score": 52.88,
-   "computed_at": "2026-06-27T03:00:24.543845+00:00",
+   "computed_at": "2026-06-27T03:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 28.67,
@@ -9165,7 +9165,7 @@ const syntheticDataset = {
   },
   {
    "score": 61.96,
-   "computed_at": "2026-06-27T04:00:24.543845+00:00",
+   "computed_at": "2026-06-27T04:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 0.49,
@@ -9175,7 +9175,7 @@ const syntheticDataset = {
   },
   {
    "score": 59.15,
-   "computed_at": "2026-06-27T05:00:24.543845+00:00",
+   "computed_at": "2026-06-27T05:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 7.3,
@@ -9185,7 +9185,7 @@ const syntheticDataset = {
   },
   {
    "score": 45.65,
-   "computed_at": "2026-06-27T06:00:24.543845+00:00",
+   "computed_at": "2026-06-27T06:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 23.47,
@@ -9195,7 +9195,7 @@ const syntheticDataset = {
   },
   {
    "score": 47.1,
-   "computed_at": "2026-06-27T07:00:24.543845+00:00",
+   "computed_at": "2026-06-27T07:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 24.94,
@@ -9205,7 +9205,7 @@ const syntheticDataset = {
   },
   {
    "score": 39.42,
-   "computed_at": "2026-06-27T08:00:24.543845+00:00",
+   "computed_at": "2026-06-27T08:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 22.12,
@@ -9215,7 +9215,7 @@ const syntheticDataset = {
   },
   {
    "score": 44.31,
-   "computed_at": "2026-06-27T09:00:24.543845+00:00",
+   "computed_at": "2026-06-27T09:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 24.23,
@@ -9225,7 +9225,7 @@ const syntheticDataset = {
   },
   {
    "score": 50.55,
-   "computed_at": "2026-06-27T10:00:24.543845+00:00",
+   "computed_at": "2026-06-27T10:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 22.54,
@@ -9235,7 +9235,7 @@ const syntheticDataset = {
   },
   {
    "score": 51.19,
-   "computed_at": "2026-06-27T11:00:24.543845+00:00",
+   "computed_at": "2026-06-27T11:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 20.28,
@@ -9245,7 +9245,7 @@ const syntheticDataset = {
   },
   {
    "score": 44.58,
-   "computed_at": "2026-06-27T12:00:24.543845+00:00",
+   "computed_at": "2026-06-27T12:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 25.09,
@@ -9255,7 +9255,7 @@ const syntheticDataset = {
   },
   {
    "score": 43.96,
-   "computed_at": "2026-06-27T13:00:24.543845+00:00",
+   "computed_at": "2026-06-27T13:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 3.56,
@@ -9265,7 +9265,7 @@ const syntheticDataset = {
   },
   {
    "score": 42.03,
-   "computed_at": "2026-06-27T14:00:24.543845+00:00",
+   "computed_at": "2026-06-27T14:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 20.05,
@@ -9275,7 +9275,7 @@ const syntheticDataset = {
   },
   {
    "score": 59.07,
-   "computed_at": "2026-06-27T15:00:24.543845+00:00",
+   "computed_at": "2026-06-27T15:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 36.62,
@@ -9285,7 +9285,7 @@ const syntheticDataset = {
   },
   {
    "score": 49.13,
-   "computed_at": "2026-06-27T16:00:24.543845+00:00",
+   "computed_at": "2026-06-27T16:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 8.24,
@@ -9295,7 +9295,7 @@ const syntheticDataset = {
   },
   {
    "score": 51.98,
-   "computed_at": "2026-06-27T17:00:24.543845+00:00",
+   "computed_at": "2026-06-27T17:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 25.04,
@@ -9305,7 +9305,7 @@ const syntheticDataset = {
   },
   {
    "score": 42.41,
-   "computed_at": "2026-06-27T18:00:24.543845+00:00",
+   "computed_at": "2026-06-27T18:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 28.1,
@@ -9315,7 +9315,7 @@ const syntheticDataset = {
   },
   {
    "score": 38.72,
-   "computed_at": "2026-06-27T19:00:24.543845+00:00",
+   "computed_at": "2026-06-27T19:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 21.95,
@@ -9325,7 +9325,7 @@ const syntheticDataset = {
   },
   {
    "score": 51.35,
-   "computed_at": "2026-06-27T20:00:24.543845+00:00",
+   "computed_at": "2026-06-27T20:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 18.52,
@@ -9335,7 +9335,7 @@ const syntheticDataset = {
   },
   {
    "score": 43.24,
-   "computed_at": "2026-06-27T21:00:24.543845+00:00",
+   "computed_at": "2026-06-27T21:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 0.11,
@@ -9345,7 +9345,7 @@ const syntheticDataset = {
   },
   {
    "score": 53.56,
-   "computed_at": "2026-06-27T22:00:24.543845+00:00",
+   "computed_at": "2026-06-27T22:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 6.14,
@@ -9355,7 +9355,7 @@ const syntheticDataset = {
   },
   {
    "score": 44.23,
-   "computed_at": "2026-06-27T23:00:24.543845+00:00",
+   "computed_at": "2026-06-27T23:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 7.33,
@@ -9365,7 +9365,7 @@ const syntheticDataset = {
   },
   {
    "score": 58.42,
-   "computed_at": "2026-06-28T00:00:24.543845+00:00",
+   "computed_at": "2026-06-28T00:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 3.73,
@@ -9375,7 +9375,7 @@ const syntheticDataset = {
   },
   {
    "score": 57.45,
-   "computed_at": "2026-06-28T01:00:24.543845+00:00",
+   "computed_at": "2026-06-28T01:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 23.62,
@@ -9385,7 +9385,7 @@ const syntheticDataset = {
   },
   {
    "score": 49.29,
-   "computed_at": "2026-06-28T02:00:24.543845+00:00",
+   "computed_at": "2026-06-28T02:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 32.37,
@@ -9395,7 +9395,7 @@ const syntheticDataset = {
   },
   {
    "score": 50.25,
-   "computed_at": "2026-06-28T03:00:24.543845+00:00",
+   "computed_at": "2026-06-28T03:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 7.51,
@@ -9405,7 +9405,7 @@ const syntheticDataset = {
   },
   {
    "score": 61.65,
-   "computed_at": "2026-06-28T04:00:24.543845+00:00",
+   "computed_at": "2026-06-28T04:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 12.68,
@@ -9415,7 +9415,7 @@ const syntheticDataset = {
   },
   {
    "score": 63.72,
-   "computed_at": "2026-06-28T05:00:24.543845+00:00",
+   "computed_at": "2026-06-28T05:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 13.55,
@@ -9425,7 +9425,7 @@ const syntheticDataset = {
   },
   {
    "score": 53.51,
-   "computed_at": "2026-06-28T06:00:24.543845+00:00",
+   "computed_at": "2026-06-28T06:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 31.38,
@@ -9435,7 +9435,7 @@ const syntheticDataset = {
   },
   {
    "score": 39.45,
-   "computed_at": "2026-06-28T07:00:24.543845+00:00",
+   "computed_at": "2026-06-28T07:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 5.65,
@@ -9445,7 +9445,7 @@ const syntheticDataset = {
   },
   {
    "score": 53.91,
-   "computed_at": "2026-06-28T08:00:24.543845+00:00",
+   "computed_at": "2026-06-28T08:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 0.99,
@@ -9455,7 +9455,7 @@ const syntheticDataset = {
   },
   {
    "score": 57.46,
-   "computed_at": "2026-06-28T09:00:24.543845+00:00",
+   "computed_at": "2026-06-28T09:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 32.15,
@@ -9465,7 +9465,7 @@ const syntheticDataset = {
   },
   {
    "score": 50.9,
-   "computed_at": "2026-06-28T10:00:24.543845+00:00",
+   "computed_at": "2026-06-28T10:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 21.56,
@@ -9475,7 +9475,7 @@ const syntheticDataset = {
   },
   {
    "score": 53.09,
-   "computed_at": "2026-06-28T11:00:24.543845+00:00",
+   "computed_at": "2026-06-28T11:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 8.35,
@@ -9485,7 +9485,7 @@ const syntheticDataset = {
   },
   {
    "score": 46.3,
-   "computed_at": "2026-06-28T12:00:24.543845+00:00",
+   "computed_at": "2026-06-28T12:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 2.77,
@@ -9495,7 +9495,7 @@ const syntheticDataset = {
   },
   {
    "score": 42.55,
-   "computed_at": "2026-06-28T13:00:24.543845+00:00",
+   "computed_at": "2026-06-28T13:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 36.07,
@@ -9505,7 +9505,7 @@ const syntheticDataset = {
   },
   {
    "score": 39.41,
-   "computed_at": "2026-06-28T14:00:24.543845+00:00",
+   "computed_at": "2026-06-28T14:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 9.16,
@@ -9515,7 +9515,7 @@ const syntheticDataset = {
   },
   {
    "score": 50.82,
-   "computed_at": "2026-06-28T15:00:24.543845+00:00",
+   "computed_at": "2026-06-28T15:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 16.33,
@@ -9525,7 +9525,7 @@ const syntheticDataset = {
   },
   {
    "score": 57.32,
-   "computed_at": "2026-06-28T16:00:24.543845+00:00",
+   "computed_at": "2026-06-28T16:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 11.99,
@@ -9535,7 +9535,7 @@ const syntheticDataset = {
   },
   {
    "score": 41.8,
-   "computed_at": "2026-06-28T17:00:24.543845+00:00",
+   "computed_at": "2026-06-28T17:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 23.02,
@@ -9545,7 +9545,7 @@ const syntheticDataset = {
   },
   {
    "score": 49.91,
-   "computed_at": "2026-06-28T18:00:24.543845+00:00",
+   "computed_at": "2026-06-28T18:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 29.33,
@@ -9555,7 +9555,7 @@ const syntheticDataset = {
   },
   {
    "score": 50.67,
-   "computed_at": "2026-06-28T19:00:24.543845+00:00",
+   "computed_at": "2026-06-28T19:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 36.31,
@@ -9565,7 +9565,7 @@ const syntheticDataset = {
   },
   {
    "score": 41.33,
-   "computed_at": "2026-06-28T20:00:24.543845+00:00",
+   "computed_at": "2026-06-28T20:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 9.06,
@@ -9575,7 +9575,7 @@ const syntheticDataset = {
   },
   {
    "score": 43.16,
-   "computed_at": "2026-06-28T21:00:24.543845+00:00",
+   "computed_at": "2026-06-28T21:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 13.93,
@@ -9585,7 +9585,7 @@ const syntheticDataset = {
   },
   {
    "score": 50.23,
-   "computed_at": "2026-06-28T22:00:24.543845+00:00",
+   "computed_at": "2026-06-28T22:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 22.47,
@@ -9595,7 +9595,7 @@ const syntheticDataset = {
   },
   {
    "score": 50.64,
-   "computed_at": "2026-06-28T23:00:24.543845+00:00",
+   "computed_at": "2026-06-28T23:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 38.32,
@@ -9605,7 +9605,7 @@ const syntheticDataset = {
   },
   {
    "score": 56.36,
-   "computed_at": "2026-06-29T00:00:24.543845+00:00",
+   "computed_at": "2026-06-29T00:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 28.95,
@@ -9615,7 +9615,7 @@ const syntheticDataset = {
   },
   {
    "score": 55.56,
-   "computed_at": "2026-06-29T01:00:24.543845+00:00",
+   "computed_at": "2026-06-29T01:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 26.87,
@@ -9625,7 +9625,7 @@ const syntheticDataset = {
   },
   {
    "score": 62.5,
-   "computed_at": "2026-06-29T02:00:24.543845+00:00",
+   "computed_at": "2026-06-29T02:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 5.6,
@@ -9635,7 +9635,7 @@ const syntheticDataset = {
   },
   {
    "score": 57.29,
-   "computed_at": "2026-06-29T03:00:24.543845+00:00",
+   "computed_at": "2026-06-29T03:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 2.5,
@@ -9645,7 +9645,7 @@ const syntheticDataset = {
   },
   {
    "score": 59.54,
-   "computed_at": "2026-06-29T04:00:24.543845+00:00",
+   "computed_at": "2026-06-29T04:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 32.54,
@@ -9655,7 +9655,7 @@ const syntheticDataset = {
   },
   {
    "score": 61.25,
-   "computed_at": "2026-06-29T05:00:24.543845+00:00",
+   "computed_at": "2026-06-29T05:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 9.42,
@@ -9665,7 +9665,7 @@ const syntheticDataset = {
   },
   {
    "score": 47.31,
-   "computed_at": "2026-06-29T06:00:24.543845+00:00",
+   "computed_at": "2026-06-29T06:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 24.29,
@@ -9675,7 +9675,7 @@ const syntheticDataset = {
   },
   {
    "score": 48.14,
-   "computed_at": "2026-06-29T07:00:24.543845+00:00",
+   "computed_at": "2026-06-29T07:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 18.68,
@@ -9685,7 +9685,7 @@ const syntheticDataset = {
   },
   {
    "score": 53.87,
-   "computed_at": "2026-06-29T08:00:24.543845+00:00",
+   "computed_at": "2026-06-29T08:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 16.54,
@@ -9695,7 +9695,7 @@ const syntheticDataset = {
   },
   {
    "score": 49.65,
-   "computed_at": "2026-06-29T09:00:24.543845+00:00",
+   "computed_at": "2026-06-29T09:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 14.75,
@@ -9705,7 +9705,7 @@ const syntheticDataset = {
   },
   {
    "score": 39.89,
-   "computed_at": "2026-06-29T10:00:24.543845+00:00",
+   "computed_at": "2026-06-29T10:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 9.32,
@@ -9715,7 +9715,7 @@ const syntheticDataset = {
   },
   {
    "score": 53.74,
-   "computed_at": "2026-06-29T11:00:24.543845+00:00",
+   "computed_at": "2026-06-29T11:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 33.76,
@@ -9725,7 +9725,7 @@ const syntheticDataset = {
   },
   {
    "score": 46.22,
-   "computed_at": "2026-06-29T12:00:24.543845+00:00",
+   "computed_at": "2026-06-29T12:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 4.47,
@@ -9735,7 +9735,7 @@ const syntheticDataset = {
   },
   {
    "score": 43.53,
-   "computed_at": "2026-06-29T13:00:24.543845+00:00",
+   "computed_at": "2026-06-29T13:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 1.78,
@@ -9745,7 +9745,7 @@ const syntheticDataset = {
   },
   {
    "score": 45.28,
-   "computed_at": "2026-06-29T14:00:24.543845+00:00",
+   "computed_at": "2026-06-29T14:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 31.37,
@@ -9755,7 +9755,7 @@ const syntheticDataset = {
   },
   {
    "score": 52.03,
-   "computed_at": "2026-06-29T15:00:24.543845+00:00",
+   "computed_at": "2026-06-29T15:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 2.94,
@@ -9765,7 +9765,7 @@ const syntheticDataset = {
   },
   {
    "score": 55.89,
-   "computed_at": "2026-06-29T16:00:24.543845+00:00",
+   "computed_at": "2026-06-29T16:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 6.26,
@@ -9775,7 +9775,7 @@ const syntheticDataset = {
   },
   {
    "score": 45.14,
-   "computed_at": "2026-06-29T17:00:24.543845+00:00",
+   "computed_at": "2026-06-29T17:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 36.6,
@@ -9785,7 +9785,7 @@ const syntheticDataset = {
   },
   {
    "score": 49.66,
-   "computed_at": "2026-06-29T18:00:24.543845+00:00",
+   "computed_at": "2026-06-29T18:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 6.65,
@@ -9795,7 +9795,7 @@ const syntheticDataset = {
   },
   {
    "score": 53.47,
-   "computed_at": "2026-06-29T19:00:24.543845+00:00",
+   "computed_at": "2026-06-29T19:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 37.63,
@@ -9805,7 +9805,7 @@ const syntheticDataset = {
   },
   {
    "score": 39.43,
-   "computed_at": "2026-06-29T20:00:24.543845+00:00",
+   "computed_at": "2026-06-29T20:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 11.41,
@@ -9815,7 +9815,7 @@ const syntheticDataset = {
   },
   {
    "score": 48.54,
-   "computed_at": "2026-06-29T21:00:24.543845+00:00",
+   "computed_at": "2026-06-29T21:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 27.78,
@@ -9825,7 +9825,7 @@ const syntheticDataset = {
   },
   {
    "score": 51.99,
-   "computed_at": "2026-06-29T22:00:24.543845+00:00",
+   "computed_at": "2026-06-29T22:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 17.26,
@@ -9835,7 +9835,7 @@ const syntheticDataset = {
   },
   {
    "score": 39.85,
-   "computed_at": "2026-06-29T23:00:24.543845+00:00",
+   "computed_at": "2026-06-29T23:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 1.02,
@@ -9845,7 +9845,7 @@ const syntheticDataset = {
   },
   {
    "score": 56.59,
-   "computed_at": "2026-06-30T00:00:24.543845+00:00",
+   "computed_at": "2026-06-30T00:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 18.79,
@@ -9855,7 +9855,7 @@ const syntheticDataset = {
   },
   {
    "score": 51.33,
-   "computed_at": "2026-06-30T01:00:24.543845+00:00",
+   "computed_at": "2026-06-30T01:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 17.74,
@@ -9865,7 +9865,7 @@ const syntheticDataset = {
   },
   {
    "score": 60.11,
-   "computed_at": "2026-06-30T02:00:24.543845+00:00",
+   "computed_at": "2026-06-30T02:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 16.0,
@@ -9875,7 +9875,7 @@ const syntheticDataset = {
   },
   {
    "score": 56.86,
-   "computed_at": "2026-06-30T03:00:24.543845+00:00",
+   "computed_at": "2026-06-30T03:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 39.08,
@@ -9885,7 +9885,7 @@ const syntheticDataset = {
   },
   {
    "score": 66.52,
-   "computed_at": "2026-06-30T04:00:24.543845+00:00",
+   "computed_at": "2026-06-30T04:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 24.52,
@@ -9895,7 +9895,7 @@ const syntheticDataset = {
   },
   {
    "score": 45.47,
-   "computed_at": "2026-06-30T05:00:24.543845+00:00",
+   "computed_at": "2026-06-30T05:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 24.43,
@@ -9905,7 +9905,7 @@ const syntheticDataset = {
   },
   {
    "score": 53.81,
-   "computed_at": "2026-06-30T06:00:24.543845+00:00",
+   "computed_at": "2026-06-30T06:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 36.62,
@@ -9915,7 +9915,7 @@ const syntheticDataset = {
   },
   {
    "score": 51.75,
-   "computed_at": "2026-06-30T07:00:24.543845+00:00",
+   "computed_at": "2026-06-30T07:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 34.57,
@@ -9925,7 +9925,7 @@ const syntheticDataset = {
   },
   {
    "score": 42.08,
-   "computed_at": "2026-06-30T08:00:24.543845+00:00",
+   "computed_at": "2026-06-30T08:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 9.39,
@@ -9935,7 +9935,7 @@ const syntheticDataset = {
   },
   {
    "score": 45.68,
-   "computed_at": "2026-06-30T09:00:24.543845+00:00",
+   "computed_at": "2026-06-30T09:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 31.81,
@@ -9945,7 +9945,7 @@ const syntheticDataset = {
   },
   {
    "score": 44.38,
-   "computed_at": "2026-06-30T10:00:24.543845+00:00",
+   "computed_at": "2026-06-30T10:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 37.02,
@@ -9955,7 +9955,7 @@ const syntheticDataset = {
   },
   {
    "score": 46.02,
-   "computed_at": "2026-06-30T11:00:24.543845+00:00",
+   "computed_at": "2026-06-30T11:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 3.28,
@@ -9965,7 +9965,7 @@ const syntheticDataset = {
   },
   {
    "score": 44.0,
-   "computed_at": "2026-06-30T12:00:24.543845+00:00",
+   "computed_at": "2026-06-30T12:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 37.49,
@@ -9975,7 +9975,7 @@ const syntheticDataset = {
   },
   {
    "score": 60.08,
-   "computed_at": "2026-06-30T13:00:24.543845+00:00",
+   "computed_at": "2026-06-30T13:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 9.82,
@@ -9985,7 +9985,7 @@ const syntheticDataset = {
   },
   {
    "score": 53.99,
-   "computed_at": "2026-06-30T14:00:24.543845+00:00",
+   "computed_at": "2026-06-30T14:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 4.58,
@@ -9995,7 +9995,7 @@ const syntheticDataset = {
   },
   {
    "score": 43.75,
-   "computed_at": "2026-06-30T15:00:24.543845+00:00",
+   "computed_at": "2026-06-30T15:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 33.5,
@@ -10005,7 +10005,7 @@ const syntheticDataset = {
   },
   {
    "score": 51.24,
-   "computed_at": "2026-06-30T16:00:24.543845+00:00",
+   "computed_at": "2026-06-30T16:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 4.75,
@@ -10015,7 +10015,7 @@ const syntheticDataset = {
   },
   {
    "score": 47.69,
-   "computed_at": "2026-06-30T17:00:24.543845+00:00",
+   "computed_at": "2026-06-30T17:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 32.89,
@@ -10025,7 +10025,7 @@ const syntheticDataset = {
   },
   {
    "score": 47.32,
-   "computed_at": "2026-06-30T18:00:24.543845+00:00",
+   "computed_at": "2026-06-30T18:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 38.48,
@@ -10035,7 +10035,7 @@ const syntheticDataset = {
   },
   {
    "score": 53.47,
-   "computed_at": "2026-06-30T19:00:24.543845+00:00",
+   "computed_at": "2026-06-30T19:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 21.26,
@@ -10045,7 +10045,7 @@ const syntheticDataset = {
   },
   {
    "score": 49.33,
-   "computed_at": "2026-06-30T20:00:24.543845+00:00",
+   "computed_at": "2026-06-30T20:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 38.01,
@@ -10055,7 +10055,7 @@ const syntheticDataset = {
   },
   {
    "score": 53.47,
-   "computed_at": "2026-06-30T21:00:24.543845+00:00",
+   "computed_at": "2026-06-30T21:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 34.66,
@@ -10065,7 +10065,7 @@ const syntheticDataset = {
   },
   {
    "score": 52.66,
-   "computed_at": "2026-06-30T22:00:24.543845+00:00",
+   "computed_at": "2026-06-30T22:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 36.51,
@@ -10075,7 +10075,7 @@ const syntheticDataset = {
   },
   {
    "score": 41.19,
-   "computed_at": "2026-06-30T23:00:24.543845+00:00",
+   "computed_at": "2026-06-30T23:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 3.41,
@@ -10085,7 +10085,7 @@ const syntheticDataset = {
   },
   {
    "score": 56.26,
-   "computed_at": "2026-07-01T00:00:24.543845+00:00",
+   "computed_at": "2026-07-01T00:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 2.42,
@@ -10095,7 +10095,7 @@ const syntheticDataset = {
   },
   {
    "score": 48.03,
-   "computed_at": "2026-07-01T01:00:24.543845+00:00",
+   "computed_at": "2026-07-01T01:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 11.48,
@@ -10105,7 +10105,7 @@ const syntheticDataset = {
   },
   {
    "score": 67.62,
-   "computed_at": "2026-07-01T02:00:24.543845+00:00",
+   "computed_at": "2026-07-01T02:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 25.0,
@@ -10115,7 +10115,7 @@ const syntheticDataset = {
   },
   {
    "score": 56.26,
-   "computed_at": "2026-07-01T03:00:24.543845+00:00",
+   "computed_at": "2026-07-01T03:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 25.03,
@@ -10125,7 +10125,7 @@ const syntheticDataset = {
   },
   {
    "score": 45.6,
-   "computed_at": "2026-07-01T04:00:24.543845+00:00",
+   "computed_at": "2026-07-01T04:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 7.38,
@@ -10135,7 +10135,7 @@ const syntheticDataset = {
   },
   {
    "score": 51.7,
-   "computed_at": "2026-07-01T05:00:24.543845+00:00",
+   "computed_at": "2026-07-01T05:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 10.74,
@@ -10145,7 +10145,7 @@ const syntheticDataset = {
   },
   {
    "score": 51.47,
-   "computed_at": "2026-07-01T06:00:24.543845+00:00",
+   "computed_at": "2026-07-01T06:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 20.77,
@@ -10155,7 +10155,7 @@ const syntheticDataset = {
   },
   {
    "score": 43.01,
-   "computed_at": "2026-07-01T07:00:24.543845+00:00",
+   "computed_at": "2026-07-01T07:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 1.34,
@@ -10165,7 +10165,7 @@ const syntheticDataset = {
   },
   {
    "score": 46.58,
-   "computed_at": "2026-07-01T08:00:24.543845+00:00",
+   "computed_at": "2026-07-01T08:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 21.99,
@@ -10175,7 +10175,7 @@ const syntheticDataset = {
   },
   {
    "score": 48.86,
-   "computed_at": "2026-07-01T09:00:24.543845+00:00",
+   "computed_at": "2026-07-01T09:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 0.18,
@@ -10185,7 +10185,7 @@ const syntheticDataset = {
   },
   {
    "score": 41.72,
-   "computed_at": "2026-07-01T10:00:24.543845+00:00",
+   "computed_at": "2026-07-01T10:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 34.71,
@@ -10195,7 +10195,7 @@ const syntheticDataset = {
   },
   {
    "score": 42.87,
-   "computed_at": "2026-07-01T11:00:24.543845+00:00",
+   "computed_at": "2026-07-01T11:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 31.79,
@@ -10205,7 +10205,7 @@ const syntheticDataset = {
   },
   {
    "score": 46.16,
-   "computed_at": "2026-07-01T12:00:24.543845+00:00",
+   "computed_at": "2026-07-01T12:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 16.16,
@@ -10215,7 +10215,7 @@ const syntheticDataset = {
   },
   {
    "score": 52.21,
-   "computed_at": "2026-07-01T13:00:24.543845+00:00",
+   "computed_at": "2026-07-01T13:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 33.13,
@@ -10225,7 +10225,7 @@ const syntheticDataset = {
   },
   {
    "score": 48.71,
-   "computed_at": "2026-07-01T14:00:24.543845+00:00",
+   "computed_at": "2026-07-01T14:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 33.36,
@@ -10235,7 +10235,7 @@ const syntheticDataset = {
   },
   {
    "score": 40.66,
-   "computed_at": "2026-07-01T15:00:24.543845+00:00",
+   "computed_at": "2026-07-01T15:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 14.04,
@@ -10245,7 +10245,7 @@ const syntheticDataset = {
   },
   {
    "score": 42.25,
-   "computed_at": "2026-07-01T16:00:24.543845+00:00",
+   "computed_at": "2026-07-01T16:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 26.71,
@@ -10255,7 +10255,7 @@ const syntheticDataset = {
   },
   {
    "score": 47.56,
-   "computed_at": "2026-07-01T17:00:24.543845+00:00",
+   "computed_at": "2026-07-01T17:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 15.87,
@@ -10265,7 +10265,7 @@ const syntheticDataset = {
   },
   {
    "score": 55.29,
-   "computed_at": "2026-07-01T18:00:24.543845+00:00",
+   "computed_at": "2026-07-01T18:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 18.33,
@@ -10275,7 +10275,7 @@ const syntheticDataset = {
   },
   {
    "score": 54.13,
-   "computed_at": "2026-07-01T19:00:24.543845+00:00",
+   "computed_at": "2026-07-01T19:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 11.76,
@@ -10285,7 +10285,7 @@ const syntheticDataset = {
   },
   {
    "score": 47.9,
-   "computed_at": "2026-07-01T20:00:24.543845+00:00",
+   "computed_at": "2026-07-01T20:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 20.89,
@@ -10295,7 +10295,7 @@ const syntheticDataset = {
   },
   {
    "score": 49.02,
-   "computed_at": "2026-07-01T21:00:24.543845+00:00",
+   "computed_at": "2026-07-01T21:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 29.54,
@@ -10305,7 +10305,7 @@ const syntheticDataset = {
   },
   {
    "score": 42.69,
-   "computed_at": "2026-07-01T22:00:24.543845+00:00",
+   "computed_at": "2026-07-01T22:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 23.48,
@@ -10315,7 +10315,7 @@ const syntheticDataset = {
   },
   {
    "score": 49.55,
-   "computed_at": "2026-07-01T23:00:24.543845+00:00",
+   "computed_at": "2026-07-01T23:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 34.13,
@@ -10325,7 +10325,7 @@ const syntheticDataset = {
   },
   {
    "score": 56.3,
-   "computed_at": "2026-07-02T00:00:24.543845+00:00",
+   "computed_at": "2026-07-02T00:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 13.73,
@@ -10335,7 +10335,7 @@ const syntheticDataset = {
   },
   {
    "score": 54.53,
-   "computed_at": "2026-07-02T01:00:24.543845+00:00",
+   "computed_at": "2026-07-02T01:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 11.47,
@@ -10345,7 +10345,7 @@ const syntheticDataset = {
   },
   {
    "score": 55.89,
-   "computed_at": "2026-07-02T02:00:24.543845+00:00",
+   "computed_at": "2026-07-02T02:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 13.56,
@@ -10355,7 +10355,7 @@ const syntheticDataset = {
   },
   {
    "score": 57.35,
-   "computed_at": "2026-07-02T03:00:24.543845+00:00",
+   "computed_at": "2026-07-02T03:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 11.35,
@@ -10365,7 +10365,7 @@ const syntheticDataset = {
   },
   {
    "score": 60.17,
-   "computed_at": "2026-07-02T04:00:24.543845+00:00",
+   "computed_at": "2026-07-02T04:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 0.51,
@@ -10375,7 +10375,7 @@ const syntheticDataset = {
   },
   {
    "score": 52.45,
-   "computed_at": "2026-07-02T05:00:24.543845+00:00",
+   "computed_at": "2026-07-02T05:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 18.42,
@@ -10385,7 +10385,7 @@ const syntheticDataset = {
   },
   {
    "score": 40.81,
-   "computed_at": "2026-07-02T06:00:24.543845+00:00",
+   "computed_at": "2026-07-02T06:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 30.36,
@@ -10395,7 +10395,7 @@ const syntheticDataset = {
   },
   {
    "score": 51.67,
-   "computed_at": "2026-07-02T07:00:24.543845+00:00",
+   "computed_at": "2026-07-02T07:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 12.76,
@@ -10405,7 +10405,7 @@ const syntheticDataset = {
   },
   {
    "score": 47.01,
-   "computed_at": "2026-07-02T08:00:24.543845+00:00",
+   "computed_at": "2026-07-02T08:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 26.1,
@@ -10415,7 +10415,7 @@ const syntheticDataset = {
   },
   {
    "score": 53.54,
-   "computed_at": "2026-07-02T09:00:24.543845+00:00",
+   "computed_at": "2026-07-02T09:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 12.44,
@@ -10425,7 +10425,7 @@ const syntheticDataset = {
   },
   {
    "score": 43.99,
-   "computed_at": "2026-07-02T10:00:24.543845+00:00",
+   "computed_at": "2026-07-02T10:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 38.84,
@@ -10435,7 +10435,7 @@ const syntheticDataset = {
   },
   {
    "score": 50.06,
-   "computed_at": "2026-07-02T11:00:24.543845+00:00",
+   "computed_at": "2026-07-02T11:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 11.65,
@@ -10445,7 +10445,7 @@ const syntheticDataset = {
   },
   {
    "score": 58.95,
-   "computed_at": "2026-07-02T12:00:24.543845+00:00",
+   "computed_at": "2026-07-02T12:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 0.9,
@@ -10455,7 +10455,7 @@ const syntheticDataset = {
   },
   {
    "score": 45.77,
-   "computed_at": "2026-07-02T13:00:24.543845+00:00",
+   "computed_at": "2026-07-02T13:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 31.85,
@@ -10465,7 +10465,7 @@ const syntheticDataset = {
   },
   {
    "score": 50.81,
-   "computed_at": "2026-07-02T14:00:24.543845+00:00",
+   "computed_at": "2026-07-02T14:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 8.38,
@@ -10475,7 +10475,7 @@ const syntheticDataset = {
   },
   {
    "score": 39.46,
-   "computed_at": "2026-07-02T15:00:24.543845+00:00",
+   "computed_at": "2026-07-02T15:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 6.24,
@@ -10485,7 +10485,7 @@ const syntheticDataset = {
   },
   {
    "score": 53.7,
-   "computed_at": "2026-07-02T16:00:24.543845+00:00",
+   "computed_at": "2026-07-02T16:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 0.64,
@@ -10495,7 +10495,7 @@ const syntheticDataset = {
   },
   {
    "score": 56.68,
-   "computed_at": "2026-07-02T17:00:24.543845+00:00",
+   "computed_at": "2026-07-02T17:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 18.83,
@@ -10505,7 +10505,7 @@ const syntheticDataset = {
   },
   {
    "score": 52.06,
-   "computed_at": "2026-07-02T18:00:24.543845+00:00",
+   "computed_at": "2026-07-02T18:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 35.74,
@@ -10515,7 +10515,7 @@ const syntheticDataset = {
   },
   {
    "score": 55.87,
-   "computed_at": "2026-07-02T19:00:24.543845+00:00",
+   "computed_at": "2026-07-02T19:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 17.93,
@@ -10525,7 +10525,7 @@ const syntheticDataset = {
   },
   {
    "score": 45.04,
-   "computed_at": "2026-07-02T20:00:24.543845+00:00",
+   "computed_at": "2026-07-02T20:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 13.9,
@@ -10535,7 +10535,7 @@ const syntheticDataset = {
   },
   {
    "score": 45.58,
-   "computed_at": "2026-07-02T21:00:24.543845+00:00",
+   "computed_at": "2026-07-02T21:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 6.59,
@@ -10545,7 +10545,7 @@ const syntheticDataset = {
   },
   {
    "score": 54.78,
-   "computed_at": "2026-07-02T22:00:24.543845+00:00",
+   "computed_at": "2026-07-02T22:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 18.8,
@@ -10555,7 +10555,7 @@ const syntheticDataset = {
   },
   {
    "score": 43.38,
-   "computed_at": "2026-07-02T23:00:24.543845+00:00",
+   "computed_at": "2026-07-02T23:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 36.33,
@@ -10565,7 +10565,7 @@ const syntheticDataset = {
   },
   {
    "score": 68.69,
-   "computed_at": "2026-07-03T00:00:24.543845+00:00",
+   "computed_at": "2026-07-03T00:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 9.32,
@@ -10575,7 +10575,7 @@ const syntheticDataset = {
   },
   {
    "score": 48.62,
-   "computed_at": "2026-07-03T01:00:24.543845+00:00",
+   "computed_at": "2026-07-03T01:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 9.45,
@@ -10585,7 +10585,7 @@ const syntheticDataset = {
   },
   {
    "score": 60.41,
-   "computed_at": "2026-07-03T02:00:24.543845+00:00",
+   "computed_at": "2026-07-03T02:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 35.19,
@@ -10595,7 +10595,7 @@ const syntheticDataset = {
   },
   {
    "score": 59.32,
-   "computed_at": "2026-07-03T03:00:24.543845+00:00",
+   "computed_at": "2026-07-03T03:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 23.79,
@@ -10605,7 +10605,7 @@ const syntheticDataset = {
   },
   {
    "score": 64.79,
-   "computed_at": "2026-07-03T04:00:24.543845+00:00",
+   "computed_at": "2026-07-03T04:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 3.14,
@@ -10615,7 +10615,7 @@ const syntheticDataset = {
   },
   {
    "score": 51.46,
-   "computed_at": "2026-07-03T05:00:24.543845+00:00",
+   "computed_at": "2026-07-03T05:02:51.911864+00:00",
    "component_breakdown": {
     "_synthetic": true,
     "volume": 11.61,

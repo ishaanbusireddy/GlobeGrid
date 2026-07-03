@@ -44,6 +44,9 @@ def story_summary(session: Session, story: Story) -> dict:
         "member_count": len(members),
         "source_count": len(source_ids),
         "categories": sorted(categories),
+        # Consumed by the Tier 1 globe to draw correlation threads between
+        # this story's member events without a per-story detail fetch.
+        "member_event_ids": [str(m.event_id) for m in members if m.event_id],
     }
 
 
