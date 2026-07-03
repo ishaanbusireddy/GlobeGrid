@@ -1,0 +1,7 @@
+{
+  "name": "globegrid-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "TalkDiplomacy Live frontend (React + Vite). Populated in Phase 4."
+}

@@ -1,0 +1,23 @@
+correlation:
+  same_window_similarity_threshold: 0.78
+  historical_similarity_threshold: 0.85
+  same_window_max_gap_hours: 72
+  geo_overlap_radius_km: 300
+instability:
+  weight_volume: 0.4
+  weight_severity: 0.4
+  weight_spread: 0.2
+  recompute_interval_seconds: 900
+  rolling_window_hours: 72
+ingestion_intervals_seconds:
+  rss: 300
+  gdelt_cloud: 3600
+  usgs: 120
+  market: 300
+  reddit: 600
+map:
+  cluster_pin_threshold: 15
+  cluster_radius_km: 300
+resilience:
+  max_backoff_seconds: 1800
+  backoff_multiplier: 2.0

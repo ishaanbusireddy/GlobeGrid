@@ -216,3 +216,23 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- appended manually: Node / frontend (Vite + React) ---
+node_modules/
+dist/
+.vite/
+
+# --- appended manually: project-specific ---
+.env
+.env.local
+config.local.yaml
+logs/*.log
+*.db
+*.sqlite3
+scripts/__pycache__/
+
+# --- appended manually: OS / editor noise ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
