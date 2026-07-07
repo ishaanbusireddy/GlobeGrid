@@ -1,0 +1,316 @@
+correlation:
+  same_window_similarity_threshold: 0.78
+  historical_similarity_threshold: 0.85
+  same_window_max_gap_hours: 72
+  geo_overlap_radius_km: 300
+  near_duplicate_similarity_threshold: 0.97
+  entity_alias_fuzzy_match_floor: 0.85
+  entity_overlap_boost: 0.04
+
+instability:
+  weight_volume: 0.4
+  weight_severity: 0.4
+  weight_spread: 0.2
+  recompute_interval_seconds: 900
+  rolling_window_hours: 72
+  # v6 §22 — recalibration: a routine day should sit ~10-25, not 73. The
+  # normalization divisor scales raw weighted activity down; retune it
+  # empirically against real ingestion volume (recalibration_pending flags
+  # that the final constants still need a real-data pass post §2/§7 changes).
+  recalibration_pending: true
+  baseline_divisor: 3.2               # raw score is divided by this before clamping
+
+ingestion_intervals_seconds:
+  # v6.3 — sub-minute ingestion (owner: "faster updating … streaming in every
+  # minute"). RSS is cheap; polling ~170 feeds every 45s is a few requests/sec.
+  # Conflict-relevant local outlets poll even faster (FAST_POLL_SOURCES in
+  # seed.py, 180s→now clamped by the 30s scheduler floor).
+  rss: 45
+  usgs: 75
+  market: 90
+  reddit: 600
+  firms: 3600
+  volcano: 3600
+  wikipedia: 3600
+  wiki_views: 3600
+  mastodon: 600
+  bluesky: 600
+  opensky: 900
+  acled: 3600
+
+map:
+  cluster_pin_threshold: 15
+  cluster_radius_km: 300
+
+resilience:
+  max_backoff_seconds: 1800
+  backoff_multiplier: 2.0
+
+graphics:
+  quality_tier: "high"          # standard | high | ultra
+  idle_tour_seconds: 45
+  ambient_sound_default: false
+
+ops:
+  daily_request_budgets:
+    alphavantage: 25
+    opensky: 380
+  db_backup:
+    keep_last_n: 14
+    backup_dir: "./backups"
+    backup_hour_utc: 3
+
+briefing:
+  daily_briefing_hour_utc: 6
+  top_n_stories: 10
+
+predictions:
+  resolve_interval_seconds: 3600
+  batch_size: 10
+
+second_order:
+  scan_interval_seconds: 7200
+  max_pairs_per_scan: 3
+  min_shared_entities: 1
+
+gazetteer:
+  dataset: "cities15000"   # cities15000 | cities1000 | allCountries
+  min_population_threshold: 0   # optional filter to trim dataset size vs. coverage
+
+debate:
+  personas: ["skeptic", "historian", "optimist"]
+  disagreement_flag_threshold: 0.35
+
+devils_advocate:
+  enabled: true
+
+embedding:
+  model_name: "paraphrase-multilingual-MiniLM-L12-v2"
+
+self_tuning:
+  adjustment_step: 0.01
+  min_threshold: 0.65
+  max_threshold: 0.95
+  aggregation_interval_hours: 24
+
+anomaly:
+  zscore_window_days: 30
+  zscore_flag_threshold: 2.5
+  cusum_enabled: true
+
+forecasting:
+  enabled: false            # explicit opt-in; off by default until scorecard has history
+  min_resolved_predictions_for_high_confidence: 25
+  default_horizon_hours: 72
+
+satellite_overlay:
+  tle_refresh_interval_hours: 24
+
+provenance:
+  hash_chain_enabled: true
+
+geopolitical_entities:
+  wikidata_refresh_interval_hours: 168
+  agenda_synthesis_interval_hours: 24
+  trade_stats_refresh_interval_hours: 720
+  conflict_autotag_confidence_floor: 0.7
+  bilateral_relations_refresh_interval_hours: 48
+  election_triggered_leadership_refresh: true
+
+# ===== v4 (manual §26) =====
+
+globe:
+  hit_test_use_facing_occlusion: true   # replaces the old NDC-depth threshold
+  cluster_screen_distance_px: 40
+  boundary_resolution: "10m"            # was 110m
+  boundary_resolution_far_zoom: "50m"   # coarser fallback for full-globe view
+  terrain_texture_enabled: false        # v5 §8 — opt-in, calibrate cost first (v4 §15.4)
+  beacon_render_mode: "sdf"             # v5 §16 — was fixed-res sprite
+
+geocoding:
+  min_confidence_for_solid_marker: 0.6
+
+map2d:
+  wraparound_enabled: true
+  city_label_min_population_by_zoom:
+    far: 5000000
+    mid: 500000
+    near: 50000
+
+entity_completeness:
+  reference_country_count: 195
+  completeness_warning_tolerance: 5
+
+relevance:
+  global_relevance_default_filter: true
+  global_relevance_floor: 0.3
+
+audio:
+  master_gain_default: 0.4              # was 0.06
+  preset: "ambient_default"
+  # v6.1 — hard_rock_metal deleted (owner: 'doesn't work, delete it'). Ambient
+  # buzz further fixed (drone raised out of the sub-rumble band + softDrone body
+  # filter). Three experimental glacial/chimey presets added. Only presets in
+  # this list appear in the picker.
+  presets_active: ["ambient_default", "arctic_calm", "modal_drift", "data_sonification", "crystalline_chimes", "deep_glacier", "aurora_drift"]
+
+sourcing:
+  historical_backfill_on_entity_add: true
+  dynamic_polling_by_conflict_activity: true
+
+external_content:
+  wikipedia_enabled: true
+  grokipedia_enabled: false             # OPEN — unofficial client only, off by default until re-verified
+  refresh_interval_hours: 168
+  entities_per_cycle: 12
+
+onboarding:
+  require_ai_key_before_first_run: true   # v5.1 — any provider, not Claude specifically
+
+analyst_panel_fixes:
+  clear_focus_on_panel_close: true
+  focus_staleness_timeout_seconds: 180
+  question_text_takes_precedence_over_focus: true
+  conflict_token_strip_generic_words: true
+  conflict_alias_individual_parties: true
+
+panes:
+  transition_duration_ms: 300
+  respect_prefers_reduced_motion: true
+
+annotations:
+  enabled: true
+
+alerts:
+  in_app_breaking_alert_severity_floor: 4
+
+coverage:
+  thin_coverage_story_floor: 3          # §15.1 — below this, profiles show a thin-coverage badge
+
+prognosis:
+  horizon_hours: 720                    # §10 — long-horizon conflict/diplomacy prognosis
+  refresh_interval_hours: 72
+
+analyst_panel:
+  enabled: true
+  auto_navigate_default: true
+  min_confidence_to_navigate: "medium"
+  model: "claude-sonnet-5"
+  max_context_stories_per_query: 6       # v6.3 — leaner bundle = faster answer
+  freeform_retrieval_lookback_days: 30
+  embedding_scan_limit: 40               # v6.2 — cap the per-query embed scan
+  empty_retrieval_response: "no_current_data"
+  session_history_retention: "indefinite"
+  # v5.2 — smart conversational analyst. Prior turns fed back to the model so
+  # it holds a real conversation; web search augments GlobeGrid's tracked data
+  # when a question reaches past what the fact chain covers (clearly labeled).
+  # v6.3 — ANALYST TIMEOUT ROOT CAUSE FIX: query-time embedding (re-encoding up
+  # to N recent headlines through sentence-transformers on every question) was
+  # adding 10-30s of blocking CPU work BEFORE the LLM call, which is what blew
+  # the 60s client abort ("the analyst took too long and was stopped"). FTS5 is
+  # fast and indexed and grounds the answer perfectly well, so query-time
+  # embedding is now OFF by default. The whole request is now a fast FTS lookup
+  # + a single Groq call bounded by answer_timeout_seconds.
+  embedding_retrieval_enabled: false
+  answer_max_tokens: 650                  # v6.3 — plenty for bullets + short deep-dive
+  # v6.5 — 40s: room for local Ollama inference (the ollama timeout floor) while
+  # the outer deadline (+12s) still lands under the client's 60s abort. On Groq
+  # this is only a ceiling — fast answers return in ~2s regardless.
+  answer_timeout_seconds: 40
+  conversation_history_turns: 3
+  web_search_enabled: true
+  web_search_max_results: 4
+  live_verify_on_hot_path: false
+  include_causal_narrative_in_context: false
+
+# ===== v5 (manual §22) =====
+
+content:
+  strip_links_from_titles: true
+
+source_quality:
+  reliability_tiers_enabled: true
+  # v6 §2 — GDELT removed entirely (both Events and Cloud): ingestion modules
+  # deleted, source rows retired (is_active=0, historical facts keep their
+  # attribution). These flags exist so the removal is visible in config, per
+  # the manual's §32 block; nothing reads them back on.
+  gdelt_events_enabled: false
+  gdelt_cloud_enabled: false
+
+conflict_tagging:
+  development_types: ["conflict", "military"]
+  conflict_tab_filter: "conflict"       # military developments never alone populate a tab
+
+panels:
+  resizable: true
+  min_width_px: 280
+  max_width_px: 900
+  persist_across_restarts: true
+
+# v6 §23 — ten additional themes on the same CSS-variable-swap mechanism
+# (single line: the minimal YAML parser reads inline lists only)
+themes:
+  available: ["dark_teal_default", "high_contrast", "colorblind_safe", "amber_terminal", "crimson_edge", "cold_war", "nightfall", "neon_grid", "gunmetal", "desert_ops", "crimson_gold", "forest_floor", "royal_gold", "synthwave"]
+
+# v6 §1 — Groq-first architecture: Groq is PRIMARY for all LLM calls (analyst,
+# translation, synthesis, title correction, web-search verification), not a
+# fallback — high-volume latency-sensitive call sites where Claude credit cost
+# was the explicit problem. Causal-link narratives keep an independent override
+# (quality-critical, low-volume); when the override provider has no key it
+# falls through to the normal order, never blocks.
+# v6.4.1 — LLM transport hardening (the owner-verified hang lived in the
+# network layer below urllib's timeout: DNS stalls / sequential IPv6 connect /
+# stale registry proxies). Successful lookups are cached; IPv4 is preferred
+# (Python tries resolved addresses sequentially, so a broken-IPv6 machine
+# burns the full timeout per AAAA record); every provider request runs under
+# a hard wall-clock deadline of (call timeout + buffer).
+network:
+  dns_cache_ttl_seconds: 600
+  request_deadline_buffer_seconds: 6
+  prefer_ipv4: true
+
+# v6.5 — OLLAMA-FIRST: the primary provider is the local Ollama server
+# (free forever, no rate limits, fully private — install from ollama.com and
+# `ollama pull llama3.1`). Groq stays fully supported as the first fallback:
+# with a GROQ_API_KEY set and Ollama not running, everything transparently
+# uses Groq exactly as before (its free tier's 100k tokens/day cap is what
+# motivated the switch). ollama_timeout_floor_seconds stretches per-call
+# budgets when a call lands on local inference (a laptop CPU needs longer
+# than Groq's datacenter GPUs for the same answer).
+llm_provider:
+  primary: "ollama_local"
+  ollama_model: "llama3.1"
+  ollama_timeout_floor_seconds: 40
+  groq_model: "llama-3.3-70b-versatile"
+  fallback_order: ["groq", "gemini_free", "anthropic", "openrouter", "cerebras_free", "anthropic_open_source_grant"]
+  causal_link_override: "anthropic"   # optional, quality-critical path only
+
+leadership_data:
+  staleness_warning_days: 14
+
+# ===== v6 (manual §32) =====
+
+translation:
+  instant_translate_on_arrival: true    # §11 — new content translates as it arrives
+  cache_by_content_and_language: true   # content_translations table
+
+war_mode:
+  enabled: true                         # §8 — dedicated conflict layout
+
+map_rendering:
+  tile_based_2d: true                   # §18 — replaces the 3-tile wraparound
+  tile_size_deg: 30                     # geometry bucket size (degrees of lon/lat)
+
+accuracy:
+  web_search_verification_enabled: true # §30 — live search ahead of refresh jobs
+  search_provider: "brave_free_tier"    # BRAVE_SEARCH_API_KEY; keyless DDG fallback
+
+ui:
+  vr_button_visible: false              # §31 — hidden until WebXR actually works
+  city_lights_enabled_default: true     # §24 — night-side city lights toggle
+  wordmark_transliteration: true        # §11 — script-matched brand wordmark
+  # v6.1.1 — terrain hidden by owner request: the baked biome texture is
+  # rasterized from the sparse worldCoastline data, which drops most interior
+  # land (Sahara/India/Siberia/Amazon show as ocean), so it reads as stray
+  # blobs. Flip true only after the texture is rebuilt from full boundary data.
+  terrain_button_visible: false

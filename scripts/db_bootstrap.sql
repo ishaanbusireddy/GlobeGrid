@@ -1,0 +1,16 @@
+-- db_bootstrap.sql (Section 13)
+--
+-- Zero-install adaptation: the original manual bootstrapped PostgreSQL with
+--   CREATE EXTENSION postgis;
+--   CREATE EXTENSION vector;
+-- This build uses SQLite (stdlib sqlite3) — no extensions, no server, no
+-- install. The schema is created automatically at startup by
+-- backend/app/db/models.py (migrate()), which is the single source of truth
+-- for DDL. This file is kept for layout parity and documents the swap:
+--
+--   geography(Point,4326) -> location_lat/location_lon REAL (haversine in Python)
+--   vector(384)           -> embedding BLOB float32[384] (cosine in Python)
+--   jsonb                 -> TEXT (JSON)
+--
+-- To inspect the database:
+--   python -c "import sqlite3;c=sqlite3.connect('backend/data/talkdiplomacy_live.db');[print(r) for r in c.execute('SELECT name FROM sqlite_master WHERE type=\'table\'')]"

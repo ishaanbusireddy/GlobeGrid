@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GlobeGrid</title>
+<link rel="stylesheet" href="/src/styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌐</text></svg>">
+</head>
+<body>
+<header id="topbar">
+  <div id="brand">
+    <span id="brand-mark">◉</span>
+    <span id="brand-name">GLOBE<em>GRID</em></span>
+    <span id="brand-translit" title="GlobeGrid in your script (v6 §11)"></span>
+  </div>
+  <div id="instability-widget" title="Global instability index (0–100), Section 5.6">
+    <span id="instability-value">–</span>
+    <canvas id="instability-spark" width="120" height="28"></canvas>
+  </div>
+  <div id="topbar-controls">
+    <button id="palette-btn" title="search everything (Ctrl/Cmd+K)">⌘K</button>
+    <button id="stories-btn" title="stories directory — threads, alliances, patterns, agendas (v4 §8, v6 §27)">stories</button>
+    <button id="conflicts-btn" title="Conflicts — pick one to enter War Mode (v6 §8-9)">conflicts</button>
+    <button id="un-btn" title="United Nations — councils, resolutions & how countries voted (v6.1)">🇺🇳 UN</button>
+    <button id="briefing-btn" title="daily briefing">briefing</button>
+    <button id="graph-btn" title="fact-chain graph explorer">graph</button>
+    <button id="watchlist-btn" title="watchlist">watch</button>
+    <button id="bookmarks-btn" title="bookmarks / reading list (v4 §21)">☆</button>
+    <!-- v6.1 — heatmap toggle removed (owner: unclear/unhelpful overlay) -->
+    <button id="heatmap-toggle" class="hidden" title="heatmap density overlay">heat</button>
+    <button id="borders-toggle" class="active" title="country borders (Natural Earth 10m/50m) — on by default">borders</button>
+    <button id="disputes-toggle" title="disputed boundaries — dashed, distinct from settled borders (v4 §5.3)">disputed</button>
+    <!-- v6.2 — terrain removed entirely (owner). v6.2 — country-name toggle -->
+    <button id="names-toggle" class="active" title="country name labels on the map — toggle on/off">names</button>
+    <button id="modes-btn" title="thematic data maps — HDI, GDP, population, religion, language (v6 §16)">modes</button>
+    <button id="actors-toggle" title="non-state actors layer (v4 §5.4)">NSA</button>
+    <button id="marked-toggle" title="strategic locations & infrastructure layer">◈</button>
+    <button id="sat-toggle" title="live satellite overlay">🛰</button>
+    <!-- v6.1.1 — multi-select blocs: toggle several alliances at once -->
+    <span id="bloc-wrap">
+      <button id="blocs-btn" title="tint boundaries by bloc membership — toggle several at once">blocs ▾</button>
+      <div id="bloc-panel" class="hidden"></div>
+    </span>
+    <button id="snapshot-btn" title="export a shareable snapshot of the current view (v4 §23)">📷</button>
+    <!-- v6.2 — timezone picker in the header (was buried in Settings) -->
+    <select id="tz-header" title="display timezone for all timestamps"></select>
+    <button id="help-btn" title="what is GlobeGrid? how to use it (v6.1)">?</button>
+    <!-- v6.2 — VR button removed entirely (owner) -->
+    <button id="xr-btn" class="hidden" style="display:none" title="enter room-scale VR">VR</button>
+    <select id="quality-select" title="graphics quality (v2 §5)">
+      <option value="standard">standard</option>
+      <option value="high">high</option>
+      <option value="ultra">ultra</option>
+    </select>
+    <select id="tier-select" title="Graphics tier — auto-detected, manually overridable">
+      <option value="auto">Tier: auto</option>
+      <option value="1">Tier 1 · 3D globe</option>
+      <option value="2">Tier 2 · 2D map</option>
+      <option value="3">Tier 3 · list</option>
+    </select>
+    <span id="sound-cluster">
+      <button id="sound-toggle" title="generative music">🔇</button>
+      <input id="volume-slider" type="range" min="0" max="100" title="volume (v4 §12.1)">
+      <select id="preset-select" title="music preset (v4 §12.2-12.3)"></select>
+    </span>
+    <select id="lang-btn" title="site-wide language — every panel and story translates instantly (v6 §11)"></select>
+    <button id="settings-btn" title="settings & API keys (v4 §14)">⚙</button>
+    <button id="status-toggle" title="Source health">sources</button>
+  </div>
+</header>
+
+<main id="layout">
+  <div id="slide-pane"></div>
+  <section id="map-panel">
+    <div id="map-host"></div>
+    <div id="map-filters"></div>
+    <div id="modes-bar" class="hidden"></div>
+    <div id="mode-legend" class="hidden"></div>
+    <div id="conn-badge" class="conn-live">live</div>
+    <div id="scrubber-host"></div>
+    <div id="alerts-host"></div>
+  </section>
+  <aside id="feed-panel">
+    <div id="conflict-tabs"></div>
+    <div id="feed-header"><h2>Live feed</h2><div id="feed-tools"></div></div>
+    <div id="feed-list"></div>
+  </aside>
+</main>
+
+<div id="graph-overlay" class="hidden"></div>
+<div id="briefing-overlay" class="hidden"></div>
+<div id="lineage-overlay" class="hidden"></div>
+<div id="status-drawer" class="hidden"></div>
+<div id="watchlist-panel" class="hidden"></div>
+
+<script type="module" src="/src/App.js"></script>
+</body>
+</html>

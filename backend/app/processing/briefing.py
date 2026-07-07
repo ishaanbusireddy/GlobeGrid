@@ -1,0 +1,104 @@
+"""v2 addendum §6.1 — auto-generated daily briefing.
+
+One scheduled job per day (briefing.daily_briefing_hour_utc): pulls the
+top N stories of the past 24h by member count + severity contribution and
+synthesizes them into a digest with one LLM call (routed through the v5 §18
+provider fallback). Same caching discipline as Section 9 — generated once
+per day, never regenerated on view. Without a configured AI provider a
+structured non-AI digest is stored instead (sources and headlines only,
+clearly labeled).
+"""
+
+import json
+import logging
+from datetime import datetime, timedelta, timezone
+
+from . import llm
+from ..config import cfg
+from ..db.models import new_id, now_iso
+from ..db.session import query, query_one, write_tx
+
+log = logging.getLogger("briefing")
+
+BRIEFING_PROMPT = """You are writing a concise daily global-events briefing from correlated
+story clusters. Write 2-4 paragraphs of plain prose: what mattered, why,
+and what connects. State uncertainty honestly; never invent facts not in
+the input. End with one sentence on the overall instability picture."""
+
+
+# v6.1 — weekly and monthly briefings alongside the daily one. Each period
+# gets its own cache key in daily_briefings.briefing_date so no schema change
+# is needed: 'YYYY-MM-DD' (day), 'YYYY-Www' (week), 'YYYY-MM' (month).
+_PERIOD_HOURS = {"day": 24, "week": 24 * 7, "month": 24 * 30}
+
+
+def _period_key(period: str, now=None) -> str:
+    now = now or datetime.now(timezone.utc)
+    if period == "week":
+        iso = now.isocalendar()
+        return f"{iso[0]}-W{iso[1]:02d}"
+    if period == "month":
+        return now.strftime("%Y-%m")
+    return now.strftime("%Y-%m-%d")
+
+
+def _top_stories(top_n: int, hours: int = 24) -> list[dict]:
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat(
+        timespec="seconds").replace("+00:00", "Z")
+    rows = query(
+        "SELECT s.id, s.headline, s.summary, s.confidence,"
+        " (SELECT COUNT(*) FROM story_members m WHERE m.story_id = s.id) AS members,"
+        " (SELECT COALESCE(MAX(e.severity),1) FROM story_members m"
+        "   JOIN events e ON e.id = m.event_id WHERE m.story_id = s.id) AS max_severity"
+        " FROM stories s WHERE s.is_synthetic = 0 AND s.last_updated_at >= ?"
+        " ORDER BY (members * 2 + max_severity) DESC, s.last_updated_at DESC LIMIT ?",
+        (cutoff, top_n))
+    return [dict(r) for r in rows]
+
+
+def generate_briefing(briefing_date: str | None = None,
+                      period: str = "day") -> dict | None:
+    """Generate (or return cached) briefing. period is 'day' | 'week' | 'month';
+    each has its own cache key so weekly/monthly digests coexist with daily."""
+    hours = _PERIOD_HOURS.get(period, 24)
+    briefing_date = briefing_date or _period_key(period)
+    cached = query_one("SELECT * FROM daily_briefings WHERE briefing_date = ?",
+                       (briefing_date,))
+    if cached:
+        return dict(cached)
+    top_n = int(cfg("briefing", "top_n_stories")) * (3 if period == "month"
+                                                     else 2 if period == "week" else 1)
+    stories = _top_stories(top_n, hours)
+    if not stories:
+        return None
+    latest = query_one("SELECT score FROM instability_scores WHERE is_synthetic = 0"
+                       " ORDER BY computed_at DESC LIMIT 1")
+    content = None
+    label = {"day": "daily", "week": "weekly", "month": "monthly"}.get(period, "daily")
+    if llm.available():
+        payload = {"date": briefing_date, "period": label,
+                   "instability_score": latest["score"] if latest else None,
+                   "stories": stories}
+        sys_prompt = BRIEFING_PROMPT.replace("daily", label) if period != "day" \
+            else BRIEFING_PROMPT
+        content = llm.complete(sys_prompt,
+                               [{"role": "user", "content": json.dumps(payload)}],
+                               max_tokens=1500, timeout=90)
+        if content:
+            content = content.strip()
+    if not content:
+        lines = [f"{label.capitalize()} digest for {briefing_date} (automated, no AI"
+                 " synthesis — add a free AI key, e.g. Groq, for narrative briefings)."]
+        for s in stories:
+            lines.append(f"- {s['headline']} ({s['members']} linked items,"
+                         f" confidence {s['confidence']})")
+        content = "\n".join(lines)
+    row = {"id": new_id(), "briefing_date": briefing_date, "content": content,
+           "generated_at": now_iso()}
+    with write_tx() as conn:
+        conn.execute("INSERT OR IGNORE INTO daily_briefings"
+                     " (id, briefing_date, content, generated_at) VALUES (?,?,?,?)",
+                     (row["id"], briefing_date, content, row["generated_at"]))
+    log.info("briefing_generated", extra={"data": {"date": briefing_date,
+                                                   "stories": len(stories)}})
+    return row

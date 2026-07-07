@@ -1,0 +1,1971 @@
+// GlobeGrid — frontend orchestrator (v1 Stage 7 + v2 + v3 + v4).
+// v4 wiring: the shared left-docked SlidePane serves story pages, country
+// profiles, wiki pages, directories, compare view and settings (§6/§17);
+// clustering/boundary-LOD/city-label options flow from /api/config into
+// both renderers (§2/§4); continent + relevance filters share one state
+// across feed and map (§9); breaking-story alerts (§25); snapshot export
+// (§23); volume slider + music presets incl. data sonification (§12);
+// API-key onboarding (§14); and the §16 focusedEntity lifecycle fix —
+// cleared on pane close and empty clicks, timestamped for staleness.
+import { api } from "./api/client.js";
+import { FeedSocket } from "./api/socket.js";
+import { initTierControl } from "./components/map/TierDetector.js";
+import { Tier1Globe } from "./components/map/Tier1Globe.js";
+import { Tier2Map } from "./components/map/Tier2Map.js";
+import { Tier3List } from "./components/map/Tier3List.js";
+import { LiveFeed } from "./components/feed/LiveFeed.js";
+import { InstabilityChart } from "./components/feed/InstabilityChart.js";
+import { StoryPage } from "./components/story/StoryPage.js";
+import { StatusPanel } from "./components/status/StatusPanel.js";
+import { SoundEngine, PRESETS } from "./components/SoundEngine.js";
+import { TimeScrubber } from "./components/TimeScrubber.js";
+import { CommandPalette } from "./components/CommandPalette.js";
+import { GraphExplorer } from "./components/GraphExplorer.js";
+import { AnalystPanel } from "./components/AnalystPanel.js";
+import { LineageView } from "./components/LineageView.js";
+import { propagateAll } from "./components/Satellites.js";
+// --- v4 ---
+import { SlidePane } from "./components/panes/SlidePane.js";
+import * as Wiki from "./components/panes/WikiPages.js";
+import { Alerts } from "./components/Alerts.js";
+import { exportSnapshot } from "./components/Snapshot.js";
+import { BOUNDARIES_50M_ENC } from "./data/boundaries50m.js";
+import { decodeBoundaries, countryAtPoint } from "./data/boundaryCodec.js";
+import { LANGUAGE_INFO, RELIGION_INFO, familyColor } from "./data/families.js";
+import { TIMEZONES, getTimeZone, setTimeZone } from "./data/timefmt.js";  // v6.2 header tz
+import { LANGUAGES, applyLanguage } from "./i18n.js";   // v5 §2
+
+// v5 §14 — apply a color theme by swapping the body class (CSS-variable
+// theme). Themes are mutually exclusive; colorblind_safe subsumes the old
+// standalone colorblind toggle.
+const THEME_CLASSES = ["theme-high_contrast", "theme-colorblind_safe",
+                       "theme-amber_terminal",
+                       // v6 §23
+                       "theme-crimson_edge", "theme-cold_war", "theme-nightfall",
+                       "theme-neon_grid", "theme-gunmetal", "theme-desert_ops",
+                       "theme-crimson_gold", "theme-forest_floor",
+                       "theme-royal_gold", "theme-synthwave"];
+function applyTheme(theme) {
+  document.body.classList.remove(...THEME_CLASSES, "colorblind");
+  if (theme && theme !== "dark_teal_default") {
+    document.body.classList.add("theme-" + theme);
+  }
+  localStorage.setItem("tdl_theme", theme || "dark_teal_default");
+  applyThemeToRenderer();   // v6.2 — retint globe/map to match
+}
+
+// v6.2 — themes now reach the globe + 2D map, not just the panels ("i want
+// every part of the UI to be affected, even the globe and map coloring"). The
+// active theme's --accent (already CSS-swapped per theme) is read from the
+// computed style and turned into: an ocean tint (hue of the accent, softened
+// so the sphere stays legible), an atmosphere/limb colour, and map coastline/
+// graticule strokes. One accent read drives all of them, so every theme —
+// including the new crimson+gold — visibly recolours the world, no per-theme
+// shader table to maintain.
+function hexToRgb01(hex) {
+  const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec((hex || "").trim());
+  if (!m) return null;
+  return [parseInt(m[1], 16) / 255, parseInt(m[2], 16) / 255, parseInt(m[3], 16) / 255];
+}
+function applyThemeToRenderer() {
+  const r = state.renderer;
+  if (!r || !r.setThemeColors) return;
+  const cs = getComputedStyle(document.body);
+  const accent = hexToRgb01(cs.getPropertyValue("--accent")) || [0.16, 0.38, 0.80];
+  if (state.tier === 1) {
+    // normalise the accent's brightness so the ocean multiplier keeps the
+    // base sphere luminance but takes the accent's hue, then soften toward
+    // neutral so the globe stays legible under any theme
+    const avg = Math.max(0.001, (accent[0] + accent[1] + accent[2]) / 3);
+    const mix = 0.55;   // 0 = neutral teal, 1 = full accent hue
+    const ocean = accent.map((c) => 1 - mix + mix * (c / avg));
+    const rim = accent.map((c) => 0.12 + 0.72 * c);   // atmosphere = accent glow
+    r.setThemeColors(ocean, rim);
+  } else {
+    // 2D map coastline + graticule as translucent accent strokes
+    const [ar, ag, ab] = accent.map((c) => Math.round(c * 255));
+    r.setThemeColors(`rgba(${ar},${ag},${ab},0.5)`, `rgba(${ar},${ag},${ab},0.16)`);
+  }
+}
+
+// v4 §2.3 — point-in-polygon now runs over Natural Earth 50m (bbox
+// prefiltered), replacing the coarse 110m set that misplaced clicks
+const BOUNDARIES_50M = decodeBoundaries(BOUNDARIES_50M_ENC);
+function countryAt(lat, lon) { return countryAtPoint(BOUNDARIES_50M, lat, lon); }
+
+// v6.1.1 — dynamic country label anchors, computed once from the largest ring
+// of each country (rings are flat [lon,lat,...]). The label sits at that
+// ring's bbox centre and carries its span in degrees; the renderer reveals it
+// by apparent on-screen size, so big countries show from far and small ones
+// only when zoomed in.
+const COUNTRY_LABELS = BOUNDARIES_50M.map((c) => {
+  let best = null, bestLen = 0;
+  for (const ring of c.r) {
+    if (ring.length > bestLen) { bestLen = ring.length; best = ring; }
+  }
+  if (!best || best.length < 6) return null;
+  let mnLon = Infinity, mnLat = Infinity, mxLon = -Infinity, mxLat = -Infinity;
+  for (let k = 0; k < best.length; k += 2) {
+    const lon = best[k], lat = best[k + 1];
+    mnLon = Math.min(mnLon, lon); mxLon = Math.max(mxLon, lon);
+    mnLat = Math.min(mnLat, lat); mxLat = Math.max(mxLat, lat);
+  }
+  return { iso3: c.i, name: c.n, lat: (mnLat + mxLat) / 2, lon: (mnLon + mxLon) / 2,
+           span: Math.max(mxLon - mnLon, mxLat - mnLat) };
+}).filter(Boolean);
+const ISO3_NAME = {};
+for (const c of BOUNDARIES_50M) ISO3_NAME[c.i] = c.n;
+
+const CATEGORIES = ["", "geopolitics", "finance", "disaster", "conflict", "military", "other"];
+const CONTINENTS = ["", "Africa", "America", "Asia", "Europe", "Oceania", "Middle East"];
+const MAP_REFRESH_MS = 45000;
+const STORY_REFRESH_MS = 12000;   // v6.3 — feed safety-net poll (always streaming, faster)
+const QUALITY_KEY = "tdl_quality";
+const CALIB_KEY = "tdl_lod_calibration";
+const RELEVANCE_KEY = "tdl_relevance_filter";
+
+const els = {};
+for (const id of ["marked-toggle", "sat-toggle", "blocs-btn", "bloc-panel", "xr-btn", "conflict-tabs",
+                  "conflicts-btn", "un-btn", "modes-btn", "modes-bar", "mode-legend",
+                  "lang-btn", "brand-translit", "feed-header",
+                  "lineage-overlay", "map-host", "feed-list", "tier-select",
+                  "quality-select", "sound-toggle", "volume-slider", "preset-select",
+                  "heatmap-toggle", "borders-toggle", "disputes-toggle", "actors-toggle",
+                  "names-toggle", "tz-header",
+                  "palette-btn", "briefing-btn", "graph-btn", "watchlist-btn",
+                  "bookmarks-btn", "stories-btn", "settings-btn", "snapshot-btn", "help-btn",
+                  "watchlist-panel", "conn-badge", "map-filters", "graph-overlay",
+                  "briefing-overlay", "status-drawer", "status-toggle",
+                  "instability-value", "instability-spark", "instability-widget",
+                  "scrubber-host", "feed-tools", "slide-pane", "alerts-host"]) {
+  els[id.replace(/-(\w)/g, (_, c) => c.toUpperCase())] = document.getElementById(id);
+}
+
+const state = {
+  renderer: null,
+  tier: null,
+  category: "",
+  region: "",             // v4 §9.2 continent filter — one state, all views
+  relevanceOn: localStorage.getItem(RELEVANCE_KEY) !== "0",   // v4 §9.1 default on
+  asOf: null,
+  watchlistOnly: false,
+  syntheticMode: false,
+  syntheticData: null,
+  mapData: { events: [], links: [] },
+  clientConfig: {
+    graphics: { quality_tier: "high", idle_tour_seconds: 45, ambient_sound_default: false },
+    globe: { hit_test_use_facing_occlusion: true, cluster_screen_distance_px: 40 },
+    geocoding: { min_confidence_for_solid_marker: 0.6 },
+    map2d: { wraparound_enabled: true },
+    relevance: { global_relevance_default_filter: true, global_relevance_floor: 0.3 },
+    audio: { master_gain_default: 0.4, preset: "ambient_default" },
+    panes: { transition_duration_ms: 300 },
+    alerts: { in_app_breaking_alert_severity_floor: 4 },
+    onboarding: { require_ai_key_before_first_run: true },
+    attribution: [],
+  },
+  conflictId: null,
+  conflicts: [],
+  markedOn: false,
+  markedLocations: [],
+  actorsOn: false,        // v4 §5.4
+  actors: [],
+  actorZones: [],         // v5 §11
+  bordersOn: true,        // v4 §5.4 — default on
+  disputesOn: false,      // v4 §5.3
+  satOn: false,
+  satellites: [],
+  satTimer: null,
+  cities: [],             // v4 §4.3
+  // v4 §16 — focus context is timestamped and cleared on close/empty-click
+  focusedEntity: null,
+  // --- v6 ---
+  warMode: null,          // §8 — active war-mode payload or null
+  warTab: "",             // §8 — Military/Civilian/Diplomatic/Economic sub-filter
+  lang: localStorage.getItem("tdl_lang") || "en",   // §11 site-wide language
+  mapMode: null,          // §16 — active thematic mode id
+  cityLights: localStorage.getItem("tdl_citylights") !== "0",   // §24
+};
+
+function setFocus(type, name) {
+  state.focusedEntity = type ? { type, name, set_at: Date.now() } : null;
+}
+
+// ---------- the shared pane (§6/§17/§18) + navigation context ----------
+
+const pane = new SlidePane(els.slidePane, {
+  durationMs: state.clientConfig.panes.transition_duration_ms,
+  resizable: (state.clientConfig.panels || {}).resizable !== false,   // v5 §10
+  minWidth: (state.clientConfig.panels || {}).min_width_px || 280,
+  maxWidth: (state.clientConfig.panels || {}).max_width_px || 900,
+  persist: (state.clientConfig.panels || {}).persist_across_restarts !== false, // §21
+  onNavigate: (entry) => {
+    // §16.2 — closing the pane (entry=null) clears the analyst focus;
+    // v6 §26 — it also clears the pulsing map highlight
+    if (!entry) { setFocus(null); state.renderer?.setHighlight?.(null); return; }
+    if (entry.focus) setFocus(entry.focus.type, entry.focus.name);
+  },
+});
+
+const ctx = {
+  openStory: (id) => openStory(id),
+  openConflict: (id) => { pane.close(); selectConflict(id, { forceOn: true }); },
+  openEntity: (type, id, opts) => openEntity(type, id, opts),
+  openCompare: (a, b) => pane.push({
+    key: `cmp:${a}:${b}`, title: "compare",
+    render: (el) => Wiki.renderCompare(el, a, b, ctx),
+  }),
+  openDirectory: (type) => pane.push({
+    key: `dir:${type || "all"}`, title: "stories directory",
+    render: (el) => Wiki.renderStoriesDirectory(el, ctx, type),
+  }, { replace: pane.top() && String(pane.top().key).startsWith("dir:") }),
+  openRegion: (region) => {                // v5 §20 / v6 §26
+    api.regionSummary(region).then((d) =>
+      highlightCountries((d.countries || []).map((c) => c.id))).catch(() => {});
+    return pane.push({
+      key: `region:${region}`, title: region,
+      render: (el) => Wiki.renderRegion(el, region, ctx),
+    });
+  },
+  setColorblind: (on) => {
+    document.body.classList.toggle("colorblind", on);
+    localStorage.setItem("tdl_colorblind", on ? "1" : "0");
+  },
+  setTheme: (theme) => applyTheme(theme),           // v5 §14
+  languages: () => LANGUAGES,                         // v5 §2
+  setLanguage: (code) => setSiteLanguage(code),       // v6 §11 — site-wide
+  themes: () => (state.clientConfig.themes || {}).available
+      || ["dark_teal_default", "high_contrast", "colorblind_safe", "amber_terminal"],
+  setCityLights: (on) => {                            // v6 §24
+    state.cityLights = !!on;
+    localStorage.setItem("tdl_citylights", on ? "1" : "0");
+    state.renderer?.setCityLights?.(on);
+  },
+  cityLights: () => state.cityLights,
+  onTimeSettingsChanged: () => refreshStories().catch(() => {}),  // v6.1.1 tz re-render
+  onAiKeySaved: async () => {                                      // v6.2 instant ping
+    try { state.clientConfig = { ...state.clientConfig, ...(await api.config()) }; }
+    catch { /* keep old config */ }
+    refreshStories().catch(() => {});
+    // the background warm-up needs a few seconds to produce; re-pull then
+    setTimeout(() => refreshStories().catch(() => {}), 6000);
+    setTimeout(() => refreshStories().catch(() => {}), 15000);
+  },
+  enterWarMode: (cid) => enterWarMode(cid),           // v6 §8
+  openThread: (id) => pane.push({                     // v6 §27
+    key: `thread:${id}`, title: "story thread",
+    render: (el) => Wiki.renderThread(el, id, ctx),
+  }),
+  openUN: () => pane.push({                            // v6.1 UN panel
+    key: "un", title: "United Nations",
+    render: (el) => Wiki.renderUN(el, ctx),
+  }),
+};
+pane.openEntity = (type, id, opts) => openEntity(type, id, opts);
+
+const ENTITY_RENDER = {
+  country: (el, id) => Wiki.renderCountry(el, id, ctx),
+  party: (el, id) => Wiki.renderParty(el, id, ctx),
+  person: (el, id) => Wiki.renderPerson(el, id, ctx),
+  non_state_actor: (el, id) => Wiki.renderActor(el, id, ctx),
+  org: (el, id) => Wiki.renderOrg(el, id, ctx),
+  alliance: (el, id) => Wiki.renderAlliance(el, id, ctx),
+};
+
+// v6 §26 — pulse the focused country/region borders on the map; cleared by
+// the pane's onNavigate(null) when the panel closes
+function highlightCountries(iso3List) {
+  const rings = [];
+  for (const c of BOUNDARIES_50M) {
+    if (iso3List.includes(c.i)) rings.push(...c.r);
+  }
+  state.renderer?.setHighlight?.(rings.length ? rings : null);
+}
+
+async function openEntity(type, id, { replace = false } = {}) {
+  const render = ENTITY_RENDER[type];
+  if (!render) return;
+  if (type === "country") highlightCountries([id]);   // v6 §26
+  await pane.push({
+    key: `${type}:${id}`,
+    title: type.replace(/_/g, " "),
+    targetType: type,
+    targetId: id,
+    sequence: { type, id },        // §6.2 prev/next arrows
+    focus: { type, name: id },     // refined after load for countries
+    render: async (el) => {
+      await render(el, id);
+      const h1 = el.querySelector("h1, h2");
+      if (h1) {
+        // first text node only — skip the iso3 / thin-coverage badge spans
+        const name = (h1.childNodes[0]?.textContent || h1.textContent).trim();
+        setFocus(type, name);
+        pane.host.querySelector(".pane-title").textContent = name.slice(0, 48);
+      }
+    },
+  }, { replace });
+}
+
+// v5 §9 — a dense cluster that zoom can't split opens its member events as a
+// scrollable list in the shared sliding pane (same pane, list template).
+function openClusterList(cluster) {
+  const members = (cluster.members || []).slice()
+    .sort((a, b) => (b.severity || 0) - (a.severity || 0)
+      || (b.occurred_at || "").localeCompare(a.occurred_at || ""));
+  pane.push({
+    key: `cluster:${cluster.lat.toFixed(2)}:${cluster.lon.toFixed(2)}:${members.length}`,
+    title: `${members.length} events here`,
+    render: (el) => {
+      el.innerHTML = `<h1>${members.length} events in this cluster</h1>
+        <p class="cp-meta">Too many overlapping points to separate by zoom — browse them
+          all here. Sorted by severity, then recency.</p>
+        <div class="cluster-list"></div>`;
+      const list = el.querySelector(".cluster-list");
+      for (const ev of members) {
+        const row = document.createElement("div");
+        row.className = "story-card cluster-row";
+        const cat = ev.category || "other";
+        row.innerHTML = `<div class="card-meta">
+            <span class="chip cat-${cat}">${cat}</span>
+            <span class="cp-meta">sev ${ev.severity || "?"}</span>
+            ${ev.development_type ? `<span class="chip">${ev.development_type}</span>` : ""}
+            <span class="cp-meta" style="margin-left:auto">${(ev.occurred_at || "").slice(0, 16).replace("T", " ")}</span>
+          </div><h3></h3><p class="cp-meta"></p>`;
+        row.querySelector("h3").textContent = ev.title || "(untitled event)";
+        row.querySelector("p").textContent = ev.location_name || "";
+        if (ev.story_id) {
+          row.style.cursor = "pointer";
+          row.addEventListener("click", () => openStory(ev.story_id));
+        } else {
+          row.querySelector("p").textContent += " · not yet correlated into a story";
+        }
+        list.appendChild(row);
+      }
+    },
+  });
+}
+
+// v5 §1 — History / archive view: the permanent fact chain already stores
+// everything, so this is a browsing UI over it (paginated, date + category
+// filtered), not new storage. Opens in the shared sliding pane.
+function openHistory() {
+  pane.push({
+    key: "history",
+    title: "history / archive",
+    render: async (el) => {
+      el.innerHTML = `<h1>History</h1>
+        <p class="cp-meta">The full permanent fact chain — browse past stories by date and category.</p>
+        <div class="hist-controls">
+          <label>from <input type="date" class="h-from"></label>
+          <label>to <input type="date" class="h-to"></label>
+          <select class="h-cat"><option value="">all categories</option>
+            <option>geopolitics</option><option>finance</option>
+            <option>disaster</option><option>conflict</option><option>other</option></select>
+        </div>
+        <div class="hist-list"></div>
+        <div class="hist-more"><button class="h-more">load more</button></div>`;
+      const listEl = el.querySelector(".hist-list");
+      let offset = 0;
+      const load = async (reset) => {
+        if (reset) { offset = 0; listEl.innerHTML = ""; }
+        const from = el.querySelector(".h-from").value;
+        const to = el.querySelector(".h-to").value;
+        const data = await api.stories({
+          limit: 30, offset, sort: "oldest",
+          category: el.querySelector(".h-cat").value || undefined,
+          from: from ? from + "T00:00:00Z" : undefined,
+          to: to ? to + "T23:59:59Z" : undefined,
+        }).catch(() => ({ stories: [] }));
+        for (const s of data.stories || []) {
+          const row = document.createElement("div");
+          row.className = "story-card";
+          row.style.cursor = "pointer";
+          row.innerHTML = `<div class="card-meta">
+              <span class="chip cat-${s.category || "other"}">${s.category || "other"}</span>
+              <span class="cp-meta" style="margin-left:auto">${(s.first_seen_at || "").slice(0, 10)}</span>
+            </div><h3></h3>`;
+          row.querySelector("h3").textContent = s.headline || "(untitled)";
+          row.addEventListener("click", () => openStory(s.id));
+          listEl.appendChild(row);
+        }
+        offset += (data.stories || []).length;
+        el.querySelector(".hist-more").style.display =
+          (data.stories || []).length < 30 ? "none" : "block";
+      };
+      el.querySelectorAll(".hist-controls input, .hist-controls select").forEach((c) =>
+        c.addEventListener("change", () => load(true)));
+      el.querySelector(".h-more").addEventListener("click", () => load(false));
+      await load(true);
+    },
+  });
+}
+
+// ---------- shell components ----------
+
+const lineageView = new LineageView(els.lineageOverlay, {
+  onOpenStory: (id) => openStory(id),
+});
+const storyPage = new StoryPage(pane, {
+  onOpenStory: (id) => openStory(id),
+  onWatch: () => watchlist.refresh(),
+  onOpenLineage: (factId) => lineageView.open(factId),
+});
+const feed = new LiveFeed(els.feedList, { onOpenStory: (id) => openStory(id) });
+const instChart = new InstabilityChart(els.instabilityValue, els.instabilitySpark);
+const statusPanel = new StatusPanel(els.statusDrawer, els.statusToggle);
+const graphExplorer = new GraphExplorer(els.graphOverlay);
+// v6.1 — music plays from the start by default (owner request). A saved
+// preference still wins; armAutoplay() (below) works around the browser
+// autoplay policy by resuming on the first user gesture.
+const sound = new SoundEngine(true);
+const alerts = new Alerts(els.alertsHost, {
+  severityFloor: 4,
+  onOpenStory: (id) => openStory(id),
+});
+
+function setConn(mode) {
+  els.connBadge.className = `conn-${mode}`;
+  els.connBadge.textContent =
+    mode === "live" ? "live" : mode === "polling" ? "polling (15s)"
+    : mode === "capsule" ? "time capsule" : "synthetic dataset";
+}
+
+// ---------- story deep links (§5.3) ----------
+
+function openStory(id, { push = true } = {}) {
+  if (push) history.pushState({ storyId: id }, "", `/story/${id}`);
+  if (state.syntheticMode) openSyntheticStory(id);
+  else storyPage.open(id);
+}
+window.addEventListener("popstate", (ev) => {
+  if (ev.state && ev.state.storyId) openStory(ev.state.storyId, { push: false });
+  else pane.close();
+});
+
+function openSyntheticStory(id) {
+  const ds = state.syntheticData;
+  const s = ds.stories.find((x) => x.id === id);
+  if (!s) return;
+  const members = ds.story_members.filter((m) => m.story_id === id).map((m) => {
+    const e = ds.events.find((x) => x.id === m.event_id);
+    return e && { ...e, linked_via: m.linked_via,
+      source: { name: "Synthetic Dataset Generator", url: "#", leaning: "n/a",
+                kind: "reported", article_link: "" } };
+  }).filter(Boolean);
+  storyPage.open(id, { syntheticStory: { ...s, members, connected_history: [],
+    predictions: [], second_order_links: [],
+    bias_view: { left: [], center: [], right: [] },
+    sources: [{ name: "Synthetic Dataset Generator", url: "#", leaning: "n/a",
+                kind: "reported", article_link: "" }] } });
+}
+
+function onSelectEvent(event) {
+  if (event.story_id) openStory(event.story_id);
+}
+
+// ---------- tier + quality management (§5) ----------
+
+function currentQuality() {
+  return localStorage.getItem(QUALITY_KEY) || state.clientConfig.graphics.quality_tier;
+}
+
+function mountRenderer(tier) {
+  if (state.renderer) { state.renderer.destroy(); state.renderer = null; }
+  els.mapHost.innerHTML = "";
+  const g4 = state.clientConfig.globe || {};
+  const opts = {
+    onSelectEvent,
+    quality: currentQuality(),
+    idleTourSeconds: state.clientConfig.graphics.idle_tour_seconds,
+    clusterScreenDistancePx: g4.cluster_screen_distance_px || 40,   // §2.2
+    facingOcclusion: g4.hit_test_use_facing_occlusion !== false,    // §2.1
+    minConfidenceSolid:
+      (state.clientConfig.geocoding || {}).min_confidence_for_solid_marker ?? 0.6,
+    lodCalibration: parseFloat(localStorage.getItem(CALIB_KEY) || "1"),  // §15.4
+    wraparound: (state.clientConfig.map2d || {}).wraparound_enabled !== false, // §4.2
+    countryAt,
+    onSelectLocation: (loc) => {
+      setFocus("location", loc.name);
+      if (loc.country_id) openEntity("country", loc.country_id);
+      else if (loc.conflict_id) selectConflict(loc.conflict_id, { forceOn: true });
+    },
+    onSelectActor: (a) => {           // v4 §5.4
+      setFocus("non_state_actor", a.name);
+      openEntity("non_state_actor", a.id);
+    },
+    onSelectCluster: (cluster) => openClusterList(cluster),   // v5 §9
+    onCountryClick: (lat, lon) => {
+      let c = countryAt(lat, lon);
+      // v6.2 — small island nations (Mauritius, Comoros, Malta, Seychelles…)
+      // have tiny polygons that a click almost never lands exactly on, so they
+      // felt like they "don't exist". If the direct hit misses, snap to the
+      // nearest small-country centroid within ~2.5° and open that.
+      if (!c) {
+        let best = null, bestD = 2.5;
+        for (const l of COUNTRY_LABELS) {
+          if (l.span > 6) continue;   // only snap to genuinely small states
+          const d = Math.hypot(l.lat - lat, (l.lon - lon)
+            * Math.cos(lat * Math.PI / 180));
+          if (d < bestD) { bestD = d; best = l; }
+        }
+        if (best) c = { i: best.iso3, n: best.name };
+      }
+      if (c) {
+        setFocus("country", c.n);
+        openEntity("country", c.i);
+      } else {
+        setFocus(null);               // §16.2 — empty-space click clears focus
+      }
+    },
+  };
+  try {
+    if (tier === 1) state.renderer = new Tier1Globe(els.mapHost, opts);
+    else if (tier === 2) state.renderer = new Tier2Map(els.mapHost, opts);
+    else state.renderer = new Tier3List(els.mapHost, opts);
+    state.tier = tier;
+  } catch (err) {
+    console.warn(`tier ${tier} failed (${err.message}), degrading`);
+    mountRenderer(tier === 1 ? 2 : 3);
+    return;
+  }
+  state.renderer.setHeatmap?.(els.heatmapToggle.classList.contains("active"));
+  state.renderer.setBorders?.(state.bordersOn);
+  state.renderer.setDisputes?.(state.disputesOn);
+  if (state.markedOn) state.renderer.setMarkedLocations?.(state.markedLocations);
+  if (state.actorsOn) {
+    state.renderer.setActors?.(state.actors);
+    state.renderer.setActorZones?.(state.actorZones);   // v5 §11
+  }
+  if (state.cities.length) state.renderer.setCities?.(state.cities);
+  state.renderer.setCountryLabels?.(COUNTRY_LABELS);   // v6.1.1 dynamic labels
+  applyBlocOverlay();
+  // v6 §31 — WebXR isn't functional yet: keep the button hidden until the
+  // config flips ui.vr_button_visible (the underlying spec stays intact)
+  const vrVisible = (state.clientConfig.ui || {}).vr_button_visible === true;
+  els.xrBtn.classList.toggle("hidden",
+    !(vrVisible && state.tier === 1 && window.__xrSupported));
+  // v6.1.1 — terrain button hidden unless ui.terrain_button_visible (the biome
+  // texture drops most interior land, so it read as misplaced blobs)
+  // v6.2 — country labels honor the names toggle
+  state.renderer?.setCountryLabelsVisible?.(state.namesOn !== false);
+  applyThemeToRenderer();   // v6.2 — retint globe/map for the active theme
+  state.renderer?.setCityLights?.(state.cityLights);   // v6 §24
+  pushMapData();
+  if (tier === 1) calibrateOnce();
+}
+
+// v4 §15.4 — one-time first-launch calibration: measure real frame time
+// on this machine and scale the cluster/label density threshold to match
+function calibrateOnce() {
+  if (localStorage.getItem(CALIB_KEY)) return;
+  const samples = [];
+  let last = performance.now();
+  const probe = (t) => {
+    samples.push(t - last);
+    last = t;
+    if (samples.length < 40) { requestAnimationFrame(probe); return; }
+    const avg = samples.slice(10).reduce((s, x) => s + x, 0) / (samples.length - 10);
+    const factor = avg > 40 ? 1.8 : avg > 24 ? 1.3 : 1;
+    localStorage.setItem(CALIB_KEY, String(factor));
+    if (factor > 1 && state.renderer) state.renderer.clusterPx =
+      (state.clientConfig.globe.cluster_screen_distance_px || 40) * factor;
+  };
+  requestAnimationFrame(probe);
+}
+
+function relevanceFloor() {
+  return state.relevanceOn
+    ? (state.clientConfig.relevance || {}).global_relevance_floor ?? 0.3 : null;
+}
+
+function pushMapData() {
+  if (!state.renderer) return;
+  const { events, links } = state.mapData;
+  let filtered = state.category
+    ? events.filter((e) => e.category === state.category) : events;
+  if (state.region) {   // §9.2 — continent filter applied map-side via PIP
+    filtered = filtered.filter((e) => {
+      const c = countryAt(e.lat, e.lon);
+      return c && countryRegionMatches(c.i, state.region);
+    });
+  }
+  const storyIds = new Set(filtered.map((e) => e.story_id).filter(Boolean));
+  state.renderer.setData({
+    events: filtered,
+    links: (links || []).filter((l) => storyIds.has(l.story_id)),
+    cluster_config: state.mapData.cluster_config,
+  });
+}
+
+let regionByIso = new Map();
+function countryRegionMatches(iso3, region) {
+  const r = regionByIso.get(iso3) || "";
+  if (region === "America") return r.includes("America") || r.includes("Caribbean");
+  if (region === "Middle East") return r.includes("Middle East") || r.includes("Western Asia");
+  return r.includes(region);
+}
+
+// ---------- filters (§6.4 + v4 §9) ----------
+
+for (const cat of CATEGORIES) {
+  const chip = document.createElement("button");
+  chip.className = "filter-chip" + (cat === "" ? " active" : "");
+  chip.dataset.cat = cat;
+  chip.textContent = cat || "all";
+  chip.addEventListener("click", () => {
+    state.category = cat;
+    document.querySelectorAll(".filter-chip[data-cat]").forEach((c) =>
+      c.classList.toggle("active", c === chip));
+    pushMapData();
+    refreshStories().catch(() => {});
+  });
+  els.mapFilters.appendChild(chip);
+}
+// §9.2 continent filter — one shared state across feed, map and directory
+const contSel = document.createElement("select");
+contSel.className = "filter-chip";
+contSel.title = "continent filter (feed + map + stories, one state)";
+for (const c of CONTINENTS) {
+  const o = document.createElement("option");
+  o.value = c; o.textContent = c || "🌐 all regions";
+  contSel.appendChild(o);
+}
+contSel.addEventListener("change", () => {
+  state.region = contSel.value;
+  pushMapData();
+  refreshStories().catch(() => {});
+});
+els.mapFilters.appendChild(contSel);
+// §9.1 relevance-floor toggle, default ON per the product's purpose
+const relChip = document.createElement("button");
+relChip.className = "filter-chip" + (state.relevanceOn ? " active" : "");
+relChip.textContent = "global only";
+relChip.title = "hide low-relevance local coverage (v4 §9.1)";
+relChip.addEventListener("click", () => {
+  state.relevanceOn = !state.relevanceOn;
+  localStorage.setItem(RELEVANCE_KEY, state.relevanceOn ? "1" : "0");
+  relChip.classList.toggle("active", state.relevanceOn);
+  refreshMap().catch(() => {});
+  refreshStories().catch(() => {});
+});
+els.mapFilters.appendChild(relChip);
+
+const exportChip = document.createElement("a");
+exportChip.className = "filter-chip";
+exportChip.textContent = "⤓ csv";
+exportChip.title = "export current events as CSV";
+els.mapFilters.appendChild(exportChip);
+function updateExportLink() {
+  const q = new URLSearchParams({ format: "csv" });
+  if (state.category) q.set("category", state.category);
+  if (state.asOf) q.set("as_of", state.asOf);
+  exportChip.href = `/api/events?${q}`;
+}
+
+// ---------- data loading ----------
+
+async function refreshStories() {
+  const data = await api.stories({ limit: 60, category: state.category || undefined,
+                                   as_of: state.asOf || undefined,
+                                   watchlist: state.watchlistOnly ? "1" : undefined,
+                                   conflict_id: state.conflictId || undefined,
+                                   min_relevance: relevanceFloor() ?? undefined,
+                                   region: state.region || undefined,
+                                   sort: state.feedSort || undefined,          // v5 §1
+                                   war_tab: state.warMode ? (state.warTab || undefined) : undefined, // v6 §8
+                                   development_type: state.devType || undefined });
+  // v6.2 — RENDER THE FEED IMMEDIATELY, then translate asynchronously and
+  // update in place. Previously the feed render was AWAITING the translation
+  // call, so a slow/hung translate (up to its 60s timeout) left the feed
+  // blank — that's why "the live feed sometimes doesn't come in". Original
+  // text shows instantly; translated text swaps in when ready.
+  const stories = data.stories || [];
+  feed.setStories(stories);
+  if (state.lang && state.lang !== "en" && stories.length) {
+    translateStories(stories).then((translated) => {
+      // only apply if the feed hasn't been replaced by a newer load
+      if (feed.currentIds === stories) feed.setStories(translated);
+    }).catch(() => {});
+  }
+  feed.currentIds = stories;
+}
+
+// v6 §11 — batch-translate feed/story content through the cached pipeline.
+// English (or no provider) passes straight through.
+async function translateStories(stories) {
+  if (!state.lang || state.lang === "en" || !stories.length) return stories;
+  try {
+    const items = stories.map((s) => ({ id: s.id, headline: s.headline,
+                                        summary: s.summary }));
+    const res = await api.translateContent(state.lang, items);
+    const tr = res.translations || {};
+    return stories.map((s) => tr[s.id] ? {
+      ...s,
+      headline: tr[s.id].headline || s.headline,
+      summary: tr[s.id].summary || s.summary,
+    } : s);
+  } catch { return stories; }
+}
+
+async function refreshMap() {
+  state.mapData = await api.mapEvents({ as_of: state.asOf || undefined,
+                                        min_relevance: relevanceFloor() ?? undefined });
+  pushMapData();
+  updateExportLink();
+}
+
+async function refreshInstability() {
+  const data = await api.instability("72h", state.asOf);
+  instChart.update(data);
+  if (!state.asOf && data.latest) {
+    sound.setInstability(data.latest.score);
+    analyst.setInstability(data.latest.score);
+    state.lastInstability = data.latest.score;
+  }
+}
+
+// ---------- time capsule (§4) ----------
+
+let liveSuspended = false;
+const scrubber = new TimeScrubber(els.scrubberHost, {
+  onAsOfChange: (asOf) => {
+    state.asOf = asOf;
+    liveSuspended = asOf !== null;
+    setConn(asOf ? "capsule" : "live");
+    Promise.all([refreshStories(), refreshMap(), refreshInstability()]).catch(() => {});
+  },
+});
+
+// ---------- live wiring ----------
+
+async function loadReal() {
+  const cfgData = await api.config().catch(() => null);
+  if (cfgData) state.clientConfig = { ...state.clientConfig, ...cfgData };
+  if (!localStorage.getItem(QUALITY_KEY)) {
+    els.qualitySelect.value = state.clientConfig.graphics.quality_tier;
+  }
+  document.documentElement.style.setProperty("--pane-ms",
+    ((state.clientConfig.panes || {}).transition_duration_ms ?? 300) + "ms");
+  alerts.severityFloor =
+    (state.clientConfig.alerts || {}).in_app_breaking_alert_severity_floor ?? 4;
+  sound.volume = localStorage.getItem("tdl_sound_vol") !== null
+    ? sound.volume : (state.clientConfig.audio || {}).master_gain_default ?? 0.4;
+  els.volumeSlider.value = String(Math.round(sound.volume * 100));
+
+  await refreshStories();
+  await refreshMap();
+  await refreshInstability();
+  setConn("live");
+  loadCities().catch(() => {});
+  checkOnboarding().catch(() => {});
+  loadCompleteness().catch(() => {});
+
+  const socket = new FeedSocket({
+    onStateChange: (mode) => { if (!liveSuspended) setConn(mode); },
+    onMessage: async (msg) => {
+      if (liveSuspended) return;
+      if (msg.type === "event_created") {
+        const p = msg.payload;
+        sound.onLiveEvent(p);            // §12.3 data sonification
+        sound.noteSeverity(p.severity);
+        if (p.location) {
+          state.mapData.events.unshift({ id: p.id, title: p.title,
+            lat: p.location.lat, lon: p.location.lon,
+            location_name: p.location_name, category: p.category,
+            severity: p.severity, occurred_at: p.occurred_at,
+            geocode_confidence: p.geocode_confidence,
+            global_relevance_score: p.global_relevance_score, story_id: null });
+          pushMapData();
+          state.renderer?.burst?.(p.location.lat, p.location.lon, p.category);
+        }
+      } else if (msg.type === "story_created" || msg.type === "story_updated") {
+        try {
+          const full = await api.stories({ limit: 30 });
+          const card = (full.stories || []).find((s) => s.id === msg.payload.id);
+          feed.upsert(card || msg.payload);
+        } catch { feed.upsert(msg.payload); }
+        if (msg.type === "story_created") {
+          sound.blip();
+          const ev = state.mapData.events.find((e) => e.story_id === msg.payload.id);
+          if (ev) state.renderer?.burst?.(ev.lat, ev.lon, ev.category);
+          // §25 — in-app breaking alert above the severity floor
+          const sev = ev ? ev.severity
+            : Math.max(0, ...state.mapData.events
+                .filter((e) => e.story_id === msg.payload.id)
+                .map((e) => e.severity || 0));
+          alerts.maybeAlert(msg.payload, sev);
+        }
+        refreshMap().catch(() => {});
+      } else if (msg.type === "instability_updated") {
+        refreshInstability().catch(() => {});
+      }
+    },
+  });
+  socket.start();
+  // v6.2 — SAFETY-NET story polling. The WS only falls back to polling after
+  // 60s of being *down*; if it connects fine but a story push is missed (or
+  // the correlation engine emits between pushes), the feed would otherwise
+  // never refresh after the initial load — the "feed sometimes doesn't come
+  // in" bug. A steady full refresh guarantees events keep streaming in.
+  setInterval(() => {
+    if (!liveSuspended) refreshStories().catch(() => {});
+  }, STORY_REFRESH_MS);
+  setInterval(() => { if (!liveSuspended) refreshMap().catch(() => {}); }, MAP_REFRESH_MS);
+  setInterval(() => { if (!liveSuspended) refreshInstability().catch(() => {}); },
+              MAP_REFRESH_MS * 5);
+}
+
+// v4 §4.3 — city label data (GeoNames, population-sorted) for both renderers
+async function loadCities() {
+  const data = await api.cities(50000, 4000);
+  state.cities = data.cities || [];
+  state.renderer?.setCities?.(state.cities);
+}
+
+// v4 §14, v5.1 §18 — first-run onboarding: surface the key setup, don't
+// block serving. Gate on ai_available (any configured provider in the
+// llm_provider fallback chain — Groq by default, free, no card) rather than
+// Claude specifically, since Claude is now an optional upgrade.
+async function checkOnboarding() {
+  if (localStorage.getItem("tdl_onboarded") === "1") return;
+  if (!(state.clientConfig.onboarding || {}).require_ai_key_before_first_run) return;
+  const ks = await api.keysStatus().catch(() => null);
+  if (!ks) return;
+  if (ks.ai_available) {
+    localStorage.setItem("tdl_onboarded", "1");
+    return;
+  }
+  const banner = document.createElement("div");
+  banner.className = "onboard-banner";
+  // v6.5 — Ollama-first: local AI is the primary provider (free forever, no
+  // rate limits); a Groq key stays available as the cloud alternative.
+  banner.innerHTML = `<span>⚙ <b>First run:</b> install <b>Ollama</b> (ollama.com) and run
+      <code>ollama pull llama3.1</code> to switch on the AI features locally — free,
+      unlimited, private. (Or add a free Groq key in Settings instead.)</span>
+    <button class="ob-open">open settings</button><button class="ob-skip">later</button>`;
+  banner.querySelector(".ob-open").addEventListener("click", () => {
+    banner.remove();
+    openSettings();
+  });
+  banner.querySelector(".ob-skip").addEventListener("click", () => {
+    banner.remove();
+    localStorage.setItem("tdl_onboarded", "1");
+  });
+  document.getElementById("map-panel").appendChild(banner);
+}
+
+// v4 §5.1 — surfaced (never silent) completeness check result
+async function loadCompleteness() {
+  const c = await api.completeness().catch(() => null);
+  if (c && (c.problems || []).length) {
+    console.warn("entity completeness gaps:", c.problems);
+  }
+}
+
+async function loadSynthetic() {
+  const mod = await import("./data/syntheticDataset.js");
+  const ds = mod.SYNTHETIC_DATASET;
+  state.syntheticMode = true;
+  state.syntheticData = ds;
+  setConn("synthetic");
+  const storyOf = {};
+  for (const m of ds.story_members) storyOf[m.event_id] = m.story_id;
+  const events = ds.events.map((e) => ({
+    ...e, lat: e.location?.lat, lon: e.location?.lon, story_id: storyOf[e.id] || null,
+  }));
+  const links = [];
+  const byStory = {};
+  for (const e of events) if (e.story_id) (byStory[e.story_id] ||= []).push(e);
+  for (const [sid, evs] of Object.entries(byStory)) {
+    evs.sort((a, b) => a.occurred_at.localeCompare(b.occurred_at));
+    for (let i = 0; i + 1 < evs.length; i++)
+      links.push({ story_id: sid, from: [evs[i].lat, evs[i].lon],
+                   to: [evs[i + 1].lat, evs[i + 1].lon] });
+  }
+  state.mapData = { events, links };
+  pushMapData();
+  feed.setStories(ds.stories.map((s) => ({ ...s,
+    member_count: ds.story_members.filter((m) => m.story_id === s.id).length,
+    source_count: 1, category: "other" })));
+  const history = ds.instability_scores;
+  instChart.update({ latest: history[history.length - 1], history });
+}
+
+// ---------- topbar controls ----------
+
+els.qualitySelect.value = currentQuality();
+els.qualitySelect.addEventListener("change", () => {
+  localStorage.setItem(QUALITY_KEY, els.qualitySelect.value);
+  mountRenderer(state.tier);
+});
+
+function paintSoundBtn() {
+  els.soundToggle.textContent = sound.isEnabled() ? "🔊" : "🔇";
+  els.soundToggle.classList.toggle("active", sound.isEnabled());
+}
+els.soundToggle.addEventListener("click", () => { sound.toggle(); paintSoundBtn(); });
+paintSoundBtn();
+// v6.1 — start the music without the user having to touch the volume/toggle
+sound.armAutoplay();
+
+// v6.1 — a friendly "what is this / how do I use it" popup, hidden behind the
+// header "?" button and shown once automatically on the very first visit.
+const HELP_SEEN_KEY = "tdl_help_seen";
+function showHelp() {
+  let ov = document.getElementById("help-overlay");
+  if (!ov) {
+    ov = document.createElement("div");
+    ov.id = "help-overlay";
+    ov.innerHTML = `
+      <div class="help-card">
+        <button class="help-close" title="close">✕</button>
+        <h2>🌍 Welcome to GlobeGrid</h2>
+        <p>GlobeGrid is a live <b>global-events intelligence map</b>. It reads news,
+           disasters, markets and social signal in real time, extracts the who / what /
+           where / when, and connects related events across the world — then explains
+           <i>what happened and why</i> with AI-written causal storylines, every fact
+           linked to its source.</p>
+        <h3>Getting around</h3>
+        <ul>
+          <li><b>Spin the globe</b> — drag, or use <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>
+              to move and <kbd>Q</kbd>/<kbd>E</kbd> to zoom, like a game.</li>
+          <li><b>Click a dot</b> for the event; <b>click a country</b> for its full profile
+              (leaders, legislature, currency, alliances).</li>
+          <li><b>Conflicts</b> button → pick a war to enter <b>War Mode</b> (sides, backers,
+              front, filtered feed).</li>
+          <li><b>Modes</b> (bottom bar) paints thematic maps — HDI, GDP, population,
+              religion, language.</li>
+          <li><b>Language</b> selector translates the whole feed instantly.</li>
+          <li>The glowing <b>orb</b> (bottom-right) is the AI analyst — ask it anything.</li>
+          <li><kbd>Esc</kbd> closes one layer at a time; <b>shift-drag</b> box-selects a region.</li>
+        </ul>
+        <h3>Switch on the AI (one-time setup)</h3>
+        <p>GlobeGrid's AI (analyst, causal storylines, translation, summaries) runs on
+           <b>Ollama</b> — a free local AI server on your own machine. No account, no key,
+           no rate limits, fully private:</p>
+        <ol class="help-setup">
+          <li>Install Ollama from <b>ollama.com</b> (Windows/Mac/Linux — one installer).</li>
+          <li>Open a terminal and run <code>ollama pull llama3.1</code> (~4.9&nbsp;GB, one time).</li>
+          <li>That's it — Ollama runs in the background and GlobeGrid finds it
+              automatically. Verify at <a href="/api/diagnostics" target="_blank">/api/diagnostics</a>
+              (all rows should be ✅).</li>
+        </ol>
+        <p class="help-foot">Slow answers on an older PC? Try the smaller model:
+           <code>ollama pull llama3.2:3b</code>, then set <code>llm_provider.ollama_model</code>
+           in <code>backend/config.yaml</code>. Prefer the cloud instead? Add a free
+           <b>Groq</b> key in Settings — it's the automatic fallback whenever Ollama
+           isn't running.</p>
+      </div>`;
+    document.body.appendChild(ov);
+    const close = () => ov.classList.add("hidden");
+    ov.querySelector(".help-close").addEventListener("click", close);
+    ov.addEventListener("click", (e) => { if (e.target === ov) close(); });
+  }
+  ov.classList.remove("hidden");
+}
+els.helpBtn.addEventListener("click", showHelp);
+if (!localStorage.getItem(HELP_SEEN_KEY)) {
+  localStorage.setItem(HELP_SEEN_KEY, "1");
+  setTimeout(showHelp, 900);   // let the globe paint first
+}
+// §12.1 — the volume slider the gain bug made necessary
+els.volumeSlider.value = String(Math.round(sound.volume * 100));
+els.volumeSlider.addEventListener("input", () => {
+  sound.setVolume(parseInt(els.volumeSlider.value, 10) / 100);
+});
+// §12.2/§12.3 — preset picker
+// v6 §17 — explicit scope narrowing: only presets in audio.presets_active
+// appear in the picker; everything else stays unbuilt/hidden until the
+// hard-rock/metal proof of concept is validated
+const activePresets = () =>
+  (state.clientConfig.audio || {}).presets_active
+  || ["ambient_default", "arctic_calm", "modal_drift", "data_sonification",
+      "crystalline_chimes", "deep_glacier", "aurora_drift"];
+for (const [name, p] of Object.entries(PRESETS)) {
+  if (!activePresets().includes(name)) continue;
+  const o = document.createElement("option");
+  o.value = name; o.textContent = "♪ " + p.label;
+  els.presetSelect.appendChild(o);
+}
+els.presetSelect.value = sound.presetName;
+els.presetSelect.addEventListener("change", () => sound.setPreset(els.presetSelect.value));
+
+els.heatmapToggle.addEventListener("click", () => {
+  const on = !els.heatmapToggle.classList.contains("active");
+  els.heatmapToggle.classList.toggle("active", on);
+  state.renderer?.setHeatmap?.(on);
+});
+// v4 §5.4 — three orthogonal switches: borders / disputes / NSAs
+els.bordersToggle.addEventListener("click", () => {
+  state.bordersOn = !state.bordersOn;
+  els.bordersToggle.classList.toggle("active", state.bordersOn);
+  state.renderer?.setBorders?.(state.bordersOn);
+});
+els.disputesToggle.addEventListener("click", () => {
+  state.disputesOn = !state.disputesOn;
+  els.disputesToggle.classList.toggle("active", state.disputesOn);
+  state.renderer?.setDisputes?.(state.disputesOn);
+});
+// v6.2 — timezone picker in the header (was buried in Settings and hard to find)
+for (const g of TIMEZONES) {
+  const og = document.createElement("optgroup");
+  og.label = g.group;
+  for (const [val, label] of g.zones) {
+    const o = document.createElement("option");
+    o.value = val; o.textContent = label;
+    og.appendChild(o);
+  }
+  els.tzHeader.appendChild(og);
+}
+els.tzHeader.value = getTimeZone();
+els.tzHeader.addEventListener("change", () => {
+  setTimeZone(els.tzHeader.value);
+  refreshStories().catch(() => {});
+});
+
+// v6.2 — country-name label toggle (terrain removed entirely)
+state.namesOn = localStorage.getItem("tdl_names") !== "0";
+els.namesToggle.classList.toggle("active", state.namesOn);
+els.namesToggle.addEventListener("click", () => {
+  state.namesOn = !state.namesOn;
+  localStorage.setItem("tdl_names", state.namesOn ? "1" : "0");
+  els.namesToggle.classList.toggle("active", state.namesOn);
+  state.renderer?.setCountryLabelsVisible?.(state.namesOn);
+});
+els.actorsToggle.addEventListener("click", async () => {
+  state.actorsOn = !state.actorsOn;
+  els.actorsToggle.classList.toggle("active", state.actorsOn);
+  if (state.actorsOn && !state.actors.length) {
+    const data = await api.actors().catch(() => ({ actors: [] }));
+    state.actors = data.actors || [];
+  }
+  if (state.actorsOn && !state.actorZones.length) {   // v5 §11 — same toggle
+    const z = await api.nsaZones().catch(() => ({ zones: [] }));
+    state.actorZones = z.zones || [];
+  }
+  state.renderer?.setActors?.(state.actorsOn ? state.actors : []);
+  state.renderer?.setActorZones?.(state.actorsOn ? state.actorZones : []);
+});
+
+const palette = new CommandPalette({
+  onOpenStory: (id) => openStory(id),
+  onFlyTo: (lat, lon) => state.renderer?.flyTo?.(lat, lon),
+  getCamera: () => state.renderer?.getCamera?.(),
+  setCamera: (cam) => state.renderer?.setCamera?.(cam),
+  getRegions: () => {
+    const seen = new Map();
+    for (const e of state.mapData.events) {
+      if (e.location_name && !seen.has(e.location_name))
+        seen.set(e.location_name, { name: e.location_name, lat: e.lat, lon: e.lon });
+    }
+    return [...seen.values()];
+  },
+});
+els.paletteBtn.addEventListener("click", () => palette.toggle());
+els.graphBtn.addEventListener("click", () => graphExplorer.open());
+
+// v4 pane-hosted directories & pages
+els.storiesBtn.addEventListener("click", () => ctx.openDirectory(null));
+els.bookmarksBtn.addEventListener("click", () => pane.push({
+  key: "bookmarks", title: "bookmarks",
+  render: (el) => Wiki.renderBookmarks(el, ctx),
+}));
+function openSettings() {
+  pane.push({ key: "settings", title: "settings",
+              render: (el) => Wiki.renderSettings(el, ctx) });
+}
+els.settingsBtn.addEventListener("click", openSettings);
+els.snapshotBtn.addEventListener("click", async () => {
+  try {
+    const cards = [...els.feedList.querySelectorAll(".story-card h3")]
+      .slice(0, 3).map((h) => ({ headline: h.textContent }));
+    await exportSnapshot({ mapHost: els.mapHost, stories: cards,
+                           instability: state.lastInstability });
+  } catch (err) { els.snapshotBtn.title = `snapshot failed: ${err.message}`; }
+});
+
+// §22 — credits reachable from the status drawer footer
+statusPanel.onCredits = () => pane.push({
+  key: "credits", title: "sources & credits",
+  render: (el) => Wiki.renderCredits(el, ctx),
+});
+document.addEventListener("click", (ev) => {
+  if (ev.target && ev.target.classList &&
+      ev.target.classList.contains("credits-link")) {
+    statusPanel.onCredits();
+  }
+});
+
+// v6.1 — daily / weekly / monthly briefings, switchable in the overlay
+const BRIEFING_LABELS = { day: "Daily", week: "Weekly", month: "Monthly" };
+async function showBriefing(period = "day") {
+  els.briefingOverlay.classList.remove("hidden");
+  els.briefingOverlay.innerHTML =
+    `<div class="story-page"><p>loading ${BRIEFING_LABELS[period].toLowerCase()} briefing…</p></div>`;
+  const data = await api.briefings(true, period).catch((e) => ({ error: e.message }));
+  const b = data.briefing;
+  const page = document.createElement("div");
+  page.className = "story-page";
+  page.innerHTML = `
+    <div class="close-row">
+      <div class="briefing-tabs">
+        ${["day", "week", "month"].map((p) =>
+          `<button class="brief-tab ${p === period ? "active" : ""}" data-p="${p}">${BRIEFING_LABELS[p]}</button>`).join("")}
+      </div>
+      <button class="close-btn">✕ close</button></div>
+    <h3>${BRIEFING_LABELS[period]} briefing${b ? " — " + b.briefing_date : ""}</h3>
+    <div class="briefing-body"></div>`;
+  page.querySelector(".briefing-body").textContent =
+    b ? b.content : (data.error || `No ${BRIEFING_LABELS[period].toLowerCase()} briefing yet`
+      + " — it generates once enough stories exist over that window.");
+  page.querySelectorAll(".brief-tab").forEach((t) =>
+    t.addEventListener("click", () => showBriefing(t.dataset.p)));
+  page.querySelector(".close-btn").addEventListener("click", () => {
+    els.briefingOverlay.classList.add("hidden");
+    els.briefingOverlay.innerHTML = "";
+  });
+  els.briefingOverlay.innerHTML = "";
+  els.briefingOverlay.appendChild(page);
+}
+els.briefingBtn.addEventListener("click", () => showBriefing("day"));
+els.briefingOverlay.addEventListener("click", (ev) => {
+  if (ev.target === els.briefingOverlay) {
+    els.briefingOverlay.classList.add("hidden");
+    els.briefingOverlay.innerHTML = "";
+  }
+});
+
+// ---------- watchlist (§6.2) ----------
+
+const watchlist = {
+  async refresh() {
+    const data = await api.watchlist().catch(() => ({ items: [] }));
+    const panel = els.watchlistPanel;
+    panel.innerHTML = `
+      <h3>Watchlist</h3>
+      <label class="wl-only"><input type="checkbox" ${state.watchlistOnly ? "checked" : ""}>
+        feed: watchlist only</label>
+      <div class="wl-items"></div>
+      <div class="wl-add">
+        <select><option>entity</option><option>region</option><option>category</option></select>
+        <input placeholder="value… (e.g. Ukraine)">
+        <button>add</button>
+      </div>`;
+    panel.querySelector(".wl-only input").addEventListener("change", (ev) => {
+      state.watchlistOnly = ev.target.checked;
+      refreshStories().catch(() => {});
+    });
+    const itemsEl = panel.querySelector(".wl-items");
+    for (const it of data.items) {
+      const row = document.createElement("div");
+      row.className = "src-row";
+      row.innerHTML = `<span class="chip">${it.kind}</span> <b></b>
+        <button class="cp-del" style="margin-left:auto">✕</button>`;
+      row.querySelector("b").textContent = it.value;
+      row.querySelector("button").addEventListener("click", async () => {
+        await api.watchlistDelete(it.id);
+        watchlist.refresh();
+        refreshStories().catch(() => {});
+      });
+      itemsEl.appendChild(row);
+    }
+    if (!data.items.length) itemsEl.innerHTML = '<p class="cp-meta">nothing pinned yet</p>';
+    const addBtn = panel.querySelector(".wl-add button");
+    addBtn.addEventListener("click", async () => {
+      const kind = panel.querySelector(".wl-add select").value;
+      const value = panel.querySelector(".wl-add input").value.trim();
+      if (!value) return;
+      await api.watchlistAdd(kind, value);
+      watchlist.refresh();
+      refreshStories().catch(() => {});
+    });
+  },
+};
+els.watchlistBtn.addEventListener("click", () => {
+  els.watchlistPanel.classList.toggle("hidden");
+  if (!els.watchlistPanel.classList.contains("hidden")) watchlist.refresh();
+});
+
+// v5 §1 — feed sort controls
+const sortSel = document.createElement("select");
+sortSel.className = "filter-chip";
+sortSel.title = "sort the feed";
+sortSel.innerHTML = `<option value="">newest first</option>`
+  + `<option value="oldest">oldest first</option>`
+  + `<option value="active">most active</option>`;
+sortSel.addEventListener("change", () => {
+  state.feedSort = sortSel.value;
+  refreshStories().catch(() => {});
+});
+els.feedTools.appendChild(sortSel);
+
+// v5 §3 — military-development feed filter (never populates a conflict tab)
+const devSel = document.createElement("select");
+devSel.className = "filter-chip";
+devSel.title = "conflict / military development filter (v5 §3)";
+devSel.innerHTML = `<option value="">all developments</option>`
+  + `<option value="conflict">⚔ conflict only</option>`
+  + `<option value="military">🎖 military only</option>`;
+devSel.addEventListener("change", () => {
+  state.devType = devSel.value;
+  refreshStories().catch(() => {});
+});
+els.feedTools.appendChild(devSel);
+
+// v5 §1 — History / archive view (paginated, date+category filterable)
+const histBtn = document.createElement("button");
+histBtn.className = "filter-chip";
+histBtn.textContent = "🕑 history";
+histBtn.title = "browse the full fact-chain archive by date";
+histBtn.addEventListener("click", () => openHistory());
+els.feedTools.appendChild(histBtn);
+
+const storiesCsv = document.createElement("a");
+storiesCsv.className = "filter-chip";
+storiesCsv.textContent = "⤓ csv";
+storiesCsv.href = "/api/stories?format=csv";
+storiesCsv.title = "export stories as CSV";
+els.feedTools.appendChild(storiesCsv);
+
+// ========== v3 wiring (with the §16 focus fix) ==========
+
+function selectConflict(conflictId, { forceOn = false } = {}) {
+  state.conflictId = (!forceOn && state.conflictId === conflictId) ? null : conflictId;
+  const active = state.conflicts.find((c) => c.id === state.conflictId);
+  // v4 §16.2 — when nothing is selected the focus CLEARS (the old code
+  // kept the previous stale value here, which was the confirmed bug)
+  setFocus(active ? "conflict" : null, active ? active.name : undefined);
+  renderConflictTabs();
+  refreshStories().catch(() => {});
+}
+
+function renderConflictTabs() {
+  // v6 §9 — the redundant all-conflicts listing above the feed is REMOVED;
+  // browsing conflicts now lives in the top-level Conflicts tab (War Mode
+  // entry). What remains here is only the war-mode sub-filter row, or a
+  // small "filtered ✕" chip when a conflict filter is active outside it.
+  els.conflictTabs.innerHTML = "";
+  if (state.warMode) { renderWarTabs(); return; }
+  if (!state.conflictId) return;
+  const active = state.conflicts.find((c) => c.id === state.conflictId);
+  const chip = document.createElement("button");
+  chip.className = "conflict-tab active";
+  chip.innerHTML = `${(active ? active.name : "conflict").replace(/</g, "&lt;")} ✕`;
+  chip.title = "clear the conflict filter";
+  chip.addEventListener("click", () => {
+    state.conflictId = null;
+    setFocus(null);
+    renderConflictTabs();
+    refreshStories().catch(() => {});
+  });
+  els.conflictTabs.appendChild(chip);
+}
+
+async function loadConflicts() {
+  try {
+    const data = await api.conflicts();
+    state.conflicts = data.conflicts || [];
+    renderConflictTabs();
+  } catch { /* entity layer not ready */ }
+}
+
+els.markedToggle.addEventListener("click", async () => {
+  state.markedOn = !state.markedOn;
+  els.markedToggle.classList.toggle("active", state.markedOn);
+  if (state.markedOn && !state.markedLocations.length) {
+    const data = await api.markedLocations().catch(() => ({ locations: [] }));
+    state.markedLocations = data.locations || [];
+  }
+  state.renderer?.setMarkedLocations?.(state.markedOn ? state.markedLocations : []);
+});
+
+els.satToggle.addEventListener("click", async () => {
+  state.satOn = !state.satOn;
+  els.satToggle.classList.toggle("active", state.satOn);
+  if (state.satOn) {
+    const data = await api.satellites().catch(() => ({ satellites: [] }));
+    state.satellites = data.satellites || [];
+    if (!state.satellites.length) {
+      els.satToggle.title = "no TLE data yet — the daily CelesTrak fetch hasn't succeeded";
+    }
+    const tick = () => {
+      if (!state.satOn) return;
+      state.renderer?.setSatellites?.(propagateAll(state.satellites));
+      state.satTimer = setTimeout(tick, 1000);
+    };
+    tick();
+  } else {
+    clearTimeout(state.satTimer);
+    state.renderer?.setSatellites?.([]);
+  }
+});
+
+// v6.1.1 — multiple blocs can be shown at once, each in a distinct color.
+let alliancesCache = [];
+const activeBlocs = new Set();
+// a palette cycled per active bloc so overlapping alliances stay tellable
+// apart, with a per-type fallback tint
+const BLOC_PALETTE = [
+  [1.0, 0.45, 0.35], [0.5, 0.85, 1.0], [0.55, 1.0, 0.65], [1.0, 0.85, 0.4],
+  [0.8, 0.6, 1.0], [1.0, 0.6, 0.85], [0.5, 1.0, 0.9], [1.0, 0.72, 0.4],
+];
+function applyBlocOverlay() {
+  const groups = [];
+  let idx = 0;
+  for (const aid of activeBlocs) {
+    const alliance = alliancesCache.find((a) => a.id === aid);
+    if (!alliance) continue;
+    const members = new Set(alliance.members || []);
+    const rings = [];
+    for (const c of BOUNDARIES_50M) if (members.has(c.i)) rings.push(...c.r);
+    if (rings.length) groups.push({ rings, color: BLOC_PALETTE[idx % BLOC_PALETTE.length] });
+    idx++;
+  }
+  // prefer the multi-group API; fall back to single overlay if unavailable
+  if (state.renderer?.setColoredRings) state.renderer.setColoredRings(groups);
+  else state.renderer?.setAllianceOverlay?.(groups[0]?.rings || [], groups[0]?.color);
+  els.blocsBtn.textContent = activeBlocs.size ? `blocs (${activeBlocs.size}) ▾` : "blocs ▾";
+}
+function blocColorHex(idx) {
+  const c = BLOC_PALETTE[idx % BLOC_PALETTE.length];
+  return `rgb(${c.map((x) => Math.round(x * 255)).join(",")})`;
+}
+async function loadAlliances() {
+  try {
+    const data = await api.alliances();
+    alliancesCache = data.alliances || [];
+    els.blocPanel.innerHTML = alliancesCache.map((a) =>
+      `<label class="bloc-row"><input type="checkbox" value="${a.id}"> ${a.name}
+        <span class="cp-meta">${a.type || ""}</span></label>`).join("")
+      + `<button class="bloc-clear">clear all</button>`;
+    els.blocPanel.querySelectorAll("input[type=checkbox]").forEach((cb) =>
+      cb.addEventListener("change", () => {
+        cb.checked ? activeBlocs.add(cb.value) : activeBlocs.delete(cb.value);
+        // recolor the checkbox row to match its overlay color
+        [...activeBlocs].forEach((id, i) => {
+          const box = els.blocPanel.querySelector(`input[value="${id}"]`);
+          if (box) box.parentElement.style.borderLeft = `3px solid ${blocColorHex(i)}`;
+        });
+        els.blocPanel.querySelectorAll("input:not(:checked)").forEach((b) =>
+          (b.parentElement.style.borderLeft = "3px solid transparent"));
+        applyBlocOverlay();
+      }));
+    els.blocPanel.querySelector(".bloc-clear").addEventListener("click", () => {
+      activeBlocs.clear();
+      els.blocPanel.querySelectorAll("input[type=checkbox]").forEach((b) => {
+        b.checked = false; b.parentElement.style.borderLeft = "3px solid transparent";
+      });
+      applyBlocOverlay();
+    });
+  } catch { /* entity layer not ready */ }
+}
+els.blocsBtn.addEventListener("click", (ev) => {
+  ev.stopPropagation();
+  els.blocPanel.classList.toggle("hidden");
+});
+document.addEventListener("click", (ev) => {
+  if (!els.blocPanel.contains(ev.target) && ev.target !== els.blocsBtn)
+    els.blocPanel.classList.add("hidden");
+});
+
+async function loadRegions() {
+  try {
+    const data = await api.countries();
+    regionByIso = new Map((data.countries || []).map((c) => [c.id, c.region || ""]));
+  } catch { /* entity layer not ready */ }
+}
+
+window.__xrSupported = false;
+if (navigator.xr && navigator.xr.isSessionSupported) {
+  navigator.xr.isSessionSupported("immersive-vr").then((ok) => {
+    window.__xrSupported = !!ok;
+    els.xrBtn.classList.toggle("hidden", !(ok && state.tier === 1));
+  }).catch(() => {});
+}
+els.xrBtn.addEventListener("click", async () => {
+  try { await state.renderer?.enterXR?.(); }
+  catch (err) { els.xrBtn.title = `VR unavailable: ${err.message}`; }
+});
+
+// v3 §10.1 timelapse export (MediaRecorder/webm — deviation noted in CLAUDE.md)
+const tlBtn = document.createElement("button");
+tlBtn.className = "ts-play";
+tlBtn.textContent = "⏺";
+tlBtn.title = "export the last 24h as a video timelapse";
+els.scrubberHost.querySelector("#time-scrubber").appendChild(tlBtn);
+tlBtn.addEventListener("click", async () => {
+  const canvas = els.mapHost.querySelector("canvas");
+  if (!canvas || !window.MediaRecorder) { tlBtn.title = "capture unsupported here"; return; }
+  tlBtn.textContent = "⏺…";
+  tlBtn.disabled = true;
+  const stream = canvas.captureStream(30);
+  const rec = new MediaRecorder(stream, { mimeType: "video/webm" });
+  const chunks = [];
+  rec.ondataavailable = (ev) => ev.data.size && chunks.push(ev.data);
+  const done = new Promise((res) => { rec.onstop = res; });
+  rec.start();
+  const STEPS = 48;
+  for (let i = 0; i <= STEPS; i++) {
+    const frac = i / STEPS;
+    const value = Math.round(1000 * (1 - (1 - frac) * (24 / (7 * 24))));
+    scrubber.range.value = String(value);
+    scrubber.range.dispatchEvent(new Event("input"));
+    await new Promise((r) => setTimeout(r, 220));
+  }
+  rec.stop();
+  await done;
+  scrubber.reset();
+  const blob = new Blob(chunks, { type: "video/webm" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `globegrid-last24h-${new Date().toISOString().slice(0, 10)}.webm`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  tlBtn.textContent = "⏺";
+  tlBtn.disabled = false;
+});
+
+// --- §24 analyst orb + autonomous navigation (focus is timestamped; the
+// backend now always tries the question text first — v4 §16.2) ---
+const analyst = new AnalystPanel({
+  onOpenStory: (id) => openStory(id),
+  getFocusedEntity: () => state.focusedEntity,
+  // v6 §29 — screen-aware: whatever panel/page is open right now
+  getScreen: () => ({
+    pane: pane.top() ? String(pane.top().key) : null,
+    war_mode: state.warMode ? state.warMode.conflict.name : null,
+    map_mode: state.mapMode, tier: state.tier,
+    conflict_filter: state.conflictId,
+  }),
+  onOpenThread: (id) => ctx.openThread(id),
+  autoNavDefault: true,
+  onNavigate: (nav) => {
+    if (!nav) return;
+    if (nav.type === "country") openEntity("country", nav.id);
+    // v6 §13 — an analyst answer that opens a conflict enters War Mode
+    // directly and frames the conflict zone, not just a generic tab
+    else if (nav.type === "conflict") enterWarMode(nav.id);
+    else if (nav.type === "region") ctx.openRegion(nav.id);   // v5 §20
+    else if (nav.type === "non_state_actor") openEntity("non_state_actor", nav.id);
+    else if (nav.type === "location") {
+      const loc = state.markedLocations.find((l) => l.id === nav.id);
+      if (loc) state.renderer?.flyTo?.(loc.lat, loc.lon);
+    } else if (nav.type === "alliance") {
+      // v6.1.1 — add to the active multi-bloc set + tick its checkbox
+      activeBlocs.add(nav.id);
+      const cb = els.blocPanel.querySelector(`input[value="${nav.id}"]`);
+      if (cb) cb.checked = true;
+      applyBlocOverlay();
+    }
+  },
+});
+
+setInterval(() => {
+  const cam = state.renderer?.getCamera?.();
+  if (cam) sound.setCameraYaw(cam.yaw);
+  const byRegion = new Map();
+  for (const e of state.mapData.events || []) {
+    if (!e.location_name) continue;
+    const r = byRegion.get(e.location_name) || { name: e.location_name,
+                                                 lon: e.lon, weight: 0 };
+    r.weight += 1;
+    byRegion.set(e.location_name, r);
+  }
+  sound.setRegions([...byRegion.values()].sort((a, b) => b.weight - a.weight));
+}, 3000);
+
+loadConflicts();
+loadAlliances();
+loadRegions();
+
+// ---------- boot ----------
+
+// v5 §14/§2 — restore saved theme + language on boot
+applyTheme(localStorage.getItem("tdl_theme")
+  || (localStorage.getItem("tdl_colorblind") === "1" ? "colorblind_safe" : "dark_teal_default"));
+applyLanguage(localStorage.getItem("tdl_lang") || "en");
+
+// debug/verification handle (harmless in production; used by headless checks)
+window.__gg = { state, ctx, pane, openStory, sound };
+
+const initialTier = initTierControl(els.tierSelect, (tier) => mountRenderer(tier));
+mountRenderer(initialTier);
+paintSoundBtn();
+els.instabilityWidget.addEventListener("click", () => refreshInstability().catch(() => {}));
+
+loadReal().catch((err) => {
+  console.warn("API unavailable, using synthetic dataset:", err.message);
+  loadSynthetic().catch((e2) => {
+    els.feedList.innerHTML = `<p>no data available: ${e2.message}</p>`;
+  });
+}).then(() => {
+  const match = location.pathname.match(/^\/story\/([0-9a-f]+)$/);
+  if (match) openStory(match[1], { push: false });
+});
+
+
+// ========== v6 wiring ==========
+
+// ---------- §8/§9 — Conflicts tab + War Mode ----------
+
+const SIDE_COLORS = { a: [1.0, 0.42, 0.34], b: [0.36, 0.66, 1.0],
+                      none: [0.72, 0.72, 0.78] };
+
+els.unBtn.addEventListener("click", () => ctx.openUN());
+els.conflictsBtn.addEventListener("click", () => {
+  pane.push({
+    key: "conflicts", title: "conflicts",
+    render: async (el) => {
+      const data = await api.conflicts().catch(() => ({ conflicts: [] }));
+      state.conflicts = data.conflicts || [];
+      el.innerHTML = `<h1>Conflicts</h1>
+        <p class="cp-meta">Every tracked conflict — selecting one enters War Mode:
+        a dedicated layout framed on the conflict zone, sides in consistent
+        colors, and a conflict-only feed (v6 §8).</p>
+        <div class="conflict-dir"></div>`;
+      const list = el.querySelector(".conflict-dir");
+      for (const c of state.conflicts) {
+        const sides = { a: [], b: [], none: [] };
+        for (const pt of (c.parties || [])) {
+          (sides[pt.side || "none"] = sides[pt.side || "none"] || []).push(
+            pt.country_name || pt.actor_name);
+        }
+        const row = document.createElement("div");
+        row.className = "story-card dir-card";
+        row.innerHTML = `<div class="card-meta">
+            <span class="chip">${c.status}</span>
+            <span class="cp-meta">${c.region || ""}</span>
+            <span class="cp-meta" style="margin-left:auto">${c.story_count || 0} stories</span>
+          </div><h3></h3>
+          <p class="cp-meta war-sides"></p>`;
+        row.querySelector("h3").textContent = c.name;
+        row.querySelector(".war-sides").textContent =
+          [sides.a.length ? sides.a.join(", ") : null,
+           sides.b.length ? sides.b.join(", ") : null]
+            .filter(Boolean).join("  ⚔  ");
+        row.addEventListener("click", () => enterWarMode(c.id));
+        list.appendChild(row);
+      }
+      if (!state.conflicts.length) {
+        list.innerHTML = '<p class="cp-meta">no conflicts registered yet</p>';
+      }
+    },
+  });
+});
+
+async function enterWarMode(conflictId) {
+  if ((state.clientConfig.war_mode || {}).enabled === false) {
+    selectConflict(conflictId, { forceOn: true });
+    return;
+  }
+  let data;
+  try { data = await api.warMode(conflictId); }
+  catch { selectConflict(conflictId, { forceOn: true }); return; }
+  state.warMode = data;
+  state.warTab = "";
+  state.conflictId = conflictId;
+  setFocus("conflict", data.conflict.name);
+
+  // map: frame/zoom straight to the conflict zone (§8, §13)
+  const f = data.frame;
+  if (f && state.renderer?.flyTo) {
+    const span = Math.max(f.max_lat - f.min_lat, f.max_lon - f.min_lon, 4);
+    if (state.tier === 1) {
+      const dist = Math.max(1.55, Math.min(2.6, 1.35 + span / 38));
+      state.renderer.flyTo(f.center_lat, f.center_lon, dist, 1100);
+    } else {
+      state.renderer.flyTo(f.center_lat, f.center_lon);
+    }
+  }
+
+  // parties: one consistent color per side, painted on their borders
+  const groups = [];
+  for (const side of ["a", "b"]) {
+    const isos = (data.parties || [])
+      .filter((pt) => pt.side === side && pt.country_id)
+      .map((pt) => pt.country_id);
+    const rings = [];
+    for (const c of BOUNDARIES_50M) if (isos.includes(c.i)) rings.push(...c.r);
+    if (rings.length) groups.push({ rings, color: SIDE_COLORS[side] });
+  }
+  state.renderer?.setColoredRings?.(groups);
+
+  // subfactions: conflict-scoped internal-control areas that never render in
+  // global mode (side a → established/pink, side b → contested/amber)
+  const warZones = (data.subfactions || []).filter((sf) => sf.zone_geojson)
+    .map((sf) => ({ nsa_id: null, nsa_name: sf.name,
+                    confidence: sf.side === "a" ? "established"
+                      : sf.side === "b" ? "contested" : "reported",
+                    geojson: sf.zone_geojson }));
+  state.renderer?.setActorZones?.([
+    ...(state.actorsOn ? state.actorZones : []), ...warZones]);
+
+  // left panel: wiki-infobox conflict overview on the shared pane shell (§8)
+  pane.push({
+    key: `war:${conflictId}`, title: "war mode",
+    focus: { type: "conflict", name: data.conflict.name },
+    render: (el) => Wiki.renderWarMode(el, data, ctx),
+  });
+
+  renderConflictTabs();   // shows the war sub-filter row
+  refreshStories().catch(() => {});
+}
+
+function exitWarMode() {
+  if (!state.warMode) return;
+  state.warMode = null;
+  state.warTab = "";
+  state.conflictId = null;
+  setFocus(null);
+  state.renderer?.setColoredRings?.([]);
+  state.renderer?.setActorZones?.(state.actorsOn ? state.actorZones : []);
+  renderConflictTabs();
+  refreshStories().catch(() => {});
+}
+window.__gg.exitWarMode = exitWarMode;
+
+// §8 — right-panel sub-filters: Military / Civilian / Diplomatic / Economic
+function renderWarTabs() {
+  els.conflictTabs.innerHTML = "";
+  const name = document.createElement("span");
+  name.className = "war-name";
+  name.textContent = "⚔ " + (state.warMode.conflict.name || "");
+  els.conflictTabs.appendChild(name);
+  for (const [id, label] of [["", "all"], ["military", "⚔ military"],
+                             ["civilian", "🏥 civilian"],
+                             ["diplomatic", "🕊 diplomatic"],
+                             ["economic", "📈 economic"]]) {
+    const tab = document.createElement("button");
+    tab.className = "conflict-tab" + (state.warTab === id ? " active" : "");
+    tab.textContent = label;
+    tab.addEventListener("click", () => {
+      state.warTab = id;
+      renderWarTabs();
+      refreshStories().catch(() => {});
+    });
+    els.conflictTabs.appendChild(tab);
+  }
+  const exit = document.createElement("button");
+  exit.className = "conflict-tab war-exit";
+  exit.textContent = "✕ exit war mode";
+  exit.addEventListener("click", exitWarMode);
+  els.conflictTabs.appendChild(exit);
+}
+
+// ---------- §11 — site-wide language + transliterated wordmark ----------
+
+// phonetically accurate transliterations of "GlobeGrid" — a fixed,
+// human-reviewed lookup per script (brand names get a consistent spelling,
+// never a fresh machine guess)
+const WORDMARK_TRANSLIT = {
+  ru: "ГлобГрид", uk: "ГлобГрід", be: "ГлобГрыд", sr: "ГлобГрид",
+  mk: "ГлобГрид", bg: "ГлобГрид",
+  ar: "غلوبغريد", fa: "گلوب‌گرید", ur: "گلوب گرڈ", he: "גלובגריד",
+  hi: "ग्लोबग्रिड", ka: "გლობგრიდი", hy: "ԳլոբԳրիդ",
+  el: "ΓκλομπΓκριντ", th: "โกลบกริด",
+  ja: "グローブグリッド", ko: "글로브그리드",
+  "zh-Hans": "环球格网", "zh-Hant": "環球格網",
+  my: "ဂလုဘ်ဂရစ်", km: "គ្លូបគ្រីដ", lo: "ໂກລບກຣິດ", am: "ግሎብግሪድ",
+};
+
+function setSiteLanguage(code) {
+  state.lang = code;
+  applyLanguage(code);   // v5 §2 — dir/lang attributes + persistence
+  // §11 — script-matched wordmark next to the Latin brand
+  const t = (state.clientConfig.ui || {}).wordmark_transliteration !== false
+    ? WORDMARK_TRANSLIT[code] : null;
+  els.brandTranslit.textContent = t || "";
+  if (els.langBtn.value !== code) els.langBtn.value = code;
+  // every panel and piece of content translates immediately — the feed
+  // re-renders through the cached pipeline; new arrivals translate on the
+  // server as they land (translation.instant_translate_on_arrival)
+  refreshStories().catch(() => {});
+}
+
+for (const l of LANGUAGES) {
+  const o = document.createElement("option");
+  o.value = l.code;
+  o.textContent = l.code === "en" ? "🌐 EN" : l.name;
+  els.langBtn.appendChild(o);
+}
+els.langBtn.value = state.lang;
+els.langBtn.addEventListener("change", () => setSiteLanguage(els.langBtn.value));
+if (state.lang !== "en") setSiteLanguage(state.lang);
+
+// ---------- §12 — ESC closes panels one at a time (a real stack) ----------
+
+// One keydown handler querying the stack — topmost/rightmost first. The
+// per-panel listeners this replaces are disabled via data flags below.
+document.addEventListener("keydown", (ev) => {
+  if (ev.key !== "Escape") return;
+  if (ev.target && /INPUT|TEXTAREA|SELECT/.test(ev.target.tagName)) return;
+  const closers = [
+    [() => !palette.el.classList.contains("hidden"), () => palette.hide?.() || palette.toggle()],
+    [() => !els.modesBar.classList.contains("hidden"), () => toggleModesBar(false)],
+    [() => !els.statusDrawer.classList.contains("hidden"), () => statusPanel.close()],
+    [() => !els.graphOverlay.classList.contains("hidden"),
+     () => els.graphOverlay.classList.add("hidden")],
+    [() => !els.briefingOverlay.classList.contains("hidden"),
+     () => els.briefingOverlay.classList.add("hidden")],
+    [() => !els.lineageOverlay.classList.contains("hidden"),
+     () => els.lineageOverlay.classList.add("hidden")],
+    [() => !els.watchlistPanel.classList.contains("hidden"),
+     () => els.watchlistPanel.classList.add("hidden")],
+    [() => !analyst.panel.classList.contains("hidden"), () => analyst.hide()],
+    [() => pane.top(), () => pane.back()],
+    [() => state.warMode, () => exitWarMode()],
+  ];
+  for (const [check, close] of closers) {
+    if (check()) { close(); ev.stopPropagation(); return; }
+  }
+}, { capture: true });
+
+// ---------- §6 — drag-to-select rectangle (screen-axis-aligned) ----------
+
+// Shift+drag draws an upright selection box (PDX-style — always parallel to
+// the window edges, never rotated with the globe); on release every event
+// inside opens in the left pane, grouped by location.
+(() => {
+  const box = document.createElement("div");
+  box.id = "rect-select";
+  box.style.display = "none";
+  els.mapHost.appendChild(box);
+  let start = null;
+  els.mapHost.addEventListener("pointerdown", (ev) => {
+    if (!ev.shiftKey) return;
+    start = { x: ev.clientX, y: ev.clientY };
+    box.style.display = "block";
+    ev.preventDefault(); ev.stopPropagation();
+  }, { capture: true });
+  window.addEventListener("pointermove", (ev) => {
+    if (!start) return;
+    const host = els.mapHost.getBoundingClientRect();
+    box.style.left = (Math.min(start.x, ev.clientX) - host.left) + "px";
+    box.style.top = (Math.min(start.y, ev.clientY) - host.top) + "px";
+    box.style.width = Math.abs(ev.clientX - start.x) + "px";
+    box.style.height = Math.abs(ev.clientY - start.y) + "px";
+  });
+  window.addEventListener("pointerup", (ev) => {
+    if (!start) return;
+    box.style.display = "none";
+    const dragged = Math.abs(ev.clientX - start.x) + Math.abs(ev.clientY - start.y);
+    // a real drag must never fall through to the renderer's own click
+    // resolution (which would open whatever country sits under the cursor)
+    if (dragged > 10) { ev.stopPropagation(); ev.preventDefault(); }
+    const events = state.renderer?.eventsInRect?.(start.x, start.y,
+                                                  ev.clientX, ev.clientY) || [];
+    start = null;
+    if (dragged <= 10 || !events.length) return;
+    // grouped by location, reusing the cluster list-content template (v5 §9)
+    const byLoc = new Map();
+    for (const e of events) {
+      const key = e.location_name || "unknown location";
+      if (!byLoc.has(key)) byLoc.set(key, []);
+      byLoc.get(key).push(e);
+    }
+    pane.push({
+      key: `rect:${Date.now()}`,
+      title: `${events.length} selected events`,
+      render: (el) => {
+        el.innerHTML = `<h1>${events.length} events in selection</h1>`;
+        for (const [loc, evs] of [...byLoc.entries()]
+            .sort((a, b) => b[1].length - a[1].length)) {
+          const sec = document.createElement("section");
+          sec.innerHTML = `<h4>${loc.replace(/</g, "&lt;")} · ${evs.length}</h4>`;
+          for (const e of evs) {
+            const row = document.createElement("div");
+            row.className = "cluster-row";
+            row.innerHTML = `<span class="chip cat-${e.category || "other"}">${e.category || "other"}</span> <span></span>`;
+            row.querySelector("span:last-child").textContent = e.title || "";
+            if (e.story_id) {
+              row.style.cursor = "pointer";
+              row.addEventListener("click", () => openStory(e.story_id));
+            }
+            sec.appendChild(row);
+          }
+          el.appendChild(sec);
+        }
+      },
+    });
+  }, { capture: true });
+})();
+
+// ---------- §16 — thematic map modes (EU5-style rollout icon bar) ----------
+
+let mapModesCache = null;
+const MODE_CAT_PALETTE = ["#4da3ff", "#ffd166", "#ff6b6b", "#7bd88f", "#c792ea",
+                          "#f78c6c", "#89ddff", "#e6a1c4", "#b5bd68"];
+
+function toggleModesBar(show) {
+  els.modesBar.classList.toggle("hidden", show === false);
+  els.modesBtn.classList.toggle("active", show !== false);
+}
+
+els.modesBtn.addEventListener("click", async () => {
+  if (!els.modesBar.classList.contains("hidden")) { toggleModesBar(false); return; }
+  if (!mapModesCache) {
+    const data = await api.mapModes().catch(() => ({ modes: [] }));
+    mapModesCache = data.modes || [];
+    els.modesBar.innerHTML = "";
+    const off = document.createElement("button");
+    off.className = "mode-chip";
+    off.textContent = "✕ off";
+    off.addEventListener("click", () => applyMapMode(null));
+    els.modesBar.appendChild(off);
+    for (const m of mapModesCache) {
+      const b = document.createElement("button");
+      b.className = "mode-chip";
+      b.dataset.mode = m.id;
+      b.innerHTML = `<span class="mode-ico">${m.icon}</span> ${m.label}`;
+      b.title = `${m.label} — source: ${m.source}`;
+      b.addEventListener("click", () => applyMapMode(m.id));
+      els.modesBar.appendChild(b);
+    }
+  }
+  toggleModesBar(true);
+});
+
+function _rampColor(t) {
+  // v6.1 — deep-blue → magenta → amber → yellow sequential ramp at higher
+  // opacity (owner: "more clear map mode shading that is more visible"). A
+  // 3-stop ramp separates the low/mid/high bands far more than the old
+  // teal→amber two-stop, and 0.72 alpha reads clearly over the base map.
+  let r, g, b;
+  if (t < 0.5) {           // deep blue → magenta
+    const u = t / 0.5;
+    r = Math.round(40 + 180 * u); g = Math.round(50 + 20 * u); b = Math.round(150 + 40 * u);
+  } else {                 // magenta → amber → yellow
+    const u = (t - 0.5) / 0.5;
+    r = Math.round(220 + 30 * u); g = Math.round(70 + 150 * u); b = Math.round(190 - 170 * u);
+  }
+  return `rgba(${r},${g},${b},0.72)`;
+}
+
+async function applyMapMode(mode) {
+  state.mapMode = mode;
+  els.modesBar.querySelectorAll(".mode-chip").forEach((c) =>
+    c.classList.toggle("active", c.dataset.mode === mode));
+  if (!mode) {
+    state.renderer?.setChoropleth?.(null);
+    els.modeLegend.classList.add("hidden");
+    state.modeValues = null;   // v6.1.1 — stop the hover tooltip
+    return;
+  }
+  const d = await api.mapMode(mode).catch(() => null);
+  if (!d) return;
+  const colors = {};
+  let legendHtml = `<b>${d.label}</b>`;
+  if (d.kind === "numeric") {
+    const lo = d.log_scale ? Math.log10(Math.max(1e-9, d.min)) : d.min;
+    const hi = d.log_scale ? Math.log10(Math.max(1e-9, d.max)) : d.max;
+    for (const [iso3, v] of Object.entries(d.values)) {
+      const x = d.log_scale ? Math.log10(Math.max(1e-9, v)) : v;
+      colors[iso3] = _rampColor(Math.max(0, Math.min(1, (x - lo) / (hi - lo || 1))));
+    }
+    legendHtml += ` <span class="ramp"></span>
+      <span>${Number(d.min).toLocaleString()} – ${Number(d.max).toLocaleString()}</span>`;
+  } else {
+    // v6.1.1 — language/religion modes colour by FAMILY (related families sit
+    // near each other on the hue wheel) so the map groups at a glance; other
+    // categorical modes keep the arbitrary distinct palette.
+    const isLang = /lang/i.test(mode), isRel = /relig/i.test(mode);
+    const infoFor = isLang ? (v) => LANGUAGE_INFO[v]
+      : isRel ? (v) => RELIGION_INFO[v] : null;
+    const catColor = {};
+    (d.categories || []).forEach((c, i) => {
+      catColor[c] = MODE_CAT_PALETTE[i % MODE_CAT_PALETTE.length];
+    });
+    const colorFor = (v) => infoFor
+      ? familyColor(infoFor(v), 0.72) : (catColor[v] + "b0");
+    for (const [iso3, v] of Object.entries(d.values)) colors[iso3] = colorFor(v);
+    if (infoFor) {
+      // legend groups by FAMILY (no per-value key needed — hover names it)
+      const fam = {};
+      for (const c of (d.categories || [])) {
+        const inf = infoFor(c);
+        const f = inf ? inf.family : "other";
+        (fam[f] = fam[f] || { color: colorFor(c), items: [] }).items.push(c);
+      }
+      legendHtml += " " + Object.entries(fam).map(([f, o]) =>
+        `<span class="cat"><i style="background:${o.color}"></i>${f}</span>`).join(" ")
+        + ` <span class="src">hover a country for details</span>`;
+    } else {
+      legendHtml += " " + (d.categories || []).map((c) =>
+        `<span class="cat"><i style="background:${catColor[c]}"></i>${c}</span>`).join(" ");
+    }
+    // area-level modes: sub-national polygons override their country fill
+    if (d.areas) {
+      const areaZones = d.areas.filter((a) => a.zone_geojson).map((a) => ({
+        nsa_id: null, nsa_name: `${a.name} — ${a.value}`,
+        confidence: "reported", geojson: a.zone_geojson,
+        _color: catColor[a.value],
+      }));
+      state.renderer?.setActorZones?.([
+        ...(state.actorsOn ? state.actorZones : []), ...areaZones]);
+    }
+  }
+  if (!/relig|lang/i.test(mode))
+    legendHtml += ` <span class="src" title="data source">${d.source}</span>`;
+  // v6.1.1 — remember the per-country value + a human label for the hover tooltip
+  state.modeValues = d.values || null;
+  state.modeLabel = d.label;
+  state.modeUnit = d.kind === "numeric"
+    ? (v) => Number(v).toLocaleString() : (v) => v;
+  state.renderer?.setChoropleth?.(colors);
+  els.modeLegend.innerHTML = legendHtml;
+  els.modeLegend.classList.remove("hidden");
+}
+
+// v6.1.1 — hover tooltip for map modes: name the country + its value
+// (language / religion / metric) under the cursor, so no colour key is needed.
+let _modeTip = null;
+function ensureModeTip() {
+  if (_modeTip) return _modeTip;
+  _modeTip = document.createElement("div");
+  _modeTip.id = "mode-tip";
+  _modeTip.className = "hidden";
+  document.body.appendChild(_modeTip);
+  return _modeTip;
+}
+els.mapHost.addEventListener("pointermove", (ev) => {
+  if (!state.mapMode || !state.modeValues || !state.renderer?.screenToLatLon) {
+    if (_modeTip) _modeTip.classList.add("hidden");
+    return;
+  }
+  const geo = state.renderer.screenToLatLon(ev.clientX, ev.clientY);
+  // countryAt returns the boundary object ({i, n, ...}); take its iso3
+  const hit = geo ? countryAt(geo.lat, geo.lon) : null;
+  const iso3 = hit && hit.i;
+  const tip = ensureModeTip();
+  if (!iso3 || !(iso3 in state.modeValues)) { tip.classList.add("hidden"); return; }
+  const val = state.modeValues[iso3];
+  const shown = state.modeUnit ? state.modeUnit(val) : val;
+  tip.innerHTML = `<b>${(ISO3_NAME[iso3] || iso3).replace(/</g, "&lt;")}</b>`
+    + `<span>${state.modeLabel}: ${String(shown).replace(/</g, "&lt;")}</span>`;
+  tip.style.left = (ev.clientX + 14) + "px";
+  tip.style.top = (ev.clientY + 14) + "px";
+  tip.classList.remove("hidden");
+});
+els.mapHost.addEventListener("pointerleave", () => {
+  if (_modeTip) _modeTip.classList.add("hidden");
+});
+
+// ---------- §13 — feed click moves the camera to the event ----------
+
+// opening a story from anywhere also flies the camera to that story's most
+// recent located event (mapEvents rows carry story_id + coordinates)
+const _openStoryOrig = openStory;
+openStory = function (id, opts) {
+  const hit = (state.mapData.events || []).find(
+    (e) => e.story_id === id && e.lat != null);
+  if (hit) {
+    if (state.tier === 1) {
+      state.renderer?.flyTo?.(hit.lat, hit.lon,
+        Math.min(2.4, state.renderer.dist || 2.4));
+    } else {
+      state.renderer?.flyTo?.(hit.lat, hit.lon);
+    }
+  }
+  return _openStoryOrig(id, opts);
+};
+window.__gg.openStory = openStory;

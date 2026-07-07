@@ -1,0 +1,11 @@
+# TalkDiplomacy Live — zero-install build.
+#
+# The backend runs entirely on the Python 3.10+ standard library:
+# sqlite3 (database), http.server (REST + static), hashlib/base64 (WebSocket),
+# urllib (ingestion + Claude API), threading (scheduler), logging (observability).
+#
+# There are NO required third-party packages. `python run.py` works as-is.
+#
+# Optional upgrade (better embedding quality, matches the manual's locked
+# all-MiniLM-L6-v2 choice; auto-detected at runtime if importable):
+# sentence-transformers>=2.2
