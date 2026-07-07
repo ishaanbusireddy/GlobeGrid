@@ -73,3 +73,31 @@ RESOLUTIONS = [
      "notable_votes": {"USA": "yes", "GBR": "yes", "FRA": "yes",
                        "CHN": "yes", "RUS": "abstain"}},
 ]
+
+
+# v6.6 — major UN organs / specialized agencies for the UN panel subtabs
+UN_SUB_ORGS = [
+    {"name": "General Assembly (UNGA)", "hq": "New York", "head": "PGA (rotating)",
+     "role": "All 193 members, one vote each; resolutions are non-binding but carry political weight.",
+     "members": "All 193 UN member states"},
+    {"name": "Security Council (UNSC)", "hq": "New York", "head": "Rotating presidency",
+     "role": "Peace & security; binding resolutions; P5 veto (US, UK, France, Russia, China).",
+     "members": "P5 + 10 elected members"},
+    {"name": "International Court of Justice (ICJ)", "hq": "The Hague",
+     "head": "President Nawaf Salam (until 2025) / successor", "role": "Inter-state disputes and advisory opinions.",
+     "members": "All UN members are parties to the Statute"},
+    {"name": "WHO", "hq": "Geneva", "head": "Tedros Adhanom Ghebreyesus",
+     "role": "International public health; outbreak response; health regulations.", "members": "194 member states"},
+    {"name": "UNESCO", "hq": "Paris", "head": "Khaled El-Enany (2025–)",
+     "role": "Education, science, culture; World Heritage.", "members": "194 members"},
+    {"name": "UNICEF", "hq": "New York", "head": "Catherine Russell",
+     "role": "Children's welfare, vaccination, emergency relief.", "members": "Operates in 190+ countries"},
+    {"name": "UNHCR", "hq": "Geneva", "head": "Filippo Grandi",
+     "role": "Refugee protection and displacement response.", "members": "UN programme"},
+    {"name": "WFP", "hq": "Rome", "head": "Cindy McCain",
+     "role": "Food assistance; largest humanitarian agency; 2020 Nobel Peace Prize.", "members": "UN programme"},
+    {"name": "IAEA", "hq": "Vienna", "head": "Rafael Grossi",
+     "role": "Nuclear safeguards & verification (incl. Iran, Zaporizhzhia plant).", "members": "180 member states"},
+    {"name": "ILO", "hq": "Geneva", "head": "Gilbert Houngbo",
+     "role": "Labour standards and workers' rights.", "members": "187 member states"},
+]

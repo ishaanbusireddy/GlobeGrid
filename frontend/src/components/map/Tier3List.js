@@ -59,7 +59,10 @@ export class Tier3List {
       panel.className = "t3-geo-panel";
       const head = document.createElement("div");
       head.className = "t3-geo-head";
-      head.innerHTML = `<h3>${region}</h3><span class="t3-count">${evs.length}</span>`;
+      head.innerHTML = `<h3 class="t3-region-link" title="open ${region} — countries & events">${region} ›</h3><span class="t3-count">${evs.length}</span>`;
+      head.querySelector("h3").addEventListener("click", () => {   // v6.6
+        if (this.onSelectRegion) this.onSelectRegion(region);
+      });
       panel.appendChild(head);
       for (const e of evs.slice(0, 40)) {
         const card = document.createElement("div");

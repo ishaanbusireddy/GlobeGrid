@@ -737,3 +737,45 @@ body.theme-synthwave { --bg: #0a0416; --bg-panel: #140a24; --bg-card: #1c0f31;
   --accent: #ff50c8; --accent-2: #50d0ff;
   --geopolitics: #ff50c8; --finance: #ffe15a; --disaster: #ff5a7a;
   --conflict: #ff8a5a; --other: #50d0ff; }
+
+/* ===== v6.6 ===== */
+/* New Order — TNO-style: cold-war austerity, sepia paper greys, muted red */
+body.theme-new_order { --bg: #14120e; --bg-panel: #1e1b15; --bg-card: #27231b;
+  --line: rgba(196,180,140,0.28); --text: #d8cdb4; --text-dim: #97906f;
+  --accent: #b03a2e; --accent-2: #c4b48c;
+  --geopolitics: #c4b48c; --finance: #a68c5a; --disaster: #b03a2e;
+  --conflict: #8c3a32; --other: #97906f; --ok: #7a8c5a; --down: #b03a2e; }
+/* Fire Rises — TFR-style: near-black steel, ember orange/red crisis glow */
+body.theme-fire_rises { --bg: #0b0a09; --bg-panel: #16130f; --bg-card: #1f1a13;
+  --line: rgba(255,120,40,0.30); --text: #e8ddd0; --text-dim: #9a8d7c;
+  --accent: #ff6a2a; --accent-2: #ffb03a;
+  --geopolitics: #ffb03a; --finance: #e8c05a; --disaster: #ff4a2a;
+  --conflict: #ff6a2a; --other: #9a8d7c; --down: #ff4a2a; }
+:root { --technology: #b26bff; }
+body.colorblind, body.theme-colorblind_safe { --technology: #cc79a7; }
+#feed-close { background: none; border: none; color: var(--text-dim); cursor: pointer;
+  font-size: 14px; margin-left: 8px; }
+#feed-close:hover { color: var(--text); }
+#feed-reopen { position: fixed; right: 0; top: 50%; transform: translateY(-50%);
+  z-index: 30; writing-mode: vertical-rl; padding: 12px 4px;
+  background: var(--bg-panel); border: 1px solid var(--line); border-right: none;
+  border-radius: 8px 0 0 8px; color: var(--text-dim); cursor: pointer; }
+/* v6.6 — settings tabs */
+.settings-tabs { display: flex; gap: 6px; margin: 8px 0 14px; }
+.settings-tabs button { padding: 6px 14px; border-radius: 8px 8px 0 0;
+  border: 1px solid var(--line); border-bottom: none; background: var(--bg-card);
+  color: var(--text-dim); cursor: pointer; }
+.settings-tabs button.active { color: var(--text); background: var(--bg-panel);
+  border-color: var(--accent); }
+/* v6.6 — bigger, well-framed flags + headshot portraits in country panels */
+.wiki-header img.wiki-flag, .wiki-flag img { width: 96px !important; height: auto; }
+.leader-photo { width: 108px !important; height: 108px !important;
+  object-fit: cover; object-position: center 12%; border-radius: 10px;
+  border: 1px solid var(--line); }
+.leader-photo-empty { width: 108px !important; height: 108px !important;
+  font-size: 44px; display: flex; align-items: center; justify-content: center; }
+/* v6.6 — analyst structured output */
+.ap-h { margin: 10px 0 4px; font-size: 12.5px; letter-spacing: 0.05em;
+  text-transform: uppercase; color: var(--accent); }
+.ap-li { margin: 3px 0 3px 6px; line-height: 1.5; }
+.ap-gap { height: 8px; }

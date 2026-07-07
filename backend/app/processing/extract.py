@@ -55,7 +55,23 @@ CATEGORY_KEYWORDS = {
                 # these route cleanly into economic_agenda synthesis
                 "rate decision", "monetary policy", "fomc", "rate cut", "rate hike",
                 "basis points", "quantitative", "cpi", "unemployment rate", "payrolls",
-                "stimulus", "fiscal", "debt ceiling", "imf", "world bank"],
+                "stimulus", "fiscal", "debt ceiling", "imf", "world bank",
+                # v6.6 — owner: too many finance events classifying as 'other'
+                "stock market", "wall street", "nasdaq", "s&p 500", "dow jones",
+                "federal reserve", "treasury", "bank of", "merger", "acquisition",
+                "hedge fund", "private equity", "bankruptcy", "profit", "revenue",
+                "quarterly results", "billion deal", "investors", "bailout",
+                "currency devalu", "bond yield", "credit rating"],
+    # v6.6 — dedicated technology category (owner: pull major global tech news;
+    # too much finance/tech was landing in 'other'). Multi-word/long tokens only:
+    # classify_category substring-matches, so short tokens like 'ai' are unsafe.
+    "technology": ["artificial intelligence", " ai ", "openai", "chatgpt", "semiconductor",
+                   "chipmaker", "nvidia", "software", "startup", "silicon valley",
+                   "cyberattack", "cybersecurity", "data breach", "ransomware", "quantum",
+                   "robotics", "spacex", "satellite launch", "rocket launch", "smartphone",
+                   "data center", "cloud computing", "5g network", "social media platform",
+                   "tech giant", "microchip", "machine learning", "autonomous vehicle",
+                   "electric vehicle", "battery plant", "app store", "antitrust"],
     "geopolitics": ["election", "president", "minister", "parliament", "treaty", "summit",
                     "diplomat", "embassy", "united nations", "nato", "coalition", "vote",
                     "referendum", "policy", "talks", "agreement", "border", "protest"],

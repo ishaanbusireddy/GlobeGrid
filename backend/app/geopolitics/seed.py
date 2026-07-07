@@ -185,7 +185,10 @@ def _seed_countries() -> int:
                 "     excluded.composition_summary),"
                 "   seats_json = excluded.seats_json",
                 (iso3, leg["chamber"], summary, seats, now_iso()))
-        for iso3, role, name, party, since in seed_data.LEADERSHIP:
+        # v6.6 — world coverage: every country gets a head of state/government
+        # (hand-curated seed_data.LEADERSHIP entries win via INSERT OR IGNORE)
+        from .leaders_world import L as _world_leaders
+        for iso3, role, name, party, since in list(seed_data.LEADERSHIP) + _world_leaders:
             conn.execute(
                 "INSERT OR IGNORE INTO country_leadership (country_id, role, name, party,"
                 " since_date, last_refreshed_at) VALUES (?,?,?,?,?,NULL)",

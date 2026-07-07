@@ -143,13 +143,13 @@ attributing a specific contested claim. No speculation beyond the provided
 facts. Output ONLY the markdown bullets — no headers, no intro, no paragraphs."""
 
 
-def deep_summary(story_id: str) -> tuple[int, dict]:
+def deep_summary(story_id: str, expand: bool = False) -> tuple[int, dict]:
     """§11.2 — generate-and-cache the expanded summary for one story."""
     story = query_one("SELECT id, headline, summary, deep_summary FROM stories"
                       " WHERE id = ?", (story_id,))
     if not story:
         return 404, {"error": "story not found"}
-    if story["deep_summary"]:
+    if story["deep_summary"] and not expand:
         return 200, {"deep_summary": story["deep_summary"], "cached": True}
     # v5 §18 — route through the provider abstraction: works with Claude, a
     # free tier (Gemini/Groq/…), or local Ollama, whichever is configured
@@ -164,9 +164,16 @@ def deep_summary(story_id: str) -> tuple[int, dict]:
     if not facts:
         return 200, {"deep_summary": None, "note": "no member facts yet"}
     # v6.4.2 — interactive: the user just clicked "deep summary" and is waiting
-    text = complete(DEEP_SUMMARY_PROMPT, [{"role": "user", "content": json.dumps(
+    # v6.6 — 'full summary' = force a LONGER regeneration with more detail
+    prompt = DEEP_SUMMARY_PROMPT if not expand else (DEEP_SUMMARY_PROMPT +
+        "\n\nEXPANDED MODE: the user asked for the full picture. Write 8-14 "
+        "bullets organized under 2-4 short '### ' headers, covering every "
+        "significant thread, actor, cause and consequence in the cluster — "
+        "detailed enough that no source article needs opening.")
+    text = complete(prompt, [{"role": "user", "content": json.dumps(
         {"headline": story["headline"], "summary": story["summary"],
-         "cluster_facts": facts})}], max_tokens=650, timeout=30, interactive=True)
+         "cluster_facts": facts})}], max_tokens=650 if not expand else 1200,
+             timeout=30, interactive=True)
     if not text:
         return 502, {"error": "deep summary generation failed (no provider succeeded)"}
     # v6.2 — bullet-preserving cleanup: strip tracker junk but KEEP the newlines

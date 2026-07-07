@@ -19,6 +19,7 @@ import { DISPUTED_BOUNDARIES_ENC } from "../../data/disputedBoundaries.js";
 import { decodeBoundaries } from "../../data/boundaryCodec.js";
 
 const CATEGORY_COLORS = {
+  technology: [0.70, 0.42, 1.00],   // v6.6
   geopolitics: [0.30, 0.64, 1.00],
   finance: [1.00, 0.82, 0.40],
   disaster: [1.00, 0.42, 0.42],

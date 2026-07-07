@@ -99,7 +99,7 @@ export class StoryPage {
         <p class="summary hidden"></p></div>
       <div class="read-more-row"><button class="read-more-btn">☰ read more — deeper synthesis</button>
         <div class="deep-summary hidden"></div></div>
-      <div class="translate-row">
+      <div class="translate-row hidden">
         <select class="lang-select">${LANGS.map((l) =>
           `<option value="${l.code}">${l.name}${l.rtl ? " (RTL)" : ""}</option>`).join("")}</select>
         <button class="translate-btn">translate summary</button>
@@ -152,11 +152,15 @@ export class StoryPage {
       bulletsEl.appendChild(li);
     }
     if (!bullets.length) bulletsEl.classList.add("hidden");
-    page.querySelector(".full-summary-btn").addEventListener("click", (ev) => {
-      const p2 = page.querySelector(".summary");
-      const open = !p2.classList.contains("hidden");
-      p2.classList.toggle("hidden", open);
-      ev.target.textContent = open ? "≡ full summary" : "≡ collapse";
+    // v6.6 — 'full summary' now forces an EXPANDED AI regeneration (more
+    // bullets, headers, every thread covered) replacing the quick synthesis
+    page.querySelector(".full-summary-btn").addEventListener("click", async (ev) => {
+      const out = page.querySelector(".deep-summary");
+      out.classList.remove("hidden");
+      ev.target.disabled = true; ev.target.textContent = "≡ expanding…";
+      const res = await api.deepSummary(s.id, true).catch((e) => ({ error: e.message }));
+      ev.target.disabled = false; ev.target.textContent = "≡ full summary";
+      if (res.deep_summary) { out.innerHTML = bulletsToHtml(res.deep_summary); s.deep_summary = res.deep_summary; }
     });
 
     // v4 §11.2 — 'read more': deeper synthesis generated on demand, cached
@@ -178,6 +182,21 @@ export class StoryPage {
 
     // v4 §20 — reasoning trace: which threshold fired, actual similarity,
     // same-window vs historical-chain, plus the debate disagreement score
+    // v6.6.1 — whole-system translation reaches story pages: when a non-English
+    // language is active, the headline + summary swap to the cached translation
+    const lang = localStorage.getItem("tdl_lang");
+    if (lang && lang !== "en") {
+      api.translateContent(lang, [{ id: s.id, headline: s.headline, summary: s.summary }])
+        .then((res) => {
+          const tr = (res.translations || {})[s.id] || {};
+          const h1 = page.querySelector("h1");
+          if (tr.headline && h1) h1.textContent = tr.headline;
+          const sm = page.querySelector(".summary");
+          if (tr.summary && sm) sm.textContent = tr.summary;
+        }).catch(() => {});
+    }
+    // v6.6 — deep synthesis auto-generates the moment the story opens
+    setTimeout(() => { try { rmBtn.click(); } catch {} }, 60);
     page.querySelector(".trace-btn").addEventListener("click", async (ev) => {
       const body = page.querySelector(".trace-body");
       body.classList.toggle("hidden");

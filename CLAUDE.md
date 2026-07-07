@@ -18,6 +18,67 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v6.6.1)
+
+**v6.6.1 (2026-07-07):** the four items v6.6 deferred. **Bloc panels
+enriched:** `/api/alliances` attaches `leader` from `ALLIANCE_LEADERS` (7
+blocs); `renderAlliance` shows a Leadership block (portrait via
+leader-portrait), the member flag grid, and a "Recent related stories"
+section via FTS search with click-through. **Whole-system translation
+reaches story pages:** on open with a non-English language active, the
+headline + summary swap to the cached `translateContent` result. **Briefing
+non-AI fallback structured:** "### Top developments" (top 5, bolded, with
+linkage counts) + "### Also tracking" instead of a flat list. **War Mode:**
+"Backers / supporters" renamed to "Supporting states" (owner's sentence was
+cut off — rename further on request). Verified: 7 blocs return leaders
+(NATO → Mark Rutte), boot clean, JS/py parse.
+
+## Status (v6.6)
+
+**v6.6 (2026-07-07, owner's ~35-item list):** delivered across four areas. **AI
+output:** analyst answers restructured (one-line takeaway + "### " section
+headers + bullets, 150-300 words, `answer_max_tokens` 900, NO raw ids in prose
+— ids only as clickable chips; `_md` renders headers/bullets/spacing); story
+deep synthesis AUTO-generates on open; "full summary" button now forces an
+EXPANDED regeneration (`deep_summary(expand=True)`, 8-14 bullets under
+headers); briefing prompt rewritten to topic/region-sectioned bullets.
+**Data:** legislatures for one-party/managed states (RUS Duma+FedCouncil, CHN
+NPC, PRK SPA, IRN Majlis, CUB, VNM, BLR, SYR + ~20 more incl. EGY/PAK/THA/
+NLD/SWE/CHE/GRC/HUN/CZE/KAZ/IRQ/VEN/ARG); **leaders for all 193 countries**
+(`leaders_world.py`, INSERT OR IGNORE under curated entries, staleness-flagged);
+Nagorno-Karabakh dispute → resolved (Armenia recognizes AZ control); UKR
+dispute text covers 4 oblasts + Kharkiv strips + Crimea; **U.S.–Iran War**
+conflict added + 4 past conflicts (Gulf Wars, Afghanistan 2001-21,
+India–Pakistan Wars incl. 2025, Armenia–Azerbaijan) shown via status
+'resolved'; **nuclear_arsenal map mode** (9 states, FAS/SIPRI estimates, ISR
+90 included); blocs added (OPEC, Mercosur, G7, Five Eyes, QUAD, AUKUS, OECD)
++ `ALLIANCE_LEADERS`; UN panel gains 10 organs/agencies (`UN_SUB_ORGS`) as
+expandable sections; **technology category** (color, keywords, 8 tech feeds →
+174 sources) + finance keyword expansion (owner: too much landing in
+'other'). **UI:** two new themes — **new_order** (TNO sepia/red austerity) and
+**fire_rises** (TFR ember-on-black), theme list alphabetized; **Ctrl/Cmd+T (or
+plain t) cycles themes** (Chrome may reserve Ctrl+T — plain t always works);
+live feed panel closable (✕ + Esc last-in-stack) with an edge tab to restore;
+Settings split into **Display | AI & keys tabs** (Display first); snapshot
+button reads "screenshot"; UN button uses the real UN flag image; 2D-map A/D
+inverted; entering War Mode snapshots the accumulated feed and restores it on
+exit; "English (American)" label; Tier-3 region titles click through to the
+region page. **Panels:** flags 96px, portraits 108px headshot-cropped
+(`object-position: center 12%`; backend now prefers Wikipedia's infobox
+THUMBNAIL — a professional headshot — over originalimage); **leader profile
+pages** (`/api/leader-profile?name=` + `renderLeader`, opened by clicking the
+portrait: roles, party, tenure, Wikipedia bio); **experimental diplomatic-
+alignment overlay** (USA/RUS/CHN seeded in `ALIGNMENTS`; country-panel
+"alignments" button colors allies green / partners light green / rivals red
+via `setColoredRings`); UN vote hemicycles now fill column-first like the
+parliament graphics. Partial/deferred: full bloc panels like the UN page
+(leader data seeded, page enrichment pending), whole-UI translation beyond
+feed+i18n chrome, briefing non-AI fallback structure. Verified: boot 174
+sources, RUS Duma 450 + alignments, MDG leader resolves, nuclear mode 9
+states, US-Iran + 4 past conflicts, leader-profile route, UN 10 sub-orgs,
+analyst e2e on simulated Ollama; headless: only the UN-flag image blocked by
+the sandbox proxy.
+
 ## Status (v6.5)
 
 **v6.5 (2026-07-07, owner-requested — OLLAMA-FIRST):** after Groq's free tier

@@ -43,8 +43,26 @@ const THEME_CLASSES = ["theme-high_contrast", "theme-colorblind_safe",
                        // v6 §23
                        "theme-crimson_edge", "theme-cold_war", "theme-nightfall",
                        "theme-neon_grid", "theme-gunmetal", "theme-desert_ops",
-                       "theme-crimson_gold", "theme-forest_floor",
+                       "theme-crimson_gold", "theme-forest_floor", "theme-new_order", "theme-fire_rises",
                        "theme-royal_gold", "theme-synthwave"];
+// v6.6 — cycle to the next theme (Ctrl/Cmd+T where the browser allows it,
+// plain T always — Chrome reserves Ctrl+T for new-tab and won't yield it)
+function cycleTheme() {
+  const list = (state.clientConfig.themes || {}).available || ["dark_teal_default"];
+  const cur = localStorage.getItem("tdl_theme") || "dark_teal_default";
+  const i = list.indexOf(cur);
+  applyTheme(list[(i + 1) % list.length]);
+}
+document.addEventListener("keydown", (ev) => {
+  if (ev.target && /INPUT|TEXTAREA|SELECT/.test(ev.target.tagName)) return;
+  if ((ev.key === "t" || ev.key === "T") && (ev.ctrlKey || ev.metaKey || !ev.altKey)) {
+    if (ev.ctrlKey || ev.metaKey) ev.preventDefault();
+    if (!ev.ctrlKey && !ev.metaKey && ev.key === "T") return; // shift+T free for later
+    if (!ev.ctrlKey && !ev.metaKey && ev.key !== "t") return;
+    cycleTheme();
+  }
+});
+
 function applyTheme(theme) {
   document.body.classList.remove(...THEME_CLASSES, "colorblind");
   if (theme && theme !== "dark_teal_default") {
@@ -252,6 +270,24 @@ const ctx = {
     setTimeout(() => refreshStories().catch(() => {}), 15000);
   },
   enterWarMode: (cid) => enterWarMode(cid),           // v6 §8
+  openLeader: (name) => pane.push({                    // v6.6 — leader profile
+    title: name, key: "leader:" + name,
+    render: (el) => Wiki.renderLeader(el, name, ctx),
+  }),
+  showAlignments: (iso3, alignments) => {              // v6.6 — experimental
+    const tone = { strong: [0.15, 0.85, 0.3], partner: [0.55, 0.9, 0.55],
+                   rival: [0.95, 0.25, 0.2] };
+    const groups = [];
+    for (const [kind, isos] of Object.entries(alignments || {})) {
+      const rings = [];
+      for (const iso of isos) {
+        const c = BOUNDARIES_50M.find((b) => b.i === iso);
+        if (c) rings.push(...c.r);
+      }
+      if (rings.length) groups.push({ color: tone[kind] || [0.7, 0.7, 0.7], rings });
+    }
+    state.renderer?.setColoredRings?.(groups.length ? groups : null);
+  },
   openThread: (id) => pane.push({                     // v6 §27
     key: `thread:${id}`, title: "story thread",
     render: (el) => Wiki.renderThread(el, id, ctx),
@@ -538,6 +574,8 @@ function mountRenderer(tier) {
   }
   if (state.cities.length) state.renderer.setCities?.(state.cities);
   state.renderer.setCountryLabels?.(COUNTRY_LABELS);   // v6.1.1 dynamic labels
+  if (state.renderer && state.renderer.onSelectRegion !== undefined)
+    state.renderer.onSelectRegion = (region) => ctx.openRegion(region);  // v6.6
   applyBlocOverlay();
   // v6 §31 — WebXR isn't functional yet: keep the button hidden until the
   // config flips ui.vr_button_visible (the underlying spec stays intact)
@@ -1554,6 +1592,9 @@ els.conflictsBtn.addEventListener("click", () => {
 });
 
 async function enterWarMode(conflictId) {
+  // v6.6 — snapshot the accumulated general feed so exiting war mode
+  // restores it instantly instead of erasing what was collected
+  if (!state.warMode && feed.currentIds) state.preWarStories = feed.currentIds;
   if ((state.clientConfig.war_mode || {}).enabled === false) {
     selectConflict(conflictId, { forceOn: true });
     return;
@@ -1612,6 +1653,7 @@ async function enterWarMode(conflictId) {
 }
 
 function exitWarMode() {
+  if (state.preWarStories) { feed.setStories(state.preWarStories); feed.currentIds = state.preWarStories; }
   if (!state.warMode) return;
   state.warMode = null;
   state.warTab = "";
@@ -1685,12 +1727,30 @@ function setSiteLanguage(code) {
 for (const l of LANGUAGES) {
   const o = document.createElement("option");
   o.value = l.code;
-  o.textContent = l.code === "en" ? "🌐 EN" : l.name;
+  o.textContent = l.code === "en" ? "English (American)" : l.name;
   els.langBtn.appendChild(o);
 }
 els.langBtn.value = state.lang;
 els.langBtn.addEventListener("change", () => setSiteLanguage(els.langBtn.value));
 if (state.lang !== "en") setSiteLanguage(state.lang);
+
+// v6.6 — live feed panel is closable (X button / Esc last); a slim edge tab
+// restores it so it's never unreachable
+const feedPanelEl = document.getElementById("feed-panel");
+const feedCloseBtn = document.getElementById("feed-close");
+let feedReopenTab = null;
+function setFeedVisible(on) {
+  feedPanelEl.style.display = on ? "" : "none";
+  if (!on && !feedReopenTab) {
+    feedReopenTab = document.createElement("button");
+    feedReopenTab.id = "feed-reopen";
+    feedReopenTab.textContent = "◀ live feed";
+    feedReopenTab.addEventListener("click", () => setFeedVisible(true));
+    document.body.appendChild(feedReopenTab);
+  }
+  if (feedReopenTab) feedReopenTab.style.display = on ? "none" : "";
+}
+if (feedCloseBtn) feedCloseBtn.addEventListener("click", () => setFeedVisible(false));
 
 // ---------- §12 — ESC closes panels one at a time (a real stack) ----------
 
@@ -1714,6 +1774,7 @@ document.addEventListener("keydown", (ev) => {
     [() => !analyst.panel.classList.contains("hidden"), () => analyst.hide()],
     [() => pane.top(), () => pane.back()],
     [() => state.warMode, () => exitWarMode()],
+    [() => feedPanelEl.style.display !== "none" && !!feedReopenTab, () => setFeedVisible(false)],
   ];
   for (const [check, close] of closers) {
     if (check()) { close(); ev.stopPropagation(); return; }

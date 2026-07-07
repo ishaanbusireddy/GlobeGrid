@@ -320,7 +320,7 @@ def story_trace(params, q, body):
 @route("POST", "/api/stories/{id}/deep_summary")
 def deep_summary_route(params, q, body):
     from ..processing.textquality import deep_summary
-    return deep_summary(params["id"])
+    return deep_summary(params["id"], expand=bool(isinstance(body, dict) and body.get("expand")))
 
 
 # ---------- §19 annotations ----------

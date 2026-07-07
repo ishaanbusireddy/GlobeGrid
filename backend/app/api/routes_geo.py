@@ -129,6 +129,9 @@ def country_profile(params, q, body):
         if cur:
             profile["currency_code"], profile["currency_name"], \
                 profile["currency_symbol"] = cur
+    from ..geopolitics.country_extra import ALIGNMENTS
+    if iso3 in ALIGNMENTS:   # v6.6 — experimental diplomatic-alignment map
+        profile["alignments"] = ALIGNMENTS[iso3]
     ag = query_one("SELECT * FROM country_agenda_synthesis WHERE country_id = ?", (iso3,))
     profile["agenda"] = dict(ag) if ag else None
     if profile["agenda"] and profile["agenda"].get("source_story_ids"):
@@ -278,9 +281,17 @@ def region_summary(params, q, body):
 # Registry-driven so a new mode is one entry, not new code (§16's "accept new
 # modes cheaply"). Numeric modes choropleth a countries column; categorical
 # modes color by distinct value; *_subnational modes add area polygons.
+# v6.6 — nuclear-armed states, estimated warhead inventories (FAS/SIPRI 2025
+# estimates, incl. Israel's undeclared arsenal)
+NUCLEAR_WARHEADS = {"RUS": 5580, "USA": 5044, "CHN": 600, "FRA": 290,
+                    "GBR": 225, "IND": 172, "PAK": 170, "ISR": 90, "PRK": 50}
+
 MAP_MODES = {
     "hdi": {"label": "HDI", "kind": "numeric", "column": "hdi",
             "source": "UNDP Human Development Report", "icon": "◔"},
+    "nuclear_arsenal": {"label": "Nuclear arsenals", "kind": "numeric",
+                        "column": None, "source": "FAS/SIPRI estimates (2025)",
+                        "icon": "☢", "log_scale": True},
     "gdp": {"label": "GDP (nominal)", "kind": "numeric", "column": "gdp_usd",
             "source": "World Bank Open Data", "icon": "$", "log_scale": True},
     "gdp_per_capita": {"label": "GDP per capita", "kind": "numeric",
@@ -322,7 +333,9 @@ def mapmode_values(params, q, body):
     mode = MAP_MODES.get(params["mode"])
     if not mode:
         return 404, {"error": f"unknown map mode '{params['mode']}'"}
-    if params["mode"] == "population_density":
+    if params["mode"] == "nuclear_arsenal":
+        values = dict(NUCLEAR_WARHEADS)
+    elif params["mode"] == "population_density":
         rows = query("SELECT id, population * 1.0 / area_km2 AS v FROM countries"
                      " WHERE population IS NOT NULL AND area_km2 > 0")
         values = {r["id"]: round(r["v"], 2) for r in rows}
@@ -367,6 +380,10 @@ def alliances_list(params, q, body):
             "SELECT country_id FROM alliance_memberships WHERE alliance_id = ?"
             " AND status = 'member'", (r["id"],))]
         out.append(d)
+    from ..geopolitics.country_extra import ALLIANCE_LEADERS
+    for _a in out:   # v6.6.1 — bloc leadership for the bloc panels
+        if _a.get("name") in ALLIANCE_LEADERS:
+            _a["leader"] = ALLIANCE_LEADERS[_a["name"]]
     return 200, {"alliances": out}
 
 
@@ -556,8 +573,10 @@ def _wiki_rest_image(clean: str) -> str:
             data = _json.loads(resp.read())
         if data.get("type") == "disambiguation":
             return ""
-        return ((data.get("originalimage") or {}).get("source")
-                or (data.get("thumbnail") or {}).get("source") or "")
+        # v6.6 — prefer the THUMBNAIL: it's the infobox portrait (a proper
+        # professional headshot crop) rather than a possibly full-body original
+        return ((data.get("thumbnail") or {}).get("source")
+                or (data.get("originalimage") or {}).get("source") or "")
     except Exception:  # noqa: BLE001 — best-effort
         return ""
 
@@ -606,6 +625,38 @@ def _wiki_action_image(clean: str) -> str:
     return ""
 
 
+@route("GET", "/api/leader-profile")
+def leader_profile(params, q, body):
+    """v6.6 — a personal panel for any world leader: role/party/tenure from the
+    leadership table + a Wikipedia biography extract fetched on demand."""
+    name = (q.get("name") or "").strip()
+    if not name:
+        return 400, {"error": "name required"}
+    clean = name.split("(")[0].strip()
+    rows = [dict(r) for r in query(
+        "SELECT l.*, c.name AS country_name, c.flag_image_url FROM country_leadership l"
+        " JOIN countries c ON c.id = l.country_id WHERE l.name LIKE ?",
+        (clean + "%",))]
+    bio = None
+    try:
+        import json as _json
+        import urllib.request as _rq
+        from ..processing import llm as _llm
+        url = ("https://en.wikipedia.org/api/rest_v1/page/summary/"
+               + urllib.parse.quote(clean.replace(" ", "_")) + "?redirect=true")
+        req = _rq.Request(url, headers={"user-agent": _llm.USER_AGENT,
+                                        "accept": "application/json"})
+        with _rq.urlopen(req, timeout=6) as resp:
+            d = _json.loads(resp.read())
+        if d.get("type") != "disambiguation":
+            bio = {"extract": d.get("extract"), "description": d.get("description"),
+                   "url": (d.get("content_urls", {}).get("desktop", {}) or {}).get("page"),
+                   "image_url": ((d.get("thumbnail") or {}).get("source"))}
+    except Exception:  # noqa: BLE001 — offline/blocked: roles still render
+        pass
+    return 200, {"name": clean, "roles": rows, "bio": bio}
+
+
 @route("GET", "/api/leader-portrait")
 def leader_portrait(params, q, body):
     """v6.2/v6.3 — fetch a leader's portrait from Wikipedia, cached in app_meta.
@@ -639,6 +690,11 @@ def leader_portrait(params, q, body):
     return 200, {"name": clean, "image_url": image or None, "cached": False}
 
 
+def _un_sub_orgs():
+    from ..geopolitics.un_data import UN_SUB_ORGS
+    return UN_SUB_ORGS
+
+
 @route("GET", "/api/un")
 def un_overview(params, q, body):
     """v6.1 — United Nations panel: Security Council composition (permanent +
@@ -669,7 +725,8 @@ def un_overview(params, q, body):
             nv.append({"id": real, "name": _name(real), "vote": vote,
                        "flag_image_url": _flag(real)})
         resolutions.append({**r, "notable_votes": nv})
-    return 200, {"security_council": {"permanent": permanent, "elected": elected},
+    return 200, {"sub_orgs": _un_sub_orgs(),   # v6.6 — agency subtab data
+        "security_council": {"permanent": permanent, "elected": elected},
                  "other_councils": [{"name": n, "note": d} for n, d in u.OTHER_COUNCILS],
                  "resolutions": resolutions}
 

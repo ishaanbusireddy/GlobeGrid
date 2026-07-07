@@ -130,7 +130,7 @@ export const api = {
   storiesDirectory: (type) =>
     get(`/api/stories-directory${type ? "?type=" + encodeURIComponent(type) : ""}`),
   storyTrace: (id) => get(`/api/stories/${id}/trace`),
-  deepSummary: (id) => post(`/api/stories/${id}/deep_summary`, {}, { timeout: 45000 }),
+  deepSummary: (id, expand) => post(`/api/stories/${id}/deep_summary`, expand ? { expand: true } : {}, { timeout: 60000 }),
   annotations: (targetType, targetId) => {
     const q = new URLSearchParams();
     if (targetType) q.set("target_type", targetType);
@@ -159,6 +159,8 @@ export const api = {
   mapMode: (mode) => get(`/api/mapmodes/${encodeURIComponent(mode)}`),   // §16
   threadDetail: (id) => get(`/api/threads/${id}`),                       // §27
   un: () => get("/api/un"),                                              // v6.1 UN panel
+  leaderProfile: (name) =>                                              // v6.6
+    get(`/api/leader-profile?name=${encodeURIComponent(name)}`, { timeout: 12000 }),
   leaderPortrait: (name) =>                                             // v6.2
     get(`/api/leader-portrait?name=${encodeURIComponent(name)}`, { timeout: 10000 }),
   translateContent: (language, items) =>                                 // §11

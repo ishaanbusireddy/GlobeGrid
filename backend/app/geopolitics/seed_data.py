@@ -146,6 +146,20 @@ ALLIANCES = [
       "SVN", "ESP", "SWE"]),
     ("BRICS", "economic", "2009-06-16", "Bloc of major emerging economies.",
      ["BRA", "RUS", "IND", "CHN", "ZAF", "EGY", "ETH", "IRN", "ARE", "SAU", "IDN"]),
+    ("OPEC", "economic", "1960-09-14", "Organization of the Petroleum Exporting Countries — oil production coordination.",
+     ["SAU","IRN","IRQ","KWT","ARE","VEN","NGA","DZA","LBY","AGO","COG","GAB","GNQ"]),
+    ("Mercosur", "economic", "1991-03-26", "South American common market.",
+     ["BRA","ARG","URY","PRY","BOL"]),
+    ("G7", "economic", "1975-11-15", "Group of Seven major advanced economies.",
+     ["USA","GBR","FRA","DEU","ITA","JPN","CAN"]),
+    ("Five Eyes", "military", "1946-03-05", "UKUSA signals-intelligence sharing alliance.",
+     ["USA","GBR","CAN","AUS","NZL"]),
+    ("QUAD", "military", "2007-05-25", "Quadrilateral Security Dialogue — Indo-Pacific strategic forum.",
+     ["USA","JPN","IND","AUS"]),
+    ("AUKUS", "military", "2021-09-15", "Australia–UK–US security pact (submarines, advanced tech).",
+     ["AUS","GBR","USA"]),
+    ("OECD", "economic", "1961-09-30", "Organisation for Economic Co-operation and Development.",
+     ["USA","GBR","FRA","DEU","ITA","JPN","CAN","AUS","KOR","MEX","TUR","POL","NLD","ESP","CHE","SWE","NOR","DNK","FIN","AUT","BEL","PRT","GRC","IRL","CZE","HUN","SVK","SVN","EST","LVA","LTU","LUX","ISL","NZL","CHL","COL","CRI","ISR"]),
     # v6 §7 — Timor-Leste admitted as ASEAN's 11th member (2025 accession);
     # the Wikidata membership sync keeps this fresh, this fixes the seed
     ("ASEAN", "regional", "1967-08-08", "Association of Southeast Asian Nations.",
@@ -229,6 +243,33 @@ CONFLICTS = [
      "Renewed conflict in eastern DR Congo between government forces and the M23 movement.",
      [("country", "COD", "belligerent", "a"),
       ("non_state_actor", "M23 Movement", "belligerent", "b")]),
+    ("U.S.–Iran War", "Middle East", "2025-06-13", "ceasefire",
+     "Direct U.S.–Israeli–Iranian conflict of June 2025 (strikes on Iranian nuclear "
+     "sites, Iranian missile retaliation), followed by a fragile ceasefire and an "
+     "ongoing confrontation tracked via ingested coverage.",
+     [("country", "USA", "belligerent", "a"), ("country", "ISR", "belligerent", "a"),
+      ("country", "IRN", "belligerent", "b")]),
+    # ---- v6.6 — PAST conflicts (status resolved; listed under Past conflicts) ----
+    ("Gulf Wars (1990–2011)", "Middle East", "1990-08-02", "resolved",
+     "Broader conflict grouping the 1990–91 Gulf War (Iraqi invasion of Kuwait and "
+     "coalition Desert Storm) and the 2003–2011 Iraq War (invasion, insurgency, "
+     "withdrawal).",
+     [("country", "IRQ", "belligerent", "a"), ("country", "USA", "belligerent", "b"),
+      ("country", "GBR", "belligerent", "b"), ("country", "KWT", "belligerent", "b")]),
+    ("War in Afghanistan (2001–2021)", "Central Asia", "2001-10-07", "resolved",
+     "U.S./NATO campaign against the Taliban and al-Qaeda following 9/11, ending with "
+     "the 2021 withdrawal and Taliban takeover.",
+     [("country", "USA", "belligerent", "a"), ("country", "GBR", "belligerent", "a"),
+      ("country", "AFG", "belligerent", "a"),
+      ("non_state_actor", "Taliban", "belligerent", "b")]),
+    ("India–Pakistan Wars", "South Asia", "1947-10-22", "resolved",
+     "Broader conflict grouping the 1947, 1965, 1971 and 1999 (Kargil) wars and the "
+     "May 2025 four-day conflict (Operation Sindoor) between India and Pakistan.",
+     [("country", "IND", "belligerent", "a"), ("country", "PAK", "belligerent", "b")]),
+    ("Armenia–Azerbaijan Conflict", "Caucasus", "1988-02-20", "resolved",
+     "The First (1988–94) and Second (2020) Nagorno-Karabakh wars and the 2023 "
+     "Azerbaijani offensive; Armenia now recognizes Azerbaijani control of Karabakh.",
+     [("country", "ARM", "belligerent", "a"), ("country", "AZE", "belligerent", "b")]),
 ]
 
 # v6 §8 — War Mode sub-national factions: minor factions and internal control
@@ -694,8 +735,10 @@ BORDER_DISPUTES = [
     # (de-facto annexation 2022, still internationally disputed)
     ("UKR", "RUS", "Donetsk, Luhansk, Zaporizhzhia and Kherson oblasts (Russian-occupied)",
      "active",
-     "The four Ukrainian oblasts Russia declared annexed in September 2022;"
-     " partially occupied, internationally recognized as Ukrainian territory."),
+     "The four Ukrainian oblasts Russia declared annexed in September 2022 —"
+     " Donetsk, Luhansk, Zaporizhzhia and Kherson — partially occupied, plus"
+     " small Russian-held border strips of Kharkiv oblast; all internationally"
+     " recognized as Ukrainian territory. Crimea (annexed 2014) tracked separately."),
     ("RUS", "JPN", "Kuril Islands / Northern Territories", "frozen",
      "Soviet-occupied since 1945; blocks a formal WWII peace treaty."),
     ("JPN", "KOR", "Liancourt Rocks (Dokdo/Takeshima)", "frozen",
@@ -710,7 +753,7 @@ BORDER_DISPUTES = [
      "Core territorial dimension of the Israel-Palestine conflict."),
     ("MAR", None, "Western Sahara", "active",
      "Morocco controls most of the territory; the Polisario Front (SADR) claims independence."),
-    ("ARM", "AZE", "Nagorno-Karabakh", "frozen",
+    ("ARM", "AZE", "Nagorno-Karabakh", "resolved",   # v6.6 — Armenia recognizes AZ control
      "Azerbaijan retook the territory in 2023; peace-treaty talks continue."),
     ("GBR", "ARG", "Falkland Islands / Malvinas", "frozen",
      "UK-administered; Argentina maintains its claim (1982 war)."),

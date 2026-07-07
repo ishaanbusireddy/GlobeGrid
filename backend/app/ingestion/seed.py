@@ -17,6 +17,15 @@ SOURCES = [
     # --- v1 Section 4.1 news RSS ---
     ("BBC World", "rss", "https://feeds.bbci.co.uk/news/world/rss.xml", "center", "reported"),
     ("Al Jazeera", "rss", "https://www.aljazeera.com/xml/rss/all.xml", "left", "reported"),
+    # v6.6 — major global technology press (new 'technology' category)
+    ("TechCrunch", "rss", "https://techcrunch.com/feed/", "center", "reported"),
+    ("The Verge", "rss", "https://www.theverge.com/rss/index.xml", "center", "reported"),
+    ("Ars Technica", "rss", "https://feeds.arstechnica.com/arstechnica/index", "center", "reported"),
+    ("Wired", "rss", "https://www.wired.com/feed/rss", "center", "reported"),
+    ("MIT Technology Review", "rss", "https://www.technologyreview.com/feed/", "center", "reported"),
+    ("IEEE Spectrum", "rss", "https://spectrum.ieee.org/feeds/feed.rss", "center", "reported"),
+    ("Engadget", "rss", "https://www.engadget.com/rss.xml", "center", "reported"),
+    ("The Register", "rss", "https://www.theregister.com/headlines.atom", "center", "reported"),
     ("NYT World", "rss", "https://rss.nytimes.com/services/xml/rss/nyt/World.xml", "left", "reported"),
     ("Washington Post", "rss", "https://feeds.washingtonpost.com/rss/national", "left", "reported"),
     ("CNN World", "rss", "http://rss.cnn.com/rss/edition_world.rss", "left", "reported"),

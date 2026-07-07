@@ -789,9 +789,9 @@ export class Tier2Map {
     const loop = () => {
       const k = this._keys, step = 14 * (1 / Math.max(0.6, this.zoom * 0.5));
       let moved = false;
-      // v6.2 — A/D direction inverted (owner request)
-      if (k.a) { this.panX -= step; moved = true; }
-      if (k.d) { this.panX += step; moved = true; }
+      // v6.6 — A/D horizontal direction inverted again for the 2D map only
+      if (k.a) { this.panX += step; moved = true; }
+      if (k.d) { this.panX -= step; moved = true; }
       if (k.w) { this.panY += step; moved = true; }
       if (k.s) { this.panY -= step; moved = true; }
       if (k.e || k["+"] || k["="]) { this.zoom = Math.min(10, this.zoom * 1.03); moved = true; }

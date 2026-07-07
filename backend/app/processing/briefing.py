@@ -20,10 +20,15 @@ from ..db.session import query, query_one, write_tx
 
 log = logging.getLogger("briefing")
 
-BRIEFING_PROMPT = """You are writing a concise daily global-events briefing from correlated
-story clusters. Write 2-4 paragraphs of plain prose: what mattered, why,
-and what connects. State uncertainty honestly; never invent facts not in
-the input. End with one sentence on the overall instability picture."""
+BRIEFING_PROMPT = """You are writing a structured daily global-events briefing from correlated
+story clusters. Organize it as markdown with short "### " section headers by
+THEME and REGION (e.g. "### Conflicts", "### Europe", "### Asia-Pacific",
+"### Economy & markets", "### Technology") — only include sections that have
+real content. Under each header write 2-5 tight bullet points; each bullet is
+one development with its why-it-matters in the same line. Start with a
+"### Top line" section of the 2-3 most consequential developments. No walls
+of prose, no preamble, no sign-off. Ground every claim in the supplied
+stories."""
 
 
 # v6.1 — weekly and monthly briefings alongside the daily one. Each period
@@ -87,11 +92,18 @@ def generate_briefing(briefing_date: str | None = None,
         if content:
             content = content.strip()
     if not content:
-        lines = [f"{label.capitalize()} digest for {briefing_date} (automated, no AI"
-                 " synthesis — add a free AI key, e.g. Groq, for narrative briefings)."]
-        for s in stories:
-            lines.append(f"- {s['headline']} ({s['members']} linked items,"
-                         f" confidence {s['confidence']})")
+        # v6.6.1 — structured fallback: sectioned + bulleted, not a flat list
+        lines = [f"### {label.capitalize()} digest — {briefing_date}",
+                 "_Automated digest (no AI provider — run Ollama or add a key"
+                 " for narrative briefings)._", "", "### Top developments"]
+        for s in stories[:5]:
+            lines.append(f"- **{s['headline']}** — {s['members']} linked items,"
+                         f" confidence {s['confidence']}")
+        rest = stories[5:]
+        if rest:
+            lines += ["", "### Also tracking"]
+            for s in rest:
+                lines.append(f"- {s['headline']}")
         content = "\n".join(lines)
     row = {"id": new_id(), "briefing_date": briefing_date, "content": content,
            "generated_at": now_iso()}

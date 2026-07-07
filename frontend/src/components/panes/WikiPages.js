@@ -307,6 +307,15 @@ export async function renderCountry(el, iso3, ctx) {
   // v6.2 — if the featured leader has no photo yet, fetch it on demand from
   // Wikipedia (reliable lead image) and swap it in, so e.g. Xi Jinping shows
   // next to the China flag immediately instead of waiting on a weekly sync.
+  // v6.6 — experimental: diplomatic-alignment overlay button (US/RU/CN seeded)
+  if (p && p.alignments) {
+    const btn = document.createElement("button");
+    btn.className = "ap-chip"; btn.style.cssText = "position:absolute;top:10px;right:44px";
+    btn.textContent = "🗺 alignments";
+    btn.title = "highlight allies (green), partners (light green) and rivals (red) on the map";
+    btn.addEventListener("click", () => ctx.showAlignments && ctx.showAlignments(p.id, p.alignments));
+    el.style.position = "relative"; el.prepend(btn);
+  }
   const ph = el.querySelector(".leader-photo-empty[data-leader]");
   if (ph && ph.dataset.leader) {
     api.leaderPortrait(ph.dataset.leader).then((r) => {
@@ -316,7 +325,10 @@ export async function renderCountry(el, iso3, ctx) {
         img.alt = ph.dataset.leader;
         img.src = r.image_url;
         img.onerror = () => { /* keep placeholder */ };
-        img.onload = () => ph.replaceWith(img);
+        img.style.cursor = "pointer";
+      img.title = "open leader profile";
+      img.onclick = () => ctx.openLeader && ctx.openLeader(ph.dataset.leader);
+      img.onload = () => ph.replaceWith(img);
       }
     }).catch(() => {});
   }
@@ -450,11 +462,34 @@ export async function renderAlliance(el, id, ctx) {
           · ${(a.members || []).length} members</p>
       </div></div>
     ${freshness(a.last_updated_at)}
+    ${a.leader ? `<section><h4>Leadership</h4>
+      <div class="wiki-header"><div class="leader-photo leader-photo-empty" data-leader="${esc(a.leader[0])}">👤</div>
+      <div><b>${esc(a.leader[0])}</b><p class="cp-meta">${esc(a.leader[1])} · since ${esc(a.leader[2])}</p></div></div>
+    </section>` : ""}
     <section><h4>About</h4><p>${esc(a.description || "—")}</p></section>
+    <section class="bloc-stories"><h4>Recent related stories</h4><p class="cp-meta">loading…</p></section>
     <section><h4>Members <span class="cp-meta">(complete roster — Wikidata-synced)</span></h4>
       <div class="member-grid">${members}</div></section>`;
   el.querySelectorAll(".country-link").forEach((b) =>
     b.addEventListener("click", () => ctx.openEntity("country", b.dataset.id)));
+  // v6.6.1 — bloc leader portrait + recent stories mentioning the bloc
+  const bph = el.querySelector(".leader-photo-empty[data-leader]");
+  if (bph) api.leaderPortrait(bph.dataset.leader).then((r) => {
+    if (r && r.image_url && bph.isConnected) {
+      const img = new Image(); img.className = "leader-photo"; img.src = r.image_url;
+      img.onload = () => bph.replaceWith(img);
+    }
+  }).catch(() => {});
+  const bs = el.querySelector(".bloc-stories");
+  if (bs) api.search(a.name).then((res) => {
+    const hits = (res.results || res.stories || []).slice(0, 6);
+    bs.innerHTML = `<h4>Recent related stories</h4>` + (hits.length
+      ? hits.map((h) => `<div class="src-row story-hit" data-id="${esc(h.id)}" style="cursor:pointer">
+          <b>${esc(h.headline || h.title || "")}</b></div>`).join("")
+      : `<p class="cp-meta">no tracked stories mention ${esc(a.name)} yet</p>`);
+    bs.querySelectorAll(".story-hit").forEach((r) =>
+      r.addEventListener("click", () => ctx.openStory && ctx.openStory(r.dataset.id)));
+  }).catch(() => { bs.querySelector("p") && (bs.querySelector("p").textContent = "unavailable"); });
 }
 
 // ---------- §24 compare view ----------
@@ -609,7 +644,7 @@ export function renderWarMode(el, data, ctx) {
     const others = bySide[k].filter((p) => p.role !== "belligerent" && p.role !== "backer");
     let inner = "";
     if (belligs.length) inner += `<div class="war-line"><span class="war-role">Belligerents</span> ${belligs.map(partyChip).join(" ")}</div>`;
-    if (backers.length) inner += `<div class="war-line"><span class="war-role">Backers / supporters</span> ${backers.map(partyChip).join(" ")}</div>`;
+    if (backers.length) inner += `<div class="war-line"><span class="war-role">Supporting states</span> ${backers.map(partyChip).join(" ")}</div>`;
     if (others.length) inner += `<div class="war-line"><span class="war-role">Other</span> ${others.map(partyChip).join(" ")}</div>`;
     return `<div class="war-side ${sideClass[k]}"><h4>${esc(sideName[k])}</h4>${inner}</div>`;
   };
@@ -673,31 +708,48 @@ export function renderWarMode(el, data, ctx) {
 // hemicycle vote graphic coloured yes(green)/no(red)/abstain(grey), sized to
 // the recorded tally — a real parliamentary-style diagram of the vote
 function voteArc(tally) {
-  const order = [["yes", "#3fb950"], ["abstain", "#8b949e"], ["no", "#e5534b"]];
-  const dots = [];
-  for (const [k, c] of order) for (let i = 0; i < (tally[k] || 0); i++) dots.push(c);
-  const n = dots.length || 1;
-  const rows = Math.max(2, Math.min(16, Math.ceil(Math.sqrt(n / 2.2))));
+  // v6.6 — column-first fill (sorted by angular fraction), matching the
+  // parliamentary hemicycles, so for/against/abstain form clean wedges
+  const groups = [["for", tally.for || 0, "#3ddc84"], ["against", tally.against || 0, "#ff5a5a"],
+                  ["abstain", tally.abstain || 0, "#8a94a8"]];
+  const colors = [];
+  for (const [, n, c] of groups) for (let i = 0; i < n; i++) colors.push(c);
+  const n = colors.length || 1;
+  const rows = Math.max(2, Math.min(10, Math.ceil(Math.sqrt(n / 2.5))));
   const radii = [], weights = [];
-  for (let i = 0; i < rows; i++) { const r = 1 + i / (rows - 1); radii.push(r); weights.push(r); }
+  for (let i = 0; i < rows; i++) { const r = 1 + (rows === 1 ? 0 : i / (rows - 1)); radii.push(r); weights.push(r); }
   const wsum = weights.reduce((a, b) => a + b, 0);
-  const rc = []; let asg = 0;
-  for (let i = 0; i < rows; i++) { const c = Math.round(n * weights[i] / wsum); rc.push(c); asg += c; }
-  rc[rows - 1] += n - asg;
-  const W = 340, H = 180, cx = W / 2, cy = H - 10, maxR = Math.min(cx - 8, cy - 8);
-  const c = []; let idx = 0;
+  const rowCounts = []; let assigned = 0;
+  for (let i = 0; i < rows; i++) { const c = Math.round(n * weights[i] / wsum); rowCounts.push(c); assigned += c; }
+  rowCounts[rows - 1] += n - assigned;
+  const W = 260, H = 140, cx = W / 2, cy = H - 8, maxR = Math.min(cx - 8, cy - 8);
+  const seats = [];
   for (let i = 0; i < rows; i++) {
-    const rr = (radii[i] / 2) * maxR, cnt = Math.max(0, rc[i]);
+    const rr = (radii[i] / 2) * maxR, cnt = Math.max(0, rowCounts[i]);
     for (let j = 0; j < cnt; j++) {
-      const t = cnt === 1 ? 0.5 : j / (cnt - 1), ang = Math.PI - t * Math.PI;
-      c.push(`<circle cx="${(cx + rr * Math.cos(ang)).toFixed(1)}" cy="${(cy - rr * Math.sin(ang)).toFixed(1)}" r="3.1" fill="${dots[idx] || "#888"}"/>`);
-      idx++;
+      const t = cnt === 1 ? 0.5 : j / (cnt - 1);
+      const ang = Math.PI - t * Math.PI;
+      seats.push({ x: cx + rr * Math.cos(ang), y: cy - rr * Math.sin(ang), t });
     }
   }
-  return `<svg viewBox="0 0 ${W} ${H}" class="parliament-svg" preserveAspectRatio="xMidYMax meet">${c.join("")}</svg>`;
+  seats.sort((a, b) => a.t - b.t);
+  const dots = seats.map((sd, i) =>
+    `<circle cx="${sd.x.toFixed(1)}" cy="${sd.y.toFixed(1)}" r="2.8" fill="${colors[i] || "#888"}"></circle>`);
+  return `<svg viewBox="0 0 ${W} ${H}" class="parliament-svg" preserveAspectRatio="xMidYMax meet">${dots.join("")}</svg>
+    <div class="seat-legend-row"><span class="seat-legend"><i style="background:#3ddc84"></i>for <b>${tally.for || 0}</b></span>
+    <span class="seat-legend"><i style="background:#ff5a5a"></i>against <b>${tally.against || 0}</b></span>
+    <span class="seat-legend"><i style="background:#8a94a8"></i>abstain <b>${tally.abstain || 0}</b></span></div>`;
 }
 
 const VOTE_CLASS = { yes: "vote-yes", no: "vote-no", abstain: "vote-abstain" };
+
+function unSubOrgsHtml(orgs) {   // v6.6 — major UN organs & agencies
+  if (!orgs || !orgs.length) return "";
+  return `<section><h4>Organs &amp; agencies</h4>` + orgs.map((o) => `
+    <details class="un-org"><summary><b>${esc(o.name)}</b> — ${esc(o.role.slice(0, 60))}…</summary>
+      <p class="cp-meta">HQ: ${esc(o.hq)} · Head: ${esc(o.head)} · ${esc(o.members)}</p>
+      <p>${esc(o.role)}</p></details>`).join("") + `</section>`;
+}
 
 export async function renderUN(el, ctx) {
   const d = await api.un();
@@ -731,8 +783,27 @@ export async function renderUN(el, ctx) {
     <section><h4>Other principal organs</h4>
       ${(d.other_councils || []).map((c) => `<div class="src-row"><b>${esc(c.name)}</b> <span class="cp-meta">${esc(c.note)}</span></div>`).join("")}</section>
     <section><h4>Notable resolutions & recorded votes</h4>${resolutions}</section>`;
+  try { const d = await api.un(); el.insertAdjacentHTML("beforeend", unSubOrgsHtml(d.sub_orgs)); } catch {}
   el.querySelectorAll(".country-link").forEach((b) =>
     b.addEventListener("click", () => ctx.openEntity("country", b.dataset.id)));
+  // v6.6.1 — bloc leader portrait + recent stories mentioning the bloc
+  const bph = el.querySelector(".leader-photo-empty[data-leader]");
+  if (bph) api.leaderPortrait(bph.dataset.leader).then((r) => {
+    if (r && r.image_url && bph.isConnected) {
+      const img = new Image(); img.className = "leader-photo"; img.src = r.image_url;
+      img.onload = () => bph.replaceWith(img);
+    }
+  }).catch(() => {});
+  const bs = el.querySelector(".bloc-stories");
+  if (bs) api.search(a.name).then((res) => {
+    const hits = (res.results || res.stories || []).slice(0, 6);
+    bs.innerHTML = `<h4>Recent related stories</h4>` + (hits.length
+      ? hits.map((h) => `<div class="src-row story-hit" data-id="${esc(h.id)}" style="cursor:pointer">
+          <b>${esc(h.headline || h.title || "")}</b></div>`).join("")
+      : `<p class="cp-meta">no tracked stories mention ${esc(a.name)} yet</p>`);
+    bs.querySelectorAll(".story-hit").forEach((r) =>
+      r.addEventListener("click", () => ctx.openStory && ctx.openStory(r.dataset.id)));
+  }).catch(() => { bs.querySelector("p") && (bs.querySelector("p").textContent = "unavailable"); });
 }
 
 // ---------- v6 §27 — story thread page ----------
@@ -853,7 +924,14 @@ export async function renderSettings(el, ctx) {
       <code>ollama pull ${esc(ol.model || "llama3.1")}</code>. GlobeGrid finds it
       automatically; no key needed. (Or add a Groq key below instead.)`;
   }
-  el.innerHTML = `<h1>Settings — AI &amp; API keys</h1>
+  // v6.6 — Display and AI/keys are separate selectable tabs, Display first
+  el.innerHTML = `<h1>Settings</h1>
+    <div class="settings-tabs">
+      <button class="stab active" data-tab="display">Display</button>
+      <button class="stab" data-tab="ai">AI &amp; API keys</button>
+    </div>
+    <div class="settings-tab-display"></div>
+    <div class="settings-tab-ai hidden">
     <section><h4>🖥 Local AI — Ollama (primary)</h4>
       <p class="ollama-status">${olStatus}</p>
       <p class="cp-meta">Verify everything end-to-end on the
@@ -863,7 +941,8 @@ export async function renderSettings(el, ctx) {
     <p class="cp-meta">Keys are written straight to <code>${esc(data.env_path)}</code> — no manual
       file editing. Each save runs a live test call so you know the key actually works (§14).</p>
     <div class="keys-list"></div>
-    <section><h4>Display</h4>
+    </div>
+    <section class="display-sec"><h4>Display</h4>
       <label class="settings-row">Color theme
         <select id="theme-select"></select></label>
       <label class="settings-row">Interface language
@@ -879,6 +958,15 @@ export async function renderSettings(el, ctx) {
           <option value="eu">6 Jul 2026 14:30 (EU)</option>
         </select></label>
     </section>`;
+  // v6.6 — move the Display section into its tab, wire the tab switcher
+  const dispHost = el.querySelector(".settings-tab-display");
+  const dispSec = el.querySelector(".display-sec");
+  if (dispHost && dispSec) dispHost.appendChild(dispSec);
+  el.querySelectorAll(".stab").forEach((b) => b.addEventListener("click", () => {
+    el.querySelectorAll(".stab").forEach((x) => x.classList.toggle("active", x === b));
+    el.querySelector(".settings-tab-display").classList.toggle("hidden", b.dataset.tab !== "display");
+    el.querySelector(".settings-tab-ai").classList.toggle("hidden", b.dataset.tab !== "ai");
+  }));
   const list = el.querySelector(".keys-list");
   // v5 §14 / v6 §23 — theme selector, populated from config themes.available
   const themeSel = el.querySelector("#theme-select");
@@ -958,4 +1046,27 @@ export async function renderSettings(el, ctx) {
     });
     list.appendChild(row);
   }
+}
+
+
+// v6.6 — personal profile panel for a world leader (roles + Wikipedia bio)
+export async function renderLeader(el, name, ctx) {
+  el.innerHTML = `<h1>${esc(name)}</h1><p class="cp-meta">loading profile…</p>`;
+  const d = await api.leaderProfile(name).catch(() => null);
+  if (!d) { el.innerHTML += `<p>profile unavailable</p>`; return; }
+  const bio = d.bio || {};
+  const img = bio.image_url
+    ? `<img class="leader-photo" style="width:150px!important;height:150px!important" src="${esc(bio.image_url)}">`
+    : `<div class="leader-photo leader-photo-empty">👤</div>`;
+  el.innerHTML = `
+    <div class="wiki-header">${img}
+      <div><h1>${esc(d.name)}</h1>
+      <p class="cp-meta">${esc(bio.description || "")}</p></div></div>
+    ${(d.roles || []).map((r) => `<div class="src-row">
+       <span class="leaning">${esc((r.role || "").replace(/_/g, " "))}</span>
+       <b>${esc(r.country_name || "")}</b>
+       <span class="cp-meta">${esc(r.party || "")}${r.since_date ? " · since " + esc(r.since_date) : ""}</span></div>`).join("")}
+    ${bio.extract ? `<section><h4>Biography</h4><p>${esc(bio.extract)}</p>
+       ${bio.url ? `<p><a href="${esc(bio.url)}" target="_blank" rel="noopener">Wikipedia →</a></p>` : ""}</section>`
+     : `<p class="cp-meta">Biography loads live from Wikipedia when online.</p>`}`;
 }

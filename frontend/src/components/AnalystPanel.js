@@ -147,6 +147,10 @@ export class AnalystPanel {
     const esc = (text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
     return esc
+      .replace(/^### (.+)$/gm, "<h4 class='ap-h'>$1</h4>")
+      .replace(/^## (.+)$/gm, "<h4 class='ap-h'>$1</h4>")
+      .replace(/^[-•] (.+)$/gm, "<div class='ap-li'>• $1</div>")
+      .replace(/\n\n+/g, "<div class='ap-gap'></div>")
       .replace(/`([^`]+)`/g, "<code>$1</code>")
       .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
       .replace(/(^|[^*])\*([^*]+)\*/g, "$1<em>$2</em>")
