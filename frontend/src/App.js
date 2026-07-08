@@ -34,6 +34,7 @@ import { decodeBoundaries, countryAtPoint } from "./data/boundaryCodec.js";
 import { LANGUAGE_INFO, RELIGION_INFO, familyColor } from "./data/families.js";
 import { TIMEZONES, getTimeZone, setTimeZone } from "./data/timefmt.js";  // v6.2 header tz
 import { LANGUAGES, applyLanguage } from "./i18n.js";   // v5 §2
+import * as domTranslate from "./i18n_translate.js";   // v6.6.8 site-wide translator
 
 // v5 §14 — apply a color theme by swapping the body class (CSS-variable
 // theme). Themes are mutually exclusive; colorblind_safe subsumes the old
@@ -560,6 +561,7 @@ const storyPage = new StoryPage(pane, {
   onOpenStory: (id) => openStory(id),
   onWatch: () => watchlist.refresh(),
   onOpenLineage: (factId) => lineageView.open(factId),
+  onPanTo: (lat, lon) => state.renderer?.flyTo?.(lat, lon, state.tier === 1 ? 2.0 : undefined, 900),
 });
 const feed = new LiveFeed(els.feedList, { onOpenStory: (id) => openStory(id),
   onOpenConflict: (cid) => enterWarMode(cid) });   // v6.6.2 conflict chip → War Mode
@@ -837,37 +839,13 @@ async function refreshStories() {
                                    sort: state.feedSort || undefined,          // v5 §1
                                    war_tab: state.warMode ? (state.warTab || undefined) : undefined, // v6 §8
                                    development_type: state.devType || undefined });
-  // v6.2 — RENDER THE FEED IMMEDIATELY, then translate asynchronously and
-  // update in place. Previously the feed render was AWAITING the translation
-  // call, so a slow/hung translate (up to its 60s timeout) left the feed
-  // blank — that's why "the live feed sometimes doesn't come in". Original
-  // text shows instantly; translated text swaps in when ready.
+  // v6.6.8 — render the feed in English; the site-wide DOM translator
+  // (i18n_translate.js) re-translates the new cards in place via its
+  // MutationObserver whenever a non-English language is active. No per-feed
+  // translation pipeline anymore.
   const stories = data.stories || [];
   feed.setStories(stories);
-  if (state.lang && state.lang !== "en" && stories.length) {
-    translateStories(stories).then((translated) => {
-      // only apply if the feed hasn't been replaced by a newer load
-      if (feed.currentIds === stories) feed.setStories(translated);
-    }).catch(() => {});
-  }
   feed.currentIds = stories;
-}
-
-// v6 §11 — batch-translate feed/story content through the cached pipeline.
-// English (or no provider) passes straight through.
-async function translateStories(stories) {
-  if (!state.lang || state.lang === "en" || !stories.length) return stories;
-  try {
-    const items = stories.map((s) => ({ id: s.id, headline: s.headline,
-                                        summary: s.summary }));
-    const res = await api.translateContent(state.lang, items);
-    const tr = res.translations || {};
-    return stories.map((s) => tr[s.id] ? {
-      ...s,
-      headline: tr[s.id].headline || s.headline,
-      summary: tr[s.id].summary || s.summary,
-    } : s);
-  } catch { return stories; }
 }
 
 async function refreshMap() {
@@ -1695,9 +1673,15 @@ applyTheme(localStorage.getItem("tdl_theme")
   || (localStorage.getItem("tdl_colorblind") === "1" ? "colorblind_safe" : "dark_teal_default"));
 applyFont(localStorage.getItem("tdl_font") || "sans");   // v6.6.4
 applyLanguage(localStorage.getItem("tdl_lang") || "en");
+// v6.6.8 — start the site-wide DOM translator and apply a saved non-English
+// language once the initial UI has rendered.
+domTranslate.startObserver();
+if ((localStorage.getItem("tdl_lang") || "en") !== "en") {
+  setTimeout(() => domTranslate.setLanguage(localStorage.getItem("tdl_lang")), 1200);
+}
 
 // debug/verification handle (harmless in production; used by headless checks)
-window.__gg = { state, ctx, pane, openStory, sound };
+window.__gg = { state, ctx, pane, openStory, sound, domTranslate, analyst };
 
 const initialTier = initTierControl(els.tierSelect, (tier) => mountRenderer(tier));
 mountRenderer(initialTier);
@@ -1915,10 +1899,9 @@ function setSiteLanguage(code) {
     ? WORDMARK_TRANSLIT[code] : null;
   els.brandTranslit.textContent = t || "";
   if (els.langBtn.value !== code) els.langBtn.value = code;
-  // every panel and piece of content translates immediately — the feed
-  // re-renders through the cached pipeline; new arrivals translate on the
-  // server as they land (translation.instant_translate_on_arrival)
-  refreshStories().catch(() => {});
+  // v6.6.8 — site-wide DOM translation: scan every visible string and translate
+  // it into `code` (or restore English), UI + map labels + content all at once.
+  domTranslate.setLanguage(code);
 }
 
 for (const l of LANGUAGES) {

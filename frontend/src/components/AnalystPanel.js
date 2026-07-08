@@ -83,7 +83,11 @@ export class AnalystPanel {
     this.orb.classList.add("orb-burst");
     this.panel.classList.remove("ap-closing");
     this.panel.classList.add("ap-opening");
+    // v6.6.8 — the orb bursts, then fully DISAPPEARS while the panel is open
+    // (owner: orb should actually disappear when analyst open) and reappears on
+    // close. orb-gone hides it after the burst animation finishes.
     setTimeout(() => { this.orb.classList.remove("orb-burst");
+                       this.orb.classList.add("orb-gone");
                        this.panel.classList.remove("ap-opening"); }, 480);
     if (this.onOpenSound) this.onOpenSound();
     this.input.focus();
@@ -93,6 +97,7 @@ export class AnalystPanel {
   hide() {
     // play the reverse: panel disperses back into the reforming orb
     this.panel.classList.add("ap-closing");
+    this.orb.classList.remove("orb-gone");   // v6.6.8 — bring the orb back
     this.orb.classList.add("orb-reform");
     if (this.onCloseSound) this.onCloseSound();
     setTimeout(() => { this.panel.classList.add("hidden");

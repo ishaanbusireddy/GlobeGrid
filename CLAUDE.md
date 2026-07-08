@@ -18,6 +18,76 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v6.6.9)
+
+**v6.6.9 (2026-07-08, close the translation gap + world completeness):** verified
+against a **simulated Ollama server** (real `/api/tags` + `/api/chat` wire
+format) so this patch's translation claims are tested against a REAL
+round-trip, not just pass-through. **Translation gap closed:** `<option>` text
+inside dropdowns now translates (timezone/quality/tier/audio-preset/region/sort
+pickers — 58/58 non-language options, 100%); the one deliberate exception is
+the **language picker itself**, which now carries `data-no-translate` — its
+entries are endonyms ("Français", "日本語", "العربية") that must always show
+in their own script regardless of interface language, and translating them
+inconsistently (Latin-script entries swapped, non-Latin skipped by the
+Latin-letter heuristic) was worse than leaving the whole picker alone.
+Verified: 58/58 correct, 0 wrongly-translated language entries, EN restore
+still clean. **Leaders for every unrecognized/territory entity:** the three
+de-facto states without ANY leadership row (Northern Cyprus, Somaliland,
+Kosovo) and the 11 remaining seeded territories without their own head
+(Puerto Rico, New Caledonia, Guam, Hong Kong, Macao, American Samoa, US Virgin
+Islands, Curaçao, Aruba, Cayman Islands, Falkland Islands) all get a real named
+leader now — owner: "treat it like a country." Verified: 0 de_facto/territory
+countries left with no leadership row. **Disputed border LINES for
+Zaporizhzhia/Kherson/Falklands:** these three previously had only point
+markers, not the dashed boundary lines Crimea/Donetsk/etc. get. Added
+approximate front-line polylines for Zaporizhzhia and Kherson (consistent with
+the War Mode control-polygon coordinates) and an outline ring around the
+Falklands archipelago (no on-the-ground partition line exists for a
+whole-territory claim, so it gets the same "mark the disputed territory"
+treatment as the Antarctic claim sectors) — rendered on both the globe and 2D
+map. Verified: all three named entries present in the 2D map's disputed-line
+list; globe vertex buffer builds without error. Verified: fresh boot clean,
+two full headless sweeps (40+ interactions) 0 non-network console errors.
+
+## Status (v6.6.8)
+
+**v6.6.8 (2026-07-08, translation rebuild + quick fixes):** the headline is a
+**clean-slate site-wide translation system**. Deleted the old stack (`/api/
+translate`, `/api/translate/content`, the summary-only translate feature on
+story pages, the scheduler arrival-translate job, the warmup translate step).
+New model: **one primitive** — `POST /api/i18n/translate {lang, texts}` backed
+by `processing/i18n.py` (LLM batch translate, cache-first per (lang, text) in
+`app_meta`, already-target strings pass through) — plus a **live DOM translator**
+(`frontend/src/i18n_translate.js`) that walks EVERY visible text node, sends the
+unique strings for the chosen language, and swaps text in place; originals are
+kept per node (WeakMap) so switching back to English restores instantly. A
+MutationObserver keeps newly-rendered content (feed, opened panes, DOM map
+labels) translated. Picking a language now translates the **whole UI + content**
+at once; English is the source and passes through untouched. The old ingestion
+English-normalization for correlation (`extract.to_english_for_correlation`)
+stays — that's internal, not display. **Quick fixes:** **Artsakh outlines** —
+removed the last 2 empty-named Azerbaijan disputed segments in the Nagorno-
+Karabakh bbox from `disputedBoundaries.js` (0 remain). **Leader pages** now
+generate **field-by-field** (`_LEADER_FIELDS` + one small fast LLM call per
+field cached at `leaderfield:{name}:{field}`) so a slow local model fills the
+page progressively instead of blocking on one 800-token call; the frontend
+polls a few times to paint each field as it lands. **Party pages** gained a
+country-page-style stat grid + clickable officeholder → leader links. **Leader
+name/portrait chips** open the profile everywhere (country + party pages).
+**Orb** now fully disappears (`orb-gone`) while the analyst panel is open and
+reappears on close. **Zelenskyy** portrait pinned to a consistent head/bust
+crop (`object-position: center top`). **Denmark's King** is labeled *ceremonial*
+in the leadership list of a constitutional monarchy (PM stays paramount); and
+autonomous **territories** (Greenland, Faroe, French Polynesia, Bermuda) get
+their OWN elected head of government seeded, so their page shows the local
+premier, not the sovereign's monarch. **Pan to Event** is now a button styled
+like *full summary* and sitting next to it on the story page (flies the map to
+the story's first located event). Verified: fresh boot clean, headless 0
+non-network errors, `/api/i18n/translate` works, old translate routes 404,
+Greenland shows Jens-Frederik Nielsen, leader per-field returns all 5 fields,
+orb hides on open / returns on close.
+
 ## Status (v6.6.7)
 
 **v6.6.7 (2026-07-08, owner screenshot follow-up):** 6 fixes. **Disputed border

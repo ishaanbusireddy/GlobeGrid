@@ -16,7 +16,28 @@ Built to the [v1 build manual](docs/talkdiplomacy_live_v1_build_manual.pdf),
 **zero-install build**: Python standard library only. No PostgreSQL, no pip
 install, no npm, no Docker.
 
-**v6.6.7 highlights (current):** a screenshot-driven polish pass. The dashed
+**v6.6.9 highlights (current):** closes the translation gap and rounds out
+world coverage. Dropdown text (timezone, quality, audio presets, etc.) now
+translates too — the language picker itself deliberately stays untranslated
+since its entries are endonyms ("Français", "日本語"). Every unrecognized state
+(Northern Cyprus, Somaliland, Kosovo) and remaining territory (Puerto Rico,
+Hong Kong, Guam, Curaçao, the Falklands and more) now has its own named leader.
+**Zaporizhzhia, Kherson and the Falklands** get real disputed **border lines**
+on the map, not just point markers.
+
+**v6.6.8 highlights:** a **rebuilt site-wide translation system**.
+Pick any language and the **entire UI, map labels and content** translate at
+once — a live DOM translator scans every visible string, translates it via one
+LLM-backed endpoint (cache-first), and swaps it in place; switch back to English
+and originals restore instantly. The old summary-only translate feature is gone.
+Alongside: **leader pages** now fill in **field by field** (fast on local
+models), **party pages** got a country-style stat grid, the resolved
+**Nagorno-Karabakh** outlines are fully removed, the analyst **orb** disappears
+while the panel is open, **territories** (Greenland, Faroe, etc.) show their own
+premier instead of the sovereign's ceremonial monarch, and **Pan to Event** is
+now a button next to *full summary* on story pages.
+
+**v6.6.7 highlights:** a screenshot-driven polish pass. The dashed
 **disputed-border outlines** no longer show the resolved Nagorno-Karabakh, and
 **Antarctica's seven claim sectors** now draw as radial lines from the pole on
 both the globe and the 2D map. The two **new audio tracks** finally appear in

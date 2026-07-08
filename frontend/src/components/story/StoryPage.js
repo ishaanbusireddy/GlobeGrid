@@ -4,10 +4,6 @@
 // panel, the Section 5.7 bias/blindspot view, and Section 5.8
 // display-time translation.
 import { api } from "../../api/client.js";
-import { LANGUAGES } from "../../i18n.js";   // v5 §2 — full language set
-
-// exclude English (the base) from the translate dropdown
-const LANGS = LANGUAGES.filter((l) => l.code !== "en");
 
 // v6.2 — render markdown-ish bullet text as a real <ul>, XSS-safe (escape
 // first, then only introduce <li>/<b>). Non-bullet lines become paragraphs.
@@ -59,11 +55,12 @@ export class StoryPage {
   // v4 §17 — story pages render in the same left-docked sliding pane as
   // country/wiki pages (one panel component, distinguished by template),
   // with the pane's navigation stack: event -> linked country -> back.
-  constructor(pane, { onOpenStory, onWatch, onOpenLineage } = {}) {
+  constructor(pane, { onOpenStory, onWatch, onOpenLineage, onPanTo } = {}) {
     this.pane = pane;
     this.onOpenStory = onOpenStory || (() => {});
     this.onWatch = onWatch || (() => {});
     this.onOpenLineage = onOpenLineage || (() => {});   // v3 §8
+    this.onPanTo = onPanTo || null;                     // v6.6.8 pan to event
   }
 
   close() { this.pane.close(); }
@@ -95,16 +92,12 @@ export class StoryPage {
       </div>
       <h1></h1>
       <ul class="summary-bullets"></ul>
-      <div class="full-summary-row"><button class="full-summary-btn">≡ full summary</button>
+      <div class="full-summary-row">
+        <button class="full-summary-btn">≡ full summary</button>
+        <button class="full-summary-btn pan-to-event" hidden>⌖ pan to event</button>
         <p class="summary hidden"></p></div>
       <div class="read-more-row"><button class="read-more-btn">☰ read more — deeper synthesis</button>
         <div class="deep-summary hidden"></div></div>
-      <div class="translate-row hidden">
-        <select class="lang-select">${LANGS.map((l) =>
-          `<option value="${l.code}">${l.name}${l.rtl ? " (RTL)" : ""}</option>`).join("")}</select>
-        <button class="translate-btn">translate summary</button>
-      </div>
-      <div class="translate-out"></div>
       <div class="v3-toprow">
         <span class="feedback-row">was this really the same story?
           <button class="fb-up" title="yes — correctly linked">👍</button>
@@ -182,19 +175,8 @@ export class StoryPage {
 
     // v4 §20 — reasoning trace: which threshold fired, actual similarity,
     // same-window vs historical-chain, plus the debate disagreement score
-    // v6.6.1 — whole-system translation reaches story pages: when a non-English
-    // language is active, the headline + summary swap to the cached translation
-    const lang = localStorage.getItem("tdl_lang");
-    if (lang && lang !== "en") {
-      api.translateContent(lang, [{ id: s.id, headline: s.headline, summary: s.summary }])
-        .then((res) => {
-          const tr = (res.translations || {})[s.id] || {};
-          const h1 = page.querySelector("h1");
-          if (tr.headline && h1) h1.textContent = tr.headline;
-          const sm = page.querySelector(".summary");
-          if (tr.summary && sm) sm.textContent = tr.summary;
-        }).catch(() => {});
-    }
+    // v6.6.8 — story-page text is translated by the site-wide DOM translator
+    // (i18n_translate.js) via its MutationObserver; no per-page translate call.
     // v6.6 — deep synthesis auto-generates the moment the story opens
     setTimeout(() => { try { rmBtn.click(); } catch {} }, 60);
     page.querySelector(".trace-btn").addEventListener("click", async (ev) => {
@@ -499,20 +481,17 @@ export class StoryPage {
       srcs.appendChild(row);
     }
 
-    // translation (display-time only, original preserved — Section 5.8)
-    page.querySelector(".translate-btn").addEventListener("click", async () => {
-      const out = page.querySelector(".translate-out");
-      const code = page.querySelector(".lang-select").value;
-      const meta = LANGS.find((l) => l.code === code) || { rtl: false };
-      // disambiguate the two Chinese locales for the translator (§2)
-      const lang = code === "zh-Hans" ? "Simplified Chinese"
-        : code === "zh-Hant" ? "Traditional Chinese"
-        : (meta.name || code).replace(/\s*\(.*\)/, "");
-      out.dir = meta.rtl ? "rtl" : "ltr";   // real RTL for the output text
-      out.textContent = "translating…";
-      const res = await api.translate(s.summary || s.headline, lang);
-      out.textContent = res.translation || res.error || "translation unavailable";
-    });
+    // v6.6.8 — Pan to Event: styled like the full-summary button and sitting
+    // next to it; flies the map to the story's first located member event. The
+    // old per-summary "translate" feature is deleted (the whole site now
+    // translates via the DOM translator).
+    const panBtn = page.querySelector(".pan-to-event");
+    const ev0 = (s.members || []).find((m) => m.location_lat != null && m.location_lon != null);
+    if (panBtn && ev0 && this.onPanTo) {
+      panBtn.hidden = false;
+      panBtn.addEventListener("click", () =>
+        this.onPanTo(ev0.location_lat, ev0.location_lon));
+    }
 
     // §6.2 quick-pin watch buttons
     page.querySelector(".watch-cat").addEventListener("click", async (ev) => {

@@ -93,8 +93,10 @@ export const api = {
   watchlist: () => get("/api/watchlist"),
   watchlistAdd: (kind, value) => post("/api/watchlist", { kind, value }),
   watchlistDelete: (id) => post("/api/watchlist/delete", { id }),
-  translate: (text, targetLang) => post("/api/translate",
-    { text, target_lang: targetLang }),
+  // v6.6.8 — the single site-wide translation call (DOM translator). Replaces
+  // the deleted /api/translate + /api/translate/content.
+  i18nTranslate: (lang, texts) =>
+    post("/api/i18n/translate", { lang, texts }, { timeout: 60000 }),
   // --- v3 ---
   storyFeedback: (id, vote) => post(`/api/stories/${id}/feedback`, { vote }),
   lineage: (factId) => get(`/api/lineage/${factId}`),

@@ -55,10 +55,11 @@ stop_event = threading.Event()
 
 
 def _translate_recent() -> int:
-    """v6 §11 — deferred import so the scheduler module doesn't pull the
-    translation stack at import time."""
-    from ..processing.translate import translate_recent
-    return translate_recent()
+    """v6.6.8 — display translation is now on-demand (the site-wide DOM
+    translator), NOT a background arrival job. This is a no-op kept only so the
+    job registry entry stays valid; ingestion-time English normalization for
+    correlation still lives in extract.py."""
+    return 0
 
 
 def _assign_threads() -> int:

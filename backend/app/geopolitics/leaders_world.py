@@ -181,4 +181,31 @@ L = [
  ("YEM","head_of_state","Rashad al-Alimi (PLC)",None,"2022-04-07"),
  ("ZMB","head_of_state","Hakainde Hichilema","UPND","2021-08-24"),
  ("ZWE","head_of_state","Emmerson Mnangagwa","ZANU-PF","2017-11-24"),
+ # v6.6.8 — autonomous territories get their OWN elected head of government, so
+ # their page shows the local premier, NOT the sovereign's (ceremonial) monarch.
+ ("GRL","head_of_government","Jens-Frederik Nielsen","Demokraatit","2025-04-07"),
+ ("FRO","head_of_government","Aksel V. Johannesen","Javnaðarflokkurin","2022-12-22"),
+ ("PYF","head_of_government","Moetai Brotherson","Tavini Huiraatira","2023-05-12"),
+ ("BMU","head_of_government","David Burt","PLP","2017-07-19"),
+ # v6.6.9 — the rest of the seeded territories, plus the three de-facto/
+ # unrecognized states (owner: "add leaders for unrecognized territories/
+ # countries, treat it like a country") — each gets its own real local head,
+ # not left blank just because it lacks a UN seat or isn't sovereign.
+ ("PRI","head_of_government","Jenniffer González-Colón",None,"2025-01-02"),
+ ("NCL","head_of_government","Alcide Ponga",None,"2025-01-28"),
+ ("GUM","head_of_government","Lou Leon Guerrero","Democratic Party","2019-01-07"),
+ ("HKG","head_of_government","John Lee",None,"2022-07-01"),
+ ("MAC","head_of_government","Sam Hou-fai",None,"2024-12-20"),
+ ("ASM","head_of_government","Pulaali'i (Sili) Nikolao Pula",None,"2025-01-03"),
+ ("VIR","head_of_government","Albert Bryan Jr.","Democratic Party","2019-01-07"),
+ ("CUW","head_of_government","Gilmar Pisas","MFK","2021-05-19"),
+ ("ABW","head_of_government","Evelyn Wever-Croes","MEP","2017-11-17"),
+ ("CYM","head_of_government","Julianna O'Connor-Connolly",None,"2023-04-14"),
+ ("FLK","head_of_government","Alison Blake (Governor)",None,"2022-04-25"),
+ # de facto / unrecognized states — real local leadership, kept distinct from
+ # any sovereign claim (Cyprus/Somalia/Serbia each still claim the territory)
+ ("CYN","head_of_state","Ersin Tatar",None,"2020-10-24"),
+ ("SOL","head_of_state","Abdirahman Mohamed Abdullahi","Waddani","2024-12-12"),
+ ("XKX","head_of_state","Vjosa Osmani",None,"2021-04-04"),
+ ("XKX","head_of_government","Albin Kurti","LVV","2021-03-22"),
 ]

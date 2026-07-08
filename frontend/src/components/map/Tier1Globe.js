@@ -21,6 +21,25 @@ import { decodeBoundaries } from "../../data/boundaryCodec.js";
 // drawn as disputed sector boundaries in disputed mode.
 export const ANTARCTIC_SECTOR_LONS = [-150, -90, -20, 45, 136, 142, 160];
 
+// v6.6.9 — front-line / claim-outline rings for zones that only had a point
+// marker before (owner: "add line borders for zaporizhzhia, kherson, and
+// falklands"). Zaporizhzhia/Kherson approximate the actual front line dividing
+// Russian-held territory from Ukrainian-held territory (consistent with the
+// War Mode control polygon in CONFLICT_SUBFACTIONS); Falklands has no partition
+// line on the ground, so it gets an outline ring around the archipelago —
+// the same "mark the whole disputed territory" treatment as the Antarctic
+// claim sectors. Flat [lon,lat,lon,lat,...] rings, same shape decodeBoundaries
+// produces.
+export const EXTRA_DISPUTED_RINGS = [
+  // Zaporizhzhia front line (approx, west→east across the oblast)
+  [34.8, 47.55, 35.6, 47.35, 36.4, 47.4, 37.2, 47.5, 37.9, 47.7],
+  // Kherson front line (approx, along the Dnipro divide)
+  [31.7, 46.4, 32.6, 46.55, 32.6, 46.65, 33.37, 46.75, 34.0, 46.85, 34.4, 47.0],
+  // Falkland Islands — outline ring around the archipelago (whole-territory claim)
+  [-61.3, -51.05, -59.3, -50.95, -57.6, -51.25, -58.0, -52.35,
+   -59.8, -52.15, -61.0, -51.75, -61.3, -51.05],
+];
+
 const CATEGORY_COLORS = {
   technology: [0.70, 0.42, 1.00],   // v6.6
   geopolitics: [0.30, 0.64, 1.00],
@@ -602,6 +621,7 @@ export class Tier1Globe {
       for (let lat = -88; lat <= -63; lat += 1.2) ring.push(lon, lat);
       rings.push(ring);
     }
+    for (const ring of EXTRA_DISPUTED_RINGS) rings.push(ring);   // v6.6.9
     for (const ring of rings) {
       for (let i = 0; i + 3 < ring.length; i += 2) {
         if ((i >> 1) % 2 === 0) {

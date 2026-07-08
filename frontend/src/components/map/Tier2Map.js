@@ -69,6 +69,18 @@ export class Tier2Map {
       for (let lat = -88; lat <= -63; lat += 1.2) ring.push(lon, lat);
       this.disputed.push({ a: "", b: "", n: "Antarctic sector", r: [ring] });
     }
+    // v6.6.9 — Zaporizhzhia/Kherson front-line approximations + a Falklands
+    // outline ring (owner: "add line borders for zaporizhzhia, kherson, and
+    // falklands"), same data as the globe renderer.
+    const extraDisputed = [
+      [34.8, 47.55, 35.6, 47.35, 36.4, 47.4, 37.2, 47.5, 37.9, 47.7],
+      [31.7, 46.4, 32.6, 46.55, 32.6, 46.65, 33.37, 46.75, 34.0, 46.85, 34.4, 47.0],
+      [-61.3, -51.05, -59.3, -50.95, -57.6, -51.25, -58.0, -52.35,
+       -59.8, -52.15, -61.0, -51.75, -61.3, -51.05],
+    ];
+    const extraNames = ["Zaporizhzhia front line", "Kherson front line", "Falkland Islands"];
+    extraDisputed.forEach((ring, i) =>
+      this.disputed.push({ a: "", b: "", n: extraNames[i], r: [ring] }));
 
     this._initInteraction();
     this._resizeObserver = new ResizeObserver(() => { this._resize(); this.draw(); });

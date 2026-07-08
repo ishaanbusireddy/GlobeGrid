@@ -65,7 +65,11 @@
       <input id="volume-slider" type="range" min="0" max="100" title="volume (v4 §12.1)">
       <select id="preset-select" title="music preset (v4 §12.2-12.3)"></select>
     </span>
-    <select id="lang-btn" title="site-wide language — every panel and story translates instantly (v6 §11)"></select>
+    <!-- v6.6.9 — language names are endonyms (each written in its own script,
+         e.g. "Français", "日本語") and must NEVER be translated — a picker
+         showing every entry re-worded into the current language would be
+         unreadable/unrecognizable. data-no-translate opts the whole select out. -->
+    <select id="lang-btn" data-no-translate title="site-wide language — every panel and story translates instantly (v6 §11)"></select>
     <button id="settings-btn" title="settings & API keys (v4 §14)">⚙</button>
     <button id="status-toggle" title="Source health">sources</button>
   </div>

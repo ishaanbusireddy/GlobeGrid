@@ -166,11 +166,18 @@ export async function renderCountry(el, iso3, ctx) {
         onerror="this.outerHTML='<div class=\\'leader-photo leader-photo-empty leader-open\\' data-leader=\\'${leaderName}\\'>👤</div>'">`
     : `<div class="leader-photo leader-photo-empty leader-open" data-leader="${leaderName}" title="open leader profile · fetching portrait…">👤</div>`;
 
+  // v6.6.8 — a ceremonial head of state (a monarch in a constitutional/
+  // parliamentary monarchy, where the PM is paramount) is clearly labeled as
+  // NOT the actual ruler (owner: the King of Denmark is not the ruler).
+  const gtype = (p.government_type || "").toLowerCase();
+  const ceremonialMonarch = p.paramount_role === "head_of_government"
+    && gtype.includes("monarchy") && !gtype.includes("absolute");
   const leadership = (p.leadership || []).map((l) => {
     const src = l.last_refreshed_at ? `synced ${l.last_refreshed_at.slice(0, 10)}` : "seed data";
     const isLead = l.role === p.paramount_role;   // v6.1 — mark who actually leads
+    const ceremonial = ceremonialMonarch && l.role === "head_of_state";
     return `<div class="src-row"><span class="leaning">${esc(l.role.replace(/_/g, " "))}</span>
-      <b>${esc(l.name)}</b>${isLead ? ' <span class="chip" style="font-size:10px">★ leads</span>' : ""}${l.party ? " · " + esc(l.party) : ""}
+      <b class="leader-open" data-leader="${esc(l.name)}" style="cursor:pointer" title="open leader profile">${esc(l.name)}</b>${isLead ? ' <span class="chip" style="font-size:10px">★ leads</span>' : ""}${ceremonial ? ' <span class="chip" style="font-size:10px">ceremonial</span>' : ""}${l.party ? " · " + esc(l.party) : ""}
       <span class="cp-meta" style="margin-left:auto">${src}</span></div>`;
   }).join("") || '<p class="cp-meta">no leadership data yet (fills in from Wikidata)</p>';
 
@@ -396,9 +403,18 @@ export async function renderParty(el, id, ctx) {
 
 function paintParty(el, id, p, ctx) {
   const leaders = (p.leaders || []).map((l) =>
-    `<div class="src-row"><b>${esc(l.name)}</b>
+    `<div class="src-row"><b class="leader-open" data-leader="${esc(l.name)}" style="cursor:pointer" title="open leader profile">${esc(l.name)}</b>
      <span class="cp-meta">${esc(l.role.replace(/_/g, " "))} · since ${esc(l.since_date || "?")}</span></div>`
   ).join("") || '<p class="cp-meta">no tracked officeholders</p>';
+  const s0 = p.synthesis || {};
+  const leadName = (p.leaders || [])[0] && p.leaders[0].name;
+  // v6.6.8 — a country-page-style stat grid so party pages read as richly.
+  const statGrid = `<section><div class="stat-grid">
+    <div class="stat-cell"><span class="cp-meta">Country</span><b>${esc(p.country_name || "—")}</b></div>
+    <div class="stat-cell"><span class="cp-meta">Founded</span><b>${esc(p.founded_date || "—")}</b></div>
+    <div class="stat-cell"><span class="cp-meta">Leader</span><b>${esc(leadName || "—")}</b></div>
+    <div class="stat-cell"><span class="cp-meta">Position</span><b>${esc(s0.ideology || (p.ideology_tags || "").split(";")[0] || "—")}</b></div>
+    </div></section>`;
   el.innerHTML = `
     <div class="wiki-header"><div class="wiki-flag">🏛</div>
       <div class="wiki-head-meta"><h1>${esc(p.name)}</h1>
@@ -406,6 +422,7 @@ function paintParty(el, id, p, ctx) {
         <p class="cp-meta">ideology: ${esc((p.ideology_tags || "").replace(/;/g, " · "))}</p>
       </div></div>
     ${freshness(p.last_updated_at)}
+    ${statGrid}
     ${(p.synth_pending && !p.synthesis) ? `<p class="cp-meta">✨ generating a detailed profile with AI… (updates in a moment)</p>` : ""}
     ${(() => { const s = p.synthesis; const b = (a) => (a || []).map((x) => `<li>${esc(x)}</li>`).join("");
       if (!s) return "";
@@ -422,6 +439,10 @@ function paintParty(el, id, p, ctx) {
     <section><h4>Officeholders in tracked leadership</h4>${leaders}</section>
     <section><h4>Recent tracked coverage</h4>${storyChips(p.recent_stories)}</section>`;
   wireStoryChips(el, ctx);
+  // v6.6.8 — officeholder names open the leader profile
+  el.querySelectorAll(".leader-open[data-leader]").forEach((b) =>
+    b.addEventListener("click", () => b.dataset.leader && ctx.openLeader
+      && ctx.openLeader(b.dataset.leader)));
 }
 
 // v6 §5 — leader & party profile depth helpers
@@ -1394,13 +1415,17 @@ export async function renderLeader(el, name, ctx) {
     return;
   }
   paintLeader(el, name, d, ctx);
-  // v6.6.6 — the AI synthesis is generated in the background; if it's still
-  // pending, re-fetch once shortly to upgrade the page in place.
+  // v6.6.8 — the profile fills in FIELD BY FIELD in the background; poll a few
+  // times to paint each field as it lands (fast per-field generation).
   if (d.synth_pending) {
-    setTimeout(async () => {
+    let tries = 0;
+    const poll = async () => {
+      if (!el.isConnected || tries++ >= 5) return;
       const d2 = await api.leaderProfile(name).catch(() => null);
-      if (d2 && d2.synthesis && el.isConnected) paintLeader(el, name, d2, ctx);
-    }, 5000);
+      if (d2 && el.isConnected) paintLeader(el, name, d2, ctx);
+      if (d2 && d2.synth_pending) setTimeout(poll, 4000);
+    };
+    setTimeout(poll, 3500);
   }
 }
 

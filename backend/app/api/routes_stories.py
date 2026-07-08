@@ -456,49 +456,21 @@ def graph(params, q, body):
     }
 
 
-@route("POST", "/api/translate/content")
-def translate_content(params, q, body):
-    """v6 §11 — site-wide instant translation: batch-translate feed/story
-    content into the user's language, cache-first (content_translations), one
-    model call for all misses. Also registers the language as active so new
-    content translates on arrival, not on first view."""
-    from ..processing import translate as tr
-    if not isinstance(body, dict) or not body.get("language") \
-            or not isinstance(body.get("items"), list):
-        return 400, {"error": "body must be {language, items: [{id, headline?, summary?}]}"}
-    lang = str(body["language"])
-    tr.note_active_language(lang)
-    if lang == "en":
-        return 200, {"language": "en", "translations": {}}
-    from ..processing import llm as _llm
-    items = [i for i in body["items"][:40]
-             if isinstance(i, dict) and i.get("id")]
-    # v6.4.2 — interactive: the user just switched language and is watching
-    translations = tr.translate_batch(items, lang, interactive=True)
-    return 200, {"language": lang, "translations": translations,
-                 "ai_available": _llm.available()}
-
-
-@route("POST", "/api/translate")
-def translate(params, q, body):
-    """Section 5.8 — display-time short-summary translation via the configured
-    LLM provider (v5 §18 fallback). Original text is never modified; this is
-    presentation-only."""
-    from ..processing import llm
-    if not isinstance(body, dict) or not body.get("text"):
-        return 400, {"error": "body must be {text, target_lang}"}
-    if not llm.available():
-        return 503, {"error": "translation unavailable: no AI provider configured"
-                              " (add a free key, e.g. Groq, in Settings)",
-                     "original": body["text"]}
-    target = body.get("target_lang", "English")
-    text = llm.complete(
-        None,
-        [{"role": "user", "content":
-          f"Translate this short news summary into {target}. "
-          f"Return only the translation.\n\n{body['text'][:2000]}"}],
-        max_tokens=500, timeout=30, interactive=True)
-    if text is None:
-        return 502, {"error": "translation failed: provider returned nothing",
-                     "original": body["text"]}
-    return 200, {"translation": text.strip(), "original": body["text"]}
+@route("POST", "/api/i18n/translate")
+def i18n_translate(params, q, body):
+    """v6.6.8 — the ONE translation endpoint. The frontend DOM translator sends
+    a batch of visible UI/content strings and a target language; this returns
+    each string's translation (cache-first). Whatever text is already in the
+    target language is returned unchanged. This replaces the old
+    /api/translate + /api/translate/content (both deleted)."""
+    from ..processing import i18n
+    if not isinstance(body, dict) or not isinstance(body.get("texts"), list):
+        return 400, {"error": "body must be {lang, texts: [string, ...]}"}
+    lang = str(body.get("lang") or "en")
+    texts = [str(t) for t in body["texts"] if isinstance(t, (str, int, float))][:120]
+    if lang == "en" or not texts:
+        # English is the source language of the UI — nothing to translate.
+        return 200, {"lang": lang, "translations": {t: t for t in texts},
+                     "ai_available": i18n.available()}
+    return 200, {"lang": lang, "translations": i18n.translate_strings(texts, lang),
+                 "ai_available": i18n.available()}

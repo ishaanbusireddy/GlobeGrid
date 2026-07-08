@@ -102,17 +102,13 @@ def _test_analyst():
 
 
 def _test_translation():
-    from ..processing import translate as tr
+    # v6.6.8 — tests the new site-wide translator (processing/i18n.py).
+    from ..processing import i18n
     src = "The president met world leaders today."
-    res = tr.translate_batch(
-        [{"id": "diagtest", "headline": src,
-          "summary": "A short summary about diplomacy."}], "es", interactive=True)
-    got = (res.get("diagtest") or {}).get("headline")
-    # translate_batch degrades silently (returns original/empty) — assert a
-    # REAL Spanish translation happened, else report it as not working
+    got = i18n.translate_strings([src], "es").get(src)
     if not got or got.strip() == src:
         raise RuntimeError("no translation returned (provider unavailable or "
-                           "reply not parsed) — feed language switch would be a no-op")
+                           "reply not parsed) — a language switch would be a no-op")
     return got
 
 
@@ -139,7 +135,7 @@ _TESTS = [
     ("Provider ping (primary provider)", _test_provider_ping),
     ("Large-payload ping (~4KB)", _test_large_ping),
     ("Analyst answer (full path)", _test_analyst),
-    ("Translation (translate_batch)", _test_translation),
+    ("Translation (site-wide i18n)", _test_translation),
     ("Deep summary (LLM call)", _test_deep_summary),
     ("Causal narrative (LLM call)", _test_causal),
 ]

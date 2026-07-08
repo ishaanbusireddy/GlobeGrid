@@ -268,6 +268,9 @@ button.active { border-color: var(--accent); color: var(--accent); }
   animation: orb-pulse 3.2s ease-in-out infinite;
 }
 @keyframes orb-pulse { 0%,100% { transform: scale(1); opacity: .75; } 50% { transform: scale(1.35); opacity: 1; } }
+/* v6.6.8 — orb fully hidden while the analyst panel is open */
+#analyst-orb.orb-gone { opacity: 0; transform: scale(0); pointer-events: none;
+  transition: opacity .3s ease, transform .3s ease; }
 #analyst-orb.orb-bright { border-color: var(--finance); }
 #analyst-orb.orb-bright .orb-core { background: var(--finance); box-shadow: 0 0 20px 7px rgba(255,209,102,.6); animation-duration: 1.2s; }
 #analyst-panel {
@@ -455,7 +458,9 @@ button.active { border-color: var(--accent); color: var(--accent); }
 .res-expand { margin-top: 6px; }
 /* v6.6.2 — leader profile page */
 .leader-photo-lg { width: 150px !important; height: 150px !important;
-  object-position: center 12%; }
+  /* v6.6.8 — crop to a tight head/bust (top-aligned) so a taller source photo
+     never reads as a torso shot */
+  object-fit: cover; object-position: center top; }
 .leader-list { margin: 6px 0; padding-left: 18px; }
 .leader-list li { margin: 5px 0; line-height: 1.5; }
 .leader-ideology { margin-top: 6px; font-size: 13px; }

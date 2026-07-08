@@ -813,11 +813,8 @@ def _kick_ai_warmup(key_name: str) -> None:
             steps.append(("causal_narratives", lambda: refresh_pending(limit=2)))
         except Exception:  # noqa: BLE001
             pass
-        try:
-            from ..processing.translate import translate_recent
-            steps.append(("translate_recent", lambda: translate_recent(batch_size=4)))
-        except Exception:  # noqa: BLE001
-            pass
+        # v6.6.8 — display translation is on-demand (site-wide DOM translator);
+        # no arrival-time translation warmup step anymore.
         for label, fn in steps:
             try:
                 fn()
