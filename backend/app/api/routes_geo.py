@@ -863,6 +863,11 @@ def leader_profile(params, q, body):
     # v6.6.5 — curated fallback data for major leaders (guaranteed floor)
     from ..geopolitics.leaders_detail import leader_detail
     detail = leader_detail(clean)
+    # v6.6.7 — a curated professional headshot wins over a live wiki image that
+    # might be a full-body/military shot (owner: Zelenskyy should be a headshot).
+    if detail and detail.get("portrait_url"):
+        bio = bio or {}
+        bio["image_url"] = detail["portrait_url"]
     if detail and (not bio or not bio.get("extract")):
         bio = bio or {}
         bio.setdefault("extract", detail.get("bio_extract"))

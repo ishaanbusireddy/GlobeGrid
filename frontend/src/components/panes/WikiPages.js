@@ -157,10 +157,14 @@ export async function renderCountry(el, iso3, ctx) {
   const rulingParty = (leader && leader.party) || "—";
   // safe portrait: a wrong/stale URL swaps to the 👤 placeholder rather than
   // showing a broken-image icon, so vendored + synced photos both degrade well
+  // v6.6.7 — the portrait AND the placeholder are ALWAYS clickable (open the
+  // leader profile), regardless of whether a photo loaded.
+  const leaderName = leader ? esc(leader.name) : "";
   const photo = (leader && leader.image_url)
-    ? `<img class="leader-photo" src="${esc(leader.image_url)}" alt="${esc(leader.name)}"
-        onerror="this.outerHTML='<div class=\\'leader-photo leader-photo-empty\\'>👤</div>'">`
-    : `<div class="leader-photo leader-photo-empty" data-leader="${leader ? esc(leader.name) : ""}" title="fetching portrait…">👤</div>`;
+    ? `<img class="leader-photo leader-open" data-leader="${leaderName}" title="open leader profile"
+        src="${esc(leader.image_url)}" alt="${esc(leader.name)}"
+        onerror="this.outerHTML='<div class=\\'leader-photo leader-photo-empty leader-open\\' data-leader=\\'${leaderName}\\'>👤</div>'">`
+    : `<div class="leader-photo leader-photo-empty leader-open" data-leader="${leaderName}" title="open leader profile · fetching portrait…">👤</div>`;
 
   const leadership = (p.leadership || []).map((l) => {
     const src = l.last_refreshed_at ? `synced ${l.last_refreshed_at.slice(0, 10)}` : "seed data";
@@ -276,7 +280,7 @@ export async function renderCountry(el, iso3, ctx) {
         ${p.official_name ? `<p class="official-name">${esc(p.official_name)}</p>` : ""}
         <p class="wiki-status status-${esc(p.status)}">${STATUS_LABEL[p.status] || esc(p.status)}</p>
         ${sovereignLink}
-        <p class="cp-meta">${leader ? "<b>" + esc(leader.name) + "</b>" + (leaderTitle ? " · " + esc(leaderTitle) : "") + " · " : ""}ruling: ${esc(rulingParty)}</p>
+        <p class="cp-meta">${leader ? `<button class="ap-chip leader-open" data-leader="${leaderName}" title="open leader profile">${esc(leader.name)}</button>` + (leaderTitle ? " · " + esc(leaderTitle) : "") + " · " : ""}ruling: ${esc(rulingParty)}</p>
         <p class="cp-meta">${esc(p.capital || "—")} · ${esc(p.region || "—")}${p.government_type ? " · " + esc(p.government_type) : ""}</p>
         <p class="cp-meta">${trade}${pop ? " · " + pop : ""}</p>
       </div>
@@ -343,17 +347,22 @@ export async function renderCountry(el, iso3, ctx) {
     api.leaderPortrait(ph.dataset.leader).then((r) => {
       if (r && r.image_url && ph.isConnected) {
         const img = new Image();
-        img.className = "leader-photo";
+        img.className = "leader-photo leader-open";   // v6.6.7 stays clickable
         img.alt = ph.dataset.leader;
+        img.dataset.leader = ph.dataset.leader;
         img.src = r.image_url;
         img.onerror = () => { /* keep placeholder */ };
         img.style.cursor = "pointer";
-      img.title = "open leader profile";
-      img.onclick = () => ctx.openLeader && ctx.openLeader(ph.dataset.leader);
-      img.onload = () => ph.replaceWith(img);
+        img.title = "open leader profile";
+        img.onclick = () => ctx.openLeader && ctx.openLeader(ph.dataset.leader);
+        img.onload = () => ph.replaceWith(img);
       }
     }).catch(() => {});
   }
+  // v6.6.7 — leader portrait/name/placeholder always open the profile
+  el.querySelectorAll(".leader-open[data-leader]").forEach((b) =>
+    b.addEventListener("click", () => b.dataset.leader && ctx.openLeader
+      && ctx.openLeader(b.dataset.leader)));
   el.querySelectorAll(".party-link").forEach((b) =>
     b.addEventListener("click", () => ctx.openEntity("party", b.dataset.id)));
   el.querySelectorAll(".country-link").forEach((b) =>

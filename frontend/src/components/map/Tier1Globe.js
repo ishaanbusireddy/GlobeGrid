@@ -17,6 +17,9 @@ import { CITY_LIGHTS } from "../../data/cityLights.js";
 import { BOUNDARIES_50M_ENC } from "../../data/boundaries50m.js";
 import { DISPUTED_BOUNDARIES_ENC } from "../../data/disputedBoundaries.js";
 import { decodeBoundaries } from "../../data/boundaryCodec.js";
+// v6.6.7 — the 7 meridians that divide the Antarctic territorial claims,
+// drawn as disputed sector boundaries in disputed mode.
+export const ANTARCTIC_SECTOR_LONS = [-150, -90, -20, 45, 136, 142, 160];
 
 const CATEGORY_COLORS = {
   technology: [0.70, 0.42, 1.00],   // v6.6
@@ -588,13 +591,22 @@ export class Tier1Globe {
     const gl = this.gl;
     const verts = [];
     const lines = decodeBoundaries(DISPUTED_BOUNDARIES_ENC);
-    for (const c of lines) {
-      for (const ring of c.r) {
-        for (let i = 0; i + 3 < ring.length; i += 2) {
-          if ((i >> 1) % 2 === 0) {
-            verts.push(...latLonToVec3(ring[i + 1], ring[i], 1.0012),
-                       ...latLonToVec3(ring[i + 3], ring[i + 2], 1.0012));
-          }
+    const rings = [];
+    for (const c of lines) for (const ring of c.r) rings.push(ring);
+    // v6.6.7 — Antarctic claim sectors: 7 radial meridians from the pole to the
+    // coast divide the territorial claims (NZ / unclaimed / Peninsula / Norway /
+    // Australia / France / Australia), matching the standard claims map. Drawn
+    // in the same dashed disputed style.
+    for (const lon of ANTARCTIC_SECTOR_LONS) {
+      const ring = [];
+      for (let lat = -88; lat <= -63; lat += 1.2) ring.push(lon, lat);
+      rings.push(ring);
+    }
+    for (const ring of rings) {
+      for (let i = 0; i + 3 < ring.length; i += 2) {
+        if ((i >> 1) % 2 === 0) {
+          verts.push(...latLonToVec3(ring[i + 1], ring[i], 1.0012),
+                     ...latLonToVec3(ring[i + 3], ring[i + 2], 1.0012));
         }
       }
     }

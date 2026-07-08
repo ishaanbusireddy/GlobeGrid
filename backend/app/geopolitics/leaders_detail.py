@@ -44,6 +44,11 @@ LEADER_DETAIL = {
         "dominant force in northwest Syria before seizing Damascus.",
     },
     "volodymyr zelenskyy": {
+        # v6.6.7 — a professional (non-military) headshot: the official 2019
+        # presidential portrait. Special:FilePath resolves the file by name
+        # without needing the CDN hash, so the link stays valid.
+        "portrait_url": "https://commons.wikimedia.org/wiki/Special:FilePath/"
+                        "Volodymyr_Zelensky_Official_portrait.jpg?width=480",
         "summary": "Volodymyr Zelenskyy is the president of Ukraine, in office "
         "since 2019, who has led the country's defense against Russia's full-scale "
         "invasion since February 2022.",

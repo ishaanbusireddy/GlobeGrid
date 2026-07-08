@@ -62,6 +62,13 @@ export class Tier2Map {
     this.b50 = decodeBoundaries(BOUNDARIES_50M_ENC);
     this.b10 = null;         // lazily decoded on zoom-in (§2.3 LOD)
     this.disputed = decodeBoundaries(DISPUTED_BOUNDARIES_ENC);
+    // v6.6.7 — append the Antarctic claim-sector meridians so they render as
+    // disputed lines on the 2D map too (parity with the globe).
+    for (const lon of [-150, -90, -20, 45, 136, 142, 160]) {
+      const ring = [];
+      for (let lat = -88; lat <= -63; lat += 1.2) ring.push(lon, lat);
+      this.disputed.push({ a: "", b: "", n: "Antarctic sector", r: [ring] });
+    }
 
     this._initInteraction();
     this._resizeObserver = new ResizeObserver(() => { this._resize(); this.draw(); });

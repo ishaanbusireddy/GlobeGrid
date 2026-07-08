@@ -16,7 +16,17 @@ Built to the [v1 build manual](docs/talkdiplomacy_live_v1_build_manual.pdf),
 **zero-install build**: Python standard library only. No PostgreSQL, no pip
 install, no npm, no Docker.
 
-**v6.6.6 highlights (current):** a correctness + responsiveness patch.
+**v6.6.7 highlights (current):** a screenshot-driven polish pass. The dashed
+**disputed-border outlines** no longer show the resolved Nagorno-Karabakh, and
+**Antarctica's seven claim sectors** now draw as radial lines from the pole on
+both the globe and the 2D map. The two **new audio tracks** finally appear in
+the picker. **Leader portraits and names are always clickable** (and the analyst
+jumps to a leader's profile when you name them); **Zelenskyy** now uses a
+professional headshot. The **analyst orb** slides to sit just left of the live
+feed when it's open and flush to the edge when it's closed, and every event in
+the cluster pane gets a **⌖ Pan to Event** button.
+
+**v6.6.6 highlights:** a correctness + responsiveness patch.
 **Leader, party and country-stat pages no longer hang** — the AI profile is
 generated in the background and the page fills instantly (with a curated floor
 for major leaders, then AI enrichment merged on top). **Syria's alignments**

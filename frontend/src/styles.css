@@ -252,9 +252,11 @@ button.active { border-color: var(--accent); color: var(--accent); }
 
 /* analyst orb + panel (§24) */
 #analyst-orb {
-  /* v6.6.6 — always flush to the bottom-right edge regardless of window size
-     (was right:380px, which left it floating detached from the edge). */
-  position: fixed; bottom: 22px; right: 22px; z-index: 30;
+  /* v6.6.7 — sits just left of the live-feed panel when it's open, and flush to
+     the right edge when it's closed; --orb-right is updated by setFeedVisible
+     and the transition makes the move smooth. Defaults to left-of-feed (open). */
+  position: fixed; bottom: 22px; right: var(--orb-right, 380px); z-index: 30;
+  transition: right .35s cubic-bezier(.2,.7,.3,1);
   width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--accent);
   background: radial-gradient(circle at 40% 35%, rgba(77,163,255,.45), rgba(10,14,23,.9));
   cursor: pointer; padding: 0;

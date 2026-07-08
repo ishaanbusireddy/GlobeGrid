@@ -170,6 +170,26 @@ GENERIC_CONFLICT_WORDS = {"war", "conflict", "crisis", "dispute", "insurgency",
                           "civil", "movement"}
 
 
+def _leader_match(question: str) -> str | None:
+    """v6.6.7 — if the question names a tracked leader, return that leader's
+    name so the analyst can navigate to their profile. Matches the full name,
+    or a distinctive surname (>=5 chars) as a whole word to avoid false hits."""
+    ql = " " + (question or "").lower() + " "
+    best = None
+    for r in query("SELECT DISTINCT name FROM country_leadership WHERE name IS NOT NULL"):
+        nm = (r["name"] or "").strip()
+        if not nm:
+            continue
+        low = nm.lower()
+        if low in ql:
+            return nm
+        parts = [p for p in re.split(r"[^\w]+", low) if p]
+        surname = parts[-1] if parts else ""
+        if len(surname) >= 5 and re.search(r"\b" + re.escape(surname) + r"\b", ql):
+            best = best or nm
+    return best
+
+
 def _entity_match(question: str) -> dict | None:
     """Path 1 — structured entity match against the §13-23 layer."""
     lowered = question.lower()
@@ -644,6 +664,12 @@ def ask(params, q, body):
     navigation = None
     if entity:
         navigation = {"type": entity["type"], "id": entity["id"], "name": entity["name"]}
+    else:
+        # v6.6.7 — no structured entity, but the question may name a leader →
+        # navigate to that leader's profile page.
+        _lname = _leader_match(question)
+        if _lname:
+            navigation = {"type": "leader", "name": _lname}
 
     # v5.2 — always answer through the model when a provider is available,
     # even with empty tracked data: it can lean on web results or answer
@@ -667,7 +693,10 @@ def ask(params, q, body):
             # §24.4 guardrail: never navigate on a weak answer
             min_conf = str(cfg("analyst_panel", "min_confidence_to_navigate"))
             rank = {"low": 0, "medium": 1, "high": 2}
-            nav = navigation if rank[out["confidence"]] >= rank.get(min_conf, 1) else None
+            # v6.6.7 — a deterministic leader/entity name match navigates even on
+            # a low-confidence answer (the match itself is unambiguous).
+            nav = navigation if (navigation and navigation.get("type") == "leader") \
+                or rank[out["confidence"]] >= rank.get(min_conf, 1) else None
             deep = out.get("deep_dive")
             return _store_answer(session_id, out["answer"], out["confidence"], cited,
                                  nav, deep_dive=deep if isinstance(deep, str) else None,
@@ -693,7 +722,13 @@ def ask(params, q, body):
             "low", [s["id"] for s in stories[:5]] if stories else [], navigation)
 
     # retrieval-only mode (no provider or LLM failure): cited summary, no prose
-    if entity is None and not stories and not web_results:
+    # v6.6.7 — a deterministic leader match still navigates even with no AI/data.
+    if entity is None and navigation and navigation.get("type") == "leader":
+        return _store_answer(
+            session_id,
+            f"Opening the profile for {navigation['name']}. (Add a free AI key, e.g. Groq, "
+            "in Settings for a full conversational answer.)", "low", [], navigation)
+    if entity is None and navigation is None and not stories and not web_results:
         return _store_answer(
             session_id,
             "GlobeGrid doesn't have current tracked data on that, and no AI provider is "

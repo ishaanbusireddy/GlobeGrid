@@ -472,9 +472,18 @@ function openClusterList(cluster) {
             <span class="cp-meta">sev ${ev.severity || "?"}</span>
             ${ev.development_type ? `<span class="chip">${ev.development_type}</span>` : ""}
             <span class="cp-meta" style="margin-left:auto">${(ev.occurred_at || "").slice(0, 16).replace("T", " ")}</span>
-          </div><h3></h3><p class="cp-meta"></p>`;
+          </div><h3></h3><p class="cp-meta"></p>
+          <button class="ap-chip pan-to-event">⌖ Pan to Event</button>`;
         row.querySelector("h3").textContent = ev.title || "(untitled event)";
         row.querySelector("p").textContent = ev.location_name || "";
+        // v6.6.7 — Pan to Event: fly the map to wherever the event was placed
+        const panBtn = row.querySelector(".pan-to-event");
+        if (ev.lat != null && ev.lon != null) {
+          panBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            state.renderer?.flyTo?.(ev.lat, ev.lon, state.tier === 1 ? 2.0 : undefined, 900);
+          });
+        } else { panBtn.remove(); }
         if (ev.story_id) {
           row.style.cursor = "pointer";
           row.addEventListener("click", () => openStory(ev.story_id));
@@ -1142,8 +1151,12 @@ els.volumeSlider.addEventListener("input", () => {
 // hard-rock/metal proof of concept is validated
 const activePresets = () =>
   (state.clientConfig.audio || {}).presets_active
-  || ["ambient_default", "arctic_calm", "modal_drift", "data_sonification",
-      "crystalline_chimes", "deep_glacier", "aurora_drift"];
+  // v6.6.7 — the fallback (used before /api/config resolves) MUST include the
+  // v6.6.5 tracks; otherwise the picker is built from this stale list and the
+  // new tracks never appear ("audio tracks still don't show").
+  || ["ambient_default", "nocturne_calm", "arctic_calm", "modal_drift",
+      "storm_front", "data_sonification", "crystalline_chimes", "deep_glacier",
+      "aurora_drift"];
 for (const [name, p] of Object.entries(PRESETS)) {
   if (!activePresets().includes(name)) continue;
   const o = document.createElement("option");
@@ -1638,6 +1651,7 @@ const analyst = new AnalystPanel({
   onNavigate: (nav) => {
     if (!nav) return;
     if (nav.type === "country") openEntity("country", nav.id);
+    else if (nav.type === "leader" && nav.name) ctx.openLeader(nav.name);   // v6.6.7
     // v6 §13 — an analyst answer that opens a conflict enters War Mode
     // directly and frames the conflict zone, not just a generic tab
     else if (nav.type === "conflict") enterWarMode(nav.id);
@@ -1847,6 +1861,7 @@ function exitWarMode() {
   refreshStories().catch(() => {});
 }
 window.__gg.exitWarMode = exitWarMode;
+window.__gg.enterWarMode = enterWarMode;   // v6.6.6 — exposed for scripting/tests
 
 // §8 — right-panel sub-filters: Military / Civilian / Diplomatic / Economic
 function renderWarTabs() {
@@ -1923,6 +1938,11 @@ const feedCloseBtn = document.getElementById("feed-close");
 let feedReopenTab = null;
 function setFeedVisible(on) {
   feedPanelEl.style.display = on ? "" : "none";
+  // v6.6.7 — keep the analyst orb aligned: sit just LEFT of the live-feed panel
+  // when it's open, flush to the right edge when it's closed. The CSS transition
+  // on #analyst-orb makes the move smooth.
+  const w = feedPanelEl.offsetWidth || 360;
+  document.documentElement.style.setProperty("--orb-right", on ? (w + 20) + "px" : "22px");
   if (!on && !feedReopenTab) {
     feedReopenTab = document.createElement("button");
     feedReopenTab.id = "feed-reopen";

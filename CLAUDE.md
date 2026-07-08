@@ -18,6 +18,35 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v6.6.7)
+
+**v6.6.7 (2026-07-08, owner screenshot follow-up):** 6 fixes. **Disputed border
+OUTLINES (not just markers):** the dashed disputed-boundary layer
+(`data/disputedBoundaries.js`, Natural Earth) still carried **19 Nagorno-
+Karabakh line segments** — removed (Artsakh is resolved). **Antarctica claim
+sectors** now render as disputed lines: 7 radial meridians from the pole to the
+coast (`ANTARCTIC_SECTOR_LONS = [-150,-90,-20,45,136,142,160]`) divide the NZ/
+unclaimed/Peninsula/Norway/Australia/France/Australia claims on both the globe
+(`_buildDisputed`) and the 2D map, matching the standard claims map. **Audio
+tracks finally show:** the picker is built from a hardcoded FALLBACK list before
+`/api/config` resolves, and that list lacked the v6.6.5 tracks — added
+`nocturne_calm`/`storm_front` to it (the config was already fixed in v6.6.6).
+**Leaders fully clickable:** the portrait AND a new **name chip** always open
+the leader profile (`.leader-open` + `data-leader`), regardless of whether the
+photo loaded; and the **analyst navigates to a leader** when you name one
+(`_leader_match` → `navigation:{type:"leader"}`, bypassing the confidence gate
+since a name match is deterministic; frontend `onNavigate` opens the profile).
+**Zelenskyy headshot:** a curated professional (non-military) portrait via
+Wikimedia `Special:FilePath` (`leaders_detail` `portrait_url`, preferred by the
+leader-profile route over any live wiki image). **Orb tracks the feed:** sits
+just left of the live-feed panel when open (`--orb-right: 380px`) and flush to
+the right edge when closed (`22px`), with a smooth CSS transition, driven by
+`setFeedVisible`. **Pan to Event:** every event row in the cluster/event pane
+has a **⌖ Pan to Event** button that flies the map to the event's coordinates.
+Verified: fresh boot clean, headless 0 non-network errors, picker lists both new
+tracks, orb 380↔22px, 2 clickable leader elements on a profile, analyst returns
+`{type:"leader","name":"Volodymyr Zelenskyy"}`, 0 Nagorno segments remain.
+
 ## Status (v6.6.6)
 
 **v6.6.6 (2026-07-08, owner "quick patch" — mostly correctness + the
