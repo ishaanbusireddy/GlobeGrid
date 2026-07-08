@@ -18,6 +18,48 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v7.4.2)
+
+**v7.4.2 (2026-07-08, owner bugfix + feature batch on top of v7.4.1):**
+- **Synthetic data no longer floods the live feed** (owner: "the live feed is
+  now filled with synthetic data … real data stopped coming in"). Root cause:
+  the feed / `map/events` / `un/feed` queries had NO `is_synthetic` filter, and
+  synthetic rows carry current timestamps, so newest-first sorting floated them
+  to the top and pushed real stories past the limit. All three now exclude
+  `COALESCE(is_synthetic,0)=0` (opt back in with `include_synthetic=1`).
+- **New clean audio "engine v2" for the 10 new tracks** — they buzzed (raw
+  sawtooth/square drones + powerChord/detune). Rebuilt on a `warm`
+  additive-sine drone (harmonic partials, no aliasing) + a click-free
+  `subPulse` sub-bass, all band-limited. The 16 **old nostalgic tracks are on
+  the untouched legacy path** (verified 0 contaminated). Offline render: peak
+  0.18, DC 0.00013, 0 clipped samples.
+- **Cluster-list rows all clickable** — a correlated event opens its story; a
+  standalone event flies the map to its location (was inert).
+- **Political party DOSSIERS** (`geopolitics/party_dossier.py`) — every party in
+  every seeded parliament seat-arc is a clickable chip → a full professional
+  dossier (ideology, economic/social position, EU stance, coalitions, electoral
+  record, leader, signature stances, geopolitical ramifications). Curated for the
+  major parties (US/UK/DE/FR/IT/ES/IN…) with a structured floor + AI-synthesis
+  merge for the rest; `GET /api/party-dossier?name=&country=` resolves by name.
+  Notes for later dynamic adaptation are in the module header.
+- **Old vs ongoing conflicts separated** — the classifier no longer tags NEW
+  stories into resolved/ended conflicts (`_conflict_party_entities` excludes
+  them). Added ~16 historical conflicts: FROZEN (Korea DMZ, Cyprus, Western
+  Sahara, Transnistria, Georgia-Russia, China-Taiwan, India-Pakistan retyped
+  frozen) + RESOLVED (WWII, Korean/Vietnam/Iran-Iraq/Falklands, Yugoslav Wars,
+  Sri Lanka, FARC, Syria 2011-24, Second Congo, Chechen Wars). Conflicts panel
+  now has **Ongoing / Frozen / Resolved / Insurgencies** tabs.
+- **War Mode reworked** — it NO LONGER filters the live feed. It CLOSES the feed
+  and shows the conflict-only analysis/events/stories panel, reopening the
+  untouched global feed on exit (removed `conflict_id`/`war_tab` from the feed
+  query + the snapshot dance). RESOLVED conflicts open a **read-only** analysis
+  pane (never War Mode); frozen + active/ceasefire enter War Mode.
+
+Verified: fresh boot clean (v7.4.2, 34 conflicts, 0 gdelt-typed), synthetic
+excluded from feed in-process, audio offline-render clean, party dossiers +
+recognition/autonomous/UN-feed endpoints return correct shapes, full syntax
+sweep clean.
+
 ## Status (v7.4.1)
 
 **v7.4.1 (2026-07-08, GDELT purge + a big owner fix/feature batch):** the

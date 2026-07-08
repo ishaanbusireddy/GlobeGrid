@@ -128,6 +128,13 @@ def _story_card(row) -> dict:
 
 def _stories_rows(q) -> list:
     conditions, args = ["1=1"], []
+    # v7.4.2 — the LIVE feed must NEVER show synthetic demo rows (owner: "the
+    # live feed is now filled with synthetic data … real data stopped coming
+    # in"). Synthetic stories carry current timestamps, so newest-first sorting
+    # floated them to the top and pushed real stories past the limit — the feed
+    # LOOKED all-synthetic. Exclude is_synthetic unless explicitly requested.
+    if q.get("include_synthetic") != "1":
+        conditions.append("COALESCE(s.is_synthetic, 0) = 0")
     # v7.4 — the LIVE feed only shows stories whose newest tracked event is
     # recent (owner: "Historical events and new stories from YEARS ago should
     # NOT appear in the live feed but instead somewhere else, like the

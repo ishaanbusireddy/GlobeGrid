@@ -265,14 +265,22 @@ def reclassify_untagged_conflicts(limit: int = 2000) -> int:
 
 def _conflict_party_entities() -> dict:
     """canonical-entity-id set per conflict, from registered parties (v3 §15).
-    NSAs carry a canonical id directly; countries resolve theirs by name."""
+    NSAs carry a canonical id directly; countries resolve theirs by name.
+
+    v7.4.2 — RESOLVED/old conflicts are EXCLUDED (owner: "dont tag new stories
+    into old conflicts, separate old conflicts from ongoing conflicts"). Only
+    ongoing (active/ceasefire) and frozen conflicts accept fresh coverage; a
+    resolved war (Gulf Wars, Afghanistan 2001-21, …) never absorbs a new story
+    off a shared belligerent name."""
     from .entities import resolve_entity
     out: dict = {}
     for row in query(
             "SELECT cp.conflict_id, cp.country_id, n.canonical_entity_id,"
             " c.name AS country_name FROM conflict_parties cp"
+            " JOIN conflicts cf ON cf.id = cp.conflict_id"
             " LEFT JOIN non_state_actors n ON n.id = cp.non_state_actor_id"
-            " LEFT JOIN countries c ON c.id = cp.country_id"):
+            " LEFT JOIN countries c ON c.id = cp.country_id"
+            " WHERE cf.status NOT IN ('resolved', 'ended')"):
         ents = out.setdefault(row["conflict_id"], set())
         if row["canonical_entity_id"]:
             ents.add(row["canonical_entity_id"])

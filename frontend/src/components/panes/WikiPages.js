@@ -147,8 +147,13 @@ function oneChamber(cham, fallbackLabel) {
   seats.sort((a, b) => a.t - b.t);   // left (t=0) → right (t=1): fill by column
   const dots = seats.map((s, idx) =>
     `<circle cx="${s.x.toFixed(1)}" cy="${s.y.toFixed(1)}" r="3.3" fill="${colors[idx] || "#888"}"><title>${esc(seatOwner(parties, idx))}</title></circle>`);
-  const legend = parties.map((p) =>
-    `<span class="seat-legend"><i style="background:${p.color}"></i>${esc(p.name)} <b>${p.seats}</b></span>`).join(" ");
+  // v7.4.2 — every party in the seat arc is a CLICKABLE chip that opens its
+  // full professional dossier (owner). Skip non-party buckets like Other/Vacant.
+  const _skip = /^(other|vacant|independent|independent\/other)/i;
+  const legend = parties.map((p) => {
+    const clickable = p.name && !_skip.test(p.name);
+    return `<span class="seat-legend${clickable ? " party-dossier-open" : ""}"${clickable ? ` data-party="${esc(p.name)}" role="button" tabindex="0"` : ""}><i style="background:${p.color}"></i>${esc(p.name)} <b>${p.seats}</b></span>`;
+  }).join(" ");
   const label = cham.chamber || fallbackLabel || "Legislature";
   return `<div class="parliament">
       <svg viewBox="0 0 ${W} ${H}" class="parliament-svg" preserveAspectRatio="xMidYMax meet">${dots.join("")}</svg>
@@ -371,6 +376,10 @@ export async function renderCountry(el, iso3, ctx) {
   // v7.4.1 — autonomous-region chips open the region page
   el.querySelectorAll(".az-open").forEach((b) =>
     b.addEventListener("click", () => ctx.openAutonomousZone && ctx.openAutonomousZone(b.dataset.id)));
+  // v7.4.2 — every parliament party is clickable → its full dossier
+  el.querySelectorAll(".party-dossier-open").forEach((b) =>
+    b.addEventListener("click", () => ctx.openPartyDossier
+      && ctx.openPartyDossier(b.dataset.party, p.id)));
   // v6.2 — if the featured leader has no photo yet, fetch it on demand from
   // Wikipedia (reliable lead image) and swap it in, so e.g. Xi Jinping shows
   // next to the China flag immediately instead of waiting on a weekly sync.
@@ -897,8 +906,8 @@ export function renderWarMode(el, data, ctx) {
         <div class="oob-body"><button class="oob-load">↻ generate order of battle</button></div>
       </section>
       <section><h4>Latest tracked coverage</h4>${storyChips(data.recent_stories)}</section>
-      <p class="cp-meta">The right-panel feed is restricted to this conflict —
-        use its Military / Civilian / Diplomatic / Economic tabs to sub-filter.</p>
+      <p class="cp-meta">This panel is the conflict's own analysis, events and
+        stories — the global live feed is left untouched (reopens on exit).</p>
     </div>`;
   // v6.1.1 — lazy-load the AI order of battle (kept off the fast war-mode entry)
   const oobBody = el.querySelector(".oob-body");
@@ -1247,6 +1256,63 @@ export async function renderAutonomousZone(el, zid, ctx) {
   const parentEl = el.querySelector(".az-parent");
   if (parentEl && ctx.openEntityByName) {
     parentEl.addEventListener("click", () => ctx.openEntityByName("country", parentEl.dataset.name));
+  }
+}
+
+// v7.4.2 — a full professional PARTY DOSSIER page, reachable from every
+// parliament seat-arc chip (owner: "a full professional dossier on EVERYTHING
+// about them"). Renders the curated dossier (ideology, economic/social position,
+// EU stance, coalitions, electoral history, leader, stances, geopolitics), then
+// merges the AI synthesis over it when a provider filled one in.
+export async function renderPartyDossier(el, name, iso, ctx) {
+  el.innerHTML = `<h1>${esc(name)}</h1><p class="cp-meta">loading dossier…</p>`;
+  const d = await api.partyDossier(name, iso).catch(() => null);
+  if (!d) { el.innerHTML = `<h1>${esc(name)}</h1><p>dossier unavailable</p>`; return; }
+  const dos = d.dossier || {};
+  const syn = d.synthesis || null;
+  const row = (label, val) => val
+    ? `<div class="stat-cell" style="grid-column:1/-1"><span class="stat-k">${esc(label)}</span><span class="stat-v">${esc(val)}</span></div>` : "";
+  const list = (label, arr) => (arr && arr.length)
+    ? `<section><h4>${esc(label)}</h4><ul class="deep-summary">${arr.map((s) => `<li>${esc(s)}</li>`).join("")}</ul></section>` : "";
+  const sect = (label, val) => val ? `<section><h4>${esc(label)}</h4><p>${esc(val)}</p></section>` : "";
+  let html = `<div class="wiki-header"><div class="wiki-flag">🏛</div>
+    <div class="wiki-head-meta"><h1>${esc(dos.full_name || name)}</h1>
+      <p class="cp-meta">${esc(dos.ideology || "Political party")}${dos.country ? " · " + esc(dos.country) : ""}</p></div></div>`;
+  if (!dos.curated && dos.note) {
+    html += `<p class="cp-meta">${esc(dos.note)}</p>`;
+  }
+  html += `<div class="stat-grid">
+      ${row("Ideology", dos.ideology)}
+      ${row("Economic position", dos.economic_position)}
+      ${row("Social position", dos.social_position)}
+      ${row("EU / integration stance", dos.eu_stance)}
+      ${row("Current leader", dos.leader)}
+      ${row("Coalitions", dos.coalitions)}
+      ${row("Electoral record", dos.electoral)}
+    </div>`;
+  html += list("Signature stances", dos.stances);
+  html += sect("Geopolitical ramifications", dos.geopolitical);
+  // AI synthesis (merged over the curated floor when present)
+  if (syn) {
+    html += sect("Summary", syn.summary);
+    html += list("History", syn.history);
+    html += list("Policy positions", syn.positions);
+    html += sect("Electoral standing", syn.electoral);
+  } else if (d.synth_pending) {
+    html += `<p class="cp-meta">Generating a deeper AI profile… reopen shortly.</p>`;
+  }
+  // officeholders from country_leadership belonging to this party
+  if (d.party && (d.party.id)) {
+    html += `<p class="cp-meta">Registered party · id ${esc(d.party.id)}</p>`;
+  }
+  if ((d.recent_stories || []).length) {
+    html += `<section><h4>Recent tracked coverage</h4>${storyChips(d.recent_stories)}</section>`;
+  }
+  el.innerHTML = html;
+  wireStoryChips(el, ctx);
+  // v7.4.2 — if the AI profile was pending, re-fetch once to upgrade in place
+  if (d.synth_pending) {
+    setTimeout(() => renderPartyDossier(el, name, iso, ctx), 6000);
   }
 }
 

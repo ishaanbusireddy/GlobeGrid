@@ -272,14 +272,106 @@ CONFLICTS = [
      [("country", "USA", "belligerent", "a"), ("country", "GBR", "belligerent", "a"),
       ("country", "AFG", "belligerent", "a"),
       ("non_state_actor", "Taliban", "belligerent", "b")]),
-    ("India–Pakistan Wars", "South Asia", "1947-10-22", "resolved",
-     "Broader conflict grouping the 1947, 1965, 1971 and 1999 (Kargil) wars and the "
-     "May 2025 four-day conflict (Operation Sindoor) between India and Pakistan.",
+    ("India–Pakistan Conflict (Kashmir)", "South Asia", "1947-10-22", "frozen",
+     "Frozen interstate rivalry over Kashmir: the 1947, 1965, 1971 and 1999 (Kargil) "
+     "wars and the May 2025 four-day conflict (Operation Sindoor). No settlement; the "
+     "Line of Control divides Kashmir and periodic flare-ups recur.",
      [("country", "IND", "belligerent", "a"), ("country", "PAK", "belligerent", "b")]),
     ("Armenia–Azerbaijan Conflict", "Caucasus", "1988-02-20", "resolved",
      "The First (1988–94) and Second (2020) Nagorno-Karabakh wars and the 2023 "
      "Azerbaijani offensive; Armenia now recognizes Azerbaijani control of Karabakh.",
      [("country", "ARM", "belligerent", "a"), ("country", "AZE", "belligerent", "b")]),
+
+    # ---- v7.4.2 — FROZEN conflicts (unresolved, no active large-scale fighting;
+    # CAN enter War Mode). Separated from resolved so old wars don't absorb new
+    # stories and so the conflicts panel can show them under their own tab. ----
+    ("Korean Conflict (DMZ)", "East Asia", "1953-07-27", "frozen",
+     "The Korean War ended in a 1953 armistice, not a peace treaty; the two Koreas "
+     "remain technically at war across the world's most militarized border.",
+     [("country", "PRK", "belligerent", "a"), ("country", "KOR", "belligerent", "b"),
+      ("country", "USA", "backer", "b")]),
+    ("Cyprus Dispute", "Eastern Mediterranean", "1974-07-20", "frozen",
+     "Since Türkiye's 1974 invasion the island has been divided between the Republic "
+     "of Cyprus and the Turkish-occupied north (TRNC), a frozen dispute under UN "
+     "buffer patrol.",
+     [("country", "CYP", "belligerent", "a"), ("country", "TUR", "belligerent", "b")]),
+    ("Western Sahara Conflict", "North Africa", "1975-11-06", "frozen",
+     "Morocco controls most of Western Sahara against the Polisario Front's SADR; a "
+     "1991 ceasefire broke down in 2020 into low-intensity skirmishing.",
+     [("country", "MAR", "belligerent", "a"),
+      ("non_state_actor", "Polisario Front", "belligerent", "b")]),
+    ("Transnistria Conflict", "Eastern Europe", "1992-03-02", "frozen",
+     "A breakaway Russian-backed statelet on Moldova's eastern strip, frozen since the "
+     "1992 ceasefire with Russian troops still stationed there.",
+     [("country", "MDA", "belligerent", "a"),
+      ("non_state_actor", "Transnistria (PMR)", "belligerent", "b"),
+      ("country", "RUS", "backer", "b")]),
+    ("Georgia–Russia (Abkhazia & S. Ossetia)", "Caucasus", "2008-08-07", "frozen",
+     "Russia recognizes and garrisons Abkhazia and South Ossetia after the 2008 war; "
+     "Georgia and most of the world consider them occupied — a frozen standoff.",
+     [("country", "GEO", "belligerent", "a"), ("country", "RUS", "belligerent", "b")]),
+    ("China–Taiwan Standoff", "East Asia", "1949-12-07", "frozen",
+     "Since 1949 the PRC claims Taiwan and has never renounced force; cross-strait "
+     "tension, incursions and deterrence make this the world's highest-stakes frozen "
+     "flashpoint.",
+     [("country", "CHN", "belligerent", "a"), ("country", "TWN", "belligerent", "b"),
+      ("country", "USA", "backer", "b")]),
+
+    # ---- v7.4.2 — RESOLVED / ended conflicts (historical; do NOT enter War Mode,
+    # do NOT absorb new stories). Drawn from the 1945→present archive. ----
+    ("World War II (1939–1945)", "Global", "1939-09-01", "resolved",
+     "The deadliest conflict in history; Allied victory over the Axis reshaped the "
+     "global order and created the UN.",
+     [("country", "USA", "belligerent", "a"), ("country", "GBR", "belligerent", "a"),
+      ("country", "RUS", "belligerent", "a"), ("country", "DEU", "belligerent", "b"),
+      ("country", "JPN", "belligerent", "b"), ("country", "ITA", "belligerent", "b")]),
+    ("Korean War (1950–1953)", "East Asia", "1950-06-25", "resolved",
+     "North Korea's invasion of the South drew in the US-led UN command and China; "
+     "ended in the 1953 armistice that froze the peninsula.",
+     [("country", "PRK", "belligerent", "a"), ("country", "CHN", "belligerent", "a"),
+      ("country", "KOR", "belligerent", "b"), ("country", "USA", "belligerent", "b")]),
+    ("Vietnam War (1955–1975)", "Southeast Asia", "1955-11-01", "resolved",
+     "The long war between communist North Vietnam and the US-backed South ended with "
+     "Saigon's fall and Vietnamese reunification.",
+     [("country", "USA", "belligerent", "a"), ("country", "VNM", "belligerent", "b")]),
+    ("Iran–Iraq War (1980–1988)", "Middle East", "1980-09-22", "resolved",
+     "An eight-year war of attrition between Saddam Hussein's Iraq and revolutionary "
+     "Iran; roughly a million dead, borders unchanged.",
+     [("country", "IRQ", "belligerent", "a"), ("country", "IRN", "belligerent", "b")]),
+    ("Falklands War (1982)", "South Atlantic", "1982-04-02", "resolved",
+     "Argentina invaded the British Falkland Islands; the UK retook them in a "
+     "ten-week campaign. Sovereignty remains disputed.",
+     [("country", "ARG", "belligerent", "a"), ("country", "GBR", "belligerent", "b")]),
+    ("Yugoslav Wars (1991–2001)", "Balkans", "1991-06-25", "resolved",
+     "The violent breakup of Yugoslavia — Croatia, Bosnia, Kosovo — with ethnic "
+     "cleansing and NATO intervention.",
+     [("country", "SRB", "belligerent", "a"), ("country", "HRV", "belligerent", "b"),
+      ("country", "BIH", "belligerent", "b")]),
+    ("Sri Lankan Civil War (1983–2009)", "South Asia", "1983-07-23", "resolved",
+     "A 26-year war between the government and the separatist Tamil Tigers (LTTE), "
+     "ended by a decisive 2009 military victory.",
+     [("country", "LKA", "belligerent", "a"),
+      ("non_state_actor", "LTTE (Tamil Tigers)", "belligerent", "b")]),
+    ("Colombian Conflict / FARC (1964–2016)", "South America", "1964-05-27", "resolved",
+     "A half-century insurgency largely ended by the 2016 FARC peace accord (the ELN "
+     "insurgency continues separately).",
+     [("country", "COL", "belligerent", "a"),
+      ("non_state_actor", "FARC", "belligerent", "b")]),
+    ("Syrian Civil War (2011–2024)", "Middle East", "2011-03-15", "resolved",
+     "The war that grew from the 2011 uprising ended in December 2024 when an HTS-led "
+     "offensive toppled Bashar al-Assad; a transitional order followed.",
+     [("country", "SYR", "belligerent", "a"),
+      ("non_state_actor", "Syrian opposition (HTS-led)", "belligerent", "b")]),
+    ("Second Congo War (1998–2003)", "Central Africa", "1998-08-02", "resolved",
+     "Africa's deadliest modern war drew in nine countries and left millions dead, "
+     "mostly from disease and famine; formally ended in 2003.",
+     [("country", "COD", "belligerent", "a"), ("country", "RWA", "belligerent", "b"),
+      ("country", "UGA", "belligerent", "b")]),
+    ("Chechen Wars (1994–2009)", "Caucasus", "1994-12-11", "resolved",
+     "Two wars between Russia and Chechen separatists ended with Moscow reasserting "
+     "control under a loyalist Chechen government.",
+     [("country", "RUS", "belligerent", "a"),
+      ("non_state_actor", "Chechen separatists", "belligerent", "b")]),
     # ---- v6.6.5 — INSURGENCIES (active/frozen low-intensity or separatist
     # struggles that haven't become full-scale interstate wars). Flagged as
     # insurgencies by INSURGENCY_NAMES below; shown in their own tab. ----

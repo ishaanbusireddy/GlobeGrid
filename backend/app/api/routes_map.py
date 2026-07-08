@@ -12,6 +12,10 @@ from .router import route
 def map_events(params, q, body):
     limit = min(int(q.get("limit", 500)), 2000)
     conditions, args = ["e.location_lat IS NOT NULL"], []
+    # v7.4.2 — the globe never shows synthetic demo events (owner: "filled with
+    # synthetic data"); pass include_synthetic=1 to opt back in for the demo.
+    if q.get("include_synthetic") != "1":
+        conditions.append("COALESCE(e.is_synthetic, 0) = 0")
     if q.get("since"):
         conditions.append("e.occurred_at > ?")
         args.append(q["since"])

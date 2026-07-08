@@ -434,6 +434,10 @@ const ctx = {
     const c = BOUNDARIES_50M.find((b) => b.n && b.n.toLowerCase() === (name || "").toLowerCase());
     if (c && c.i) openEntity(type, c.i);
   },
+  openPartyDossier: (name, iso) => pane.push({           // v7.4.2 party dossier by name
+    key: `party-dossier:${name}`, title: name.slice(0, 40),
+    render: (el) => Wiki.renderPartyDossier(el, name, iso, ctx),
+  }),
   openCountryStat: (iso3, metric, name) => pane.push({   // v6.6.5 stat detail
     key: `stat:${iso3}:${metric}`, title: metric,
     render: (el) => Wiki.renderCountryStat(el, iso3, metric, name, ctx),
@@ -556,11 +560,19 @@ function openClusterList(cluster) {
             state.renderer?.flyTo?.(ev.lat, ev.lon, state.tier === 1 ? 2.0 : undefined, 900);
           });
         } else { panBtn.remove(); }
+        // v7.4.2 — EVERY row is clickable (owner: "why from cluster lists are
+        // some stories not clickable but listed?"). A correlated event opens its
+        // story; a not-yet-correlated event flies the map to it (and says so).
+        row.style.cursor = "pointer";
         if (ev.story_id) {
-          row.style.cursor = "pointer";
           row.addEventListener("click", () => openStory(ev.story_id));
         } else {
-          row.querySelector("p").textContent += " · not yet correlated into a story";
+          row.querySelector("p").textContent += " · standalone event — click to locate";
+          row.addEventListener("click", () => {
+            if (ev.lat != null && ev.lon != null) {
+              state.renderer?.flyTo?.(ev.lat, ev.lon, state.tier === 1 ? 2.0 : undefined, 900);
+            }
+          });
         }
         list.appendChild(row);
       }
@@ -965,14 +977,16 @@ function updateExportLink() {
 // ---------- data loading ----------
 
 async function refreshStories() {
+  // v7.4.2 — War Mode no longer filters the live feed (owner: "war mode
+  // SHOULDN'T filter the live feed itself at all"). The live feed is always the
+  // full global feed; a conflict's own stories/events/analysis live in the
+  // dedicated War Mode panel instead. So conflict_id / war_tab are gone here.
   const data = await api.stories({ limit: 60, category: state.category || undefined,
                                    as_of: state.asOf || undefined,
                                    watchlist: state.watchlistOnly ? "1" : undefined,
-                                   conflict_id: state.conflictId || undefined,
                                    min_relevance: relevanceFloor() ?? undefined,
                                    region: state.region || undefined,
                                    sort: state.feedSort || undefined,          // v5 §1
-                                   war_tab: state.warMode ? (state.warTab || undefined) : undefined, // v6 §8
                                    development_type: state.devType || undefined });
   // v7 — feed renders in English (translation scrapped; owner will
   // architect a replacement).
@@ -2067,18 +2081,33 @@ els.conflictsBtn.addEventListener("click", () => {
       // intensity / separatist struggles that haven't become full-scale wars)
       el.innerHTML = `<h1>Conflicts</h1>
         <div class="conflict-tabs" style="margin-bottom:10px">
-          <button class="conflict-tab cdir-tab active" data-k="wars">⚔ Conflicts</button>
+          <button class="conflict-tab cdir-tab active" data-k="ongoing">⚔ Ongoing</button>
+          <button class="conflict-tab cdir-tab" data-k="frozen">❄ Frozen</button>
+          <button class="conflict-tab cdir-tab" data-k="resolved">🏳 Resolved</button>
           <button class="conflict-tab cdir-tab" data-k="insurgencies">🔥 Insurgencies</button>
         </div>
-        <p class="cp-meta cdir-note">Selecting one enters War Mode: a dedicated
-          layout framed on the zone, sides in consistent colors, and a
-          conflict-only feed (v6 §8).</p>
+        <p class="cp-meta cdir-note"></p>
         <div class="conflict-dir"></div>`;
+      const NOTE = {
+        ongoing: "Active and ceasefire wars. Opening one enters War Mode — a dedicated conflict panel; the live feed stays untouched.",
+        frozen: "Unresolved standoffs with no active large-scale fighting. These CAN enter War Mode.",
+        resolved: "Historical, ended conflicts. Opening one shows a read-only analysis — it does NOT enter War Mode.",
+        insurgencies: "Low-intensity / separatist struggles. Opening one enters War Mode.",
+      };
+      const noteEl = el.querySelector(".cdir-note");
       const list = el.querySelector(".conflict-dir");
+      const ONGOING = new Set(["active", "ceasefire"]);
       const renderCat = (kind) => {
         list.innerHTML = "";
-        const items = state.conflicts.filter((c) =>
-          kind === "insurgencies" ? c.is_insurgency : !c.is_insurgency);
+        noteEl.textContent = NOTE[kind] || "";
+        const items = state.conflicts.filter((c) => {
+          if (c.is_insurgency) return kind === "insurgencies";
+          const st = (c.status || "").toLowerCase();
+          if (kind === "insurgencies") return false;
+          if (kind === "frozen") return st === "frozen";
+          if (kind === "resolved") return st === "resolved" || st === "ended";
+          return ONGOING.has(st) || (!st);   // ongoing (default bucket)
+        });
         for (const c of items) {
           const sides = { a: [], b: [], none: [] };
           for (const pt of (c.parties || [])) {
@@ -2142,7 +2171,7 @@ els.conflictsBtn.addEventListener("click", () => {
           el.querySelectorAll(".cdir-tab").forEach((x) => x.classList.toggle("active", x === t));
           renderCat(t.dataset.k);
         }));
-      renderCat("wars");
+      renderCat("ongoing");
     },
   });
 });
@@ -2217,12 +2246,25 @@ const conflictBriefing = {
   stop() { this.speaking = false; try { window.speechSynthesis.cancel(); } catch {} },
 };
 
+// v7.4.2 — a read-only historical analysis pane for RESOLVED/ENDED conflicts.
+// Viewing an old war must NOT trigger War Mode (owner: "old conflicts viewing
+// should NOT trigger war mode … frozen can trigger war mode"). Same rich
+// conflict panel (overview, sides, order of battle, coverage) minus the live
+// war layout, map recoloring, feed changes and edge glow.
+async function openResolvedConflict(conflictId, data) {
+  pane.push({
+    key: `conflict-view:${conflictId}`, title: "conflict (historical)",
+    actions: [
+      { icon: "🎙", title: "Situation Room — four AI analysts", onClick: () =>
+          pane.push({ key: `sitroom:${conflictId}`, title: "situation room",
+            render: (el) => renderSituationRoom(el, conflictId, ctx) }) },
+      { icon: "🎧", title: "Audio briefing", onClick: () => conflictBriefing.toggle(data) },
+    ],
+    render: (el) => Wiki.renderWarMode(el, data, ctx),
+  });
+}
+
 async function enterWarMode(conflictId) {
-  // v6.6 — snapshot the accumulated general feed so exiting war mode
-  // restores it instantly instead of erasing what was collected.
-  // v6.6.2 — fixed: snapshot the real story objects (feed.currentIds never
-  // existed, so this used to be a no-op silently masked by the exit re-fetch).
-  if (!state.warMode) state.preWarStories = feed.snapshot();
   if ((state.clientConfig.war_mode || {}).enabled === false) {
     selectConflict(conflictId, { forceOn: true });
     return;
@@ -2230,6 +2272,16 @@ async function enterWarMode(conflictId) {
   let data;
   try { data = await api.warMode(conflictId); }
   catch { selectConflict(conflictId, { forceOn: true }); return; }
+  // v7.4.2 — resolved/ended conflicts open READ-ONLY (no War Mode). Frozen and
+  // active/ceasefire conflicts DO enter War Mode.
+  const status = ((data.conflict || {}).status || "").toLowerCase();
+  if (status === "resolved" || status === "ended") {
+    openResolvedConflict(conflictId, data);
+    return;
+  }
+  // v7.4.2 — War Mode CLOSES the live feed and shows a conflict-only panel
+  // instead of filtering the feed. Nothing to snapshot/restore anymore.
+  setFeedVisible(false);
   state.warMode = data;
   state.warTab = "";
   state.conflictId = conflictId;
@@ -2286,17 +2338,11 @@ async function enterWarMode(conflictId) {
   });
 
   document.body.classList.add("war-active");   // v6.6.6 — themed edge glow
-  renderConflictTabs();   // shows the war sub-filter row
-  refreshStories().catch(() => {});
 }
 
 function exitWarMode() {
   conflictBriefing.stop();   // v7.3 — silence any running conflict briefing
   document.body.classList.remove("war-active");   // v6.6.6 — clear edge glow
-  // v6.6.2 — restore the exact pre-war feed snapshot (full story objects)
-  if (state.preWarStories && state.preWarStories.length) {
-    feed.setStories(state.preWarStories);
-  }
   if (!state.warMode) return;
   state.warMode = null;
   state.warTab = "";
@@ -2304,7 +2350,9 @@ function exitWarMode() {
   setFocus(null);
   state.renderer?.setColoredRings?.([]);
   state.renderer?.setActorZones?.(state.actorsOn ? state.actorZones : []);
-  renderConflictTabs();
+  // v7.4.2 — War Mode closed the live feed on entry; reopen it and refresh the
+  // full global feed (it was never filtered, so there's no snapshot to restore).
+  setFeedVisible(true);
   refreshStories().catch(() => {});
 }
 window.__gg.exitWarMode = exitWarMode;

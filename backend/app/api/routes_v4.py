@@ -74,7 +74,35 @@ def party_detail(params, q, body):
     d["background"] = _background("party", row["id"])
     d["recent_stories"] = _stories_mentioning(row["name"].split(" (")[0])
     d["synthesis"], d["synth_pending"] = _party_synthesis(row)   # v6.6.5/6.6.6
+    # v7.4.2 — curated professional dossier floor (AI synthesis merges over it)
+    from ..geopolitics.party_dossier import dossier_for
+    d["dossier"] = dossier_for(row["name"], row.get("country_id"))
     return 200, d
+
+
+@route("GET", "/api/party-dossier")
+def party_dossier(params, q, body):
+    """v7.4.2 — a party dossier BY NAME, so every party shown in a parliament
+    seat-arc (which may not have a political_parties row) is still clickable and
+    opens a full professional profile. Returns the curated dossier (or a floor)
+    plus any registered political_parties row and its AI synthesis."""
+    name = (q.get("name") or "").strip()
+    if not name:
+        return 400, {"error": "name required"}
+    country = q.get("country")
+    from ..geopolitics.party_dossier import dossier_for
+    out = {"name": name, "dossier": dossier_for(name, country)}
+    # attach a registered party row + its AI synthesis if we happen to have one
+    row = query_one(
+        "SELECT p.*, c.name AS country_name FROM political_parties p"
+        " LEFT JOIN countries c ON c.id = p.country_id"
+        " WHERE lower(p.name) = lower(?) LIMIT 1", (name,))
+    if row:
+        out["party"] = dict(row)
+        out["synthesis"], out["synth_pending"] = _party_synthesis(row)
+    else:
+        out["recent_stories"] = _stories_mentioning(name.split(" (")[0])
+    return 200, out
 
 
 PARTY_PROFILE_PROMPT = """You are a political analyst. From the CONTEXT (a political

@@ -1117,16 +1117,17 @@ def un_feed(params, q, body):
             " FROM events e JOIN raw_items r ON r.id = e.raw_item_id"
             " JOIN story_members m ON m.event_id = e.id"
             " JOIN stories st ON st.id = m.story_id"
-            f" WHERE r.source_id IN ({marks})"
+            f" WHERE r.source_id IN ({marks}) AND COALESCE(st.is_synthetic,0) = 0"
             " GROUP BY st.id ORDER BY last_occurred DESC LIMIT 40", src_ids)
         for r in rows:
             stories[r["id"]] = dict(r)
-    # plus keyword matches across all stories
+    # plus keyword matches across all stories (never synthetic)
     kw = " OR ".join(["lower(headline) LIKE ?"] * len(like)
                      + ["lower(summary) LIKE ?"] * len(like))
     krows = query(
         "SELECT id, headline, summary, first_seen_at FROM stories"
-        f" WHERE {kw} ORDER BY first_seen_at DESC LIMIT 40", like + like)
+        f" WHERE ({kw}) AND COALESCE(is_synthetic,0) = 0"
+        " ORDER BY first_seen_at DESC LIMIT 40", like + like)
     for r in krows:
         stories.setdefault(r["id"], dict(r))
     out = sorted(stories.values(),

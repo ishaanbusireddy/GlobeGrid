@@ -100,43 +100,53 @@ export const PRESETS = {
     detune: 7, melodic: "triangle", tempo: 1.7, kick: true, kickEvery: 2,
     kickHard: true, noise: 0.004, powerChord: true, timpaniOnSeverity: true,
     sidechain: true, reverb: 0.24, cutoff: 2400, softDrone: true },
-  // v7.4.1 — TEN new diverse tracks (owner: "add 10 more music tracks that are
-  // very diverse"). All built from the existing clean primitives at droneOct
-  // -12 (buzz-free band) with softDrone, so none reintroduce the sub-rumble hum.
-  oceanic_deep: { label: "oceanic deep", drone: "sine", droneOct: -12, drone2: "sine",
-    melodic: "sine", tempo: 0.28, kick: false, noise: 0.0018, glacial: true,
-    sustained: true, sweep: true, reverb: 0.72, cutoff: 1100, softDrone: true },
-  desert_mirage: { label: "desert mirage", drone: "sawtooth", droneOct: -12,
-    drone2: "sawtooth", melodic: "sawtooth", melodicHigh: 12, tempo: 0.66,
-    kick: false, noise: 0.006, sustained: true, drift: true, reverb: 0.5,
-    cutoff: 2000, softDrone: true },
-  neon_night: { label: "neon night (synthwave)", drone: "sawtooth", droneOct: -12,
-    melodic: "triangle", tempo: 1.1, kick: true, kickEvery: 4, noise: 0,
-    arp: true, chorus: true, sidechain: true, reverb: 0.4, cutoff: 2200,
+  // v7.4.2 — TEN new tracks REBUILT on the clean "engine v2" voice (owner: "most
+  // of the new music tracks have an extremely annoying buzzing sound … redo them
+  // all with a new sound engine"). Every one uses `warm` (additive-sine drone —
+  // no raw saw/square, no powerChord/detune) + `softDrone` band-limiting, and
+  // rhythm comes from the click-free `subPulse`, never the hard kick. Character
+  // comes from partial spectra + clean flags (glacial/sustained/sweep/drift/
+  // chime/bell/shimmer/arp), so they stay DIVERSE but buzz-free. The old
+  // nostalgic tracks above are on the legacy path and are untouched.
+  oceanic_deep: { label: "oceanic deep", warm: true, drone: "sine", droneOct: -12,
+    partials: [[1, 1.0], [2, 0.22], [3, 0.08]], melodic: "sine", tempo: 0.26,
+    noise: 0.0016, glacial: true, sustained: true, sweep: true, reverb: 0.74,
+    cutoff: 1000, softDrone: true },
+  desert_mirage: { label: "desert mirage", warm: true, drone: "sine", droneOct: -12,
+    partials: [[1, 1.0], [3, 0.30], [5, 0.14], [7, 0.06]], melodic: "sine",
+    tempo: 0.6, drift: true, sustained: true, chime: true, reverb: 0.56,
+    cutoff: 2200, softDrone: true },
+  neon_night: { label: "neon night", warm: true, drone: "sine", droneOct: -12,
+    partials: [[1, 1.0], [2, 0.40], [3, 0.20], [4, 0.10]], melodic: "triangle",
+    tempo: 1.0, arp: true, chime: true, subPulse: true, subPulseRate: 1.0,
+    reverb: 0.44, cutoff: 2600, softDrone: true },
+  monastery: { label: "monastery (choral)", warm: true, drone: "sine", droneOct: -12,
+    partials: [[1, 1.0], [2, 0.5], [3, 0.28], [4, 0.16], [5, 0.08]], melodic: "sine",
+    tempo: 0.36, sustained: true, shimmer: true, reverb: 0.8, cutoff: 1900,
     softDrone: true },
-  monastery: { label: "monastery (choral)", drone: "sawtooth", droneOct: -12,
-    orchestral: true, melodic: "sine", tempo: 0.4, kick: false, noise: 0.002,
-    sustained: true, reverb: 0.75, cutoff: 1700, softDrone: true },
-  signal_static: { label: "signal & static", drone: "sine", droneOct: -12,
-    melodic: "sine", tempo: 0.46, kick: false, noise: 0.03, shortwave: true,
-    sparseMelody: true, reverb: 0.38, cutoff: 3000, softDrone: true },
-  pulse_grid: { label: "pulse grid (techno)", drone: "sawtooth", droneOct: -12,
-    melodic: "square", tempo: 1.55, kick: true, kickEvery: 2, noise: 0,
-    arp: true, sidechain: true, reverb: 0.2, cutoff: 2600, softDrone: true },
-  stargaze: { label: "stargaze", drone: "triangle", droneOct: -12, melodic: "triangle",
-    tempo: 0.4, kick: false, noise: 0.0012, drift: true, chime: true, bell: true,
-    shimmer: true, reverb: 0.68, cutoff: 3600, softDrone: true },
-  iron_march: { label: "iron march (martial)", drone: "sawtooth", droneOct: -12,
-    orchestral: true, melodic: "sawtooth", tempo: 0.62, kick: true, kickEvery: 4,
-    kickHard: true, noise: 0.003, powerChord: true, timpaniOnSeverity: true,
-    reverb: 0.4, cutoff: 1900, softDrone: true },
-  zen_garden: { label: "zen garden", drone: "sine", droneOct: -12, melodic: "sine",
-    tempo: 0.3, kick: false, noise: 0, chime: true, bell: true, glacial: true,
-    sparseMelody: true, reverb: 0.7, cutoff: 4200, softDrone: true },
-  thunderhead: { label: "thunderhead (heavy)", drone: "triangle", droneOct: -12,
-    detune: 9, melodic: "triangle", tempo: 1.85, kick: true, kickEvery: 2,
-    kickHard: true, noise: 0.005, powerChord: true, timpaniOnSeverity: true,
-    sidechain: true, reverb: 0.26, cutoff: 2500, softDrone: true },
+  signal_static: { label: "signal & static", warm: true, drone: "sine", droneOct: -12,
+    partials: [[1, 1.0], [2, 0.18]], melodic: "sine", tempo: 0.46, noise: 0.02,
+    shortwave: true, sparseMelody: true, reverb: 0.4, cutoff: 2800, softDrone: true },
+  pulse_grid: { label: "pulse grid", warm: true, drone: "sine", droneOct: -12,
+    partials: [[1, 1.0], [2, 0.34], [3, 0.16]], melodic: "sine", tempo: 1.35,
+    arp: true, subPulse: true, subPulseRate: 1.4, reverb: 0.26, cutoff: 2800,
+    softDrone: true },
+  stargaze: { label: "stargaze", warm: true, drone: "sine", droneOct: -12,
+    partials: [[1, 1.0], [2, 0.2], [4, 0.08]], melodic: "triangle", tempo: 0.4,
+    drift: true, chime: true, bell: true, shimmer: true, reverb: 0.7, cutoff: 3600,
+    softDrone: true },
+  iron_march: { label: "iron march", warm: true, drone: "sine", droneOct: -12,
+    partials: [[1, 1.0], [2, 0.45], [3, 0.24], [4, 0.12]], melodic: "sine",
+    tempo: 0.62, sustained: true, subPulse: true, subPulseRate: 0.7,
+    timpaniOnSeverity: true, reverb: 0.46, cutoff: 1700, softDrone: true },
+  zen_garden: { label: "zen garden", warm: true, drone: "sine", droneOct: -12,
+    partials: [[1, 1.0], [3, 0.18]], melodic: "sine", tempo: 0.3, chime: true,
+    bell: true, glacial: true, sparseMelody: true, reverb: 0.72, cutoff: 4200,
+    softDrone: true },
+  thunderhead: { label: "thunderhead (heavy)", warm: true, drone: "sine", droneOct: -12,
+    partials: [[1, 1.0], [2, 0.5], [3, 0.3], [4, 0.18], [5, 0.1]], melodic: "sine",
+    tempo: 0.9, sustained: true, drift: true, subPulse: true, subPulseRate: 0.9,
+    timpaniOnSeverity: true, reverb: 0.5, cutoff: 1500, softDrone: true },
 };
 
 const midiHz = (m) => 440 * Math.pow(2, (m - 69) / 12);
@@ -345,6 +355,31 @@ export class SoundEngine {
     const voiceCount = 1 + (p.detune ? 1 : 0) + (p.chorus ? 2 : 0) + (p.drone2 ? 1 : 0);
     const perVoiceGain = 0.55 / voiceCount;
     const mkDrone = (detuneCents) => {
+      // v7.4.2 — CLEAN additive-sine drone for the "engine v2" tracks
+      // (owner: "most of the new tracks have an annoying buzzing sound … redo
+      // them with a new sound engine … without affecting the old tracks").
+      // The buzz was raw sawtooth/square drones (+ powerChord/detune) aliasing
+      // even through the body filter. `warm` builds the drone from a few
+      // harmonically-related SINE partials at decreasing gain — rich body, zero
+      // buzz. Old presets never set `warm`, so their voicing is untouched.
+      if (p.warm) {
+        const fund = midiHz(this._scale().root + (p.droneOct || -12));
+        const partials = p.partials || [[1, 1.0], [2, 0.30], [3, 0.12], [4, 0.05]];
+        let first = null;
+        for (const [mult, amp] of partials) {
+          const o = this.ctx.createOscillator();
+          o.type = "sine";
+          o.frequency.value = fund * mult;
+          o.detune.value = detuneCents;
+          const g = this.ctx.createGain();
+          g.gain.value = perVoiceGain * amp;
+          o.connect(g).connect(droneDest);
+          o.start(t);
+          bed.nodes.push(o, g);
+          first = first || o;
+        }
+        return first;
+      }
       const osc = this.ctx.createOscillator();
       osc.type = p.drone;
       osc.frequency.value = midiHz(this._scale().root + (p.droneOct || -24));
@@ -427,6 +462,32 @@ export class SoundEngine {
       osc.connect(g).connect(this.master);
       osc.start(t);
       bed.nodes.push(osc, g);
+    }
+    // v7.4.2 — subPulse: a gentle SINE sub that swells and fades at the tempo,
+    // giving the new rhythmic tracks a pulse WITHOUT the click/thud of the hard
+    // kick. Amplitude is shaped by a smooth (sine) LFO that never reaches zero,
+    // so there is no edge click. Clean by construction; old tracks don't use it.
+    if (p.subPulse) {
+      const sub = this.ctx.createOscillator();
+      sub.type = "sine";
+      sub.frequency.value = midiHz(this._scale().root + (p.droneOct || -12) - 12);
+      const subG = this.ctx.createGain();
+      subG.gain.value = 0.0;
+      // a lowpass keeps it strictly sub — no harmonics to buzz
+      const lp = this.ctx.createBiquadFilter();
+      lp.type = "lowpass"; lp.frequency.value = 140; lp.Q.value = 0.4;
+      sub.connect(subG).connect(lp).connect(this.master);
+      const rate = (p.tempo || 1) * (p.subPulseRate || 1.2);   // pulses/sec-ish
+      const lfo = this.ctx.createOscillator();
+      lfo.type = "sine"; lfo.frequency.value = rate;
+      const lfoG = this.ctx.createGain();
+      lfoG.gain.value = 0.11;                  // depth
+      const bias = this.ctx.createConstantSource();
+      bias.offset.value = 0.12;                // floor so it never clicks to 0
+      lfo.connect(lfoG).connect(subG.gain);
+      bias.connect(subG.gain);
+      sub.start(t); lfo.start(t); bias.start(t);
+      bed.nodes.push(sub, subG, lp, lfo, lfoG, bias);
     }
     // noise bed (shortwave static / industrial hiss / arctic air)
     if (p.noise) {

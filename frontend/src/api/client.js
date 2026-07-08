@@ -180,6 +180,7 @@ export const api = {
   recognition: (subject) => get(`/api/recognition/${encodeURIComponent(subject)}`),
   autonomousZones: () => get("/api/autonomous-zones"),                   // v7.4.1 autonomous regions
   autonomousZone: (zid) => get(`/api/autonomous-zones/${encodeURIComponent(zid)}`),
+  partyDossier: (name, country) => get(`/api/party-dossier?name=${encodeURIComponent(name)}${country ? "&country=" + encodeURIComponent(country) : ""}`),  // v7.4.2
   leaderProfile: (name) =>                                              // v6.6 / v6.6.6 non-blocking
     get(`/api/leader-profile?name=${encodeURIComponent(name)}`, { timeout: 20000 }),
   leaderPortrait: (name) =>                                             // v6.2
