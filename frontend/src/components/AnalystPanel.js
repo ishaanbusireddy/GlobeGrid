@@ -13,9 +13,11 @@ const ORB_BRIGHT_INSTABILITY = 60;
 
 export class AnalystPanel {
   constructor({ onOpenStory, onNavigate, getFocusedEntity, getScreen,
-                onOpenThread, autoNavDefault = true }) {
+                onOpenThread, onOpenSound, onCloseSound, autoNavDefault = true }) {
     this.onOpenStory = onOpenStory;
     this.onNavigate = onNavigate;
+    this.onOpenSound = onOpenSound || (() => {});     // v6.6.4 open/close cues
+    this.onCloseSound = onCloseSound || (() => {});
     this.getFocusedEntity = getFocusedEntity || (() => null);
     this.getScreen = getScreen || (() => null);       // v6 §29 screen-aware
     this.onOpenThread = onOpenThread || (() => {});
@@ -74,13 +76,29 @@ export class AnalystPanel {
     this.panel.classList.contains("hidden") ? this.show() : this.hide();
   }
 
+  // v6.6.4 — fluid open: the orb bursts (energy blast) and the panel forms
+  // out of it; a distinct open sound plays. Reverse on close.
   show() {
     this.panel.classList.remove("hidden");
+    this.orb.classList.add("orb-burst");
+    this.panel.classList.remove("ap-closing");
+    this.panel.classList.add("ap-opening");
+    setTimeout(() => { this.orb.classList.remove("orb-burst");
+                       this.panel.classList.remove("ap-opening"); }, 480);
+    if (this.onOpenSound) this.onOpenSound();
     this.input.focus();
     this.messagesEl.scrollTop = this.messagesEl.scrollHeight;
   }
 
-  hide() { this.panel.classList.add("hidden"); }
+  hide() {
+    // play the reverse: panel disperses back into the reforming orb
+    this.panel.classList.add("ap-closing");
+    this.orb.classList.add("orb-reform");
+    if (this.onCloseSound) this.onCloseSound();
+    setTimeout(() => { this.panel.classList.add("hidden");
+                       this.panel.classList.remove("ap-closing");
+                       this.orb.classList.remove("orb-reform"); }, 380);
+  }
 
   async _loadHistory() {
     try {

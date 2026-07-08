@@ -89,6 +89,17 @@ export const PRESETS = {
   aurora_drift: { label: "aurora drift (experimental)", drone: "triangle", droneOct: -12,
     melodic: "triangle", tempo: 0.44, kick: false, noise: 0.001, drift: true,
     chime: true, shimmer: true, reverb: 0.66, cutoff: 3400, softDrone: true },
+  // v6.6.5 — two owner-requested new tracks (one calm, one aggressive), both
+  // built from the SAME clean primitives at droneOct -12 (buzz-free band) so
+  // neither reintroduces the sub-rumble hum.
+  nocturne_calm: { label: "nocturne (calm)", drone: "sine", droneOct: -12,
+    drone2: "sine", melodic: "sine", tempo: 0.36, kick: false, noise: 0.001,
+    glacial: true, sustained: true, chime: true, sparseMelody: true,
+    reverb: 0.64, cutoff: 1900, softDrone: true },
+  storm_front: { label: "storm front (aggressive)", drone: "triangle", droneOct: -12,
+    detune: 7, melodic: "triangle", tempo: 1.7, kick: true, kickEvery: 2,
+    kickHard: true, noise: 0.004, powerChord: true, timpaniOnSeverity: true,
+    sidechain: true, reverb: 0.24, cutoff: 2400, softDrone: true },
 };
 
 const midiHz = (m) => 440 * Math.pow(2, (m - 69) / 12);
@@ -632,6 +643,42 @@ export class SoundEngine {
   }
 
   noteSeverity(sev) { this.lastSeverity = Math.max(this.lastSeverity, sev || 1); }
+
+  // v6.6.4 — distinct analyst open/close cues. These play even when the music
+  // engine is off (they lazily create/resume the context), because they're UI
+  // feedback, not the ambient bed. Open = a bright rising shimmer (energy
+  // forming); close = a soft descending settle (energy dispersing).
+  _ensureCtx() {
+    if (!this.ctx) {
+      try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch { return null; }
+      if (!this.master) { this.master = this.ctx.createGain();
+        this.master.gain.value = this.volume ?? 0.4; this.master.connect(this.ctx.destination); }
+    }
+    if (this.ctx.state === "suspended") this.ctx.resume().catch(() => {});
+    return this.ctx;
+  }
+  _uiTone(freq, t, dur, gain, type, opts) {
+    this._note(freq, t, dur, gain, type, 0, opts);
+  }
+  analystOpen() {
+    const ctx = this._ensureCtx(); if (!ctx) return;
+    const t = ctx.currentTime;
+    const chime = { attack: 0.01, decay: 0.1, sustain: 0.4, release: 0.35, cutoff: 3200, resonance: 0.7 };
+    // rising perfect-fourth+octave shimmer
+    this._uiTone(523, t, 0.28, 0.05, "triangle", chime);
+    this._uiTone(698, t + 0.06, 0.30, 0.045, "sine", chime);
+    this._uiTone(1046, t + 0.13, 0.34, 0.04, "sine", chime);
+  }
+  analystClose() {
+    const ctx = this._ensureCtx(); if (!ctx) return;
+    const t = ctx.currentTime;
+    const soft = { attack: 0.008, decay: 0.14, sustain: 0.3, release: 0.4, cutoff: 1800, resonance: 0.5 };
+    // descending settle
+    this._uiTone(784, t, 0.26, 0.045, "sine", soft);
+    this._uiTone(523, t + 0.07, 0.30, 0.04, "triangle", soft);
+    this._uiTone(392, t + 0.14, 0.36, 0.038, "sine", soft);
+  }
 
   // §12.3 data sonification: one granular blip per live event_created —
   // pitch by severity, pan by longitude, texture by category

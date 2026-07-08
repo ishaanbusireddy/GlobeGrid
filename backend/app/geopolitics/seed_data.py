@@ -270,7 +270,49 @@ CONFLICTS = [
      "The First (1988–94) and Second (2020) Nagorno-Karabakh wars and the 2023 "
      "Azerbaijani offensive; Armenia now recognizes Azerbaijani control of Karabakh.",
      [("country", "ARM", "belligerent", "a"), ("country", "AZE", "belligerent", "b")]),
+    # ---- v6.6.5 — INSURGENCIES (active/frozen low-intensity or separatist
+    # struggles that haven't become full-scale interstate wars). Flagged as
+    # insurgencies by INSURGENCY_NAMES below; shown in their own tab. ----
+    ("Balochistan Insurgency", "South Asia", "1948-01-01", "active",
+     "Long-running separatist insurgency by Baloch nationalist groups against the "
+     "Pakistani (and historically Iranian) state, seeking independence or autonomy "
+     "for Balochistan.",
+     [("country", "PAK", "belligerent", "a"),
+      ("non_state_actor", "Balochistan Liberation Army (BLA)", "belligerent", "b")]),
+    ("Kurdish–Turkish Insurgency", "Middle East", "1984-08-15", "active",
+     "Decades-long armed conflict between the Turkish state and the PKK seeking "
+     "Kurdish autonomy; periodic ceasefires and renewed fighting.",
+     [("country", "TUR", "belligerent", "a"),
+      ("non_state_actor", "Kurdistan Workers' Party (PKK)", "belligerent", "b")]),
+    ("Naxalite–Maoist Insurgency", "South Asia", "1967-05-25", "active",
+     "Left-wing Maoist (Naxalite) insurgency across India's central and eastern "
+     "'Red Corridor', much reduced but still active.",
+     [("country", "IND", "belligerent", "a"),
+      ("non_state_actor", "Communist Party of India (Maoist)", "belligerent", "b")]),
+    ("West Papua Conflict", "Oceania", "1962-01-01", "active",
+     "Separatist insurgency in Indonesian-administered West Papua by groups "
+     "seeking independence.",
+     [("country", "IDN", "belligerent", "a"),
+      ("non_state_actor", "Free Papua Movement (OPM)", "belligerent", "b")]),
+    ("Cabo Delgado Insurgency", "Southern Africa", "2017-10-05", "active",
+     "Islamist insurgency in northern Mozambique's Cabo Delgado province.",
+     [("country", "MOZ", "belligerent", "a"),
+      ("non_state_actor", "Ansar al-Sunna (ISIS-Mozambique)", "belligerent", "b")]),
+    ("ELN Insurgency (Colombia)", "South America", "1964-07-04", "active",
+     "Ongoing insurgency by the National Liberation Army (ELN) in Colombia after "
+     "the FARC peace deal; intermittent peace talks.",
+     [("country", "COL", "belligerent", "a"),
+      ("non_state_actor", "National Liberation Army (ELN)", "belligerent", "b")]),
 ]
+
+# v6.6.5 — which CONFLICTS entries are insurgencies (own tab). Anything whose
+# name is here, or contains 'insurgency', is treated as an insurgency.
+INSURGENCY_NAMES = {
+    "Balochistan Insurgency", "Kurdish–Turkish Insurgency",
+    "Naxalite–Maoist Insurgency", "West Papua Conflict",
+    "Cabo Delgado Insurgency", "ELN Insurgency (Colombia)",
+    "Sahel Insurgency",
+}
 
 # v6 §8 — War Mode sub-national factions: minor factions and internal control
 # areas that only render inside a conflict's dedicated layout, never on the
@@ -357,7 +399,8 @@ MARKED_LOCATIONS = [
     ("Western Sahara", "contested_territory", 24.5, -13.0,
      "Non-self-governing territory disputed between Morocco and the Polisario Front."),
     ("Nagorno-Karabakh", "contested_territory", 39.8, 46.75,
-     "Historically contested between Armenia and Azerbaijan."),
+     "Formerly contested; Azerbaijan regained full control in 2023 and the "
+     "self-declared Artsakh republic dissolved on 1 Jan 2024 (dispute resolved)."),
     ("TSMC Hsinchu Fabs", "semiconductor_fab", 24.77, 121.0,
      "The world's most advanced logic-chip fabrication cluster."),
     ("TSMC Tainan (Fab 18)", "semiconductor_fab", 23.1, 120.27,

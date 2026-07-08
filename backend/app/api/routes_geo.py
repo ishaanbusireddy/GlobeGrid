@@ -44,8 +44,13 @@ def _paramount_role(iso3, government_type, leadership):
         return pick if pick in roles else (next(iter(roles), None))
     g = (government_type or "").lower()
     # parliamentary systems (incl. parliamentary/constitutional monarchies)
-    # led by the PM — but NOT semi-presidential, where the president dominates
-    if "parliamentary" in g and "semi-presidential" not in g:
+    # led by the PM — but NOT semi-presidential, where the president dominates.
+    # v6.6.4 — a CONSTITUTIONAL monarchy is PM-led too (owner: "Frederick X of
+    # Denmark should NOT be listed as the actual main leader"); only ABSOLUTE
+    # monarchies keep the monarch as paramount.
+    parliamentary_led = ("parliamentary" in g and "semi-presidential" not in g) or \
+        ("monarchy" in g and "absolute" not in g)
+    if parliamentary_led:
         pref = ["head_of_government", "head_of_state"]
     else:  # presidential / semi-presidential / absolute monarchy / theocratic
         pref = ["head_of_state", "head_of_government"]
@@ -223,6 +228,77 @@ def country_profile(params, q, body):
                            "thin": len(profile["recent_stories"]) < floor,
                            "floor": floor}
     return 200, profile
+
+
+COUNTRY_STAT_PROMPT = """You are an economic/demographic analyst. For the given
+country and METRIC, produce a structured breakdown grounded in well-known
+national figures.
+
+Return ONLY valid JSON:
+{
+  "summary": string,                        // 2-3 sentences on this metric for the country
+  "distribution_label": string,             // e.g. "Largest cities" or "By region"
+  "distribution": [{"label": str, "value": number, "display": str}, ...],  // 4-8 items
+  "composition_label": string,              // e.g. "GDP by sector" (may be empty [])
+  "composition": [{"label": str, "value": number, "display": str}, ...],
+  "trajectory": [{"label": str, "value": number, "display": str}, ...],    // 4-8 points over years
+  "notes": [string, ...]                    // 1-3 caveats
+}
+For population: distribution = largest cities by population; composition may be
+urban vs rural; trajectory = population over recent decades. For gdp: distribution
+= largest economic regions/states; composition = GDP by sector (agriculture/
+industry/services); trajectory = GDP over recent years. 'value' is a raw number
+for bar sizing; 'display' is the human-readable label ("21.5M", "$3.2T", "58%").
+Use your general knowledge; approximate is fine. Keep it factual, not invented
+precision."""
+
+
+@route("GET", "/api/country-stat")
+def country_stat(params, q, body):
+    """v6.6.5 — a drill-down breakdown for a country statistic (population/GDP/
+    etc.): distribution by city/region, sector composition, and a growth
+    trajectory. AI-synthesized from known national figures (cached), so a
+    stat cell click always opens something useful without a vendored dataset."""
+    import json as _json
+    from ..db.models import meta_get, meta_set
+    from ..processing import llm
+    iso3 = (q.get("iso3") or "").upper()
+    metric = (q.get("metric") or "population").lower()
+    c = query_one("SELECT id, name, population, gdp_usd, gdp_per_capita_usd, area_km2,"
+                  " region FROM countries WHERE id = ?", (iso3,))
+    if not c:
+        return 404, {"error": "country not registered"}
+    headline = {"population": c["population"], "gdp": c["gdp_usd"],
+                "gdp_per_capita": c["gdp_per_capita_usd"], "area": c["area_km2"]}.get(metric)
+    key = f"cstat:{iso3}:{metric}"
+    cached = meta_get(key)
+    if cached:
+        try:
+            return 200, {"headline": headline, "detail": _json.loads(cached)}
+        except _json.JSONDecodeError:
+            pass
+    if not llm.available():
+        return 200, {"headline": headline, "detail": None}
+    ctx = {"country": c["name"], "metric": metric, "region": c["region"],
+           "population": c["population"], "gdp_usd": c["gdp_usd"],
+           "area_km2": c["area_km2"]}
+    text = llm.complete(COUNTRY_STAT_PROMPT,
+                        [{"role": "user", "content": _json.dumps(ctx)}],
+                        max_tokens=900, timeout=45, json_mode=True)
+    detail = None
+    if text:
+        t = text.strip()
+        if t.startswith("```"):
+            t = t.strip("`").removeprefix("json").strip()
+        b = t.find("{")
+        if b != -1:
+            t = t[b:t.rfind("}") + 1]
+        try:
+            detail = _json.loads(t)
+            meta_set(key, _json.dumps(detail))
+        except _json.JSONDecodeError:
+            detail = None
+    return 200, {"headline": headline, "detail": detail}
 
 
 @route("GET", "/api/region/{region}")
@@ -463,6 +539,10 @@ def conflicts_list(params, q, body):
         d["story_count"] = query_one(
             "SELECT COUNT(*) AS n FROM stories WHERE conflict_id = ?", (r["id"],))["n"]
         out.append(d)
+    from ..geopolitics.seed_data import INSURGENCY_NAMES
+    for _c in out:   # v6.6.5 — flag insurgencies for their own tab
+        _c["is_insurgency"] = (_c.get("name") in INSURGENCY_NAMES
+                               or "insurgency" in (_c.get("name") or "").lower())
     return 200, {"conflicts": out}
 
 
@@ -685,20 +765,24 @@ def _wiki_action_image(clean: str) -> str:
 
 
 LEADER_PROFILE_PROMPT = """You are a political biographer. From the CONTEXT (a
-world leader's name, the office(s) they hold, party, and a Wikipedia biography
-extract) write a concise, neutral structured profile.
+world leader's name, the office(s) they hold, their party, and — when available
+— a Wikipedia biography extract) write a comprehensive, neutral structured
+profile of this specific real person.
 
 Return ONLY valid JSON:
 {
-  "summary": string,                 // 2-3 sentences: who they are and why they matter now
+  "summary": string,                 // 2-4 sentences: who they are and why they matter now
   "ideology": string,                // their political ideology / orientation, one line
-  "career_history": [string, ...],   // 3-6 bullets: prior professions & positions, roughly chronological
+  "career_history": [string, ...],   // 4-7 bullets: prior professions & positions, roughly chronological
   "party_history": [string, ...],    // 1-4 bullets: party affiliations over time
-  "key_policies": [string, ...]      // 3-6 bullets: signature policies / positions / agenda
+  "key_policies": [string, ...]      // 4-7 bullets: signature policies / positions / agenda
 }
-Be accurate and grounded ONLY in the provided extract and offices. If the
-extract is thin, still fill what you can and keep the rest short. Never invent
-specific dates or figures you weren't given."""
+Draw on your general knowledge of this well-known public figure — a Wikipedia
+extract may NOT be provided, and you should still write a full, accurate
+profile from what you know about them. Be factual and neutral; do not invent
+oddly specific dates or figures you're unsure of, but DO give a genuinely
+informative, detailed profile. If you truly don't recognize the person, keep
+each field short and general rather than fabricating."""
 
 
 def _wiki_intro_extract(clean):
@@ -758,7 +842,25 @@ def leader_profile(params, q, body):
                    "image_url": ((d.get("thumbnail") or {}).get("source"))}
     except Exception:  # noqa: BLE001 — offline/blocked: roles still render
         pass
-    # AI-synthesized structured profile (cached; best-effort, degrades cleanly)
+    # v6.6.5 — portrait must resolve even when the REST summary has no thumbnail
+    # (that was the empty-page bug for e.g. al-Sharaa). Fall back to the reliable
+    # action-API pageimages+search path, and persist it.
+    if not bio or not bio.get("image_url"):
+        img = _wiki_action_image(clean)
+        if img:
+            bio = bio or {}
+            bio["image_url"] = img
+    # v6.6.5 — curated fallback data for major leaders (guaranteed floor)
+    from ..geopolitics.leaders_detail import leader_detail
+    detail = leader_detail(clean)
+    if detail and (not bio or not bio.get("extract")):
+        bio = bio or {}
+        bio.setdefault("extract", detail.get("bio_extract"))
+    # AI-synthesized structured profile (cached; best-effort, degrades cleanly).
+    # v6.6.5 — run WHENEVER a provider is available and we know who this is
+    # (name + at least one tracked office), NOT only when a Wikipedia extract
+    # loaded — the model writes a full profile from general knowledge. This is
+    # what makes the page comprehensive even with Wikipedia blocked.
     synth = None
     cache_key = f"leaderprof:{clean.lower()}"
     cached = meta_get(cache_key)
@@ -767,18 +869,18 @@ def leader_profile(params, q, body):
             synth = _json.loads(cached)
         except _json.JSONDecodeError:
             synth = None
-    elif bio and (bio.get("extract") or rows):
+    if synth is None:
         from ..processing import llm
-        if llm.available():
+        if llm.available() and (rows or bio):
             ctx = {"name": clean,
                    "offices": [{"role": r.get("role"), "country": r.get("country_name"),
                                 "party": r.get("party"), "since": r.get("since_date")}
                                for r in rows],
                    "party": rows[0].get("party") if rows else None,
-                   "wikipedia_extract": (bio.get("extract") or "")[:2500]}
+                   "wikipedia_extract": ((bio or {}).get("extract") or "")[:2500]}
             text = llm.complete(LEADER_PROFILE_PROMPT,
                                 [{"role": "user", "content": _json.dumps(ctx)}],
-                                max_tokens=700, timeout=40, json_mode=True)
+                                max_tokens=800, timeout=40, json_mode=True)
             if text:
                 t = text.strip()
                 if t.startswith("```"):
@@ -791,6 +893,12 @@ def leader_profile(params, q, body):
                     meta_set(cache_key, _json.dumps(synth))
                 except _json.JSONDecodeError:
                     synth = None
+    # curated data as the final floor when neither cache nor a live provider
+    # produced a synthesis
+    if synth is None and detail:
+        synth = {k: detail[k] for k in
+                 ("summary", "ideology", "career_history", "party_history", "key_policies")
+                 if k in detail}
     return 200, {"name": clean, "roles": rows, "bio": bio, "synthesis": synth}
 
 

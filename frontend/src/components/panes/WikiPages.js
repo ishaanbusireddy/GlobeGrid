@@ -241,19 +241,23 @@ export async function renderCountry(el, iso3, ctx) {
   const langs = Array.isArray(p.languages) ? p.languages.join(", ") : "";
   const fmtB = (v) => v >= 1e12 ? "$" + (v / 1e12).toFixed(2) + "T"
     : v >= 1e9 ? "$" + (v / 1e9).toFixed(1) + "B" : "$" + (v / 1e6).toFixed(0) + "M";
+  // v6.6.5 — metric-bearing stat cells are clickable (data-metric) and open a
+  // detail panel (distribution, sector/geographic breakdown, growth trajectory)
   const statCells = [
-    p.population != null && ["Population", (p.population / 1e6).toFixed(2) + "M"],
-    p.gdp_usd != null && ["GDP (nominal)", fmtB(p.gdp_usd)],
+    p.population != null && ["Population", (p.population / 1e6).toFixed(2) + "M", "population"],
+    p.gdp_usd != null && ["GDP (nominal)", fmtB(p.gdp_usd), "gdp"],
     p.gdp_per_capita_usd != null && ["GDP per capita",
-      "$" + Math.round(p.gdp_per_capita_usd).toLocaleString()],
-    p.hdi != null && ["HDI", Number(p.hdi).toFixed(3)],
-    p.area_km2 != null && ["Area", Math.round(p.area_km2).toLocaleString() + " km²"],
+      "$" + Math.round(p.gdp_per_capita_usd).toLocaleString(), "gdp_per_capita"],
+    p.hdi != null && ["HDI", Number(p.hdi).toFixed(3), "hdi"],
+    p.area_km2 != null && ["Area", Math.round(p.area_km2).toLocaleString() + " km²", "area"],
     langs && ["Languages", langs],
     p.dominant_religion && ["Dominant religion", p.dominant_religion],
     p.currency_code && ["Currency",   // v6.1 — every country's currency
       `${p.currency_name} (${p.currency_code}${p.currency_symbol ? " " + p.currency_symbol : ""})`],
-  ].filter(Boolean).map(([k, v]) =>
-    `<div class="stat-cell"><span class="stat-k">${esc(k)}</span><span class="stat-v">${esc(String(v))}</span></div>`).join("");
+  ].filter(Boolean).map(([k, v, metric]) =>
+    `<div class="stat-cell${metric ? " stat-clickable" : ""}"${metric ? ` data-metric="${metric}"` : ""}>
+      <span class="stat-k">${esc(k)}${metric ? ' <span class="cp-meta">▸</span>' : ""}</span>
+      <span class="stat-v">${esc(String(v))}</span></div>`).join("");
   // v6 §14 — territory <-> sovereign linkage, both directions
   const sovereignLink = p.sovereign
     ? `<p class="cp-meta">Territory of <button class="ap-chip country-link" data-id="${esc(p.sovereign.id)}">${flagInline(p.sovereign)} ${esc(p.sovereign.name)}</button></p>` : "";
@@ -360,6 +364,9 @@ export async function renderCountry(el, iso3, ctx) {
     b.addEventListener("click", () => ctx.openCompare(iso3, b.dataset.id)));
   el.querySelectorAll(".bloc-link").forEach((b) =>   // v6.6.2 — open bloc panel
     b.addEventListener("click", () => b.dataset.id && ctx.openEntity("alliance", b.dataset.id)));
+  el.querySelectorAll(".stat-cell.stat-clickable").forEach((c) =>   // v6.6.5 stat detail
+    c.addEventListener("click", () =>
+      ctx.openCountryStat && ctx.openCountryStat(iso3, c.dataset.metric, p.name)));
 }
 
 // ---------- §6.2 other wiki pages ----------
@@ -377,6 +384,14 @@ export async function renderParty(el, id, ctx) {
         <p class="cp-meta">ideology: ${esc((p.ideology_tags || "").replace(/;/g, " · "))}</p>
       </div></div>
     ${freshness(p.last_updated_at)}
+    ${(() => { const s = p.synthesis; const b = (a) => (a || []).map((x) => `<li>${esc(x)}</li>`).join("");
+      if (!s) return "";
+      return `${s.summary ? `<section><p>${esc(s.summary)}</p></section>` : ""}
+        ${s.ideology ? `<p class="leader-ideology"><span class="cp-meta">Ideology:</span> ${esc(s.ideology)}</p>` : ""}
+        ${(s.history || []).length ? `<section><h4>History</h4><ul class="leader-list">${b(s.history)}</ul></section>` : ""}
+        ${(s.positions || []).length ? `<section><h4>Positions &amp; platform</h4><ul class="leader-list">${b(s.positions)}</ul></section>` : ""}
+        ${s.electoral ? `<section><h4>Electoral standing</h4><p>${esc(s.electoral)}</p></section>` : ""}`;
+    })()}
     ${backgroundSection(p.background)}
     ${p.founding_history ? `<section><h4>Founding history <span class="cp-meta">(AI-synthesized, source-linked)</span></h4><p>${esc(p.founding_history)}</p></section>` : ""}
     ${partyElectoralSection(p.electoral_history)}
@@ -483,8 +498,16 @@ export async function renderAlliance(el, id, ctx) {
     `<button class="ap-chip country-link" data-id="${esc(m.id)}">
       ${m.flag_image_url ? flagInline(m) : ""} ${esc(m.name)}</button>`).join(" ");
   const observers = (a.members || []).filter((m) => m.status !== "member");
+  // v6.6.4 — a recognizable emblem per bloc on its page
+  const BLOC_EMBLEM = {
+    "NATO": "🛡️", "European Union": "🇪🇺", "CSTO": "🛡️", "Arab League": "🕌",
+    "ASEAN": "🌏", "African Union": "🌍", "BRICS": "🧱", "OPEC": "🛢️",
+    "Five Eyes": "👁️", "QUAD": "🀫", "AUKUS": "⚓", "G7": "7️⃣", "OECD": "📊",
+    "SCO": "🌏", "Mercosur": "🌎", "GCC": "🕌", "ECOWAS": "🌍",
+  };
+  const emblem = BLOC_EMBLEM[a.name] || "⬡";
   el.innerHTML = `
-    <div class="wiki-header"><div class="wiki-flag">⬡</div>
+    <div class="wiki-header"><div class="wiki-flag" style="font-size:56px;text-align:center">${emblem}</div>
       <div class="wiki-head-meta"><h1>${esc(a.name)}</h1>
         <p class="cp-meta">${esc(a.type)} bloc · founded ${esc(a.founded_date || "?")}
           · ${stats.member_count || 0} members${prof.hq ? " · HQ " + esc(prof.hq) : ""}</p>
@@ -979,6 +1002,44 @@ export async function renderDisputedZone(el, zid, ctx) {
     <section><h4>Context</h4><p class="leader-bio">${esc(z.context)}</p></section>`;
 }
 
+// v6.6.5 — a country statistic detail panel: distribution (by city/province),
+// composition (GDP by sector / geographic), and a growth trajectory. Uses an
+// AI synthesis grounded in the country's known figures (no vendored city-level
+// dataset needed); a simple bar shows the distribution.
+const STAT_LABEL = { population: "Population", gdp: "GDP", gdp_per_capita: "GDP per capita",
+                     hdi: "HDI", area: "Area" };
+export async function renderCountryStat(el, iso3, metric, countryName, ctx) {
+  el.innerHTML = `<h1>${esc(countryName || iso3)} — ${esc(STAT_LABEL[metric] || metric)}</h1>
+    <p class="cp-meta">loading breakdown…</p>`;
+  const d = await api.countryStat(iso3, metric).catch(() => null);
+  if (!d || !d.detail) {
+    el.innerHTML = `<h1>${esc(countryName || iso3)} — ${esc(STAT_LABEL[metric] || metric)}</h1>
+      <p class="cp-meta">A detailed breakdown loads when an AI provider is
+      configured (run Ollama or add a key). Headline figure: ${esc(String(d && d.headline || "—"))}.</p>`;
+    return;
+  }
+  const s = d.detail;
+  const bars = (arr) => {
+    const max = Math.max(1, ...(arr || []).map((x) => x.value || 0));
+    return (arr || []).map((x) =>
+      `<div class="stat-bar-row"><span class="stat-bar-label">${esc(x.label)}</span>
+        <span class="stat-bar" style="width:${Math.round((x.value || 0) / max * 100)}%"></span>
+        <span class="stat-bar-val">${esc(x.display || String(x.value))}</span></div>`).join("");
+  };
+  el.innerHTML = `
+    <h1>${esc(countryName || iso3)} — ${esc(STAT_LABEL[metric] || metric)}</h1>
+    ${s.summary ? `<section><p>${esc(s.summary)}</p></section>` : ""}
+    ${(s.distribution || []).length ? `<section><h4>${esc(s.distribution_label || "Distribution")}</h4>
+      <div class="stat-bars">${bars(s.distribution)}</div></section>` : ""}
+    ${(s.composition || []).length ? `<section><h4>${esc(s.composition_label || "Composition")}</h4>
+      <div class="stat-bars">${bars(s.composition)}</div></section>` : ""}
+    ${(s.trajectory || []).length ? `<section><h4>Trend over time</h4>
+      <div class="stat-bars">${bars(s.trajectory)}</div></section>` : ""}
+    ${(s.notes || []).length ? `<section><h4>Notes</h4><ul class="leader-list">${
+      s.notes.map((n) => `<li>${esc(n)}</li>`).join("")}</ul></section>` : ""}
+    <p class="cp-meta">AI-synthesized from known national figures — approximate, not an official dataset.</p>`;
+}
+
 // ---------- v6 §27 — story thread page ----------
 
 export async function renderThread(el, id, ctx) {
@@ -1118,6 +1179,14 @@ export async function renderSettings(el, ctx) {
     <section class="display-sec"><h4>Display</h4>
       <label class="settings-row">Color theme
         <select id="theme-select"></select></label>
+      <label class="settings-row">Font style
+        <select id="font-select">
+          <option value="sans">Sans (default)</option>
+          <option value="serif">Serif</option>
+          <option value="mono">Monospace</option>
+          <option value="condensed">Condensed</option>
+          <option value="rounded">Rounded</option>
+        </select></label>
       <label class="settings-row">Interface language
         <select id="lang-select"></select></label>
       <label class="settings-row">Night-side city lights
@@ -1152,6 +1221,12 @@ export async function renderSettings(el, ctx) {
   }
   themeSel.value = localStorage.getItem("tdl_theme") || "dark_teal_default";
   themeSel.addEventListener("change", () => ctx.setTheme(themeSel.value));
+  // v6.6.4 — font style selector
+  const fontSel = el.querySelector("#font-select");
+  if (fontSel) {
+    fontSel.value = ctx.font ? ctx.font() : "sans";
+    fontSel.addEventListener("change", () => ctx.setFont && ctx.setFont(fontSel.value));
+  }
   // v5 §2 — interface language selector
   const langSel = el.querySelector("#lang-select");
   for (const l of ctx.languages()) {

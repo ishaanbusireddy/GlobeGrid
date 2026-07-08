@@ -501,32 +501,100 @@ def _camp_members(camp, exclude=None):
     return [c for c, v in COUNTRY_CAMP.items() if v == camp and c != exclude]
 
 
+# v6.6.4 — explicit common-sense rivalries and friendships, layered on top of
+# the camp derivation (owner: "add common sense enemy relationships to all
+# countries where appropriate — Israel and Iran should obviously hate each
+# other"). Symmetric: listing A→B also makes B→A. RIVALRIES force each other
+# into 'rival' (and out of strong/partner); FRIENDSHIPS force 'strong' (and out
+# of rival). Applied to the hand-authored powers too.
+RIVALRIES = {
+    "IND": ["PAK", "CHN"], "PAK": ["IND", "AFG"], "AFG": ["PAK"],
+    "ARM": ["AZE", "TUR"], "AZE": ["ARM"],
+    "ISR": ["IRN", "SYR", "LBN"], "IRN": ["ISR", "SAU", "USA"],
+    "SAU": ["IRN"], "PRK": ["KOR", "USA", "JPN"], "KOR": ["PRK"],
+    "JPN": ["PRK", "CHN"], "CHN": ["TWN", "IND", "JPN", "PHL", "USA"],
+    "TWN": ["CHN"], "PHL": ["CHN"], "GRC": ["TUR"], "TUR": ["GRC", "ARM"],
+    "UKR": ["RUS"], "RUS": ["UKR", "USA"], "USA": ["RUS", "CHN", "IRN", "PRK"],
+    "ETH": ["ERI"], "ERI": ["ETH"], "SRB": ["XKX"], "XKX": ["SRB"],
+    "DZA": ["MAR"], "MAR": ["DZA"], "VEN": ["USA"], "CUB": ["USA"],
+    "SDN": ["SSD"], "SSD": ["SDN"], "GBR": ["ARG"], "ARG": ["GBR"],
+}
+FRIENDSHIPS = {
+    "IND": ["ARM", "RUS", "ISR"], "ARM": ["IND", "IRN", "FRA", "USA"],
+    "USA": ["ISR", "GBR", "ARM"], "ISR": ["USA", "IND"],
+    "PAK": ["CHN", "TUR", "SAU"], "AZE": ["TUR", "ISR"], "TUR": ["AZE", "PAK"],
+    "GRC": ["CYP"], "CYP": ["GRC"], "RUS": ["BLR", "IND"],
+}
+
+
+def _apply_overrides(iso3, res):
+    """v6.6.4 — force explicit rivalries/friendships into a derived alignment."""
+    strong = list(res.get("strong", []))
+    partner = list(res.get("partner", []))
+    rival = list(res.get("rival", []))
+    # symmetric rivalries (A lists B, or B lists A)
+    rivals = set(RIVALRIES.get(iso3, []))
+    for a, bs in RIVALRIES.items():
+        if iso3 in bs:
+            rivals.add(a)
+    friends = set(FRIENDSHIPS.get(iso3, []))
+    for a, bs in FRIENDSHIPS.items():
+        if iso3 in bs:
+            friends.add(a)
+    friends -= rivals   # a rivalry wins over a stale friendship
+    for r in rivals:
+        if r == iso3:
+            continue
+        strong = [c for c in strong if c != r]
+        partner = [c for c in partner if c != r]
+        if r not in rival:
+            rival.append(r)
+    for f in friends:
+        if f == iso3:
+            continue
+        rival = [c for c in rival if c != f]
+        partner = [c for c in partner if c != f]
+        if f not in strong:
+            strong.insert(0, f)
+    return {"strong": strong, "partner": [p for p in partner if p not in strong and p not in rival],
+            "rival": rival}
+
+
 def derive_alignments(iso3):
-    """v6.6.2 — build a {strong, partner, rival} alignment view for any country
-    from its camp. Explicit ALIGNMENTS entries win; everyone else is derived so
-    the alignment map works for every country, not just the three powers."""
+    """v6.6.2/v6.6.4 — build a {strong, partner, rival} alignment view for any
+    country from its camp, then apply explicit common-sense rivalries and
+    friendships. Explicit ALIGNMENTS entries seed the powers; everyone else is
+    derived so the alignment map works for every country."""
     iso3 = (iso3 or "").upper()
+    base = None
     if iso3 in ALIGNMENTS:
-        return ALIGNMENTS[iso3]
-    camp = COUNTRY_CAMP.get(iso3)
-    if not camp:
-        return None
-    if camp == "west":
-        return {"strong": [c for c in _WEST_CORE if c != iso3][:9],
-                "partner": ["UKR","ISR","KOR","TWN","ARG","COL","JOR","SGP"],
-                "rival": _EAST_CORE + ["CHN"]}
-    if camp == "east":
-        return {"strong": [c for c in _EAST_CORE if c != iso3] + ["RUS"] if iso3 != "RUS" else _EAST_CORE,
-                "partner": ["CHN","IND","SRB","HUN","VEN","DZA"],
-                "rival": [c for c in _WEST_CORE if c != iso3][:8] + ["UKR"]}
-    if camp == "china":
-        return {"strong": [c for c in _CHINA_CORE if c != iso3][:6],
-                "partner": ["KAZ","THA","IDN","ETH","ZAF","SRB","SAU"],
-                "rival": ["USA","JPN","IND","AUS","TWN","PHL"]}
-    # nonaligned — hedges both ways, no strong bloc allegiance, no declared rival
-    return {"strong": [],
-            "partner": ["USA","CHN","RUS","IND","BRA","SAU","TUR","ZAF"][:6],
-            "rival": []}
+        base = ALIGNMENTS[iso3]
+    else:
+        camp = COUNTRY_CAMP.get(iso3)
+        if camp == "west":
+            base = {"strong": [c for c in _WEST_CORE if c != iso3][:9],
+                    "partner": ["UKR","ISR","KOR","TWN","ARG","COL","JOR","SGP"],
+                    "rival": _EAST_CORE + ["CHN"]}
+        elif camp == "east":
+            base = {"strong": ([c for c in _EAST_CORE if c != iso3] + ["RUS"]) if iso3 != "RUS" else _EAST_CORE,
+                    "partner": ["CHN","IND","SRB","HUN","VEN","DZA"],
+                    "rival": [c for c in _WEST_CORE if c != iso3][:8] + ["UKR"]}
+        elif camp == "china":
+            base = {"strong": [c for c in _CHINA_CORE if c != iso3][:6],
+                    "partner": ["KAZ","THA","IDN","ETH","ZAF","SRB","SAU"],
+                    "rival": ["USA","JPN","IND","AUS","TWN","PHL"]}
+        elif camp == "nonaligned":
+            base = {"strong": [], "partner": ["USA","CHN","RUS","IND","BRA","SAU"], "rival": []}
+    # even a country with no camp gets an alignment if it appears in the
+    # rivalry/friendship tables (so e.g. every listed pair renders)
+    if base is None:
+        if iso3 in RIVALRIES or iso3 in FRIENDSHIPS or \
+           any(iso3 in v for v in RIVALRIES.values()) or \
+           any(iso3 in v for v in FRIENDSHIPS.values()):
+            base = {"strong": [], "partner": [], "rival": []}
+        else:
+            return None
+    return _apply_overrides(iso3, base)
 
 
 # v6.6.2 — rich bloc-profile metadata for the full bloc panels (owner wanted

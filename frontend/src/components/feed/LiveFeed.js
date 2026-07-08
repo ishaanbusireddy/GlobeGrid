@@ -11,7 +11,14 @@ export class LiveFeed {
     this.stories = new Map(); // id -> story card data
   }
 
-  setStories(stories) {
+  setStories(stories, { force = false } = {}) {
+    // v6.6.4 — BLOCKING MECHANISM: never wipe a populated feed with an empty
+    // list (owner: "no map/view mode should EVER clear the live feed"). A mode
+    // toggle whose fetch momentarily returns nothing must not blank the feed.
+    // Explicit resets (war-mode restore, category change) pass force:true.
+    if (!force && (!stories || stories.length === 0) && this.stories.size > 0) {
+      return;
+    }
     this.stories.clear();
     for (const s of stories) this.stories.set(s.id, s);
     this._render();

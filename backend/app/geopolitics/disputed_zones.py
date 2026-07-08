@@ -79,8 +79,16 @@ DISPUTED_ZONES = [
      "UN members (including most of the West) but not by Serbia, Russia or "
      "China. EU-facilitated normalization talks continue amid periodic tension "
      "in the Serb-majority north."),
+    ("falklands", "Falkland Islands / Malvinas", "United Kingdom (de facto)",
+     ["United Kingdom", "Argentina"],
+     "British Overseas Territory since 1833; claimed by Argentina as Las Malvinas.",
+     -51.75, -59.0,
+     "A British Overseas Territory in the South Atlantic, self-governing under "
+     "UK sovereignty since 1833. Argentina claims the islands as Las Malvinas; "
+     "the two fought a war over them in 1982 (Argentina defeated). A 2013 "
+     "referendum saw islanders vote 99.8% to remain British. Argentina "
+     "continues to press the claim diplomatically at the UN."),
 ]
-
 
 def zones_list():
     return [{"id": z[0], "name": z[1], "controller": z[2], "claimants": z[3],

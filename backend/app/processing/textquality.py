@@ -139,8 +139,14 @@ and dynamics underneath it, as 3-6 tight markdown bullet points:
 - what is materially at stake, and
 - where this plausibly heads next.
 Each bullet one or two sentences, sharp and analytical. Name outlets only when
-attributing a specific contested claim. No speculation beyond the provided
-facts. Output ONLY the markdown bullets — no headers, no intro, no paragraphs."""
+attributing a specific contested claim. Output ONLY the markdown bullets — no
+headers, no intro, no paragraphs.
+v6.6.4 — you MAY draw on well-established historical and present background
+knowledge (the parties' long-standing aims, the region's history, prior
+episodes of this dynamic) to enrich the analysis, not just the provided
+stories — the reader wants depth. Do NOT invent specific new facts, figures or
+events that contradict or aren't supported by the tracked material; use general
+knowledge for CONTEXT and mechanism, and keep tracked specifics as the anchor."""
 
 
 def deep_summary(story_id: str, expand: bool = False) -> tuple[int, dict]:

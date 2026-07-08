@@ -768,21 +768,87 @@ body.theme-synthwave { --bg: #0a0416; --bg-panel: #140a24; --bg-card: #1c0f31;
   --conflict: #ff8a5a; --other: #50d0ff; }
 
 /* ===== v6.6 / recolored v6.6.2 ===== */
-/* New Order — TNO strategy-UI look: near-black steel with cold cyan/teal
-   readouts (owner's screenshot: dark SS console, cyan accents). */
-body.theme-new_order { --bg: #05090b; --bg-panel: #0a1216; --bg-card: #0f1c22;
-  --line: rgba(90,200,220,0.26); --text: #cfeef4; --text-dim: #6f95a0;
-  --accent: #2fd4e6; --accent-2: #7fe9d6;
-  --geopolitics: #2fd4e6; --finance: #7fe9d6; --disaster: #ff6a5a;
-  --conflict: #4fb8d8; --other: #6f95a0; --ok: #3fd6b0; --degraded: #e8c05a;
-  --down: #ff6a5a; }
-/* Fire Rises — recolored to the owner's purple/magenta map look: deep violet
-   panels, magenta + amethyst crisis glow on near-black. */
-body.theme-fire_rises { --bg: #0a0512; --bg-panel: #150a22; --bg-card: #1f0f31;
-  --line: rgba(200,90,220,0.30); --text: #f0e2fb; --text-dim: #a98cc4;
-  --accent: #c74ce0; --accent-2: #8a5cff;
-  --geopolitics: #c74ce0; --finance: #b98cff; --disaster: #ff5aa0;
-  --conflict: #a24ce0; --other: #a98cc4; --ok: #7ad0c0; --down: #ff5aa0; }
+/* New Order — v6.6.4: MOSTLY BLACK with neon cyan, muted neon green, muted
+   neon red and white accents (owner). Distinct from synthwave's magenta. */
+body.theme-new_order { --bg: #030506; --bg-panel: #070c0e; --bg-card: #0a1114;
+  --line: rgba(60,220,235,0.22); --text: #f2ffff; --text-dim: #6fa6ad;
+  --accent: #17e0f0; --accent-2: #ffffff;
+  --geopolitics: #17e0f0; --finance: #3fe08a; --disaster: #ff5060;
+  --conflict: #ff5060; --other: #6fa6ad; --ok: #3fe08a; --degraded: #cfe05a;
+  --down: #ff5060; }
+/* Fire Rises — v6.6.4: MOSTLY BLACK with neon DEEP purple + white accents
+   (owner: differentiate from synthwave, which is magenta/cyan). */
+body.theme-fire_rises { --bg: #040207; --bg-panel: #0a0512; --bg-card: #12081f;
+  --line: rgba(150,60,240,0.28); --text: #f6f0ff; --text-dim: #9a82c0;
+  --accent: #9b30ff; --accent-2: #ffffff;
+  --geopolitics: #9b30ff; --finance: #b98cff; --disaster: #c04cff;
+  --conflict: #8a2be2; --other: #9a82c0; --ok: #b98cff; --down: #c04cff; }
+/* Light — v6.6.4: clean modernist light mode, white with black text + strong
+   blue accents (owner: "for sadists who want to use light mode"). */
+body.theme-light { --bg: #f6f8fb; --bg-panel: #ffffff; --bg-card: #eef2f8;
+  --line: rgba(20,40,80,0.16); --text: #0b1424; --text-dim: #55627a;
+  --accent: #1565ff; --accent-2: #0a49c7;
+  --geopolitics: #1565ff; --finance: #b8860b; --disaster: #d62828;
+  --conflict: #e05a00; --other: #55627a; --ok: #1a8a4a; --degraded: #b8860b;
+  --down: #d62828; }
+/* light mode needs a few surface tweaks for contrast */
+body.theme-light .story-card, body.theme-light .src-row { background: var(--bg-card); }
+body.theme-light select, body.theme-light button { color: var(--text); }
+body.theme-light .badge-src, body.theme-light .cp-meta { color: var(--text-dim); }
+
+/* ===== v6.6.4 animations & polish ===== */
+/* feed close button lifted higher-right so it stops crowding the header */
+#feed-close { position: absolute; top: 6px; right: 8px; font-size: 13px;
+  line-height: 1; padding: 2px 5px; opacity: 0.7; }
+#feed-close:hover { opacity: 1; }
+#feed-header { position: relative; padding-right: 26px; }
+/* clean entrance for the feed + all sliding panels (respects reduced motion) */
+@keyframes gg-fade-slide { from { opacity: 0; transform: translateX(-14px); }
+  to { opacity: 1; transform: translateX(0); } }
+@keyframes gg-fade-up { from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); } }
+#feed-panel { animation: gg-fade-slide 0.28s ease both; }
+.slide-pane, #slide-pane, .story-page { animation: gg-fade-slide 0.26s cubic-bezier(.22,.61,.36,1) both; }
+.story-card { animation: gg-fade-up 0.22s ease both; }
+@media (prefers-reduced-motion: reduce) {
+  #feed-panel, .slide-pane, #slide-pane, .story-page, .story-card { animation: none; }
+}
+/* analyst: orb bursts into the panel on open, reforms on close */
+@keyframes orb-burst { 0% { transform: scale(1); opacity: 1; }
+  60% { transform: scale(2.4); opacity: 0.25;
+        box-shadow: 0 0 60px 30px var(--accent, #4da3ff); }
+  100% { transform: scale(3.2); opacity: 0; } }
+@keyframes orb-reform { 0% { transform: scale(3.0); opacity: 0; }
+  50% { transform: scale(1.5); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; } }
+@keyframes ap-form { from { opacity: 0; transform: scale(0.82) translateY(16px);
+    filter: blur(6px); } to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); } }
+@keyframes ap-disperse { from { opacity: 1; transform: scale(1); filter: blur(0); }
+  to { opacity: 0; transform: scale(0.86) translateY(12px); filter: blur(6px); } }
+#analyst-orb.orb-burst { animation: orb-burst 0.46s ease-out forwards; }
+#analyst-orb.orb-reform { animation: orb-reform 0.36s ease-out both; }
+#analyst-panel.ap-opening { animation: ap-form 0.44s cubic-bezier(.2,.7,.3,1) both; }
+#analyst-panel.ap-closing { animation: ap-disperse 0.36s ease-in both; }
+@media (prefers-reduced-motion: reduce) {
+  #analyst-orb.orb-burst, #analyst-orb.orb-reform,
+  #analyst-panel.ap-opening, #analyst-panel.ap-closing { animation: none; }
+}
+/* v6.6.4 — clickable country-stat cells hint */
+.stat-cell.stat-clickable { cursor: pointer; transition: border-color .15s; }
+.stat-cell.stat-clickable:hover { border-color: var(--accent); }
+/* v6.6.5 — stat detail bars */
+.stat-bars { display: flex; flex-direction: column; gap: 6px; margin: 6px 0; }
+.stat-bar-row { display: grid; grid-template-columns: 130px 1fr auto; align-items: center; gap: 8px; }
+.stat-bar-label { font-size: 12px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stat-bar { height: 12px; background: var(--accent); border-radius: 3px; min-width: 2px; opacity: 0.8; }
+.stat-bar-val { font-size: 12px; font-weight: 600; }
+/* v6.6.4 — selectable UI/map font styles (Settings → Font, applied to text
+   and to the map's own labels) */
+body.font-serif { font-family: Georgia, "Times New Roman", serif; }
+body.font-mono { font-family: "JetBrains Mono", "Courier New", ui-monospace, monospace; }
+body.font-condensed { font-family: "Arial Narrow", "Roboto Condensed", "Segoe UI", sans-serif;
+  letter-spacing: 0.2px; }
+body.font-rounded { font-family: "Trebuchet MS", "Segoe UI", Verdana, sans-serif; }
 /* Ember — the original TFR ember-on-black look, kept by owner request as its
    own orange theme after Fire Rises was recolored to purple. */
 body.theme-ember { --bg: #0b0a09; --bg-panel: #16130f; --bg-card: #1f1a13;

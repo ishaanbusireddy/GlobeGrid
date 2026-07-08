@@ -16,6 +16,69 @@ Built to the [v1 build manual](docs/talkdiplomacy_live_v1_build_manual.pdf),
 **zero-install build**: Python standard library only. No PostgreSQL, no pip
 install, no npm, no Docker.
 
+**v6.6.5 highlights (current):** comprehensive people & data pages.
+**Leader profiles** are now rich even offline — a full biography, ideology,
+career and key-policies synthesis is generated from the model's general
+knowledge (no Wikipedia extract required), with a robust portrait fallback and
+a curated data floor for major figures (al-Sharaa, Zelenskyy, Putin, Xi,
+Trump, Modi, Netanyahu, Starmer, Macron), so a leader page is never blank.
+**Major political parties** get the same AI-synthesized treatment (ideology,
+history, positions, electoral record). The **conflicts directory** splits into
+⚔ Conflicts and 🔥 Insurgencies tabs (Balochistan, Kurdish–PKK, Naxalite,
+West Papua, Cabo Delgado, ELN Colombia, Sahel). **Country stat cells**
+(population, GDP, GDP/capita, HDI, area) are now **clickable** → a drill-down
+of distribution, sector composition and growth trajectory. The **UN panel**
+gained more landmark resolutions (JCPOA, DPRK sanctions, Libya no-fly), and
+two new **audio tracks** (a calm *nocturne* and an aggressive *storm front*)
+join the buzz-free preset set.
+
+**v6.6.4 highlights:** a quality-of-life pass. **Disputed
+territories** (Crimea, Donetsk, Luhansk, Zaporizhzhia, Kherson, Kashmir,
+Taiwan, Western Sahara, Kosovo, **Falklands**) now render as **clickable
+markers on the globe** in disputed mode, each opening a context breakdown.
+**Diplomatic alignments** gained common-sense rivalries and friendships
+(India⇄Pakistan, Armenia⇄Azerbaijan, Israel⇄Iran hostile; India⇄Armenia
+friendly, US⇄Armenia no longer hostile). A clean **light mode** joins the
+theme set; **Fire Rises** and **New Order** were recolored to mostly-black
+neon looks. The **analyst** bursts open from its orb (with open/close sound
+cues) and gives more detailed, bullet-heavy answers. The live feed can no
+longer be blanked by any map/view mode, constitutional monarchs are no longer
+mislabeled as a country's leader (Denmark → the PM, not King Frederik X), US
+sports and obscure local news are filtered out, +12 tech/finance sources feed
+in faster, and Settings adds a **font-style** selector.
+
+**v6.6.2 highlights:** AI now runs **Ollama-first** — install once,
+`ollama pull llama3.1`, and every AI feature (analyst, translation, causal
+storylines, briefings, leader-profile synthesis) is free, unlimited and fully
+local, with Groq/Gemini/Cerebras/OpenRouter/Claude as automatic cloud
+fallbacks if you'd rather use a key. Blocs (NATO, EU, CSTO, Arab League, ASEAN,
+African Union, BRICS, OPEC, Five Eyes, QUAD, AUKUS…) now open **full profile
+pages** — leader + portrait, purpose & HQ, policies & strategies, aggregate
+stats, the full member flag grid, conflicts members are party to, recent
+stories, and a **European Parliament hemicycle** for the EU. The **🇺🇳 UN
+page** is tabbed (General Assembly, Security Council, WHO, UNESCO… each its
+own page) and every resolution's vote can expand to the **full** yes/no/
+abstain breakdown, not just the notable names. World leaders get **rich
+personal profile pages** (ideology, career history, party history, key
+policies — AI-synthesized from Wikipedia, cached) reachable from any portrait
+or name chip. An experimental **diplomatic-alignment map** colors every
+country's allies/partners/rivals. **Disputed territories** — Crimea, Donetsk,
+Luhansk, Zaporizhzhia, Kherson, Kashmir, Taiwan, Western Sahara, Kosovo — are
+individually named zones with their own context breakdown. Thematic map modes
+now include a **nuclear-arsenal** choropleth (9 nuclear states). A **dynamic
+market briefing** tab covers global markets and tentatively forecasts specific
+moves grounded in tracked stories ("not financial advice"). Parliamentary
+seat-arc graphics cover ~60 legislatures (including one-party/managed states
+like Russia's Duma and China's NPC), and countries genuinely without an
+elected legislature (Saudi Arabia, UAE, Vatican, post-2021 Afghanistan…)
+explain why instead of showing blank. New single-key shortcuts — **F** feed,
+**L** language, **C** last-viewed country, **G** globe, **M** 2D map — join
+**Ctrl/Cmd+T** theme cycling across 17 themes (including the TNO/HOI4-mod-
+style **New Order** and **Fire Rises**). Conflict-tagged stories carry a
+clickable **⚔ chip** straight into War Mode, which now genuinely preserves
+your accumulated feed on exit; breaking-story pop-ups fire even with the feed
+panel closed (togglable in Settings).
+
 **v6.1.1 highlights:** the seven things v6.1 had deferred, now built. The map
 labels **countries dynamically** — big ones from orbit, small ones (Bhutan!)
 as you zoom in. You can toggle
@@ -161,16 +224,33 @@ python scripts/generate_synthetic_data.py --purge  # remove all demo rows
 python run.py --no-browser
 ```
 
+### AI — no key needed (recommended)
+
+Every AI feature (causal storylines, the analyst, translation, briefings,
+leader-profile synthesis) runs **free and local** via [Ollama](https://ollama.com):
+
+```
+1. install Ollama (Windows/Mac/Linux) from https://ollama.com
+2. ollama pull llama3.1        # ~4.9 GB, one time
+```
+
+GlobeGrid finds the running server automatically — nothing to configure.
+Slower machine? `ollama pull llama3.2:3b` and set `OLLAMA_MODEL=llama3.2:3b`.
+Check it's working at `http://localhost:8000/api/diagnostics`.
+
 ### Optional keys (`.env` at repo root — copy `backend/.env.example`)
 
 | Key | Enables |
 |---|---|
-| `CLAUDE_API_KEY` | Causal storylines (Section 9 prompt) + display-time translation. Without it, stories still form — confidence is marked `low` with the narrative pending. |
+| `GROQ_API_KEY` | Free cloud fallback if you'd rather not run Ollama (or Ollama isn't reachable) — [console.groq.com/keys](https://console.groq.com/keys), no card required. |
+| `OPENROUTER_API_KEY` / `CEREBRAS_API_KEY` / `GEMINI_API_KEY` | Additional free-tier cloud fallbacks, tried in order if Ollama and Groq are both unavailable. |
+| `CLAUDE_API_KEY` | Optional paid upgrade for higher-quality prose with no daily-quota ceiling. |
 | `ALPHAVANTAGE_API_KEY` | Market-move events (Alpha Vantage free tier). |
 | `REDDIT_CLIENT_ID` / `REDDIT_CLIENT_SECRET` | Social signal from Reddit. |
 
-Sources without keys simply show as `degraded` in the status panel — nothing
-blocks (Section 10.2 failure isolation).
+None of this is required to run GlobeGrid — every feature works with zero
+keys via local Ollama. Sources without keys simply show as `degraded` in the
+status panel — nothing blocks (Section 10.2 failure isolation).
 
 ## What you get
 
@@ -196,15 +276,37 @@ blocks (Section 10.2 failure isolation).
 - **Time capsule** — scrub to any past moment and the entire feed / map /
   instability UI reconstructs what it looked like then; press play for an
   hour-by-hour replay.
-- **40+ data sources** across news (incl. Xinhua/TASS/Le Monde/Haaretz/Times
-  of India, plus v6's Politico Europe, The Diplomat, SCMP, RFE/RL, Meduza,
-  Anadolu, Defense News, ReliefWeb and fast-polling local outlets for tracked
+- **174 data sources** across news (incl. Xinhua/TASS/Le Monde/Haaretz/Times
+  of India, Al Jazeera/Guardian/NYT/CNN/NPR/DW/France24/Euronews, Politico
+  Europe, The Diplomat, SCMP, RFE/RL, Meduza, Anadolu, Defense News,
+  ReliefWeb, ~8 technology feeds, and fast-polling local outlets for tracked
   conflicts — Ukrainska Pravda, Suspilne, Times of Israel, Ynet, Al
   Mayadeen), official statements (White House/EU/UN), USGS, NASA FIRMS
   wildfires, Smithsonian volcanism, Wikipedia current events + pageview
   spikes, Mastodon, Bluesky, markets + crypto, OpenSky air-traffic disruption
   (ACLED ready, pending access; GDELT retired in v6, its historical facts
   preserved).
+- **Geopolitical entity layer** — every country (with leaders, currencies,
+  and parliamentary seat-arc graphics for ~60 legislatures), full alliance
+  rosters with rich clickable **bloc panels** (NATO, EU, CSTO, Arab League,
+  ASEAN, African Union, BRICS, OPEC, Five Eyes, QUAD, AUKUS…), a tabbed
+  **UN page** (Security Council, General Assembly, WHO, UNESCO… with full
+  resolution vote breakdowns), **leader profile pages** (ideology, career,
+  party history, AI-synthesized), an experimental diplomatic-**alignment
+  map**, and individually-named **disputed territories** (Crimea, Donetsk,
+  Luhansk, Zaporizhzhia, Kherson, Kashmir, Taiwan, Western Sahara, Kosovo)
+  each with its own context breakdown.
+- **War Mode** — click any conflict and the whole app reframes around it:
+  camera flies to the belligerents, sides get real names and colored rings,
+  the feed splits into military/civilian/diplomatic/economic tabs, and an
+  AI **order-of-battle** covers forces, offensives, tactics evolution and
+  global ramifications. Your general feed is preserved and restored on exit.
+- **Briefings** — daily, weekly, monthly digests plus a **market briefing**
+  (global overview + tentative, story-grounded forecasts, clearly labeled
+  speculative), all AI-synthesized with a structured non-AI fallback.
+- **17 color themes** (Ctrl/Cmd+T or the header picker to cycle), including
+  the HOI4/TNO-mod-inspired **New Order** and **Fire Rises**, reaching the
+  globe/map coloring, not just panels.
 - **Power tools** — Ctrl/Cmd+K command palette, full-text search (FTS5),
   entity graph explorer, watchlists, daily AI briefing, CSV export,
   shareable /story/{id} deep links, camera bookmarks, per-source uptime

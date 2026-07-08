@@ -72,6 +72,47 @@ RESOLUTIONS = [
      "tally": {"yes": 14, "no": 0, "abstain": 1},
      "notable_votes": {"USA": "yes", "GBR": "yes", "FRA": "yes",
                        "CHN": "yes", "RUS": "abstain"}},
+    {"id": "S/RES/2231", "body": "Security Council",
+     "title": "Endorsement of the Iran nuclear deal (JCPOA)",
+     "date": "2015-07-20",
+     "summary": "Unanimously endorsed the Joint Comprehensive Plan of Action "
+                "limiting Iran's nuclear programme in exchange for sanctions "
+                "relief, and set the snapback mechanism.",
+     "result": "Adopted (unanimous)",
+     "tally": {"yes": 15, "no": 0, "abstain": 0},
+     "notable_votes": {"USA": "yes", "GBR": "yes", "FRA": "yes",
+                       "RUS": "yes", "CHN": "yes"}},
+    {"id": "S/RES/2397", "body": "Security Council",
+     "title": "Tightened sanctions on North Korea (DPRK)",
+     "date": "2017-12-22",
+     "summary": "Sharply cut refined petroleum exports to the DPRK and ordered "
+                "the repatriation of North Korean workers abroad after a series "
+                "of ballistic-missile tests.",
+     "result": "Adopted (unanimous)",
+     "tally": {"yes": 15, "no": 0, "abstain": 0},
+     "notable_votes": {"USA": "yes", "GBR": "yes", "FRA": "yes",
+                       "RUS": "yes", "CHN": "yes"}},
+    {"id": "S/RES/1973", "body": "Security Council",
+     "title": "No-fly zone over Libya",
+     "date": "2011-03-17",
+     "summary": "Authorized a no-fly zone and 'all necessary measures' to "
+                "protect civilians in Libya, the legal basis for the NATO "
+                "intervention.",
+     "result": "Adopted",
+     "tally": {"yes": 10, "no": 0, "abstain": 5},
+     "notable_votes": {"USA": "yes", "GBR": "yes", "FRA": "yes",
+                       "RUS": "abstain", "CHN": "abstain", "DEU": "abstain",
+                       "IND": "abstain", "BRA": "abstain"}},
+    {"id": "ES-11/4", "body": "General Assembly (Emergency Special Session)",
+     "title": "Territorial integrity of Ukraine — condemning annexations",
+     "date": "2022-10-12",
+     "summary": "Condemned Russia's attempted annexation of four Ukrainian "
+                "oblasts and called on states not to recognize it.",
+     "result": "Adopted",
+     "tally": {"yes": 143, "no": 5, "abstain": 35},
+     "notable_votes": {"USA": "yes", "GBR": "yes", "FRA": "yes", "UKR": "yes",
+                       "RUS": "no", "BLR": "no", "PRK": "no", "SYR": "no",
+                       "NIC": "no", "CHN": "abstain", "IND": "abstain"}},
 ]
 
 

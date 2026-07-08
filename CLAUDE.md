@@ -18,6 +18,96 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v6.6.5)
+
+**v6.6.5 (2026-07-08, "code everything you deferred" + the empty-leader-page
+fix):** the five v6.6.4 deferrals plus the reported empty al-Sharaa profile.
+**Leader pages are comprehensive now (the headline complaint):** the empty
+al-Sharaa page had the AI synthesis gated on a Wikipedia extract being present
+(`elif bio and (bio.get("extract") or rows)`) — when Wikipedia was blocked the
+page showed nothing. Decoupled: synthesis runs **whenever a provider is
+reachable and we know who this is** (name + ≥1 tracked office), writing a full
+profile from the model's general knowledge (`LEADER_PROFILE_PROMPT` rewritten
+to expect NO extract; career_history/key_policies 4-7 bullets each,
+`max_tokens` 800). Portrait now falls back to the reliable action-API
+`pageimages`+search path (`_wiki_action_image`) when the REST summary has no
+thumbnail. And a **curated data floor** (`geopolitics/leaders_detail.py`,
+`LEADER_DETAIL` for al-Sharaa, Zelenskyy, Putin, Xi, Trump, Modi, Netanyahu,
+Starmer, Macron — summary/ideology/career/party/policies/bio) guarantees the
+page is rich even fully offline. Verified: al-Sharaa returns a 5-field
+synthesis (career 5, policies 5) with zero providers configured.
+**Party pages** gained the same AI-synth treatment
+(`routes_v4._party_synthesis` + `PARTY_PROFILE_PROMPT` → summary/ideology/
+history/positions/electoral, cached at `partyprof:{id}`, rendered by
+`renderParty`); enriches whenever a provider is up. **Insurgencies tab:** the
+conflicts directory is now two tabs (⚔ Conflicts / 🔥 Insurgencies) filtering
+on a new `is_insurgency` flag; 6 insurgencies seeded (Balochistan, Kurdish–
+Turkish/PKK, Naxalite–Maoist, West Papua/OPM, Cabo Delgado, ELN Colombia) +
+`INSURGENCY_NAMES`. Verified: `/api/conflicts` returns 7 flagged insurgencies.
+**Clickable country stats:** population/GDP/GDP-per-capita/HDI/area cells on a
+country profile are now clickable (`stat-clickable` + `▸`) → a
+`/api/country-stat` detail pane with an AI-synthesized distribution (by city/
+region), sector composition, and growth trajectory rendered as bars
+(`renderCountryStat`); degrades to the headline figure + a "configure AI"
+note when no provider is up. **UNSC page filled:** 5 → 9 resolutions
+(added JCPOA 2231, DPRK sanctions 2397, Libya no-fly 1973, UNGA ES-11/4
+annexations, kept the Gaza/Ukraine set). **Two new audio tracks:**
+`nocturne_calm` (glacial/chime, calm) and `storm_front` (driving, aggressive),
+both built at `droneOct -12` from clean primitives so neither reintroduces the
+sub-rumble buzz; added to `presets_active`. Territories already carry full
+stats/leaders from v6.6.4. Verified: fresh boot clean, headless Chromium 0
+non-network console errors, all four new endpoints return correct shapes.
+
+## Status (v6.6.4)
+
+**v6.6.4 (2026-07-08, owner QoL batch before the dedicated translation patch):**
+~34 items; the bulk landed, a few heavy data/audio items are scoped for a
+follow-up (listed at the end). **Disputed territories, for real:** the disputed
+mode now renders every zone (Crimea/Donetsk/Luhansk/Zaporizhzhia/Kherson/
+Kashmir/Taiwan/Western Sahara/Kosovo/**Falklands**) as pulsing **clickable amber
+markers** on the globe (`setDisputedZones` + a dedicated GL buffer + hit-test →
+`onSelectDisputed` → per-zone breakdown), not just a directory. **Nagorno-
+Karabakh** marked resolved (Azerbaijan control 2023, Artsakh dissolved Jan 2024).
+**Alignments overhauled:** explicit `RIVALRIES`/`FRIENDSHIPS` override tables
+layered on the camp model (`_apply_overrides`) — Pakistan⇄India, Afghanistan⇄
+Pakistan, Armenia⇄Azerbaijan, Israel⇄Iran now hate each other; US⇄Armenia no
+longer hostile, India⇄Armenia friends, Falklands makes UK⇄Argentina rivals, +
+common-sense pairs for ~40 states; symmetric (A→B implies B→A). **Feed
+never cleared (blocking mechanism):** `LiveFeed.setStories` refuses to replace a
+populated feed with an empty list unless `force:true` — no map/view mode can
+blank the feed. **Alignment mode** auto-disables when you navigate away from a
+country panel (`onNavigate`), and clicking its button off / opening another
+country re-targets. **Constitutional monarchs** are no longer the "paramount"
+leader — `_paramount_role` treats a constitutional (non-absolute) monarchy as
+PM-led, so Denmark reads Mette Frederiksen, not King Frederik X. **Themes:**
+new clean **light** mode (white/black/strong-blue); **Fire Rises** recolored to
+mostly-black + neon deep-purple + white; **New Order** to mostly-black + neon
+cyan/muted-green/muted-red + white; **stuck-on-orange fixed** (applyTheme now
+strips EVERY `theme-*` class instead of a stale hardcoded list that omitted
+`theme-ember`). **Analyst:** orb bursts into the panel on open (energy-blast CSS)
+and reforms on close, each with a distinct WebAudio cue (`analystOpen/
+analystClose`); answers default to more, bullet-heavy detail (4-7 bullets/
+section, 250-450 words, `answer_max_tokens` 1200). **Animations:** the feed and
+all sliding panels get a clean fade/slide entrance; the feed ✕ moved to the top-
+right corner. **News quality:** US sports + obscure local-blotter items are
+hard-penalized below the relevance floor unless they name a real global entity
+(`_is_low_global_interest`); +12 tech/finance sources (Hacker News, VentureBeat,
+FT, MarketWatch, Yahoo Finance, Seeking Alpha, Economist…); rss interval 45→30s.
+**Fonts:** a Settings → Font-style selector (sans/serif/mono/condensed/rounded)
+applied to UI + map labels. **Bloc emblems** on bloc pages. Panel/story deep-
+summaries may now draw on general historical/present knowledge for context
+(not just tracked stories). Verified: boot clean; disputed zones incl.
+Falklands, Denmark paramount = head_of_government, ARG rival includes GBR, all
+enemy/friend pairs correct, light theme present; headless Chromium 0 JS errors
+across theme cycling, font switch, disputed mode, alignment, analyst open/close.
+
+**Scoped for the next patch (not in v6.6.4):** insurgencies as a separate
+tab within the conflicts view; clickable country-stat cells opening
+distribution/growth graphs from vendored UN data; full country-grade profiles
+for every territory (French Polynesia et al.); brand-new audio tracks + a
+deeper buzz-removal pass; UNSC page resolution expansion. These need vendored
+datasets / DSP work and are deferred to keep this patch correct and shippable.
+
 ## Status (v6.6.2)
 
 **v6.6.2 (2026-07-08, owner's post-6.6.1 fix list):** ~20 items. **Themes

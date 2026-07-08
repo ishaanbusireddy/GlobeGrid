@@ -25,7 +25,7 @@ ingestion_intervals_seconds:
   # minute"). RSS is cheap; polling ~170 feeds every 45s is a few requests/sec.
   # Conflict-relevant local outlets poll even faster (FAST_POLL_SOURCES in
   # seed.py, 180s→now clamped by the 30s scheduler floor).
-  rss: 45
+  rss: 30
   usgs: 75
   market: 90
   reddit: 600
@@ -212,7 +212,7 @@ analyst_panel:
   # embedding is now OFF by default. The whole request is now a fast FTS lookup
   # + a single Groq call bounded by answer_timeout_seconds.
   embedding_retrieval_enabled: false
-  answer_max_tokens: 900                  # v6.6 — richer sectioned answers
+  answer_max_tokens: 1200                  # v6.6 — richer sectioned answers
   # v6.5 — 40s: room for local Ollama inference (the ollama timeout floor) while
   # the outer deadline (+12s) still lands under the client's 60s abort. On Groq
   # this is only a ceiling — fast answers return in ~2s regardless.
@@ -250,7 +250,7 @@ panels:
 # v6 §23 — ten additional themes on the same CSS-variable-swap mechanism
 # (single line: the minimal YAML parser reads inline lists only)
 themes:
-  available: ["amber_terminal", "cold_war", "colorblind_safe", "crimson_edge", "crimson_gold", "dark_teal_default", "desert_ops", "ember", "fire_rises", "forest_floor", "gunmetal", "high_contrast", "neon_grid", "new_order", "nightfall", "royal_gold", "synthwave"]
+  available: ["amber_terminal", "cold_war", "colorblind_safe", "crimson_edge", "crimson_gold", "dark_teal_default", "desert_ops", "ember", "fire_rises", "forest_floor", "gunmetal", "high_contrast", "light", "neon_grid", "new_order", "nightfall", "royal_gold", "synthwave"]
 
 # v6 §1 — Groq-first architecture: Groq is PRIMARY for all LLM calls (analyst,
 # translation, synthesis, title correction, web-search verification), not a

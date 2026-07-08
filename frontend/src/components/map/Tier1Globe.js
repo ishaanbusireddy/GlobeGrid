@@ -446,7 +446,7 @@ function compile(gl, vsSrc, fsSrc) {
 
 export class Tier1Globe {
   constructor(host, { onSelectEvent, onSelectLocation, onCountryClick, onSelectActor,
-                      onSelectCluster,
+                      onSelectCluster, onSelectDisputed,
                       quality = "high", idleTourSeconds = 45,
                       clusterScreenDistancePx = 40,       // v4 §2.2
                       facingOcclusion = true,             // v4 §2.1
@@ -458,6 +458,7 @@ export class Tier1Globe {
     this.onCountryClick = onCountryClick || (() => {});       // v3 §13.3
     this.onSelectActor = onSelectActor || (() => {});         // v4 §5.4 NSA layer
     this.onSelectCluster = onSelectCluster || (() => {});     // v5 §9 dense-cluster list
+    this.onSelectDisputed = onSelectDisputed || (() => {});   // v6.6.4 disputed marker
     this.quality = quality;                    // standard | high | ultra
     this.idleTourSeconds = idleTourSeconds;
     this.clusterPx = clusterScreenDistancePx * lodCalibration;
@@ -777,6 +778,10 @@ export class Tier1Globe {
     this.beamCount = 0;
     this.markedBuf = gl.createBuffer();
     this.markedCount = 0;
+    // v6.6.4 — clickable disputed-territory markers (own buffer + list)
+    this.disputedBuf = gl.createBuffer();
+    this.disputedCount = 0;
+    this.disputedZones = [];
     this.markedLocations = [];
     this.satBuf = gl.createBuffer();
     this.satCount = 0;
@@ -817,6 +822,21 @@ export class Tier1Globe {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.markedBuf);
     gl.bufferData(gl.ARRAY_BUFFER, pts, gl.DYNAMIC_DRAW);
     this.markedCount = this.markedLocations.length;
+  }
+
+  // v6.6.4 — clickable disputed-territory markers, shown while disputed mode
+  // is on. Each has {id,name,lat,lon,...}; clicking opens its context panel.
+  setDisputedZones(zones) {
+    const gl = this.gl;
+    this.disputedZones = (zones || []).filter((z) => z.lat != null);
+    const pts = new Float32Array(this.disputedZones.length * 9);
+    this.disputedZones.forEach((z, i) => {
+      const [x, y, zz] = latLonToVec3(z.lat, z.lon, 1.004);
+      pts.set([x, y, zz, 1.0, 0.55, 0.2, 7.0, 1.0, 0.95], i * 9);  // amber, pulsing
+    });
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.disputedBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, pts, gl.DYNAMIC_DRAW);
+    this.disputedCount = this.disputedZones.length;
   }
 
   // --- v3 §10.2: satellites at their real altitude above the surface ---
@@ -1464,6 +1484,11 @@ export class Tier1Globe {
       return;
     }
     if (hit) { this.onSelectEvent(hit); return; }
+    // v6.6.4 — disputed markers take click priority while disputed mode is on
+    if (this.showDisputes && this.disputedCount) {
+      const dz = this._hitTestPointList(clientX, clientY, this.disputedZones, "lat", "lon", 1.004);
+      if (dz) { this.onSelectDisputed(dz); return; }
+    }
     const actor = this.actorCount ? this._hitTestActors(clientX, clientY) : null;
     if (actor) { this.onSelectActor(actor); return; }
     const marked = this._hitTestMarked(clientX, clientY);
@@ -1844,6 +1869,20 @@ export class Tier1Globe {
       this._pointAttribs(true);
       gl.depthMask(false);
       gl.drawArrays(gl.POINTS, 0, this.markedCount);
+      gl.depthMask(true);
+    }
+
+    // v6.6.4 — disputed-territory markers (pulsing amber, only while disputed
+    // mode is on), clickable to open the zone's context breakdown
+    if (this.showDisputes && this.disputedCount) {
+      gl.useProgram(this.progPoint);
+      gl.uniformMatrix4fv(gl.getUniformLocation(this.progPoint, "mvp"), false, mvp);
+      gl.uniform1f(gl.getUniformLocation(this.progPoint, "time"), time);
+      gl.uniform1f(gl.getUniformLocation(this.progPoint, "dpr"), window.devicePixelRatio || 1);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.disputedBuf);
+      this._pointAttribs(true);
+      gl.depthMask(false);
+      gl.drawArrays(gl.POINTS, 0, this.disputedCount);
       gl.depthMask(true);
     }
 

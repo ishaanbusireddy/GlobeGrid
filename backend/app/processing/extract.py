@@ -284,7 +284,37 @@ def global_relevance(item: dict, source_type: str, source_kind: str) -> float:
         score += 0.2
     elif source_type in ("rss", "wikipedia", "wiki_views"):
         score += 0.1
+    # v6.6.4 — hard-penalize US sports and obscure local-interest items that
+    # carry no global connection (owner: "idw hear abt some Denver Broncos bs";
+    # "filter obscure US local news, like some random individual death"). Push
+    # them below the default relevance floor unless a real global entity is
+    # named (that entity boost above still applies and can rescue a rare case).
+    if _is_low_global_interest(text) and not any(
+            n in text for n in known if len(n) > 3):
+        score = min(score, 0.12)
     return round(min(1.0, score), 3)
+
+
+# sports leagues/teams + local-blotter markers that shouldn't reach a global
+# geopolitics feed on their own
+_SPORTS_TERMS = (
+    "nfl", "nba", "mlb", "nhl", "ncaa", "super bowl", "playoff", "touchdown",
+    "quarterback", "home run", "world series", "stanley cup", "march madness",
+    "broncos", "cowboys", "packers", "lakers", "yankees", "red sox", "celtics",
+    "premier league fixture", "box score", "final score", "coach fired",
+    "draft pick", "free agent", "mvp award", "wide receiver", "point guard",
+)
+_LOCAL_BLOTTER_TERMS = (
+    "obituary", "local man", "local woman", "high school", "county fair",
+    "city council votes to", "found dead in", "car crash on", "house fire",
+    "lottery winner", "missing dog", "weather forecast for", "road closure",
+    "traffic accident", "shooting at a", "arrested for dui",
+)
+
+
+def _is_low_global_interest(text: str) -> bool:
+    return (any(t in text for t in _SPORTS_TERMS)
+            or any(t in text for t in _LOCAL_BLOTTER_TERMS))
 
 
 def _find_near_duplicate(vec, occurred_at: str) -> str | None:

@@ -73,7 +73,62 @@ def party_detail(params, q, body):
         (row["name"], row["name"].split(" (")[0] + "%"))]
     d["background"] = _background("party", row["id"])
     d["recent_stories"] = _stories_mentioning(row["name"].split(" (")[0])
+    d["synthesis"] = _party_synthesis(row)   # v6.6.5 comprehensive AI profile
     return 200, d
+
+
+PARTY_PROFILE_PROMPT = """You are a political analyst. From the CONTEXT (a political
+party's name, its country, ideology tags and founding date) write a
+comprehensive, neutral structured profile of this specific real party.
+
+Return ONLY valid JSON:
+{
+  "summary": string,                 // 2-4 sentences: what the party is and its current standing
+  "ideology": string,                // its political ideology / position, one line
+  "history": [string, ...],          // 4-7 bullets: founding, key eras, notable leaders and elections
+  "positions": [string, ...],        // 4-7 bullets: signature policy positions and platform
+  "electoral": string                // 1-2 sentences: its recent electoral performance / role (govt or opposition)
+}
+Draw on your general knowledge of this well-known party — a description may not
+be provided and you should still write a full, accurate profile. Be factual and
+neutral; give a genuinely informative, detailed profile. If you truly don't
+recognize the party, keep fields short rather than fabricating."""
+
+
+def _party_synthesis(row):
+    """v6.6.5 — cached AI-synthesized comprehensive party profile so party
+    pages are as rich as leader pages, even without live web content."""
+    import json as _json
+    from ..db.models import meta_get, meta_set
+    from ..processing import llm
+    key = f"partyprof:{row['id']}"
+    cached = meta_get(key)
+    if cached:
+        try:
+            return _json.loads(cached)
+        except _json.JSONDecodeError:
+            return None
+    if not llm.available():
+        return None
+    ctx = {"name": row["name"], "country": row.get("country_name"),
+           "ideology_tags": row.get("ideology_tags"), "founded": row.get("founded_date")}
+    text = llm.complete(PARTY_PROFILE_PROMPT,
+                        [{"role": "user", "content": _json.dumps(ctx)}],
+                        max_tokens=800, timeout=40, json_mode=True)
+    if not text:
+        return None
+    t = text.strip()
+    if t.startswith("```"):
+        t = t.strip("`").removeprefix("json").strip()
+    b = t.find("{")
+    if b != -1:
+        t = t[b:t.rfind("}") + 1]
+    try:
+        synth = _json.loads(t)
+    except _json.JSONDecodeError:
+        return None
+    meta_set(key, _json.dumps(synth))
+    return synth
 
 
 @route("GET", "/api/persons/{id}")

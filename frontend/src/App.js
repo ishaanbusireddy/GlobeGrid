@@ -100,8 +100,27 @@ function switchToTier(tier) {   // v6.6.2 — G/M mode switch, persisted like th
   mountRenderer(tier);
 }
 
+// v6.6.4 — selectable font style for the whole UI (and the map labels, which
+// read the same family off the body). Persisted, applied on load.
+const FONT_CLASSES = ["font-serif", "font-mono", "font-condensed", "font-rounded"];
+function applyFont(font) {
+  document.body.classList.remove(...FONT_CLASSES);
+  if (font && font !== "sans") document.body.classList.add("font-" + font);
+  localStorage.setItem("tdl_font", font || "sans");
+  // let the renderer pick up the new family for its canvas labels
+  const fam = getComputedStyle(document.body).fontFamily;
+  state.renderer?.setLabelFont?.(fam);
+}
+
 function applyTheme(theme) {
-  document.body.classList.remove(...THEME_CLASSES, "colorblind");
+  // v6.6.4 — strip EVERY theme-* class, not a hardcoded list. The old
+  // THEME_CLASSES list went stale (missing theme-ember), so switching away
+  // from the orange 'ember' theme never removed it — the theme got "stuck".
+  for (const c of [...document.body.classList]) {
+    if (c.startsWith("theme-")) document.body.classList.remove(c);
+  }
+  document.body.classList.remove("colorblind");
+  document.body.classList.toggle("light-theme", theme === "light");
   if (theme && theme !== "dark_teal_default") {
     document.body.classList.add("theme-" + theme);
   }
@@ -257,6 +276,11 @@ const pane = new SlidePane(els.slidePane, {
   onNavigate: (entry) => {
     // §16.2 — closing the pane (entry=null) clears the analyst focus;
     // v6 §26 — it also clears the pulsing map highlight
+    // v6.6.4 — alignment mode auto-disables when we leave a country panel
+    // (owner: "auto disable alignment mode if navigated to another page").
+    if (!entry || entry.targetType !== "country") {
+      if (state.alignmentIso) { applyAlignmentOverlay(null); state.alignmentIso = null; }
+    }
     if (!entry) { setFocus(null); state.renderer?.setHighlight?.(null); return; }
     if (entry.focus) setFocus(entry.focus.type, entry.focus.name);
   },
@@ -287,6 +311,8 @@ const ctx = {
     localStorage.setItem("tdl_colorblind", on ? "1" : "0");
   },
   setTheme: (theme) => applyTheme(theme),           // v5 §14
+  setFont: (font) => applyFont(font),               // v6.6.4 font style
+  font: () => localStorage.getItem("tdl_font") || "sans",
   languages: () => LANGUAGES,                         // v5 §2
   setLanguage: (code) => setSiteLanguage(code),       // v6 §11 — site-wide
   themes: () => (state.clientConfig.themes || {}).available
@@ -345,6 +371,10 @@ const ctx = {
   openDisputedZone: (zid) => pane.push({
     key: "disputed:" + zid, title: "disputed territory",
     render: (el) => Wiki.renderDisputedZone(el, zid, ctx),
+  }),
+  openCountryStat: (iso3, metric, name) => pane.push({   // v6.6.5 stat detail
+    key: `stat:${iso3}:${metric}`, title: metric,
+    render: (el) => Wiki.renderCountryStat(el, iso3, metric, name, ctx),
   }),
 };
 pane.openEntity = (type, id, opts) => openEntity(type, id, opts);
@@ -599,6 +629,7 @@ function mountRenderer(tier) {
       openEntity("non_state_actor", a.id);
     },
     onSelectCluster: (cluster) => openClusterList(cluster),   // v5 §9
+    onSelectDisputed: (z) => ctx.openDisputedZone(z.id),      // v6.6.4 disputed marker
     onCountryClick: (lat, lon) => {
       let c = countryAt(lat, lon);
       // v6.2 — small island nations (Mauritius, Comoros, Malta, Seychelles…)
@@ -636,6 +667,8 @@ function mountRenderer(tier) {
   state.renderer.setHeatmap?.(els.heatmapToggle.classList.contains("active"));
   state.renderer.setBorders?.(state.bordersOn);
   state.renderer.setDisputes?.(state.disputesOn);
+  if (state.disputesOn && state.disputedZones)   // v6.6.4 re-apply clickable markers
+    state.renderer.setDisputedZones?.(state.disputedZones);
   if (state.markedOn) state.renderer.setMarkedLocations?.(state.markedLocations);
   if (state.actorsOn) {
     state.renderer.setActors?.(state.actors);
@@ -1112,10 +1145,18 @@ els.disputesToggle.addEventListener("click", () => {
   state.disputesOn = !state.disputesOn;
   els.disputesToggle.classList.toggle("active", state.disputesOn);
   state.renderer?.setDisputes?.(state.disputesOn);
-  // v6.6.2 — entering disputed mode opens the clickable disputed-territories
-  // directory (Crimea, Donetsk, Luhansk, Zaporizhzhia, Kherson, …), each with
-  // its own context breakdown
-  if (state.disputesOn) ctx.openDisputedZones();
+  // v6.6.4 — push the disputed zones onto the map as clickable amber markers,
+  // AND open the directory. Clicking a marker OR a directory row opens the
+  // per-zone context breakdown.
+  if (state.disputesOn) {
+    api.disputedZones().then((d) => {
+      state.disputedZones = d.zones || [];
+      state.renderer?.setDisputedZones?.(state.disputedZones);
+    }).catch(() => {});
+    ctx.openDisputedZones();
+  } else {
+    state.renderer?.setDisputedZones?.([]);
+  }
 });
 // v6.2 — timezone picker in the header (was buried in Settings and hard to find)
 for (const g of TIMEZONES) {
@@ -1546,6 +1587,8 @@ tlBtn.addEventListener("click", async () => {
 // backend now always tries the question text first — v4 §16.2) ---
 const analyst = new AnalystPanel({
   onOpenStory: (id) => openStory(id),
+  onOpenSound: () => sound.analystOpen(),     // v6.6.4 open/close cues
+  onCloseSound: () => sound.analystClose(),
   getFocusedEntity: () => state.focusedEntity,
   // v6 §29 — screen-aware: whatever panel/page is open right now
   getScreen: () => ({
@@ -1600,6 +1643,7 @@ loadRegions();
 // v5 §14/§2 — restore saved theme + language on boot
 applyTheme(localStorage.getItem("tdl_theme")
   || (localStorage.getItem("tdl_colorblind") === "1" ? "colorblind_safe" : "dark_teal_default"));
+applyFont(localStorage.getItem("tdl_font") || "sans");   // v6.6.4
 applyLanguage(localStorage.getItem("tdl_lang") || "en");
 
 // debug/verification handle (harmless in production; used by headless checks)
@@ -1635,37 +1679,53 @@ els.conflictsBtn.addEventListener("click", () => {
     render: async (el) => {
       const data = await api.conflicts().catch(() => ({ conflicts: [] }));
       state.conflicts = data.conflicts || [];
+      // v6.6.5 — two tabs at the top: full Conflicts vs Insurgencies (low-
+      // intensity / separatist struggles that haven't become full-scale wars)
       el.innerHTML = `<h1>Conflicts</h1>
-        <p class="cp-meta">Every tracked conflict — selecting one enters War Mode:
-        a dedicated layout framed on the conflict zone, sides in consistent
-        colors, and a conflict-only feed (v6 §8).</p>
+        <div class="conflict-tabs" style="margin-bottom:10px">
+          <button class="conflict-tab cdir-tab active" data-k="wars">⚔ Conflicts</button>
+          <button class="conflict-tab cdir-tab" data-k="insurgencies">🔥 Insurgencies</button>
+        </div>
+        <p class="cp-meta cdir-note">Selecting one enters War Mode: a dedicated
+          layout framed on the zone, sides in consistent colors, and a
+          conflict-only feed (v6 §8).</p>
         <div class="conflict-dir"></div>`;
       const list = el.querySelector(".conflict-dir");
-      for (const c of state.conflicts) {
-        const sides = { a: [], b: [], none: [] };
-        for (const pt of (c.parties || [])) {
-          (sides[pt.side || "none"] = sides[pt.side || "none"] || []).push(
-            pt.country_name || pt.actor_name);
+      const renderCat = (kind) => {
+        list.innerHTML = "";
+        const items = state.conflicts.filter((c) =>
+          kind === "insurgencies" ? c.is_insurgency : !c.is_insurgency);
+        for (const c of items) {
+          const sides = { a: [], b: [], none: [] };
+          for (const pt of (c.parties || [])) {
+            (sides[pt.side || "none"] = sides[pt.side || "none"] || []).push(
+              pt.country_name || pt.actor_name);
+          }
+          const row = document.createElement("div");
+          row.className = "story-card dir-card";
+          row.innerHTML = `<div class="card-meta">
+              <span class="chip">${c.status}</span>
+              <span class="cp-meta">${c.region || ""}</span>
+              <span class="cp-meta" style="margin-left:auto">${c.story_count || 0} stories</span>
+            </div><h3></h3>
+            <p class="cp-meta war-sides"></p>`;
+          row.querySelector("h3").textContent = c.name;
+          row.querySelector(".war-sides").textContent =
+            [sides.a.length ? sides.a.join(", ") : null,
+             sides.b.length ? sides.b.join(", ") : null]
+              .filter(Boolean).join("  ⚔  ");
+          row.addEventListener("click", () => enterWarMode(c.id));
+          list.appendChild(row);
         }
-        const row = document.createElement("div");
-        row.className = "story-card dir-card";
-        row.innerHTML = `<div class="card-meta">
-            <span class="chip">${c.status}</span>
-            <span class="cp-meta">${c.region || ""}</span>
-            <span class="cp-meta" style="margin-left:auto">${c.story_count || 0} stories</span>
-          </div><h3></h3>
-          <p class="cp-meta war-sides"></p>`;
-        row.querySelector("h3").textContent = c.name;
-        row.querySelector(".war-sides").textContent =
-          [sides.a.length ? sides.a.join(", ") : null,
-           sides.b.length ? sides.b.join(", ") : null]
-            .filter(Boolean).join("  ⚔  ");
-        row.addEventListener("click", () => enterWarMode(c.id));
-        list.appendChild(row);
-      }
-      if (!state.conflicts.length) {
-        list.innerHTML = '<p class="cp-meta">no conflicts registered yet</p>';
-      }
+        if (!items.length) list.innerHTML =
+          `<p class="cp-meta">no ${kind === "insurgencies" ? "insurgencies" : "conflicts"} registered yet</p>`;
+      };
+      el.querySelectorAll(".cdir-tab").forEach((t) =>
+        t.addEventListener("click", () => {
+          el.querySelectorAll(".cdir-tab").forEach((x) => x.classList.toggle("active", x === t));
+          renderCat(t.dataset.k);
+        }));
+      renderCat("wars");
     },
   });
 });

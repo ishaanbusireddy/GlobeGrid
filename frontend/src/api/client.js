@@ -124,6 +124,7 @@ export const api = {
     get(`/api/cities?min_population=${minPop || 500000}&limit=${limit || 4000}`),
   borderDisputes: () => get("/api/border-disputes"),
   disputedZones: () => get("/api/disputed-zones"),   // v6.6.2 disputed territories
+  countryStat: (iso3, metric) => get(`/api/country-stat?iso3=${encodeURIComponent(iso3)}&metric=${encodeURIComponent(metric)}`),   // v6.6.5
   parties: () => get("/api/parties"),
   party: (id) => get(`/api/parties/${id}`),
   person: (id) => get(`/api/persons/${id}`),
