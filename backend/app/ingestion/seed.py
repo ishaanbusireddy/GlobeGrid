@@ -86,6 +86,13 @@ SOURCES = [
     # --- v2 §1.4 transport ---
     ("OpenSky Air Traffic", "opensky", "https://opensky-network.org/api/states/all",
      "n/a", "reported"),
+    # --- v7.2 §4 physical-sensor fusion: maritime chokepoint traffic +
+    # nighttime-lights blackouts (key-gated; degrade cleanly with no key) ---
+    ("AIS Maritime Chokepoints", "ais", "https://data.aishub.net/ws.php",
+     "n/a", "reported"),
+    ("VIIRS Nighttime Lights", "nightlights",
+     "https://ladsweb.modaps.eosdis.nasa.gov/api/v2/measures/point",
+     "n/a", "reported"),
     # --- v4 §13.2 economic/market breadth: central-bank statements and
     # institutional economic releases are structurally different from both
     # news articles and price ticks — tracked as their own official feeds ---
@@ -351,7 +358,8 @@ _INTERVAL_KEY = {"rss": "rss",
                  "usgs": "usgs", "market": "market", "reddit": "reddit",
                  "firms": "firms", "volcano": "volcano", "wikipedia": "wikipedia",
                  "wiki_views": "wiki_views", "mastodon": "mastodon",
-                 "bluesky": "bluesky", "opensky": "opensky", "acled": "acled"}
+                 "bluesky": "bluesky", "opensky": "opensky", "acled": "acled",
+                 "ais": "ais", "nightlights": "nightlights"}
 
 # v6 §10 — conflict-relevant local-language outlets poll on a faster cadence
 # than the default rss interval so local reporting lands first

@@ -101,17 +101,6 @@ def _test_analyst():
     return out.get("answer")
 
 
-def _test_translation():
-    # v6.6.8 — tests the new site-wide translator (processing/i18n.py).
-    from ..processing import i18n
-    src = "The president met world leaders today."
-    got = i18n.translate_strings([src], "es").get(src)
-    if not got or got.strip() == src:
-        raise RuntimeError("no translation returned (provider unavailable or "
-                           "reply not parsed) — a language switch would be a no-op")
-    return got
-
-
 def _test_deep_summary():
     from ..processing import llm
     return llm.complete(
@@ -135,7 +124,6 @@ _TESTS = [
     ("Provider ping (primary provider)", _test_provider_ping),
     ("Large-payload ping (~4KB)", _test_large_ping),
     ("Analyst answer (full path)", _test_analyst),
-    ("Translation (site-wide i18n)", _test_translation),
     ("Deep summary (LLM call)", _test_deep_summary),
     ("Causal narrative (LLM call)", _test_causal),
 ]

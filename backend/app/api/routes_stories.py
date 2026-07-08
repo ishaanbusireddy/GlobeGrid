@@ -70,6 +70,15 @@ def _connected_history(story_id: str) -> list[dict]:
 def _story_card(row) -> dict:
     d = row_to_dict(row, json_fields=("causal_narrative",), drop=("embedding",
                                                                   "needs_causal_refresh"))
+    # v7 §6 — first located member event, so the audio briefing's globe
+    # autopilot (and any pan-to) can fly to the story without a second fetch
+    loc = query_one(
+        "SELECT e.location_lat AS lat, e.location_lon AS lon FROM events e"
+        " JOIN story_members m ON m.event_id = e.id"
+        " WHERE m.story_id = ? AND e.location_lat IS NOT NULL LIMIT 1",
+        (d["id"],))
+    if loc:
+        d["lat"], d["lon"] = loc["lat"], loc["lon"]
     # §3.3 — duplicates excluded from member/source counts
     stats = query_one(
         "SELECT COUNT(DISTINCT m.event_id) AS n_events,"
@@ -456,31 +465,7 @@ def graph(params, q, body):
     }
 
 
-@route("POST", "/api/i18n/translate")
-def i18n_translate(params, q, body):
-    """v6.6.8 — the ONE translation endpoint. The frontend DOM translator sends
-    a batch of visible UI/content strings and a target language; this returns
-    each string's translation (cache-first). Whatever text is already in the
-    target language is returned unchanged. This replaces the old
-    /api/translate + /api/translate/content (both deleted)."""
-    from ..processing import i18n
-    if not isinstance(body, dict) or not isinstance(body.get("texts"), list):
-        return 400, {"error": "body must be {lang, texts: [string, ...]}"}
-    lang = str(body.get("lang") or "en")
-    texts = [str(t) for t in body["texts"] if isinstance(t, (str, int, float))][:120]
-    if lang == "en" or not texts:
-        # English is the source language of the UI — nothing to translate.
-        return 200, {"lang": lang, "translations": {t: t for t in texts},
-                     "ai_available": i18n.available()}
-    return 200, {"lang": lang, "translations": i18n.translate_strings(texts, lang),
-                 "ai_available": i18n.available()}
-
-
-@route("GET", "/api/i18n/diagnostics")
-def i18n_diagnostics(params, q, body):
-    """v6.6.12 — a REAL translation self-test the owner can run on their own
-    machine: shows the exact prompt sent to their model, the model's RAW reply,
-    and the parsed translation. Answers 'is my Ollama actually translating?'
-    without any faking. Open /api/i18n/diagnostics?lang=sq (default Albanian)."""
-    from ..processing import i18n
-    return 200, i18n.diagnostics(str(q.get("lang") or "sq"))
+# v7 — backend translation scrapped by owner decision (the LLM-translation
+# experiment never worked reliably on small local models; the owner will
+# architect a replacement). The language picker + LANGUAGES list remain in the
+# frontend (RTL/dir/wordmark only).

@@ -18,6 +18,142 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v7.2)
+
+**v7.2 (2026-07-08, "extreme amounts of knowledge and understanding"):** two
+deepenings on top of v7.1. **Deep historical backfill 1945→present (§6):**
+`ingestion/history_pack.py` `DEEP_HISTORY` — **129 curated landmark events**
+from Hiroshima (1945) through 2024, each dated in the past, geocoded,
+severity-graded, and seeded once at startup (`seed_deep_history()`, external_id
+`deep:*`, idempotent) into the permanent fact chain alongside the existing 48
+curated events (v7.0) — so the chain now carries **seven decades** of ground
+truth for correlation and analyst grounding, not just the last two years. A new
+`ERA_BRIEFS` layer in `geopolitics/world_knowledge.py` (six dense era dossiers:
+postwar order, unipolar moment, multipolar disorder, Cold-War flashpoints,
+decolonization, economic shocks) is composed by `era_context()` (~2.4k chars)
+and injected into every analyst bundle as `historical_eras`, so the AI can
+place any current event on the full 1945→present arc. **Sensor fusion completed
+(§4):** the two missing physical-sensor streams are built — **AIS maritime
+chokepoint traffic** (`sources/ais.py`, vessel-count anomalies at Hormuz /
+Bab-el-Mandeb / Suez / Malacca / Taiwan Strait / Bosphorus / Panama / Gibraltar)
+and **VIIRS nighttime-lights blackouts** (`sources/nightlights.py`, radiance
+collapse over Gaza / Kharkiv / Khartoum / Beirut / Sanaa / Damascus / Mariupol /
+Aleppo / Port-au-Prince). Both are key-gated (`AIS_API_KEY` /
+`NASA_EARTHDATA_TOKEN`) and degrade cleanly with no key (the sandbox has none,
+so they emit nothing — as designed). Wired end to end: `SOURCE_TYPES` +=
+`ais`/`nightlights` with a sources-table CHECK rebuild migration (triggers on
+the `'ais'` sentinel so already-migrated v6 DBs upgrade), scheduler `FETCHERS`,
+`seed.py` source rows + `ingestion_intervals_seconds`, `corroborate.py`
+`SENSOR_SOURCE_TYPES`, `/api/sensors` labels, and new `sensor_ais`/
+`sensor_nightlights` colors in both renderers + the 📡 toggle tooltip. **Bug
+fixed along the way:** the pre-existing curated backfill silently lost 13 of 48
+events (and would have lost 26 of the 129 new ones) because `events.category`
+only admits five values while the packs use a richer editorial taxonomy — added
+`_CAT_TO_BASE` (military→conflict, diplomacy→geopolitics, technology→other) so
+**all 177 historical events now extract** (was 35/48). Version badge → v7.2.
+Verified: fresh boot, deep 129/129 + curated 48/48 extracted (0 CHECK
+failures), `/api/sensors` + AIS/nightlights fetchers degrade cleanly with no
+key, `era_context()` returns the composed dossier, analyst bundle carries
+`historical_eras`; headless sweep (version badge, sensor toggle on globe AND 2D,
+marked+sensor union) = **0 non-network console errors**.
+
+## Status (v7.1)
+
+**v7.1 (2026-07-08, deepen the v7 features):** three completions on top of v7.0.
+**Sensor-fusion visibility (§5):** new `GET /api/sensors` returns recent
+FIRMS/OpenSky/USGS/ACLED events tagged `sensor_*`; a **📡 header toggle** draws
+them on the map through the SAME marked-locations pin buffer (sensor colors
+added to both renderers' `CAT_COLORS`; `applyMapMarkers()` unions marked +
+sensor arrays so both layers coexist). The story page now renders a
+**corroboration banner** from `corroboration_detail` (which sensors agree, how
+far, why it matters). **Counterfactual deepening (§2):** every branch has a
+**↳ deepen** button → `POST /api/counterfactual/expand` generates 2-4 grounded
+child consequences chaining from that branch (mechanism + probability +
+`chain_support`), nested under it — the flagship is explorable, not one-shot.
+**Situation Room from the directory (§3):** a **🎙 button per conflict** in the
+Conflicts directory opens the four-analyst room without entering War Mode.
+Version badge → v7.1. Verified: headless sweep (sensor toggle, marked+sensor
+union, 10 directory situation-room buttons, deepen buttons) = 0 non-network
+console errors; `/api/sensors` + `/api/counterfactual/expand` return correct
+shapes and degrade cleanly with no data/provider.
+
+## Status (v7.0)
+
+**v7.0 (2026-07-08, "the leap from explaining the present to simulating and
+contesting the future"):** a major feature release on top of v6.6.x. The
+running patch version now shows next to the wordmark (`#brand-version`, from
+`config.APP_VERSION` via `/api/config`). Backend translation was **scrapped**
+per owner decision (the LLM-translation experiment never worked reliably on
+small local models; owner will re-architect) — the language picker + LANGUAGES
+list remain for dir/RTL/wordmark only; `processing/i18n.py`,
+`frontend/src/i18n_translate.js`, `/api/i18n/*` and the diagnostics translation
+test are all deleted.
+
+**Part 6 — All-Around Comprehensive Intelligence (built first, the owner's
+priority):** `geopolitics/world_knowledge.py` is a dense curated offline
+dossier layer (REGION_BRIEFS, CONFLICT_BRIEFS, COUNTRY_BRIEFS for ~50 majors +
+a `country_knowledge` composer that covers everyone else from structured data,
+ALLIANCE_BRIEFS, NSA_BRIEFS, UN_BRIEF) written from the record through early
+2026. Every country/conflict/alliance/UN/NSA panel now renders a **🌍 deep-
+background dossier INSTANTLY on open** (no LLM, no network) via
+`knowledgeSection()` in WikiPages.js, and the same text is injected into the
+analyst bundle as `world_knowledge` grounding so the AI can explain any topic
+in depth to a total newcomer. The analyst is now **screen-aware of the CURRENT
+top panel** (`screen.top_panel` from the pane stack — authoritative for
+"this"/"here", never a stale previously-opened panel). Historical backfill
+(`ingestion/backfill.py`): 48 curated major world events (mid-2024→early 2026)
+seed once at startup into the fact chain (offline), plus a resumable GDELT-2.0
+archive walk (config `backfill.*`, 180 days, degrades cleanly offline) —
+attributed to archive sources, dated in the past.
+
+**§2 Counterfactual Engine** (`processing/counterfactual.py`,
+`POST /api/counterfactual`, `WhatIf.js`, 🔮 header button): perturb the world
+("What if the Strait of Hormuz closes?") → an LLM branching consequence tree
+grounded in tracked stories + historical analogues (FTS over the chain) +
+world-knowledge, each branch mechanism-scored, probability-weighted, domain-
+tagged, `chain_support`-annotated (how many real archive events echo it),
+country chips fly the map. Non-AI structural fallback from the alignment graph.
+
+**§3 Multi-Agent Situation Room** (`processing/situation_room.py`,
+`GET /api/situation-room/{cid}`, `SituationRoom.js`, 🎙 button in War Mode):
+four persistent AI analysts with fixed doctrines (VECTOR/Realist,
+LEDGER/Economist, CANDLE/Humanitarian, BULWARK/Military) read the SAME source
+chain and argue in a threaded panel (takes + one rebuttal round), citing story
+ids. Cached per (conflict, latest-story fingerprint).
+
+**§4 Forecasting scorecards** (`processing/backtest.py`,
+`GET /api/forecasting/scorecard` + `POST /api/forecasting/backtest`, 🎯 button,
+nightly in `_daily_loop`): a Brier backtest replays the fact chain, grades the
+prediction the system WOULD have made per story, and only lets a category
+surface live forecasts once it clears a per-category calibration bar
+(`forecast_scorecards` table, config `forecasting.calibration_*` +
+`auto_enable_earned`). Public "how right were we?" dashboard shows failures too.
+
+**§5 Ground-truth fusion** (`processing/corroborate.py`, in the pipeline loop):
+when a conflict/military/disaster story coincides in space+time with physical-
+sensor events (FIRMS thermal / OpenSky air-traffic / USGS seismic / ACLED), it
+earns a `corroboration` score (📡 badge in the feed) — text + physical signal
+agreeing. Additive `stories.corroboration` columns; `story_corroborated` WS push.
+
+**§6 Personal audio briefing** (`components/MorningBriefing.js`, 🎧 button):
+interests learned locally from opened stories/watchlist; a ~3-minute spoken
+digest via the Web Speech API narrates while the globe auto-flies between story
+locations (story cards now carry lat/lon); music ducks under the voice. Once-a-
+day pulse nudge.
+
+**Misc fixes:** NSA flags + full official names (`geopolitics/nsa_identity.py`
+— Hamas/Hezbollah/Houthis/etc. render like countries); the **Mumbai/India news-
+pooling** bug fixed (a lone common-English word that is also a city name —
+"Central", "Nice", "Split" — no longer geocodes a story by itself:
+`gazetteer.AMBIGUOUS_SINGLE`; geoplace ordered by `occurred_at` not the missing
+`created_at`); **King Frederik X removed from territory leadership** (a
+territory with its own head_of_government drops synced monarch head_of_state
+rows). Verified: fresh boot, headless sweep across what-if / scorecard / country
+& actor dossiers / audio briefing = **0 non-network console errors**; version
+badge reads v7.0; 48 curated events extracted into the chain; all new routes
+return correct shapes (AI paths degrade cleanly with no provider, as always in
+the sandbox).
+
 ## Status (v6.6.12)
 
 **v6.6.12 (2026-07-08, "everything is still English — change your whole

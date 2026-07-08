@@ -45,7 +45,8 @@ SCHEMA_VERSION = 6
 # rows are just retired (is_active=0) and never polled again.
 SOURCE_TYPES = ("rss", "gdelt", "gdelt_events", "usgs", "market", "reddit",
                 "firms", "volcano", "wikipedia", "wiki_views", "mastodon",
-                "bluesky", "opensky", "acled", "synthetic")
+                "bluesky", "opensky", "acled", "ais", "nightlights",
+                "synthetic")
 
 DDL = f"""
 CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -758,15 +759,21 @@ def _upgrade_v1_to_v2() -> None:
             conn.execute(f"INSERT OR IGNORE INTO sources ({cols}, kind)"
                          f" SELECT {cols}, 'reported' FROM sources_v1")
             conn.execute("DROP TABLE sources_v1")
-        # sources: v1 CHECK constraint doesn't admit the v2 types -> rebuild
+        # sources: an older CHECK constraint doesn't admit newer types
+        # (v2 added 'firms'…; v7.2 adds 'ais'/'nightlights') -> rebuild.
+        # Trigger on the newest sentinel so already-migrated DBs still upgrade.
         src_sql = conn.execute(
             "SELECT sql FROM sqlite_master WHERE type='table' AND name='sources'"
         ).fetchone()
-        if src_sql and "'firms'" not in (src_sql["sql"] or ""):
+        if src_sql and "'ais'" not in (src_sql["sql"] or ""):
             conn.execute("ALTER TABLE sources RENAME TO sources_v1")
             conn.execute(create_sources_sql)
+            # preserve `kind` if the old table already had it (v2+); an
+            # ancient v1 table predates the column, so default it.
+            kind_expr = ("kind" if "kind" in _columns(conn, "sources_v1")
+                         else "'reported'")
             conn.execute(f"INSERT INTO sources ({cols}, kind)"
-                         f" SELECT {cols}, 'reported' FROM sources_v1")
+                         f" SELECT {cols}, {kind_expr} FROM sources_v1")
             conn.execute("DROP TABLE sources_v1")
         conn.execute("COMMIT")
     except Exception:

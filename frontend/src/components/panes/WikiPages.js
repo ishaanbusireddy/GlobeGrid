@@ -40,6 +40,23 @@ function freshness(ts) {   // §15.3 — visible 'last updated', always
   return `<p class="freshness">last updated: ${esc((ts || "").slice(0, 16).replace("T", " ")) || "seed data (never synced)"}</p>`;
 }
 
+// v7 Part 6 — curated world-knowledge dossier, rendered INSTANTLY on open
+// (no LLM, no network): the "explain this to someone who just discovered it"
+// layer. `k` is the route's knowledge object {brief, region_brief?, curated}.
+export function knowledgeSection(k, title = "Deep background") {
+  if (!k || (!k.brief && !k.region_brief)) return "";
+  const tag = k.curated
+    ? '<span class="chip">curated intelligence · early 2026</span>'
+    : '<span class="chip">composed from tracked data</span>';
+  return `<section class="knowledge-sec"><h4>🌍 ${esc(title)} ${tag}</h4>
+    ${k.brief ? `<p class="knowledge-text">${esc(k.brief)}</p>` : ""}
+    ${k.region_brief ? `<p class="knowledge-text knowledge-region">
+      <b>Regional context${k.region ? ` — ${esc(k.region)}` : ""}:</b>
+      ${esc(k.region_brief)}</p>` : ""}
+  </section>`;
+}
+
+
 function backgroundSection(items) {   // §7.2 — attributed by origin
   if (!items || !items.length) {
     return `<section><h4>Background</h4><p class="cp-meta">No background synthesis cached
@@ -293,6 +310,7 @@ export async function renderCountry(el, iso3, ctx) {
       </div>
     </div>
     ${statCells ? `<section><h4>Key statistics</h4><div class="stat-grid">${statCells}</div></section>` : ""}
+    ${knowledgeSection(p.knowledge, "Country intelligence")}
     ${territories}
     ${freshness(p.last_updated_at)}
     ${backgroundSection(p.background)}
@@ -490,14 +508,21 @@ export async function renderActor(el, id, ctx) {
     `<button class="ap-chip conflict-link" data-id="${esc(c.id)}">${esc(c.name)} (${esc(c.role)})</button>`
   ).join(" ") || '<span class="cp-meta">none registered</span>';
   const bg = await api.background("non_state_actor", id).catch(() => ({ background: [] }));
+  // v7 — NSAs get a real flag/emblem + full official name, like a country
+  const flag = a.flag_image_url
+    ? `<img class="wiki-flag-img" src="${esc(a.flag_image_url)}" alt=""
+         onerror="this.outerHTML='<div class=&quot;wiki-flag&quot;>◈</div>'">`
+    : '<div class="wiki-flag">◈</div>';
   el.innerHTML = `
-    <div class="wiki-header"><div class="wiki-flag">◈</div>
+    <div class="wiki-header">${flag}
       <div class="wiki-head-meta"><h1>${esc(a.name)}</h1>
+        ${a.official_name ? `<p class="cp-meta nsa-official">${esc(a.official_name)}</p>` : ""}
         <p class="cp-meta">${esc(a.actor_type)} · ${esc(a.primary_region || "")}
           · active since ${esc(a.active_since || "?")}</p>
         ${a.affiliated_state_name ? `<p class="cp-meta">reported backing: ${esc(a.affiliated_state_name)}</p>` : ""}
       </div></div>
     ${freshness(a.last_updated_at)}
+    ${knowledgeSection(a.knowledge)}
     ${backgroundSection(bg.background)}
     <section><h4>Description <span class="cp-meta">(tracked synthesis)</span></h4>
       <p>${esc(a.description_synthesis || "—")}</p></section>
@@ -562,6 +587,7 @@ export async function renderAlliance(el, id, ctx) {
       <div><b class="leader-link" data-leader="${esc(a.leader[0])}" style="cursor:pointer">${esc(a.leader[0])}</b>
         <p class="cp-meta">${esc(a.leader[1])} · since ${esc(a.leader[2])}</p></div></div>
     </section>` : ""}
+    ${knowledgeSection(a.knowledge, "Bloc intelligence")}
     <section><h4>Purpose</h4><p>${esc(prof.purpose || a.description || "—")}</p></section>
     <section class="bloc-stats"><h4>Statistics</h4>
       <div class="stat-grid">
@@ -950,6 +976,7 @@ function unMainHtml(d) {
       <h1>🇺🇳 United Nations</h1>
       <p class="cp-meta">Security Council, recent resolutions and how members voted.</p>
     </div></div>
+    ${knowledgeSection(d.knowledge, "UN intelligence")}
     <section><h4>Security Council — Permanent members (P5, veto power)</h4>
       ${sc.permanent ? sc.permanent.map(memberChip).join(" ") : ""}</section>
     <section><h4>Security Council — Elected members</h4>

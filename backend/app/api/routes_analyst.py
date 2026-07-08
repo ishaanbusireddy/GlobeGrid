@@ -124,8 +124,21 @@ How to answer (v6 §29 quality bar):
   description. Machine-readable ids belong ONLY in "cited_story_ids", which
   the UI renders as clickable event chips.
 - The bundle may include a "screen" object describing what panel/page the
-  user currently has open — factor it in without needing it restated
-  ('this conflict' means the one on screen).
+  user currently has open. screen.top_panel is AUTHORITATIVE for "this"/
+  "here"/"what am I looking at": it is the panel visible RIGHT NOW. If it
+  conflicts with an older focused_entity, ALWAYS prefer screen.top_panel —
+  never comment on a previously-opened panel the user has moved past.
+- The bundle may include "world_knowledge": a curated intelligence dossier
+  (history, actors, stakes, status through early 2026) about the entity in
+  question or on screen, and "historical_eras": a 1945→present arc of how the
+  modern world was built (postwar/Cold-War order → unipolar moment →
+  multipolar disorder). Treat both as reliable grounding and WEAVE them into
+  your answer freely — combined with your own general knowledge of history,
+  cultures, religions, geopolitics, economics and markets. Assume the user
+  may know NOTHING about the topic: define actors and terms on first
+  mention, give the one-paragraph origin story (reaching back decades where it
+  helps) before the latest twist, and make the answer self-contained for a
+  total newcomer while staying sharp for experts.
 - Lead with GlobeGrid's tracked data when it's relevant — reference the
   causal narratives and cite the story ids you used. When you rely on a web
   search result instead, say so explicitly ('per a web search, ...') so the
@@ -647,6 +660,50 @@ def ask(params, q, body):
     # the bundle so 'this conflict' needs no restating
     if isinstance(body.get("screen"), dict):
         bundle["screen"] = body["screen"]
+    # v7 Part 6 — curated world-knowledge dossier for the matched entity AND
+    # the panel currently on screen: the analyst answers with real depth even
+    # for a user who knows nothing about the topic.
+    try:
+        from ..geopolitics import world_knowledge as wk
+        packs = []
+        if entity:
+            et, eid = entity.get("type"), entity.get("id")
+            nm = entity.get("name") or eid
+            if et == "country":
+                packs.append(wk.context_pack("country", eid, entity))
+            elif et == "conflict":
+                packs.append(wk.context_pack("conflict", nm))
+            elif et == "alliance":
+                packs.append(wk.context_pack("alliance", nm))
+            elif et == "non_state_actor":
+                packs.append(wk.context_pack("non_state_actor", nm))
+        tp = (bundle.get("screen") or {}).get("top_panel") or {}
+        if tp.get("kind") == "country" and tp.get("id"):
+            prof = query_one("SELECT * FROM countries WHERE id = ?", (tp["id"],))
+            packs.append(wk.context_pack("country", tp["id"],
+                                         dict(prof) if prof else None))
+        elif tp.get("kind") == "war" and tp.get("id"):
+            crow = query_one("SELECT name FROM conflicts WHERE id = ?", (tp["id"],))
+            if crow:
+                packs.append(wk.context_pack("conflict", crow["name"]))
+        elif tp.get("kind") == "un":
+            packs.append(wk.context_pack("un", None))
+        packs = [p for p in packs if p]
+        if packs:
+            # dedupe while preserving order (entity + screen often coincide)
+            seen, uniq = set(), []
+            for p in packs:
+                if p not in seen:
+                    seen.add(p)
+                    uniq.append(p)
+            bundle["world_knowledge"] = "\n\n".join(uniq)
+        # v7.2 — the seven-decade historical arc, always available so the
+        # analyst can place any current event in its 1945→present context
+        # for a total newcomer.
+        from ..geopolitics.world_knowledge import era_context
+        bundle["historical_eras"] = era_context()
+    except Exception:  # noqa: BLE001 — knowledge is enrichment, never a blocker
+        pass
     # v6 §29 — region questions produce real deep-dive content: linked
     # countries + conflicts + story threads + events, not a one-liner
     region_links = None

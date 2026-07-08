@@ -115,6 +115,10 @@ EMBEDDING_MODEL_NAME = env(
     "EMBEDDING_MODEL_NAME",
     str(CONFIG.get("embedding", {}).get("model_name", "paraphrase-multilingual-MiniLM-L12-v2")))
 API_PORT = int(env("API_PORT", "8000"))
+
+# v7 — the single source of truth for the running patch version, shown next to
+# the wordmark in the header so the owner can confirm which build is live.
+APP_VERSION = "7.2"
 LOG_LEVEL = env("LOG_LEVEL", "INFO")
 LOG_DIR = env("LOG_DIR", str(REPO_ROOT / "logs"))
 

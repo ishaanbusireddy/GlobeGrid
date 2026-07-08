@@ -89,6 +89,16 @@ def country_profile(params, q, body):
     profile["leadership"] = [dict(r) for r in query(
         "SELECT role, name, party, since_date, last_refreshed_at, image_url"
         " FROM country_leadership WHERE country_id = ?", (iso3,))]
+    # v7 (owner) — a territory/autonomous region shows its OWN elected head,
+    # never the sovereign's ceremonial monarch (King Frederik X was appearing
+    # as "leader" of Greenland/Faroe via synced head_of_state rows). If the
+    # territory has a local head_of_government, drop monarch-style
+    # head_of_state rows entirely from its leadership list.
+    if profile.get("status") == "territory":
+        roles = {l["role"] for l in profile["leadership"]}
+        if "head_of_government" in roles:
+            profile["leadership"] = [
+                l for l in profile["leadership"] if l["role"] != "head_of_state"]
     # v6.1 — which office actually leads the country. The UI must feature the
     # PARAMOUNT leader (Xi Jinping for China, not Premier Li Qiang; Putin for
     # Russia), which the naive "prefer prime minister" rule got wrong. Derive
@@ -97,6 +107,9 @@ def country_profile(params, q, body):
     profile["paramount_role"] = _paramount_role(iso3, profile.get("government_type"),
                                                 profile["leadership"])
     profile["paramount_title"] = _PARAMOUNT_TITLE.get(iso3)
+    # v7 Part 6 — curated world-knowledge dossier, rendered instantly on open
+    from ..geopolitics.world_knowledge import country_knowledge
+    profile["knowledge"] = country_knowledge(iso3, profile)
     # v5 §15 — visible staleness flag: a leadership row that has never synced,
     # or hasn't refreshed within its expected interval, is marked so the UI can
     # warn instead of silently serving old data forever (a leader who died in
@@ -490,9 +503,12 @@ def alliance_profile(params, q, body):
     from ..geopolitics.country_extra import (ALLIANCE_LEADERS, ALLIANCE_PROFILES,
                                              EU_PARLIAMENT)
     a = query_one("SELECT * FROM alliances WHERE id = ?", (params["aid"],))
+    if a is not None:
+        from ..geopolitics.world_knowledge import alliance_knowledge
     if not a:
         return 404, {"error": "alliance not registered"}
     out = dict(a)
+    out["knowledge"] = alliance_knowledge(out["name"])   # v7 Part 6
     if out["name"] in ALLIANCE_LEADERS:
         out["leader"] = ALLIANCE_LEADERS[out["name"]]
     prof = ALLIANCE_PROFILES.get(out["name"])
@@ -536,9 +552,11 @@ def alliance_profile(params, q, body):
 def conflicts_list(params, q, body):
     rows = query("SELECT * FROM conflicts ORDER BY"
                  " CASE status WHEN 'active' THEN 0 ELSE 1 END, started_at DESC")
+    from ..geopolitics.world_knowledge import conflict_knowledge
     out = []
     for r in rows:
         d = dict(r)
+        d["knowledge"] = conflict_knowledge(r["name"])   # v7 Part 6
         d["parties"] = [dict(p) for p in query(
             "SELECT cp.party_type, cp.role, cp.side, c.name AS country_name,"
             " c.id AS country_id, c.flag_image_url,"
@@ -1036,7 +1054,9 @@ def un_overview(params, q, body):
             nv.append({"id": real, "name": _name(real), "vote": vote,
                        "flag_image_url": _flag(real)})
         resolutions.append({**r, "notable_votes": nv})
-    return 200, {"sub_orgs": _un_sub_orgs(),   # v6.6 — agency subtab data
+    from ..geopolitics.world_knowledge import UN_BRIEF
+    return 200, {"knowledge": {"brief": UN_BRIEF, "curated": True},   # v7 Part 6
+                 "sub_orgs": _un_sub_orgs(),   # v6.6 — agency subtab data
         "security_council": {"permanent": permanent, "elected": elected},
                  "other_councils": [{"name": n, "note": d} for n, d in u.OTHER_COUNCILS],
                  "resolutions": resolutions}
@@ -1072,9 +1092,14 @@ def actors_list(params, q, body):
     rows = query(
         "SELECT n.*, c.name AS affiliated_state_name FROM non_state_actors n"
         " LEFT JOIN countries c ON c.id = n.affiliated_state_id ORDER BY n.name")
+    from ..geopolitics.nsa_identity import NSA_IDENTITY
     out = []
     for r in rows:
         d = dict(r)
+        # v7 — full official name + flag/emblem, like a country
+        d.update(NSA_IDENTITY.get(r["name"], {}))
+        from ..geopolitics.world_knowledge import nsa_knowledge
+        d["knowledge"] = nsa_knowledge(r["name"])
         d["conflicts"] = [dict(p) for p in query(
             "SELECT c.id, c.name, cp.role FROM conflict_parties cp"
             " JOIN conflicts c ON c.id = cp.conflict_id"

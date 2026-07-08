@@ -91,6 +91,7 @@ export class StoryPage {
         <span class="conf conf-${conf}">confidence: ${conf}</span>
       </div>
       <h1></h1>
+      <div class="corroboration-banner"></div>
       <ul class="summary-bullets"></ul>
       <div class="full-summary-row">
         <button class="full-summary-btn">≡ full summary</button>
@@ -176,7 +177,7 @@ export class StoryPage {
     // v4 §20 — reasoning trace: which threshold fired, actual similarity,
     // same-window vs historical-chain, plus the debate disagreement score
     // v6.6.8 — story-page text is translated by the site-wide DOM translator
-    // (i18n_translate.js) via its MutationObserver; no per-page translate call.
+    // (translation scrapped in v7; owner will architect a replacement).
     // v6.6 — deep synthesis auto-generates the moment the story opens
     setTimeout(() => { try { rmBtn.click(); } catch {} }, 60);
     page.querySelector(".trace-btn").addEventListener("click", async (ev) => {
@@ -209,6 +210,28 @@ export class StoryPage {
         }
       }
     });
+
+    // v7.1 §5 — ground-truth corroboration: text + physical sensors agreeing
+    const cbanner = page.querySelector(".corroboration-banner");
+    const esc = (t) => String(t ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    if (s.corroboration && cbanner) {
+      let det = s.corroboration_detail;
+      if (typeof det === "string") { try { det = JSON.parse(det); } catch { det = null; } }
+      const pct = Math.round(s.corroboration * 100);
+      const types = (det?.sensor_types || []).map((t) => ({
+        firms: "🔥 thermal", opensky: "✈ air-traffic", usgs: "地 seismic",
+        acled: "⚔ ACLED" }[t] || t)).join(" · ");
+      const hits = (det?.hits || []).slice(0, 4).map((h) =>
+        `<li>${esc(h.title || h.type)} <span class="cp-meta">(${esc(h.type)}, ${h.km} km away)</span></li>`).join("");
+      cbanner.innerHTML = `
+        <div class="corrob-head">📡 <b>Corroborated ${pct}%</b>
+          <span class="cp-meta">physical sensors agree with the reporting</span></div>
+        ${types ? `<p class="cp-meta">signals: ${types}</p>` : ""}
+        ${hits ? `<ul class="corrob-hits">${hits}</ul>` : ""}
+        <p class="cp-meta">A story earns corroboration when tracked physical-sensor
+          events (thermal/air-traffic/seismic/ACLED) coincide in space and time
+          with what the text reports — text alone can be wrong; physics is harder.</p>`;
+    }
 
     // causal narrative
     const grid = page.querySelector(".narrative-grid");

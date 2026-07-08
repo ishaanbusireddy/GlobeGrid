@@ -91,7 +91,9 @@ def sources_status(params, q, body):
 def client_config(params, q, body):
     """Client-relevant tunables only — never secrets."""
     from ..processing import llm as _llm
+    from ..config import APP_VERSION
     return 200, {
+        "app_version": APP_VERSION,
         # v6.1 — honest AI state so every fallback message (causal storyline,
         # country agenda, translation) reflects the *actual* provider instead
         # of a hardcoded "Set CLAUDE_API_KEY" string from the Anthropic era.

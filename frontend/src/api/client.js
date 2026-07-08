@@ -93,10 +93,17 @@ export const api = {
   watchlist: () => get("/api/watchlist"),
   watchlistAdd: (kind, value) => post("/api/watchlist", { kind, value }),
   watchlistDelete: (id) => post("/api/watchlist/delete", { id }),
-  // v6.6.8 — the single site-wide translation call (DOM translator). Replaces
-  // the deleted /api/translate + /api/translate/content.
-  i18nTranslate: (lang, texts) =>
-    post("/api/i18n/translate", { lang, texts }, { timeout: 60000 }),
+  // --- v7 ---
+  counterfactual: (perturbation, force) =>
+    post("/api/counterfactual", { perturbation, force }, { timeout: 90000 }),
+  counterfactualRecent: () => get("/api/counterfactual/recent"),
+  counterfactualExpand: (perturbation, branch) =>
+    post("/api/counterfactual/expand", { perturbation, branch }, { timeout: 90000 }),
+  sensors: () => get("/api/sensors"),
+  forecastScorecard: () => get("/api/forecasting/scorecard"),
+  runBacktest: () => post("/api/forecasting/backtest", {}, { timeout: 60000 }),
+  situationRoom: (cid, force) =>
+    get(`/api/situation-room/${cid}${force ? "?force=1" : ""}`, { timeout: 180000 }),
   // --- v3 ---
   storyFeedback: (id, vote) => post(`/api/stories/${id}/feedback`, { vote }),
   lineage: (factId) => get(`/api/lineage/${factId}`),

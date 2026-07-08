@@ -127,6 +127,19 @@ def _ascii(s: str) -> str:
     return unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode()
 
 
+# v7 — common English words that are ALSO city names somewhere on Earth
+# ("Central" LA, "Mobile" AL, "Split" HR, "Nice" FR, "Reading" UK, "Most" CZ,
+# "Bath" UK, "Deal" UK, "Sale" AUS, "Along" IN, "Date" JP, "Media" PA, ...).
+# A single ambiguous word never geocodes an event on its own — it's how
+# "Central bank holds rates steady" pinned to Central, Louisiana and finance
+# copy pooled events at random cities. Multi-word spans ("Nice, France") and
+# datelines still resolve normally.
+AMBIGUOUS_SINGLE = frozenset(
+    "central mobile split nice most bath deal sale reading along date media "
+    "normal surprise commerce enterprise industry price march best close hit "
+    "man bar of many crane eagle liberty union orange golden".split())
+
+
 def _candidate_spans(text: str) -> list[str]:
     """Capitalized 1-3 word runs plus their sub-spans, order-preserving."""
     seen, out = set(), []
@@ -225,7 +238,11 @@ def geocode_text(text: str):
             candidates.append((lowered.find(name), -COUNTRY_RANK_POPULATION,
                                name.title(), lat, lon))
     for span in _candidate_spans(text):
-        hit = _lookup_place(_ascii(span).lower())
+        low_span = _ascii(span).lower()
+        # v7 — a lone common-English word can't geocode a story by itself
+        if " " not in low_span and low_span in AMBIGUOUS_SINGLE:
+            continue
+        hit = _lookup_place(low_span)
         if hit:
             pos = lowered.find(span.lower())
             if pos < 0:

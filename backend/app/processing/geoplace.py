@@ -83,7 +83,7 @@ def correct_recent(limit=4):
         " WHERE is_synthetic = 0"
         "   AND (geocode_confidence IS NULL OR geocode_confidence < 0.7)"
         "   AND (llm_geoplaced IS NULL OR llm_geoplaced = 0)"
-        " ORDER BY created_at DESC LIMIT ?",
+        " ORDER BY occurred_at DESC LIMIT ?",
         (limit,))
     moved = []
     for r in rows:

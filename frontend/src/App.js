@@ -34,7 +34,11 @@ import { decodeBoundaries, countryAtPoint } from "./data/boundaryCodec.js";
 import { LANGUAGE_INFO, RELIGION_INFO, familyColor } from "./data/families.js";
 import { TIMEZONES, getTimeZone, setTimeZone } from "./data/timefmt.js";  // v6.2 header tz
 import { LANGUAGES, applyLanguage } from "./i18n.js";   // v5 §2
-import * as domTranslate from "./i18n_translate.js";   // v6.6.8 site-wide translator
+import { renderWhatIf } from "./components/panes/WhatIf.js";   // v7 §2
+import { renderSituationRoom } from "./components/panes/SituationRoom.js";  // v7 §3
+import * as morning from "./components/MorningBriefing.js";   // v7 §6
+// v7 — backend translation scrapped (owner will architect a replacement);
+// the language picker remains and drives dir/RTL + the wordmark only.
 
 // v5 §14 — apply a color theme by swapping the body class (CSS-variable
 // theme). Themes are mutually exclusive; colorblind_safe subsumes the old
@@ -200,14 +204,14 @@ const CALIB_KEY = "tdl_lod_calibration";
 const RELEVANCE_KEY = "tdl_relevance_filter";
 
 const els = {};
-for (const id of ["marked-toggle", "sat-toggle", "blocs-btn", "bloc-panel", "xr-btn", "conflict-tabs",
+for (const id of ["marked-toggle", "sat-toggle", "sensors-toggle", "blocs-btn", "bloc-panel", "xr-btn", "conflict-tabs",
                   "conflicts-btn", "un-btn", "modes-btn", "modes-bar", "mode-legend",
                   "lang-btn", "brand-translit", "feed-header",
                   "lineage-overlay", "map-host", "feed-list", "tier-select",
                   "quality-select", "sound-toggle", "volume-slider", "preset-select",
                   "heatmap-toggle", "borders-toggle", "disputes-toggle", "actors-toggle",
                   "names-toggle", "spin-toggle", "tz-header",
-                  "palette-btn", "briefing-btn", "graph-btn", "watchlist-btn",
+                  "palette-btn", "briefing-btn", "graph-btn", "watchlist-btn", "whatif-btn", "scorecard-btn", "audio-briefing-btn",
                   "bookmarks-btn", "stories-btn", "settings-btn", "snapshot-btn", "help-btn",
                   "watchlist-panel", "conn-badge", "map-filters", "graph-overlay",
                   "briefing-overlay", "status-drawer", "status-toggle",
@@ -588,6 +592,9 @@ function setConn(mode) {
 
 function openStory(id, { push = true } = {}) {
   if (push) history.pushState({ storyId: id }, "", `/story/${id}`);
+  // v7 §6 — learn interests locally from what the user actually opens
+  const st = feed?.snapshot?.().find((x) => x.id === id);
+  if (st) morning.trackInterest(st);
   if (state.syntheticMode) openSyntheticStory(id);
   else storyPage.open(id);
 }
@@ -839,10 +846,8 @@ async function refreshStories() {
                                    sort: state.feedSort || undefined,          // v5 §1
                                    war_tab: state.warMode ? (state.warTab || undefined) : undefined, // v6 §8
                                    development_type: state.devType || undefined });
-  // v6.6.8 — render the feed in English; the site-wide DOM translator
-  // (i18n_translate.js) re-translates the new cards in place via its
-  // MutationObserver whenever a non-English language is active. No per-feed
-  // translation pipeline anymore.
+  // v7 — feed renders in English (translation scrapped; owner will
+  // architect a replacement).
   const stories = data.stories || [];
   feed.setStories(stories);
   feed.currentIds = stories;
@@ -882,6 +887,12 @@ const scrubber = new TimeScrubber(els.scrubberHost, {
 async function loadReal() {
   const cfgData = await api.config().catch(() => null);
   if (cfgData) state.clientConfig = { ...state.clientConfig, ...cfgData };
+  // v7 — patch-version badge next to the wordmark (owner: "so I know I'm
+  // running the right patch"); sourced from the backend's APP_VERSION.
+  if (cfgData && cfgData.app_version) {
+    const v = document.getElementById("brand-version");
+    if (v) v.textContent = "v" + cfgData.app_version;
+  }
   if (!localStorage.getItem(QUALITY_KEY)) {
     els.qualitySelect.value = state.clientConfig.graphics.quality_tier;
   }
@@ -1444,6 +1455,14 @@ async function loadConflicts() {
   } catch { /* entity layer not ready */ }
 }
 
+// v7.1 §5 — the marked-locations and sensor overlays share ONE pin buffer, so
+// they can be shown together; each toggle just unions its array in.
+function applyMapMarkers() {
+  const pins = [];
+  if (state.markedOn) pins.push(...(state.markedLocations || []));
+  if (state.sensorsOn) pins.push(...(state.sensors || []));
+  state.renderer?.setMarkedLocations?.(pins);
+}
 els.markedToggle.addEventListener("click", async () => {
   state.markedOn = !state.markedOn;
   els.markedToggle.classList.toggle("active", state.markedOn);
@@ -1451,7 +1470,22 @@ els.markedToggle.addEventListener("click", async () => {
     const data = await api.markedLocations().catch(() => ({ locations: [] }));
     state.markedLocations = data.locations || [];
   }
-  state.renderer?.setMarkedLocations?.(state.markedOn ? state.markedLocations : []);
+  applyMapMarkers();
+});
+
+// v7.1 §5 — physical-sensor ground-truth overlay (thermal/air/seismic/ACLED)
+els.sensorsToggle.addEventListener("click", async () => {
+  state.sensorsOn = !state.sensorsOn;
+  els.sensorsToggle.classList.toggle("active", state.sensorsOn);
+  if (state.sensorsOn && !(state.sensors || []).length) {
+    const data = await api.sensors().catch(() => ({ sensors: [] }));
+    state.sensors = data.sensors || [];
+    if (!state.sensors.length) {
+      els.sensorsToggle.title = "no sensor events yet — FIRMS/OpenSky/ACLED "
+        + "need API keys; USGS seismic is keyless (network permitting)";
+    }
+  }
+  applyMapMarkers();
 });
 
 els.satToggle.addEventListener("click", async () => {
@@ -1618,12 +1652,24 @@ const analyst = new AnalystPanel({
   onCloseSound: () => sound.analystClose(),
   getFocusedEntity: () => state.focusedEntity,
   // v6 §29 — screen-aware: whatever panel/page is open right now
-  getScreen: () => ({
-    pane: pane.top() ? String(pane.top().key) : null,
-    war_mode: state.warMode ? state.warMode.conflict.name : null,
-    map_mode: state.mapMode, tier: state.tier,
-    conflict_filter: state.conflictId,
-  }),
+  getScreen: () => {
+    // v7 Part 6 — the analyst must comment on the panel the user is LOOKING AT
+    // right now (the top of the pane stack), not a previously-focused entity.
+    const t = pane.top();
+    let topPanel = null;
+    if (t) {
+      const [kind, ...rest] = String(t.key).split(":");
+      topPanel = { kind, id: rest.join(":") || null,
+                   title: t.title || null, current: true };
+    }
+    return {
+      pane: t ? String(t.key) : null,
+      top_panel: topPanel,
+      war_mode: state.warMode ? state.warMode.conflict.name : null,
+      map_mode: state.mapMode, tier: state.tier,
+      conflict_filter: state.conflictId,
+    };
+  },
   onOpenThread: (id) => ctx.openThread(id),
   autoNavDefault: true,
   onNavigate: (nav) => {
@@ -1673,15 +1719,9 @@ applyTheme(localStorage.getItem("tdl_theme")
   || (localStorage.getItem("tdl_colorblind") === "1" ? "colorblind_safe" : "dark_teal_default"));
 applyFont(localStorage.getItem("tdl_font") || "sans");   // v6.6.4
 applyLanguage(localStorage.getItem("tdl_lang") || "en");
-// v6.6.8 — start the site-wide DOM translator and apply a saved non-English
-// language once the initial UI has rendered.
-domTranslate.startObserver();
-if ((localStorage.getItem("tdl_lang") || "en") !== "en") {
-  setTimeout(() => domTranslate.setLanguage(localStorage.getItem("tdl_lang")), 1200);
-}
 
 // debug/verification handle (harmless in production; used by headless checks)
-window.__gg = { state, ctx, pane, openStory, sound, domTranslate, analyst };
+window.__gg = { state, ctx, pane, openStory, sound, analyst };
 
 const initialTier = initTierControl(els.tierSelect, (tier) => mountRenderer(tier));
 mountRenderer(initialTier);
@@ -1707,6 +1747,82 @@ const SIDE_COLORS = { a: [1.0, 0.42, 0.34], b: [0.36, 0.66, 1.0],
                       none: [0.72, 0.72, 0.78] };
 
 els.unBtn.addEventListener("click", () => ctx.openUN());
+// v7 §6 — the spoken personal briefing with globe autopilot
+let briefingCtl = null;
+async function playAudioBriefing() {
+  if (!morning.briefingAvailable()) {
+    alerts?.show?.({ headline: "This browser has no speech synthesis — the audio briefing needs Chrome/Edge/Safari." });
+    return;
+  }
+  if (briefingCtl) { briefingCtl.stop(); briefingCtl = null;
+    els.audioBriefingBtn.classList.remove("active"); return; }
+  const stories = feed?.snapshot?.() || [];
+  if (!stories.length) return;
+  // v7.1 §6 — the explicit watchlist drives the briefing ranking ("overnight
+  // movement on the things YOU follow"), on top of the learned interest model
+  const wl = await api.watchlist().catch(() => ({ items: [] }));
+  const watchTerms = (wl.items || []).map((it) => it.value).filter(Boolean);
+  const segs = morning.buildSegments(stories,
+    (s) => (s.lat != null ? { lat: s.lat, lon: s.lon } : null), watchTerms);
+  const prevVol = sound.volume;
+  els.audioBriefingBtn.classList.add("active");
+  briefingCtl = morning.playBriefing(segs, {
+    flyTo: (lat, lon) => state.renderer?.flyTo?.(lat, lon, state.tier === 1 ? 1.9 : undefined, 1200),
+    duck: () => sound.setVolume(Math.min(prevVol, 0.12)),
+    restore: () => { sound.setVolume(prevVol); briefingCtl = null;
+                     els.audioBriefingBtn.classList.remove("active"); },
+  });
+  morning.markOffered();
+}
+els.audioBriefingBtn.addEventListener("click", playAudioBriefing);
+// gentle once-a-day nudge: pulse the button instead of interrupting
+if (morning.briefingAvailable() && morning.shouldOfferToday()) {
+  els.audioBriefingBtn.classList.add("pulse-offer");
+  els.audioBriefingBtn.addEventListener("click",
+    () => els.audioBriefingBtn.classList.remove("pulse-offer"), { once: true });
+}
+
+// v7 §4 — the public forecast-accuracy dashboard
+els.scorecardBtn.addEventListener("click", () => {
+  pane.push({ key: "scorecard", title: "forecast accuracy",
+    render: async (el) => {
+      el.innerHTML = `<h1>🎯 How right were we?</h1>
+        <p class="cp-meta">Per-category Brier scores from replaying GlobeGrid's
+        own fact chain. A category only surfaces live forecasts once it clears
+        the calibration bar — failures are shown too; the honesty is the point.</p>
+        <p class="cp-meta sc-status">loading scorecards…</p><div class="sc-host"></div>
+        <button class="ap-chip sc-run">↻ re-run the backtest now</button>`;
+      const paint = (d) => {
+        const host = el.querySelector(".sc-host");
+        const st = el.querySelector(".sc-status");
+        st.textContent = d.last_run
+          ? `last backtest ${String(d.last_run).slice(0, 16).replace("T", " ")} · bar: Brier ≤ ${d.bar.brier_ceiling} over ≥ ${d.bar.min_graded} graded`
+          : "no backtest run yet — press re-run below.";
+        host.innerHTML = (d.categories || []).length
+          ? `<table class="sc-table"><tr><th>category</th><th>graded</th>
+               <th>hit rate</th><th>Brier ↓</th><th>forecasts</th></tr>` +
+            d.categories.map((c) => `<tr>
+              <td>${c.category}</td><td>${c.graded}</td>
+              <td>${c.graded ? Math.round(100 * c.confirmed / c.graded) + "%" : "—"}</td>
+              <td>${c.brier}</td>
+              <td>${c.passed ? "✅ earned" : "🔒 not yet earned"}</td></tr>`).join("")
+            + `</table>`
+          : `<p class="cp-meta">No graded history yet — the scorecard fills as
+             the fact chain accumulates resolved horizons. That's the design:
+             forecasts are earned, never assumed.</p>`;
+      };
+      paint(await api.forecastScorecard().catch(() => ({ categories: [], bar: { brier_ceiling: "?", min_graded: "?" } })));
+      el.querySelector(".sc-run").addEventListener("click", async () => {
+        el.querySelector(".sc-status").textContent = "replaying the chain…";
+        await api.runBacktest().catch(() => {});
+        paint(await api.forecastScorecard().catch(() => ({ categories: [], bar: {} })));
+      });
+    } });
+});
+els.whatifBtn.addEventListener("click", () => {
+  pane.push({ key: "whatif", title: "what-if",
+              render: (el) => renderWhatIf(el, ctx) });
+});
 els.conflictsBtn.addEventListener("click", () => {
   pane.push({
     key: "conflicts", title: "conflicts",
@@ -1748,6 +1864,39 @@ els.conflictsBtn.addEventListener("click", () => {
             [sides.a.length ? sides.a.join(", ") : null,
              sides.b.length ? sides.b.join(", ") : null]
               .filter(Boolean).join("  ⚔  ");
+          // v7 Part 6 — the curated explainer, right in the directory, so
+          // someone who has never heard of this conflict learns it in place
+          const kb = (c.knowledge || {}).brief;
+          if (kb) {
+            const p = document.createElement("p");
+            p.className = "knowledge-text cdir-brief";
+            const short = kb.length > 300 ? kb.slice(0, 297) + "…" : kb;
+            p.textContent = short;
+            if (kb.length > 300) {
+              const more = document.createElement("button");
+              more.className = "ap-chip";
+              more.textContent = "full background";
+              more.addEventListener("click", (ev) => {
+                ev.stopPropagation();
+                p.textContent = kb;
+              });
+              p.appendChild(document.createTextNode(" "));
+              p.appendChild(more);
+            }
+            row.appendChild(p);
+          }
+          // v7.1 §3 — reach the Situation Room straight from the directory,
+          // without first entering War Mode
+          const sr = document.createElement("button");
+          sr.className = "ap-chip cdir-sitroom";
+          sr.textContent = "🎙 situation room";
+          sr.title = "Four AI analysts argue this conflict from the same sources";
+          sr.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            pane.push({ key: `sitroom:${c.id}`, title: "situation room",
+                        render: (el) => renderSituationRoom(el, c.id, ctx) });
+          });
+          row.appendChild(sr);
           row.addEventListener("click", () => enterWarMode(c.id));
           list.appendChild(row);
         }
@@ -1868,6 +2017,18 @@ function renderWarTabs() {
     });
     els.conflictTabs.appendChild(tab);
   }
+  // v7 §3 — the four-analyst Situation Room, one click from any war
+  const sit = document.createElement("button");
+  sit.className = "conflict-tab";
+  sit.textContent = "🎙 situation room";
+  sit.title = "Four AI analysts — Realist, Economist, Humanitarian, Military "
+    + "Strategist — argue this conflict from the same source chain";
+  sit.addEventListener("click", () => {
+    const cid = state.warMode.conflict.id;
+    pane.push({ key: `sitroom:${cid}`, title: "situation room",
+                render: (el) => renderSituationRoom(el, cid, ctx) });
+  });
+  els.conflictTabs.appendChild(sit);
   const exit = document.createElement("button");
   exit.className = "conflict-tab war-exit";
   exit.textContent = "✕ exit war mode";
@@ -1899,9 +2060,6 @@ function setSiteLanguage(code) {
     ? WORDMARK_TRANSLIT[code] : null;
   els.brandTranslit.textContent = t || "";
   if (els.langBtn.value !== code) els.langBtn.value = code;
-  // v6.6.8 — site-wide DOM translation: scan every visible string and translate
-  // it into `code` (or restore English), UI + map labels + content all at once.
-  domTranslate.setLanguage(code);
 }
 
 for (const l of LANGUAGES) {

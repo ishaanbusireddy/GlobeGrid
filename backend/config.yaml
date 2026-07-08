@@ -37,6 +37,8 @@ ingestion_intervals_seconds:
   bluesky: 600
   opensky: 900
   acled: 3600
+  ais: 900          # v7.2 §4 — maritime chokepoint vessel-traffic (key-gated)
+  nightlights: 3600 # v7.2 §4 — VIIRS nighttime-lights blackout (key-gated)
 
 map:
   cluster_pin_threshold: 15
@@ -102,6 +104,12 @@ forecasting:
   enabled: false            # explicit opt-in; off by default until scorecard has history
   min_resolved_predictions_for_high_confidence: 25
   default_horizon_hours: 72
+  # v7 §4 — the Brier backtest gate: a category EARNS live forecasts by
+  # clearing this bar on replayed history; auto_enable_earned lets earned
+  # categories surface even while the master switch stays false.
+  calibration_brier_ceiling: 0.25
+  calibration_min_graded: 20
+  auto_enable_earned: true
 
 satellite_overlay:
   tle_refresh_interval_hours: 24
@@ -314,3 +322,12 @@ ui:
   # land (Sahara/India/Siberia/Amazon show as ocean), so it reads as stray
   # blobs. Flip true only after the texture is rebuilt from full boundary data.
   terrain_button_visible: false
+
+# v7 Part 6 — historical news backfill: the curated pack always seeds once;
+# the GDELT archive walk needs a live network (degrades cleanly without one).
+backfill:
+  enabled: true
+  days: 180                  # how far back the archive walk goes
+  days_per_tick: 6           # archive days ingested per tick (budget-aware)
+  max_events_per_day: 20     # top-coverage events kept per archive day
+  tick_interval_seconds: 120

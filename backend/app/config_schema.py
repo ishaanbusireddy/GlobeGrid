@@ -84,6 +84,9 @@ SCHEMA: dict = {
     "forecasting": {
         "enabled": (bool, None),
         "min_resolved_predictions_for_high_confidence": (int, lambda v: v >= 0),
+        "calibration_brier_ceiling": ((int, float), lambda v: 0 < v <= 1),
+        "calibration_min_graded": (int, lambda v: v >= 1),
+        "auto_enable_earned": (bool, None),
         "default_horizon_hours": (int, lambda v: v > 0),
     },
     "satellite_overlay": {
@@ -249,6 +252,14 @@ SCHEMA: dict = {
         "city_lights_enabled_default": (bool, None),
         "wordmark_transliteration": (bool, None),
         "terrain_button_visible": (bool, None),   # v6.1.1
+    },
+    # v7 Part 6 — historical backfill
+    "backfill": {
+        "enabled": (bool, None),
+        "days": (int, lambda v: 1 <= v <= 3650),
+        "days_per_tick": (int, lambda v: 1 <= v <= 60),
+        "max_events_per_day": (int, lambda v: 1 <= v <= 200),
+        "tick_interval_seconds": ((int, float), lambda v: v >= 10),
     },
 }
 

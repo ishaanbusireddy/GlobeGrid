@@ -21,6 +21,10 @@ const MARKED_COLORS = {
   conflict_zone: "#ff6b6b", semiconductor_fab: "#99ff99", rare_earth_site: "#d9bf80",
   undersea_cable: "#80ccff", energy_pipeline: "#ffd966", lng_terminal: "#ffb3d9",
   other: "#b3b3b3",
+  // v7.1 §5 — physical sensor layer (ground-truth fusion)
+  sensor_firms: "#ff7043", sensor_opensky: "#4fc3f7",
+  sensor_usgs: "#ffca28", sensor_acled: "#ef5350",
+  sensor_ais: "#26c6da", sensor_nightlights: "#ab47bc",
 };
 
 export class Tier2Map {

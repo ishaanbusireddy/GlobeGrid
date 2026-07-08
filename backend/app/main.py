@@ -24,7 +24,7 @@ if __package__ in (None, ""):  # allow `python backend/app/main.py`
     __package__ = "backend.app"  # noqa: A001
 
 from .api import router  # noqa: E402
-from .api import (routes_analyst, routes_diag, routes_events, routes_geo,  # noqa: E402,F401
+from .api import (routes_analyst, routes_diag, routes_events, routes_geo, routes_v7,  # noqa: E402,F401
                   routes_map, routes_status, routes_stories, routes_v4)
 from .config import API_PORT, REPO_ROOT, cfg  # noqa: E402
 from .db.models import migrate  # noqa: E402

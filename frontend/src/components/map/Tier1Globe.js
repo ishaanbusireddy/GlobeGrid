@@ -847,6 +847,10 @@ export class Tier1Globe {
       semiconductor_fab: [0.6, 1.0, 0.6], rare_earth_site: [0.85, 0.75, 0.5],
       undersea_cable: [0.5, 0.8, 1.0], energy_pipeline: [1.0, 0.85, 0.4],
       lng_terminal: [1.0, 0.7, 0.85], other: [0.7, 0.7, 0.7],
+      // v7.1 §5 — physical sensor layer (ground-truth fusion)
+      sensor_firms: [1.0, 0.44, 0.26], sensor_opensky: [0.31, 0.76, 0.97],
+      sensor_usgs: [1.0, 0.79, 0.16], sensor_acled: [0.94, 0.33, 0.31],
+      sensor_ais: [0.15, 0.78, 0.85], sensor_nightlights: [0.67, 0.28, 0.74],
     };
     const pts = new Float32Array(this.markedLocations.length * 9);
     this.markedLocations.forEach((l, i) => {

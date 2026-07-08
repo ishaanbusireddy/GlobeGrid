@@ -7,7 +7,67 @@ when events across different streams — and different points in time — are
 connected; and explains what happened and why, with every fact traceable to a
 visible, linked source.
 
-**v6.6.12 highlights (current):** mass instant translation **--THIS TOTALLY FAILED TO WORK...will be revisited later
+Built to the [v1 build manual](docs/talkdiplomacy_live_v1_build_manual.pdf),
+[v2 expansion addendum](docs/globegrid_v2_expansion_addendum.pdf),
+[v3 legendary-tier manual](docs/globegrid_v3_legendary_manual.pdf),
+[v4 polish/accuracy/depth manual](docs/globegrid_v4_build_manual.pdf),
+[v5 build manual](docs/globegrid_v5_build_manual.pdf) and
+[v6 build manual](docs/globegrid_v6_build_manual.pdf) as a
+**zero-install build**: Python standard library only. No PostgreSQL, no pip
+install, no npm, no Docker.
+
+**v7.2 highlights (current):** *extreme amounts of knowledge*. The permanent
+fact chain is seeded with **129 curated landmark events from 1945 to the
+present** (Hiroshima through 2024) on top of the existing 2024→2026 pack, and
+the analyst is now grounded in a **1945→present era dossier** so it can place
+any current event on seven decades of history. The **📡 sensor overlay** gains
+two more physical streams — **AIS maritime chokepoint traffic** and **VIIRS
+nighttime-lights blackouts** — alongside thermal / air-traffic / seismic /
+ACLED (all key-gated, degrading cleanly with no key).
+
+**v7.1 highlights:** deepens the v7 features. A **📡 sensor overlay**
+draws the physical ground-truth layer (thermal / air-traffic / seismic / ACLED)
+on the map, and story pages show a **corroboration breakdown** when text and
+sensors agree. Counterfactual branches now have a **↳ deepen** button that
+grows the consequence tree on demand. The **🎙 Situation Room** is reachable
+straight from the Conflicts directory.
+
+**v7.0 highlights:** the leap from *explaining the present* to
+*simulating and contesting the future*. **Comprehensive Intelligence** — every
+country / conflict / alliance / UN / non-state-actor panel opens with an
+instant curated **deep-background dossier** (history, actors, stakes through
+early 2026), the same knowledge grounds the analyst, and the analyst now reads
+the panel you're **actually looking at**; 48 curated recent-history events seed
+the fact chain. **🔮 Counterfactual Engine** — perturb the world ("What if the
+Strait of Hormuz closes?") and watch a branching consequence tree diverge from
+the real timeline, every branch mechanism-scored and checked against the fact
+chain. **🎙 Situation Room** — four AI analysts (Realist / Economist /
+Humanitarian / Military Strategist) argue a conflict from the same sources.
+**🎯 Forecast scorecard** — a Brier backtest earns `forecasting.enabled` per
+category; the public "how right were we?" board shows the misses too. **📡
+Corroboration** — stories that agree with physical sensor signals (thermal /
+air-traffic / seismic) get a corroboration badge. **🎧 Audio briefing** — a
+spoken personal digest while the globe flies between your stories. Plus: a
+**version badge** by the wordmark, NSA flags + official names, the Mumbai
+news-pooling fix, and King Frederik X removed from territory leadership.
+Backend translation was scrapped (to be re-architected); the language picker
+stays for layout/RTL.
+
+**v6.6.12 highlights:** translation **rebuilt around the technique
+dedicated local-LLM translators actually use** — the JSON approach was the wrong
+tool. Forcing Ollama's `format:"json"` on a translation task makes small local
+models (llama3.1 etc.) **echo the English back** inside the JSON instead of
+translating, which is why everything stayed English. Now: **no JSON** — a
+"professional translator" role prompt that says *output only the translation*,
+**small numbered-line batches** with a tolerant line parser (handles chatty
+preambles, `1)`/`1.` styles, un-numbered replies), and a **per-string fallback**
+(one call, whole reply = the translation — the most reliable shape for a small
+model) for anything a batch misses. New **`GET /api/i18n/diagnostics?lang=sq`**
+shows the exact prompt sent to *your* model, its **raw reply**, and the parsed
+translation, so you can confirm your Ollama is translating without any faking.
+Verified end-to-end against a plain-text `format`-free Ollama simulator: real
+Albanian fills the UI and the welcome popup, chatty preambles are stripped,
+English restores exactly, 0 console errors.
 
 **v6.6.11 highlights:** the **startup/welcome window (and any long
 text) now translates too**. v6.6.10 fixed the object-vs-array bug, but the

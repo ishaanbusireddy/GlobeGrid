@@ -34,8 +34,8 @@ from ..processing.correlate import correlate_new_events
 from ..websocket.feed_socket import hub
 from .budget import BudgetExhausted
 from .http import SourceNotConfigured
-from .sources import (acled, bluesky, firms, market,
-                      mastodon, opensky, reddit, rss, usgs, wiki)
+from .sources import (acled, ais, bluesky, firms, market,
+                      mastodon, nightlights, opensky, reddit, rss, usgs, wiki)
 
 log = logging.getLogger("scheduler")
 
@@ -47,6 +47,7 @@ FETCHERS = {
     "firms": firms.fetch, "volcano": rss.fetch, "wikipedia": wiki.fetch,
     "wiki_views": wiki.fetch, "mastodon": mastodon.fetch, "bluesky": bluesky.fetch,
     "opensky": opensky.fetch, "acled": acled.fetch,
+    "ais": ais.fetch, "nightlights": nightlights.fetch,
 }
 
 PIPELINE_TICK_SECONDS = 20
@@ -177,6 +178,11 @@ def _pipeline_loop() -> None:
             from ..processing import geoplace
             for mv in geoplace.correct_recent():
                 hub.broadcast("event_relocated", mv)
+            # v7 §5 — text + physical signal agreeing: re-score recent
+            # conflict-zone stories against sensor-sourced events
+            from ..processing import corroborate
+            for ch in corroborate.score_recent():
+                hub.broadcast("story_corroborated", ch)
         except Exception:  # noqa: BLE001
             log.exception("pipeline_tick_failed")
         stop_event.wait(PIPELINE_TICK_SECONDS)
@@ -221,6 +227,12 @@ def _daily_loop() -> None:
                     done.get("backup") != today:
                 _backup_database()
                 done["backup"] = today
+            # v7 §4 — nightly Brier backtest keeps the accuracy scorecards
+            # (and the per-category forecast gate) current as history grows
+            if done.get("backtest") != today:
+                from ..processing import backtest
+                backtest.run_backtest()
+                done["backtest"] = today
         except Exception:  # noqa: BLE001
             log.exception("daily_tick_failed")
         stop_event.wait(600)
@@ -341,6 +353,29 @@ def _second_order_loop() -> None:
             log.exception("second_order_tick_failed")
 
 
+def _backfill_loop() -> None:
+    """v7 Part 6 — historical backfill: seed the curated events pack once,
+    then walk the GDELT archive backward a few days per tick until
+    `backfill.days` of history is ingested. Degrades cleanly offline."""
+    from . import backfill
+    try:
+        backfill.seed_curated_history()
+    except Exception:  # noqa: BLE001
+        log.exception("curated_history_seed_failed")
+    try:
+        backfill.seed_deep_history()   # v7.2 — 1945→present deep pack
+    except Exception:  # noqa: BLE001
+        log.exception("deep_history_seed_failed")
+    while not stop_event.is_set():
+        try:
+            res = backfill.gdelt_backfill_tick()
+            if res.get("status") in ("complete", "disabled"):
+                return   # done forever — no need to keep the thread alive
+        except Exception:  # noqa: BLE001
+            log.exception("backfill_tick_failed")
+        stop_event.wait(float(cfg("backfill", "tick_interval_seconds")))
+
+
 def start_all() -> list[threading.Thread]:
     threads = []
     # v6.6.6 — ensure the llm_geoplaced flag column exists (additive migration)
@@ -349,6 +384,11 @@ def start_all() -> list[threading.Thread]:
         geoplace.ensure_column()
     except Exception:  # noqa: BLE001
         log.exception("geoplace_column_init_failed")
+    try:   # v7 §5 — corroboration columns (additive migration)
+        from ..processing import corroborate
+        corroborate.ensure_columns()
+    except Exception:  # noqa: BLE001
+        log.exception("corroborate_column_init_failed")
     # v6 §2 — retired sources (is_active=0) and types with no registered
     # fetcher never get a polling thread
     for row in query("SELECT id, name, type FROM sources WHERE type != 'synthetic'"
@@ -361,7 +401,8 @@ def start_all() -> list[threading.Thread]:
         threads.append(t)
     for target, name in ((_pipeline_loop, "pipeline"), (_instability_loop, "instability"),
                          (_predictions_loop, "predictions"), (_daily_loop, "daily"),
-                         (_second_order_loop, "second_order"), (_v3_jobs_loop, "v3_jobs")):
+                         (_second_order_loop, "second_order"), (_v3_jobs_loop, "v3_jobs"),
+                         (_backfill_loop, "backfill")):
         t = threading.Thread(target=target, name=name, daemon=True)
         t.start()
         threads.append(t)
