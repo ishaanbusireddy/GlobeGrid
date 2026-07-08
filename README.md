@@ -7,30 +7,7 @@ when events across different streams — and different points in time — are
 connected; and explains what happened and why, with every fact traceable to a
 visible, linked source.
 
-Built to the [v1 build manual](docs/talkdiplomacy_live_v1_build_manual.pdf),
-[v2 expansion addendum](docs/globegrid_v2_expansion_addendum.pdf),
-[v3 legendary-tier manual](docs/globegrid_v3_legendary_manual.pdf),
-[v4 polish/accuracy/depth manual](docs/globegrid_v4_build_manual.pdf),
-[v5 build manual](docs/globegrid_v5_build_manual.pdf) and
-[v6 build manual](docs/globegrid_v6_build_manual.pdf) as a
-**zero-install build**: Python standard library only. No PostgreSQL, no pip
-install, no npm, no Docker.
-
-**v6.6.12 highlights (current):** translation **rebuilt around the technique
-dedicated local-LLM translators actually use** — the JSON approach was the wrong
-tool. Forcing Ollama's `format:"json"` on a translation task makes small local
-models (llama3.1 etc.) **echo the English back** inside the JSON instead of
-translating, which is why everything stayed English. Now: **no JSON** — a
-"professional translator" role prompt that says *output only the translation*,
-**small numbered-line batches** with a tolerant line parser (handles chatty
-preambles, `1)`/`1.` styles, un-numbered replies), and a **per-string fallback**
-(one call, whole reply = the translation — the most reliable shape for a small
-model) for anything a batch misses. New **`GET /api/i18n/diagnostics?lang=sq`**
-shows the exact prompt sent to *your* model, its **raw reply**, and the parsed
-translation, so you can confirm your Ollama is translating without any faking.
-Verified end-to-end against a plain-text `format`-free Ollama simulator: real
-Albanian fills the UI and the welcome popup, chatty preambles are stripped,
-English restores exactly, 0 console errors.
+**v6.6.12 highlights (current):** mass instant translation **--THIS TOTALLY FAILED TO WORK...will be revisited later
 
 **v6.6.11 highlights:** the **startup/welcome window (and any long
 text) now translates too**. v6.6.10 fixed the object-vs-array bug, but the
