@@ -59,6 +59,7 @@ export class Tier2Map {
     this.markedLocations = [];
     this.actors = [];
     this.actorZones = [];   // v5 §11
+    this.autonomousZones = [];   // v7.6 — always-on dotted borders (like territories)
     this.satellites = [];
     this.cities = [];
     this.allianceRings = null;
@@ -118,6 +119,14 @@ export class Tier2Map {
     this.draw();
   }
   setActorZones(zones) { this.actorZones = zones || []; this.draw(); }   // v5 §11
+  // v7.6 — autonomous-region outlines as always-on DOTTED borders (owner: shown
+  // like territories by default, but slightly dotted). Each zone → a flat ring.
+  setAutonomousZones(zones) {
+    this.autonomousZones = (zones || [])
+      .filter((z) => Array.isArray(z.outline) && z.outline.length > 2)
+      .map((z) => ({ name: z.name, ring: z.outline.flatMap(([lon, lat]) => [lon, lat]) }));
+    this.draw();
+  }
   setSatellites(sats) { this.satellites = sats || []; this.draw(); }
   setCities(cities) { this.cities = cities || []; this.draw(); }
   // v6.1.1 — dynamic country labels, revealed by apparent on-screen size
@@ -280,11 +289,11 @@ export class Tier2Map {
         && bb[2] >= vb.minLon && bb[0] <= vb.maxLon;
   }
 
-  _drawRings(rings, offset, stroke, width, dashed = false) {
+  _drawRings(rings, offset, stroke, width, dashed = false, pattern = [5, 4]) {
     const ctx = this.ctx;
     ctx.strokeStyle = stroke;
     ctx.lineWidth = width;
-    if (dashed) ctx.setLineDash([5, 4]);
+    if (dashed) ctx.setLineDash(pattern);
     for (const ring of rings) {
       ctx.beginPath();
       let started = false, prevX = 0;
@@ -502,6 +511,10 @@ export class Tier2Map {
         for (const d of this.disputed) {
           this._drawRings(d.r, off, "rgba(255,184,77,0.9)", 1.4, true);
         }
+      }
+      // v7.6 — autonomous regions: always-on DOTTED borders (like territories)
+      for (const z of this.autonomousZones) {
+        this._drawRings([z.ring], off, "rgba(120,200,255,0.85)", 1.3, true, [2, 3]);
       }
       // v5 §11 / v6 §21 — NSA territory zones: shaped polygons with a
       // pulsing dotted rough-boundary style (never solid rectangles);

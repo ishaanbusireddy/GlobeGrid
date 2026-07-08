@@ -77,7 +77,9 @@ L = [
  ("GUY","head_of_state","Irfaan Ali","PPP/C","2020-08-02"),
  ("HTI","head_of_government","Transitional Council",None,"2024-04-25"),
  ("HND","head_of_state","Xiomara Castro","LIBRE","2022-01-27"),
- ("HUN","head_of_government","Viktor Orbán","Fidesz","2010-05-29"),
+ # 2026 National Assembly election — Fidesz's 16-year run under Orbán ends;
+ # Péter Magyar's TISZA takes government (owner: reflect the 2026 result).
+ ("HUN","head_of_government","Péter Magyar","TISZA","2026-05-08"),
  ("ISL","head_of_government","Kristrún Frostadóttir","Social Democratic Alliance","2024-12-21"),
  ("IDN","head_of_state","Prabowo Subianto","Gerindra","2024-10-20"),
  ("IRQ","head_of_government","Mohammed Shia al-Sudani",None,"2022-10-27"),

@@ -596,8 +596,10 @@ ALLIANCE_BRIEFS = {
         "single market, a regulatory superpower (GDPR, AI Act, carbon border tax) "
         "and, since 2022, a slow-waking geopolitical actor: joint arms funds, "
         "Russia sanctions (18+ packages), Ukraine candidacy/finance (€100B+), "
-        "rearmament plans (ReArm/SAFE). Strains: Hungary's vetoes, populist-right "
-        "surges, migration, competitiveness vs US/China (Draghi report). Von der "
+        "rearmament plans (ReArm/SAFE). Strains: populist-right "
+        "surges, migration, competitiveness vs US/China (Draghi report) — though "
+        "the 2026 Hungarian election (Péter Magyar's TISZA unseating Orbán's "
+        "Fidesz) removed Budapest's habitual veto from the equation. Von der "
         "Leyen Commission II; Council president Costa."),
     "BRICS": ("Global-South coordination bloc (Brazil, Russia, India, China, South "
         "Africa + 2024-25 expansion: Egypt, Ethiopia, Iran, UAE, Indonesia...) "

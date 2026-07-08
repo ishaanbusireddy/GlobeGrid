@@ -358,6 +358,45 @@ _ALIASES = {
 }
 
 
+# v7.6 — real party logos (owner: "add logos for every political party"). A
+# curated seed for the majors; a future EU/NA seeding pass fills the rest.
+# Wikimedia Special:FilePath resolves the current file; missing → placeholder.
+def _plogo(fname):
+    from urllib.parse import quote
+    return "https://commons.wikimedia.org/wiki/Special:FilePath/" + quote(fname)
+
+PARTY_LOGOS = {
+    "Democratic": _plogo("US Democratic Party Logo.svg"),
+    "Republican": _plogo("Republican Disc.svg"),
+    "Labour": _plogo("Logo of the Labour Party (UK).svg"),
+    "Conservative": _plogo("Conservative logo 2006.svg"),
+    "Liberal Democrats": _plogo("Liberal Democrats logo.svg"),
+    "Reform UK": _plogo("Reform UK logo.svg"),
+    "SNP": _plogo("Scottish National Party logo.svg"),
+    "CDU/CSU": _plogo("CDU logo.svg"),
+    "SPD": _plogo("SPD logo.svg"),
+    "AfD": _plogo("Alternative für Deutschland Logo-2017.svg"),
+    "Greens": _plogo("Bündnis 90 - Die Grünen Logo.svg"),
+    "The Left": _plogo("Die Linke logo.svg"),
+    "National Rally + allies": _plogo("Rassemblement National logo 2022.svg"),
+    "Ensemble (centre)": _plogo("Renaissance (French political party) logo.svg"),
+    "New Popular Front (left)": _plogo("Nouveau Front populaire.svg"),
+    "The Republicans": _plogo("Les Républicains logo.svg"),
+    "Brothers of Italy": _plogo("Fratelli d'Italia 2017.svg"),
+    "Democratic Party": _plogo("Partito Democratico logo.svg"),
+    "Five Star Movement": _plogo("Movimento 5 Stelle.svg"),
+    "Lega": _plogo("Lega per Salvini Premier.svg"),
+    "Forza Italia": _plogo("Forza Italia 2013 logo.svg"),
+    "PSOE": _plogo("Logotipo del PSOE.svg"),
+    "PP": _plogo("Logo PP 2019.svg"),
+    "Vox": _plogo("Logo of Vox (2020-present).svg"),
+    "BJP": _plogo("Bharatiya Janata Party logo.svg"),
+    "INC": _plogo("Indian National Congress hand logo.svg"),
+    "TISZA": _plogo("Tisza Party logo.svg"),
+    "Fidesz–KDNP": _plogo("Fidesz 2021 logo.svg"),
+}
+
+
 def dossier_for(name, country_iso3=None):
     """Return the curated dossier for a party name, else a structured FLOOR so
     every party page shows something. `country_iso3` is used only for the floor."""
@@ -365,12 +404,15 @@ def dossier_for(name, country_iso3=None):
         return None
     key = name.strip()
     if key in PARTY_DOSSIERS:
-        return {**PARTY_DOSSIERS[key], "curated": True, "name": key}
+        return {**PARTY_DOSSIERS[key], "curated": True, "name": key,
+                "logo_url": PARTY_LOGOS.get(key)}
     al = _ALIASES.get(key.lower())
     if al and al in PARTY_DOSSIERS:
-        return {**PARTY_DOSSIERS[al], "curated": True, "name": al}
+        return {**PARTY_DOSSIERS[al], "curated": True, "name": al,
+                "logo_url": PARTY_LOGOS.get(al)}
     # floor: a real, if thin, dossier scaffold (AI synthesis merges over this)
     return {"name": key, "country": country_iso3, "curated": False,
+            "logo_url": PARTY_LOGOS.get(key),
             "ideology": None,
             "note": "A detailed dossier for this party has not been curated yet; "
                     "the AI profile (when a provider is configured) fills it in, "

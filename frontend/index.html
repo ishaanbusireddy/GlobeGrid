@@ -34,6 +34,7 @@
     <button id="heatmap-toggle" class="hidden" title="heatmap density overlay">heat</button>
     <button id="borders-toggle" class="active" title="country borders (Natural Earth 10m/50m) — on by default">borders</button>
     <button id="disputes-toggle" title="disputed boundaries — dashed, distinct from settled borders (v4 §5.3)">disputed</button>
+    <button id="az-toggle" class="active" title="autonomous regions — dotted borders on the map (on by default)">⌁ zones</button>
     <!-- v6.2 — terrain removed entirely (owner). v6.2 — country-name toggle -->
     <button id="names-toggle" class="active" title="country name labels on the map — toggle on/off">names</button>
     <button id="spin-toggle" title="auto-spin the globe — toggle on/off (v6.6.6)">⟳ spin</button>
@@ -95,6 +96,16 @@
     <div id="conflict-tabs"></div>
     <div id="feed-header"><h2>Live feed</h2><div id="feed-tools"></div><button id="feed-close" title="hide the live feed (Esc)">✕</button></div>
     <div id="feed-list"></div>
+  </aside>
+  <!-- v7.5 — War Mode replaces the global live feed with a conflict-only feed
+       (stories tab + events tab). Hidden until War Mode opens. -->
+  <aside id="war-feed-panel" style="display:none">
+    <div id="war-feed-header">
+      <h2 id="war-feed-title">⚔ war feed</h2>
+      <button id="war-feed-exit" title="exit war mode (Esc)">✕ exit</button>
+    </div>
+    <div id="war-feed-tabs"></div>
+    <div id="war-feed-list"></div>
   </aside>
 </main>
 

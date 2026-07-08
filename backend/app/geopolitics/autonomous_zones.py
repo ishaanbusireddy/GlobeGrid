@@ -109,15 +109,171 @@ AUTONOMOUS_ZONES = [
 ]
 
 
+def _flag(name: str) -> str:
+    # Wikimedia Special:FilePath resolves "Flag of X.svg" to the current image,
+    # same pattern the country flag layer uses (degrades to a placeholder offline).
+    from urllib.parse import quote
+    return "https://commons.wikimedia.org/wiki/Special:FilePath/" + quote(name)
+
+
+# v7.6 — country-grade profile data so an autonomous zone renders EXACTLY like a
+# territory panel (owner: "complete with everything a country would have — such
+# as parliaments, agendas, leaders, flags, everything"). Each carries a real
+# flag, its own head-of-government, a legislature seat breakdown, a strategic
+# agenda, headline stats, and an approximate boundary ring ([lon,lat]) drawn as
+# an always-on DOTTED border on the map (like territories, but dashed).
+ZONE_EXTRA = {
+    "iraqi_kurdistan": {
+        "official_name": "Kurdistan Region of Iraq", "established": "1970 / 2005 (federal region)",
+        "flag_url": _flag("Flag of Kurdistan.svg"),
+        "leader": {"name": "Masrour Barzani", "title": "Prime Minister", "party": "KDP"},
+        "leader2": {"name": "Nechirvan Barzani", "title": "President", "party": "KDP"},
+        "legislature": {"chamber": "Kurdistan Parliament", "total": 111,
+                        "parties": [["KDP", 39, "#f2c200"], ["PUK", 23, "#009a44"],
+                                    ["New Generation", 15, "#e4002b"],
+                                    ["KIU / others", 34, "#888888"]]},
+        "agenda": "Consolidate federal autonomy and oil-export revenue-sharing with Baghdad, "
+                  "manage KDP–PUK power-sharing, and balance Türkiye, Iran and the US while "
+                  "keeping the independence question frozen.",
+        "stats": {"population": "~6.5 million", "area_km2": "~46,861", "languages": "Kurdish, Arabic",
+                  "currency": "Iraqi dinar (IQD)"},
+        "outline": [[42.3, 37.3], [45.9, 37.2], [46.4, 35.2], [44.7, 34.5], [42.4, 35.6], [42.3, 37.3]],
+    },
+    "rojava": {
+        "official_name": "Autonomous Administration of North and East Syria (AANES)",
+        "established": "2012 (de facto)", "flag_url": _flag("Flag of Rojava.svg"),
+        "leader": {"name": "Executive Council (co-chairs)", "title": "Co-Presidency", "party": "TEV-DEM / SDC"},
+        "legislature": {"chamber": "Syrian Democratic Council (general council)", "total": 0, "parties": []},
+        "agenda": "Preserve Kurdish-led, multi-ethnic self-rule and the SDF against Turkish "
+                  "pressure, negotiate the region's status with post-Assad Damascus, and secure "
+                  "the ISIS detention camps.",
+        "stats": {"population": "~2.5 million", "area_km2": "~50,000", "languages": "Kurdish, Arabic, Syriac",
+                  "currency": "Syrian pound (SYP)"},
+        "outline": [[37.0, 37.1], [42.4, 37.3], [42.2, 35.9], [38.4, 35.8], [37.0, 36.2], [37.0, 37.1]],
+    },
+    "bougainville": {
+        "official_name": "Autonomous Region of Bougainville", "established": "2001 (peace agreement)",
+        "flag_url": _flag("Flag of Bougainville.svg"),
+        "leader": {"name": "Ishmael Toroama", "title": "President", "party": "Independent"},
+        "legislature": {"chamber": "House of Representatives", "total": 40, "parties": []},
+        "agenda": "Ratify the 2019 referendum's 98% independence vote through the PNG parliament "
+                  "and build the institutions and finances of a prospective new state.",
+        "stats": {"population": "~300,000", "area_km2": "~9,438", "languages": "Tok Pisin, English, ~25 local",
+                  "currency": "PNG kina (PGK)"},
+        "outline": [[154.5, -5.0], [155.9, -5.2], [156.1, -6.9], [155.1, -6.9], [154.6, -5.9], [154.5, -5.0]],
+    },
+    "zanzibar": {
+        "official_name": "Zanzibar (within the United Republic of Tanzania)", "established": "1964 (union)",
+        "flag_url": _flag("Flag of Zanzibar.svg"),
+        "leader": {"name": "Hussein Mwinyi", "title": "President of Zanzibar", "party": "CCM"},
+        "legislature": {"chamber": "House of Representatives", "total": 85, "parties": []},
+        "agenda": "Widen fiscal and political autonomy within the Tanzanian union, manage the "
+                  "CCM–ACT-Wazalendo rivalry after contested elections, and grow tourism/blue economy.",
+        "stats": {"population": "~1.9 million", "area_km2": "~2,462", "languages": "Swahili, Arabic, English",
+                  "currency": "Tanzanian shilling (TZS)"},
+        "outline": [[39.15, -5.65], [39.55, -5.8], [39.6, -6.5], [39.18, -6.5], [39.1, -6.0], [39.15, -5.65]],
+    },
+    "gagauzia": {
+        "official_name": "Autonomous Territorial Unit of Gagauzia", "established": "1994",
+        "flag_url": _flag("Flag of Gagauzia.svg"),
+        "leader": {"name": "Evghenia Guțul", "title": "Bashkan (Governor)", "party": "Șor-aligned"},
+        "legislature": {"chamber": "People's Assembly", "total": 35, "parties": []},
+        "agenda": "Defend guaranteed autonomy and its pro-Russian cultural orientation against "
+                  "Chișinău's pro-EU government, and hold its treaty right to self-determination "
+                  "should Moldova unite with Romania.",
+        "stats": {"population": "~135,000", "area_km2": "~1,848", "languages": "Gagauz, Russian, Romanian",
+                  "currency": "Moldovan leu (MDL)"},
+        "outline": [[28.3, 46.5], [29.05, 46.5], [29.1, 45.85], [28.4, 45.85], [28.3, 46.5]],
+    },
+    "aland": {
+        "official_name": "Åland Islands", "established": "1921 (League of Nations)",
+        "flag_url": _flag("Flag of Åland.svg"),
+        "leader": {"name": "Katrin Sjögren", "title": "Premier (Lantråd)", "party": "Liberals for Åland"},
+        "legislature": {"chamber": "Lagting", "total": 30, "parties": []},
+        "agenda": "Preserve demilitarized, Swedish-language autonomy and its special EU "
+                  "arrangements, and keep influence over Finland's EU positions affecting Åland.",
+        "stats": {"population": "~30,000", "area_km2": "~1,580", "languages": "Swedish",
+                  "currency": "Euro (EUR)"},
+        "outline": [[19.5, 60.45], [20.85, 60.45], [20.9, 59.9], [19.55, 59.9], [19.5, 60.45]],
+    },
+    "nakhchivan": {
+        "official_name": "Nakhchivan Autonomous Republic", "established": "1924",
+        "flag_url": _flag("Flag of Azerbaijan.svg"),
+        "leader": {"name": "Chairman of the Supreme Assembly", "title": "Head of the Autonomous Republic", "party": "New Azerbaijan (YAP)"},
+        "legislature": {"chamber": "Supreme Assembly (Ali Majlis)", "total": 45, "parties": []},
+        "agenda": "Secure land access across Armenia's Syunik (the 'Zangezur corridor') as part of "
+                  "the Armenia–Azerbaijan settlement, deepen integration with Türkiye.",
+        "stats": {"population": "~460,000", "area_km2": "~5,500", "languages": "Azerbaijani",
+                  "currency": "Azerbaijani manat (AZN)"},
+        "outline": [[44.8, 39.8], [46.15, 39.6], [46.0, 38.85], [45.0, 39.0], [44.8, 39.8]],
+    },
+    "hong_kong": {
+        "official_name": "Hong Kong Special Administrative Region", "established": "1997",
+        "flag_url": _flag("Flag of Hong Kong.svg"),
+        "leader": {"name": "John Lee", "title": "Chief Executive", "party": "Nonpartisan (pro-Beijing)"},
+        "legislature": {"chamber": "Legislative Council (LegCo)", "total": 90,
+                        "parties": [["Pro-establishment", 89, "#de2910"], ["Nonpartisan/other", 1, "#888888"]]},
+        "agenda": "Operate 'one country, two systems' under the 2020 National Security Law and "
+                  "electoral overhaul, restore Hong Kong's role as a global financial hub while "
+                  "aligned with Beijing.",
+        "stats": {"population": "~7.5 million", "area_km2": "~1,114", "languages": "Cantonese, English, Mandarin",
+                  "currency": "Hong Kong dollar (HKD)"},
+        "outline": [[113.83, 22.56], [114.45, 22.56], [114.45, 22.15], [113.83, 22.19], [113.83, 22.56]],
+    },
+    "catalonia": {
+        "official_name": "Catalonia (Catalunya)", "established": "1979 (Statute of Autonomy)",
+        "flag_url": _flag("Flag of Catalonia.svg"),
+        "leader": {"name": "Salvador Illa", "title": "President of the Generalitat", "party": "PSC (Socialists)"},
+        "legislature": {"chamber": "Parliament of Catalonia", "total": 135,
+                        "parties": [["PSC", 42, "#e30613"], ["Junts", 35, "#00c3b2"],
+                                    ["ERC", 20, "#ffb232"], ["PP", 15, "#0056a8"],
+                                    ["Vox", 11, "#63be21"], ["others", 12, "#888888"]]},
+        "agenda": "Stabilize post-2017 politics under a Socialist-led government and the 2024 "
+                  "amnesty, balance a still-strong pro-independence bloc, and negotiate financing "
+                  "and language rights with Madrid.",
+        "stats": {"population": "~8.0 million", "area_km2": "~32,108", "languages": "Catalan, Spanish, Occitan (Aranese)",
+                  "currency": "Euro (EUR)"},
+        "outline": [[0.15, 42.85], [3.35, 42.45], [3.2, 40.55], [0.3, 40.6], [0.1, 41.95], [0.15, 42.85]],
+    },
+    "greenland": {
+        "official_name": "Greenland (Kalaallit Nunaat)", "established": "1979 / 2009 (self-government)",
+        "flag_url": _flag("Flag of Greenland.svg"),
+        "leader": {"name": "Jens-Frederik Nielsen", "title": "Premier (Naalakkersuisut)", "party": "Demokraatit"},
+        "legislature": {"chamber": "Inatsisartut", "total": 31,
+                        "parties": [["Demokraatit", 10, "#e30613"], ["Naleraq", 8, "#00529b"],
+                                    ["Inuit Ataqatigiit", 7, "#e4001b"], ["Siumut", 4, "#e30613"],
+                                    ["others", 2, "#888888"]]},
+        "agenda": "Weigh a recognized path to full independence from Denmark against economic "
+                  "dependence, manage intense US/great-power interest in Arctic minerals and "
+                  "security, and develop rare-earth and fisheries wealth.",
+        "stats": {"population": "~56,000", "area_km2": "~2,166,086", "languages": "Greenlandic (Kalaallisut), Danish",
+                  "currency": "Danish krone (DKK)"},
+        "outline": None,   # already drawn as a territory boundary (GRL)
+    },
+}
+
+
+def _zone_base(z):
+    return {"id": z[0], "name": z[1], "parent": z[2], "capital": z[3],
+            "autonomy_basis": z[4], "lat": z[5], "lon": z[6], "context": z[7]}
+
+
 def zones_list():
-    return [{"id": z[0], "name": z[1], "parent": z[2], "capital": z[3],
-             "autonomy_basis": z[4], "lat": z[5], "lon": z[6], "context": z[7]}
-            for z in AUTONOMOUS_ZONES]
+    out = []
+    for z in AUTONOMOUS_ZONES:
+        d = _zone_base(z)
+        ex = ZONE_EXTRA.get(z[0], {})
+        d["flag_url"] = ex.get("flag_url")
+        d["outline"] = ex.get("outline")
+        d["official_name"] = ex.get("official_name")
+        out.append(d)
+    return out
 
 
 def zone_by_id(zid):
     for z in AUTONOMOUS_ZONES:
         if z[0] == zid:
-            return {"id": z[0], "name": z[1], "parent": z[2], "capital": z[3],
-                    "autonomy_basis": z[4], "lat": z[5], "lon": z[6], "context": z[7]}
+            d = _zone_base(z)
+            d.update(ZONE_EXTRA.get(zid, {}))
+            return d
     return None

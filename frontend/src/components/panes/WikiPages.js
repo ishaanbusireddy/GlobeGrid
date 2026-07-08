@@ -645,9 +645,13 @@ export async function renderAlliance(el, id, ctx) {
     "OPEC": "Flag of OPEC.svg", "OECD": "OECD logo.svg", "AUKUS": "AUKUS logo.svg",
   };
   const emblemChar = BLOC_EMBLEM[a.name] || "⬡";
+  // v7.6 — prefer the backend's data-driven emblem_url (broader bloc coverage),
+  // then the local file map, then the emoji fallback on load error.
   const flagFile = BLOC_FLAG_FILE[a.name];
-  const emblem = flagFile
-    ? `<img class="wiki-flag-img" src="https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(flagFile)}?width=120"
+  const emblemUrl = a.emblem_url
+    || (flagFile ? `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(flagFile)}` : null);
+  const emblem = emblemUrl
+    ? `<img class="wiki-flag-img" src="${esc(emblemUrl)}${emblemUrl.includes("?") ? "" : "?width=120"}"
          alt="${esc(a.name)} flag"
          onerror="this.outerHTML='<div style=&quot;font-size:56px;text-align:center&quot;>${emblemChar}</div>'">`
     : `<div style="font-size:56px;text-align:center">${emblemChar}</div>`;
@@ -1242,21 +1246,58 @@ export async function renderAutonomousZone(el, zid, ctx) {
   el.innerHTML = `<p class="cp-meta">loading…</p>`;
   const z = await api.autonomousZone(zid).catch(() => null);
   if (!z) { el.innerHTML = "<p>autonomous region not found</p>"; return; }
-  el.innerHTML = `
-    <div class="wiki-header"><div class="wiki-flag">🏛</div>
+  // v7.6 — render EXACTLY like a country/territory panel: flag, leader(s), a
+  // full stat grid, the legislature seat-arc, a strategic agenda, deep
+  // background, and recent coverage (owner: "complete with everything a country
+  // would have"). Every leader/party/parent name is a clickable chip.
+  const st = z.stats || {};
+  const leaderChip = (l) => l && l.name
+    ? `<b class="leader-open" data-leader="${esc(l.name)}" style="cursor:pointer" title="open leader profile">${esc(l.name)}</b>`
+      + (l.title ? ` <span class="cp-meta">— ${esc(l.title)}</span>` : "")
+      + (l.party ? ` · <b class="party-dossier-open" data-party="${esc(l.party)}" style="cursor:pointer">${esc(l.party)}</b>` : "")
+    : "";
+  const cell = (label, val) => val
+    ? `<div class="stat-cell"><span class="cp-meta">${esc(label)}</span><b>${esc(val)}</b></div>` : "";
+  let html = `
+    <div class="wiki-header">
+      <div class="wiki-flag">${z.flag_url ? flagImg({ flag_image_url: z.flag_url, name: z.name }) : "🏛"}</div>
       <div class="wiki-head-meta"><h1>${esc(z.name)}</h1>
-        <p class="cp-meta">Autonomous region of ${esc(z.parent)}</p></div></div>
+        <p class="cp-meta">Autonomous region of <b class="az-parent" data-name="${esc(z.parent)}" style="cursor:pointer">${esc(z.parent)}</b>${z.official_name ? " · " + esc(z.official_name) : ""}</p>
+        ${z.leader ? `<p class="cp-meta">${leaderChip(z.leader)}</p>` : ""}
+        ${z.leader2 ? `<p class="cp-meta">${leaderChip(z.leader2)}</p>` : ""}
+      </div></div>
     <section><h4>Key facts</h4>
       <div class="stat-grid">
-        <div class="stat-cell"><span class="cp-meta">Parent state</span><b class="az-parent" data-name="${esc(z.parent)}" style="cursor:pointer">${esc(z.parent)}</b></div>
-        <div class="stat-cell"><span class="cp-meta">Capital / seat</span><b>${esc(z.capital)}</b></div>
-      </div></section>
-    <section><h4>Basis of autonomy</h4><p>${esc(z.autonomy_basis)}</p></section>
-    <section><h4>Context</h4><p class="leader-bio">${esc(z.context)}</p></section>`;
-  const parentEl = el.querySelector(".az-parent");
-  if (parentEl && ctx.openEntityByName) {
-    parentEl.addEventListener("click", () => ctx.openEntityByName("country", parentEl.dataset.name));
+        ${cell("Parent state", z.parent).replace("<b>", `<b class="az-parent" data-name="${esc(z.parent)}" style="cursor:pointer">`)}
+        ${cell("Capital / seat", z.capital)}
+        ${cell("Population", st.population)}
+        ${cell("Area", st.area_km2 ? st.area_km2 + " km²" : "")}
+        ${cell("Languages", st.languages)}
+        ${cell("Currency", st.currency)}
+        ${cell("Established", z.established)}
+      </div></section>`;
+  if (z.legislature && (z.legislature.parties || []).length) {
+    html += `<section><h4>Legislature — ${esc(z.legislature.chamber)}</h4>${oneChamber(z.legislature, "Legislature")}</section>`;
+  } else if (z.legislature && z.legislature.chamber) {
+    html += `<section><h4>Legislature</h4><p class="cp-meta">${esc(z.legislature.chamber)}${z.legislature.total ? " · " + z.legislature.total + " seats" : ""}</p></section>`;
   }
+  if (z.agenda) {
+    html += `<section><h4>Strategic agenda</h4><div class="narrative-box">${esc(z.agenda)}</div></section>`;
+  }
+  html += `<section><h4>Basis of autonomy</h4><p>${esc(z.autonomy_basis)}</p></section>
+    <section><h4>Deep background</h4><p class="leader-bio">${esc(z.context)}</p></section>`;
+  if ((z.recent_stories || []).length) {
+    html += `<section><h4>Recent tracked coverage</h4>${storyChips(z.recent_stories, ctx)}</section>`;
+  }
+  el.innerHTML = html;
+  // wire clickable chips
+  el.querySelectorAll(".az-parent").forEach((b) =>
+    b.addEventListener("click", () => ctx.openEntityByName && ctx.openEntityByName("country", b.dataset.name)));
+  el.querySelectorAll(".leader-open[data-leader]").forEach((b) =>
+    b.addEventListener("click", () => ctx.openLeader && ctx.openLeader(b.dataset.leader)));
+  el.querySelectorAll(".party-dossier-open[data-party]").forEach((b) =>
+    b.addEventListener("click", () => ctx.openPartyDossier && ctx.openPartyDossier(b.dataset.party, null)));
+  wireStoryChips(el, ctx);
 }
 
 // v7.4.2 — a full professional PARTY DOSSIER page, reachable from every
@@ -1275,7 +1316,13 @@ export async function renderPartyDossier(el, name, iso, ctx) {
   const list = (label, arr) => (arr && arr.length)
     ? `<section><h4>${esc(label)}</h4><ul class="deep-summary">${arr.map((s) => `<li>${esc(s)}</li>`).join("")}</ul></section>` : "";
   const sect = (label, val) => val ? `<section><h4>${esc(label)}</h4><p>${esc(val)}</p></section>` : "";
-  let html = `<div class="wiki-header"><div class="wiki-flag">🏛</div>
+  // v7.6 — real party logo/emblem when curated (owner: "add logos for every
+  // political party"), else the 🏛 glyph.
+  const plogo = dos.logo_url
+    ? `<img class="wiki-flag-img" src="${esc(dos.logo_url)}" alt="${esc(name)} logo"
+         onerror="this.outerHTML='<div style=&quot;font-size:44px&quot;>🏛</div>'">`
+    : "🏛";
+  let html = `<div class="wiki-header"><div class="wiki-flag">${plogo}</div>
     <div class="wiki-head-meta"><h1>${esc(dos.full_name || name)}</h1>
       <p class="cp-meta">${esc(dos.ideology || "Political party")}${dos.country ? " · " + esc(dos.country) : ""}</p></div></div>`;
   if (!dos.curated && dos.note) {

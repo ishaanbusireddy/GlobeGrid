@@ -95,6 +95,28 @@ select:hover, button:hover { border-color: var(--accent); }
 @keyframes flash { 0% { border-color: var(--ok); box-shadow: 0 0 12px rgba(61,220,132,.35);} 100% { border-color: var(--line); box-shadow: none; } }
 .story-card h3 { font-size: 13.5px; margin-bottom: 6px; font-weight: 600; }
 .card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 11px; color: var(--text-dim); }
+/* v7.5 — War Mode conflict-only feed (stories tab + events tab) */
+#war-feed-panel {
+  flex: 0 0 360px; border-left: 2px solid var(--conflict, #d9534f);
+  background: var(--bg-panel); overflow-y: auto; padding: 12px;
+  animation: gg-fade-slide 0.28s ease both;
+}
+#war-feed-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+#war-feed-title { font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--conflict, #d9534f); font-weight: 700; }
+#war-feed-exit { background: transparent; border: 1px solid var(--line); color: var(--text-dim); border-radius: 6px; padding: 3px 8px; cursor: pointer; font-size: 11px; }
+#war-feed-exit:hover { border-color: var(--conflict, #d9534f); color: var(--text); }
+#war-feed-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+.war-feed-tab { flex: 1; background: var(--bg-card); border: 1px solid var(--line); color: var(--text-dim);
+  border-radius: 7px; padding: 6px 4px; cursor: pointer; font-size: 12px; font-weight: 600; }
+.war-feed-tab.active { border-color: var(--conflict, #d9534f); color: var(--text); background: rgba(217,83,79,.12); }
+.war-event-row { background: var(--bg-card); border: 1px solid var(--line); border-radius: 8px;
+  padding: 8px 10px; margin-bottom: 8px; cursor: pointer; transition: border-color .15s; }
+.war-event-row:hover { border-color: var(--accent); }
+.war-event-row h4 { font-size: 12.5px; font-weight: 600; margin-bottom: 4px; }
+.war-event-row .we-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 10.5px; color: var(--text-dim); }
+/* v7.6 — source logo next to the outlet name on its page */
+.src-title { display: flex; align-items: center; gap: 10px; }
+.src-logo { width: 28px; height: 28px; border-radius: 5px; object-fit: contain; background: #fff2; flex: 0 0 auto; }
 .chip { padding: 1px 8px; border-radius: 10px; font-size: 10.5px; border: 1px solid; }
 .chip.cat-geopolitics { color: var(--geopolitics); } .chip.cat-finance { color: var(--finance); }
 .chip.cat-disaster { color: var(--disaster); } .chip.cat-conflict { color: var(--conflict); }

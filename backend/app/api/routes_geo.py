@@ -528,7 +528,7 @@ def alliance_profile(params, q, body):
     the conflicts its members are party to (for military blocs), recent tracked
     stories mentioning it, and — for the EU — a parliament breakdown."""
     from ..geopolitics.country_extra import (ALLIANCE_LEADERS, ALLIANCE_PROFILES,
-                                             EU_PARLIAMENT)
+                                             ALLIANCE_EMBLEMS, EU_PARLIAMENT)
     a = query_one("SELECT * FROM alliances WHERE id = ?", (params["aid"],))
     if a is not None:
         from ..geopolitics.world_knowledge import alliance_knowledge
@@ -538,6 +538,9 @@ def alliance_profile(params, q, body):
     out["knowledge"] = alliance_knowledge(out["name"])   # v7 Part 6
     if out["name"] in ALLIANCE_LEADERS:
         out["leader"] = ALLIANCE_LEADERS[out["name"]]
+    # v7.6 — real bloc flag/emblem (owner: "use real flags and logos for bloc panels")
+    out["emblem_url"] = ALLIANCE_EMBLEMS.get(out["name"]) or (
+        out.get("emblem_url") if isinstance(a, dict) else None)
     prof = ALLIANCE_PROFILES.get(out["name"])
     if prof:
         out["profile"] = prof
@@ -1245,6 +1248,9 @@ def autonomous_zone_detail(params, q, body):
     z = zone_by_id(params["zid"])
     if not z:
         return 404, {"error": "unknown autonomous zone"}
+    # v7.6 — recent tracked coverage, so the panel matches a country/territory
+    from .routes_v4 import _stories_mentioning
+    z["recent_stories"] = _stories_mentioning(z["name"].split(" (")[0])
     return 200, z
 
 

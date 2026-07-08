@@ -169,6 +169,7 @@ export const api = {
   regionSummary: (region) => get(`/api/region/${encodeURIComponent(region)}`),
   // --- v6 ---
   warMode: (cid) => get(`/api/conflicts/${cid}/war_mode`),               // §8
+  conflictFeed: (cid) => get(`/api/conflicts/${cid}/feed`),              // v7.5 war-mode stories+events
   orderOfBattle: (cid) =>                                                 // v6.1.1
     get(`/api/conflicts/${cid}/order_of_battle`, { timeout: 55000 }),
   mapModes: () => get("/api/mapmodes"),                                  // §16

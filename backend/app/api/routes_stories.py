@@ -126,6 +126,106 @@ def _story_card(row) -> dict:
     return d
 
 
+def _story_cards(rows) -> list:
+    """v7.4.5 — batched equivalent of `_story_card` for the LIVE FEED list.
+
+    The per-story `_story_card` ran ~6 sub-queries EACH; at limit=60 that is
+    ~360 queries per `/api/stories` call, and the socket used to fire that call
+    on every story push — under live ingestion the endpoint could exceed the
+    client's 25s timeout, so `refreshStories()` threw and the feed stuck on
+    "Connecting to the live feed…" while the map (a cheaper endpoint) kept
+    working. This computes every aggregate in a handful of set-based queries
+    keyed by story_id, so the feed list is fast and can't time out."""
+    import datetime as _dt
+    ids = [r["id"] for r in rows]
+    if not ids:
+        return []
+    marks = ",".join("?" * len(ids))
+    cards = {r["id"]: row_to_dict(
+        r, json_fields=("causal_narrative",),
+        drop=("embedding", "needs_causal_refresh")) for r in rows}
+
+    # member/source counts (duplicates excluded), grouped
+    for s in query(
+            "SELECT m.story_id AS sid,"
+            " COUNT(DISTINCT m.event_id) AS n_events,"
+            " COUNT(DISTINCT r.source_id) AS n_sources"
+            " FROM story_members m"
+            " LEFT JOIN events e ON e.id = m.event_id"
+            " LEFT JOIN raw_items r ON r.id = e.raw_item_id"
+            " LEFT JOIN extracted_facts f ON f.event_id = e.id"
+            f" WHERE m.story_id IN ({marks}) AND (f.duplicate_of_fact_id IS NULL)"
+            " GROUP BY m.story_id", tuple(ids)):
+        c = cards.get(s["sid"])
+        if c:
+            c["member_count"] = s["n_events"] or 0
+            c["source_count"] = s["n_sources"] or 0
+
+    # dominant category per story (highest member count)
+    cat_best = {}
+    for s in query(
+            "SELECT m.story_id AS sid, e.category AS category, COUNT(*) AS n"
+            " FROM story_members m JOIN events e ON e.id = m.event_id"
+            f" WHERE m.story_id IN ({marks})"
+            " GROUP BY m.story_id, e.category", tuple(ids)):
+        cur = cat_best.get(s["sid"])
+        if cur is None or (s["n"] or 0) > cur[1]:
+            cat_best[s["sid"]] = (s["category"], s["n"] or 0)
+
+    # first located member event (for pan-to / audio-briefing autopilot)
+    for s in query(
+            "SELECT m.story_id AS sid, e.location_lat AS lat, e.location_lon AS lon"
+            " FROM story_members m JOIN events e ON e.id = m.event_id"
+            f" WHERE m.story_id IN ({marks}) AND e.location_lat IS NOT NULL"
+            " ORDER BY e.occurred_at", tuple(ids)):
+        c = cards.get(s["sid"])
+        if c and "lat" not in c:
+            c["lat"], c["lon"] = s["lat"], s["lon"]
+
+    # occurred span per story
+    span = {}
+    for s in query(
+            "SELECT m.story_id AS sid, MIN(e.occurred_at) AS first_occurred,"
+            " MAX(e.occurred_at) AS last_occurred"
+            " FROM story_members m JOIN events e ON e.id = m.event_id"
+            f" WHERE m.story_id IN ({marks}) GROUP BY m.story_id", tuple(ids)):
+        span[s["sid"]] = s
+
+    # historical-chain link presence
+    hist = {r["story_id"] for r in query(
+        "SELECT DISTINCT story_id FROM story_members"
+        f" WHERE story_id IN ({marks}) AND linked_via = 'historical_chain'", tuple(ids))}
+
+    # tagged conflict names
+    conf_ids = [c["conflict_id"] for c in cards.values() if c.get("conflict_id")]
+    conf_names = {}
+    if conf_ids:
+        cm = ",".join("?" * len(conf_ids))
+        conf_names = {r["id"]: r["name"] for r in query(
+            f"SELECT id, name FROM conflicts WHERE id IN ({cm})", tuple(conf_ids))}
+
+    now_utc = _dt.datetime.now(_dt.timezone.utc)
+    for sid, c in cards.items():
+        c.setdefault("member_count", 0)
+        c.setdefault("source_count", 0)
+        c["category"] = cat_best.get(sid, ("other",))[0] or "other"
+        c["has_historical_link"] = sid in hist
+        sp = span.get(sid)
+        if sp:
+            c["first_occurred_at"] = sp["first_occurred"]
+            c["last_occurred_at"] = sp["last_occurred"]
+            try:
+                newest = _dt.datetime.fromisoformat(
+                    (sp["last_occurred"] or "").replace("Z", "+00:00"))
+                c["is_historical"] = (now_utc - newest).days > 60
+            except (ValueError, TypeError):
+                c["is_historical"] = False
+        if c.get("conflict_id"):
+            c["conflict_name"] = conf_names.get(c["conflict_id"])
+    # preserve the incoming row order (already sorted by the SQL ORDER BY)
+    return [cards[i] for i in ids]
+
+
 def _stories_rows(q) -> list:
     conditions, args = ["1=1"], []
     # v7.4.2 — the LIVE feed must NEVER show synthetic demo rows (owner: "the
@@ -269,7 +369,7 @@ def _watchlist_condition() -> str:
 @route("GET", "/api/stories")
 def list_stories(params, q, body):
     rows = _stories_rows(q)
-    cards = [_story_card(r) for r in rows]
+    cards = _story_cards(rows)   # v7.4.5 — batched (was per-story; timed out under load)
     if q.get("format") == "csv":  # §6.4 export
         buf = io.StringIO()
         writer = csv.writer(buf)
@@ -282,6 +382,36 @@ def list_stories(params, q, body):
                              c["first_seen_at"], c["last_updated_at"]])
         return 200, {"_raw_csv": buf.getvalue(), "_filename": "stories.csv"}
     return 200, {"stories": cards}
+
+
+@route("GET", "/api/conflicts/{cid}/feed")
+def conflict_feed(params, q, body):
+    """v7.5 — the dedicated War Mode feed: EVERYTHING pertaining to one conflict,
+    in one call, split into a stories tab and an events tab (owner: "a specific
+    live feed just for war mode that funnels all events corresponding to that
+    war — one tab for stories one tab for events"). War Mode closes the general
+    global feed and shows this conflict-only right panel instead."""
+    cid = params["cid"]
+    rows = query(
+        "SELECT s.* FROM stories s WHERE s.conflict_id = ?"
+        " AND COALESCE(s.is_synthetic,0)=0 ORDER BY s.last_updated_at DESC LIMIT 100",
+        (cid,))
+    stories = _story_cards(rows)
+    # events: directly conflict-tagged OR a member of a story tagged to this
+    # conflict — so nothing about the war is missed, however it got linked.
+    events = [dict(e) for e in query(
+        "SELECT DISTINCT e.id, e.title, e.description,"
+        " e.location_lat AS lat, e.location_lon AS lon, e.location_name,"
+        " e.category, e.severity, e.occurred_at, e.development_type,"
+        " (SELECT m2.story_id FROM story_members m2 WHERE m2.event_id = e.id LIMIT 1)"
+        "   AS story_id"
+        " FROM events e"
+        " LEFT JOIN story_members m ON m.event_id = e.id"
+        " LEFT JOIN stories s ON s.id = m.story_id"
+        " WHERE COALESCE(e.is_synthetic,0)=0 AND (e.conflict_id = ? OR s.conflict_id = ?)"
+        " ORDER BY e.occurred_at DESC LIMIT 250", (cid, cid))]
+    return 200, {"stories": stories, "events": events,
+                 "story_count": len(stories), "event_count": len(events)}
 
 
 def _impacted_entities(story_id: str) -> list[dict]:

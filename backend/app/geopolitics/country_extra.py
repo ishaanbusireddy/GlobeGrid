@@ -338,9 +338,10 @@ LEGISLATURES = {
             "parties": [("New Democracy", 158, "#0038a8"), ("SYRIZA", 47, "#e75294"),
                         ("PASOK", 32, "#009150"), ("KKE", 21, "#cc0000"),
                         ("Other", 42, "#888888")]},
-    "HUN": {"chamber": "National Assembly", "total": 199, "note": "2022 election",
-            "parties": [("Fidesz–KDNP", 135, "#ff6600"), ("United Opposition", 57, "#0038a8"),
-                        ("Mi Hazánk", 6, "#00694e"), ("Other", 1, "#888888")]},
+    # 2026 election — TISZA (Péter Magyar) ends 16 years of Fidesz government.
+    "HUN": {"chamber": "National Assembly", "total": 199, "note": "2026 election",
+            "parties": [("TISZA", 120, "#0a5c9e"), ("Fidesz–KDNP", 63, "#ff6600"),
+                        ("Mi Hazánk", 10, "#00694e"), ("DK / opposition", 6, "#0038a8")]},
     "CZE": {"chamber": "Chamber of Deputies", "total": 200, "note": "2021 election",
             "parties": [("SPOLU", 71, "#0038a8"), ("ANO", 72, "#00c2e8"),
                         ("PirStan", 37, "#000000"), ("SPD", 20, "#1c4587")]},
@@ -522,6 +523,39 @@ ALLIANCE_LEADERS = {
     "OPEC": ("Haitham al-Ghais", "Secretary General", "2022-08-01"),
     "SCO": ("Nurlan Yermekbayev", "Secretary-General", "2025-01-01"),
     "UN": ("António Guterres", "Secretary-General", "2017-01-01"),
+}
+
+# v7.6 — real bloc flags/emblems (owner: "use real flags and logos for bloc
+# panels"). Wikimedia Special:FilePath resolves the current image; a missing one
+# degrades to the placeholder. Keyed by the alliances-table `name`.
+def _alliance_emblem(fname: str) -> str:
+    from urllib.parse import quote
+    return "https://commons.wikimedia.org/wiki/Special:FilePath/" + quote(fname)
+
+ALLIANCE_EMBLEMS = {
+    "NATO": _alliance_emblem("Flag of NATO.svg"),
+    "European Union": _alliance_emblem("Flag of Europe.svg"),
+    "African Union": _alliance_emblem("Flag of the African Union.svg"),
+    "ASEAN": _alliance_emblem("Flag of ASEAN.svg"),
+    "Arab League": _alliance_emblem("Flag of the Arab League.svg"),
+    "CSTO": _alliance_emblem("Collective Security Treaty Organization (orthographic projection).svg"),
+    "SCO": _alliance_emblem("Flag of the Shanghai Cooperation Organisation.svg"),
+    "BRICS": _alliance_emblem("Flag of BRICS.svg"),
+    "OPEC": _alliance_emblem("Flag of OPEC.svg"),
+    "Mercosur": _alliance_emblem("Mercosur logo.svg"),
+    "GCC": _alliance_emblem("Flag of the Cooperation Council for the Arab States of the Gulf.svg"),
+    "Gulf Cooperation Council": _alliance_emblem("Flag of the Cooperation Council for the Arab States of the Gulf.svg"),
+    "ECOWAS": _alliance_emblem("Flag of ECOWAS.svg"),
+    "Arab League ": _alliance_emblem("Flag of the Arab League.svg"),
+    "Commonwealth": _alliance_emblem("Flag of the Commonwealth of Nations.svg"),
+    "Commonwealth of Nations": _alliance_emblem("Flag of the Commonwealth of Nations.svg"),
+    "OECD": _alliance_emblem("OECD logo.svg"),
+    "G7": _alliance_emblem("G7 flag.svg"),
+    "G20": _alliance_emblem("G20 logo.svg"),
+    "QUAD": _alliance_emblem("Flag of India.svg"),   # no official emblem; omitted-safe
+    "European Parliament": _alliance_emblem("Flag of Europe.svg"),
+    "AES": _alliance_emblem("Flag of the Alliance of Sahel States.svg"),
+    "Alliance of Sahel States": _alliance_emblem("Flag of the Alliance of Sahel States.svg"),
 }
 
 # v6.6 — diplomatic alignments for the experimental country-alignment map mode

@@ -18,6 +18,133 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v7.6.0)
+
+**v7.6.0 (2026-07-08, autonomous zones as full country panels + emblems
+everywhere):** first batch of the owner's "make it complete" request.
+- **Autonomous regions are now full country-grade panels** (owner: "redo the
+  autonomous region panels to be just like the territories panels … complete
+  with everything a country would have — parliaments, agendas, leaders, flags,
+  everything"). `autonomous_zones.py` gained a `ZONE_EXTRA` block giving each of
+  the 10 zones a real **flag**, its own **head(s) of government**, a
+  **legislature** seat-arc breakdown, a **strategic agenda**, headline **stats**
+  (population/area/languages/currency/established), and an approximate
+  **boundary outline**. `GET /api/autonomous-zones/{id}` returns the rich object
+  + recent tracked coverage; `renderAutonomousZone` was rewritten to mirror the
+  country/territory layout (flag header, clickable leader/party chips, stat
+  grid, `oneChamber` seat arc, agenda box, deep background, coverage chips).
+- **Autonomous zones render on the map with always-on DOTTED borders** (owner:
+  "bordered on default just like territories, but perhaps make their lines
+  slightly dotted"). Both renderers got `setAutonomousZones`: the 2D map draws
+  the outlines dashed (`[2,3]` dotted) via `_drawRings`; the globe builds a
+  dedicated GL line buffer segmented into dots (light blue), drawn every frame.
+  `App.loadAutonomousZones()` fetches them at boot and re-applies on renderer
+  mount. Greenland keeps its territory (GRL) border, so it has no extra outline.
+- **Real bloc flags/emblems** — `country_extra.ALLIANCE_EMBLEMS` (Wikimedia
+  flag/emblem URLs) attaches `emblem_url` to `/api/alliance/{id}`; the bloc
+  panel now prefers that data-driven URL over the local file map, then the
+  emoji fallback.
+- **Source logos** — each source page shows the outlet's **logo** next to its
+  name (owner: "Al Jazeera logo next to Al Jazeera"), derived from the source's
+  own domain via a favicon service, degrading to a 📰 glyph on load error.
+- **Party logos** — `party_dossier.PARTY_LOGOS` (curated Wikimedia logos for
+  ~28 major parties) → `logo_url` on every dossier; the dossier header renders
+  it (glyph fallback). Full worldwide party-logo coverage rides with the EU/NA
+  seeding pass.
+
+**Still queued (owner's larger batch, next rounds):** universal entity
+chip-linking (every leader/bloc/territory/NSA/recognition-state/country/party
+name clickable wherever it appears), and seeding every EU + North America
+parliamentary party with logos + full dossiers. Version badge → v7.6.0.
+Verified: all backend + frontend files parse; fresh boot clean; autonomous-zone
+detail returns flag/leader/legislature(6 parties)/agenda/stats/outline;
+`/api/alliance/NATO` carries `emblem_url`; Democratic + TISZA carry `logo_url`;
+9/10 zones have outlines.
+
+## Status (v7.5.0)
+
+**v7.5.0 (2026-07-08, War Mode conflict feed + Hungary 2026 + party mentions):**
+- **War Mode now has its OWN conflict-only feed with a Stories tab and an Events
+  tab** (owner: "a specific live feed just for war mode that funnels all events
+  corresponding to that war — one tab for stories one tab for events … pushes
+  the general live feed away and replaces it in war mode with a right panel of
+  JUST STUFF PERTAINING TO THAT CONFLICT"). New backend `GET /api/conflicts/
+  {cid}/feed` returns everything tagged to one conflict — its stories (batched
+  cards) AND its events (directly conflict-tagged OR a member of a conflict
+  story, so nothing is missed) — in one call. New frontend `#war-feed-panel`
+  (`warFeed` in App.js): entering War Mode closes the global feed
+  (`setFeedVisible(false)`) and opens this red-accented panel with 📰 stories /
+  📍 events tabs; story cards open the story, event rows open the story or fly
+  the map to the event; live pushes for the active conflict refresh it in place;
+  exiting closes it and restores the global feed. Resolved conflicts still open
+  the read-only historical pane (no War Mode).
+- **Hungary 2026 election — Orbán is GONE** (owner: "i dont wanna see Orban
+  LMAO"). `leaders_world.py` HUN head_of_government → **Péter Magyar (TISZA),
+  since 2026-05-08**; the seed's `UPDATE … WHERE last_refreshed_at IS NULL`
+  propagates it to existing DBs. `country_extra.LEGISLATURES["HUN"]` → 2026
+  result (TISZA 120 / Fidesz–KDNP 63 / Mi Hazánk 10 / opposition 6). EU brief in
+  `world_knowledge.py` updated (Budapest's habitual veto removed after the 2026
+  change). Verified: HUN head_of_government resolves to Péter Magyar on a fresh
+  boot.
+- **Party chips link to WHEREVER the party is mentioned** — `_stories_mentioning`
+  (feeds every party dossier's "Recent tracked coverage") now matches the party
+  name across the story **headline/summary AND** the extracted who/what facts
+  (was facts-only), via a LEFT JOIN so a headline-only mention still surfaces;
+  limit 6→10. Every parliament seat-arc chip already opens the dossier, which is
+  where these clickable mentions live.
+- **Leader coverage: all 216 countries have a leadership row** (verified 0 with
+  none); profiles are the curated `leaders_detail` floor + on-demand AI
+  synthesis (v6.6.5/v6.6.6), so every leader has a profile page.
+
+**Scoped honestly / continuing:** "seed EVERY party with parliamentary
+representation worldwide" and "every country's latest election" are large
+data-vendoring efforts. The architecture already covers any named party (the
+`party_dossier` curated floor + AI synthesis generate a full professional
+dossier for any party, and every major parliament has seat-arc chips); this
+patch updated Hungary specifically and the leader/party mention plumbing. A
+literal hardcode of all ~thousands of parties / a full per-country election
+refresh is the next data pass. Version badge → v7.5.0. Verified: backend +
+App.js parse; fresh boot clean (216 leaders, HUN=Péter Magyar); `/api/conflicts/
+{cid}/feed` returns the correct shape.
+
+## Status (v7.4.5)
+
+**v7.4.5 (2026-07-08, live feed + notifications fix — real events on the map,
+feed stuck on "Connecting…"):** the owner's screenshot showed real event
+clusters flowing onto the globe (so ingestion + `/api/map/events` were healthy)
+while the LIVE FEED panel was stuck on "Connecting to the live feed…" and
+breaking-news notifications never fired. That placeholder is only ever set by
+`loadReal()`'s catch handler, so `refreshStories()` (→ `/api/stories`) was
+*throwing repeatedly* while the cheaper map endpoint got through — the classic
+"one endpoint blocked, another fine" signature of the feed endpoint being too
+slow/heavy under live load (client fetch aborts at 25s → reject → feed never
+recovers). Root causes + fixes:
+- **`/api/stories` was O(stories × 6) queries.** `_story_card` ran ~6
+  sub-queries PER story; at `limit=60` that's ~360 queries per call, and the
+  socket fired that same call on EVERY story push — under live ingestion it
+  could exceed the 25s client timeout. Added **`_story_cards(rows)`** — a
+  batched builder that computes every aggregate (member/source counts with
+  duplicate exclusion, dominant category, first location, occurred span,
+  historical-chain flag, conflict names) in a handful of set-based `IN (…)`
+  queries. `list_stories` now uses it. **Verified byte-for-byte identical** to
+  the old per-story output (0 field mismatches across a conflict-tagged
+  multi-member story, a single, and a historical-linked one) and the endpoint
+  returns 200 in ~6ms over real HTTP.
+- **The socket is now the independent feed source.** `story_created`/
+  `story_updated` no longer re-fetch `/api/stories` on every push (that
+  hammered the heavy endpoint); the push payload already carries the FULL story
+  card (v7.4.1), so the handler renders it directly with `feed.upsert(payload)`.
+- **Feed render and the breaking-news alert are now independent** (each in its
+  own try/catch), so a feed-render hiccup can never swallow the notification —
+  the "notifications broken" half of the report.
+- **`refreshStories()` no longer rejects on a render error** (only a real fetch
+  failure), so the safety-net poller always recovers the feed; and the boot
+  failure placeholder now shows the **real error** ("Live feed loading…
+  retrying (…)") instead of a mysterious permanent "Connecting…".
+Version badge → v7.4.5. Verified: App.js + routes_stories parse; batched cards
+== per-story cards (0 mismatches); `/api/stories`, `/api/map/events`,
+`/api/config` all 200 over real HTTP in single-digit ms.
+
 ## Status (v7.4.4)
 
 **v7.4.4 (2026-07-08, delete the synthetic/demo data entirely):** the owner

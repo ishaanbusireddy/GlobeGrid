@@ -217,14 +217,19 @@ def _background(entity_type: str, entity_id: str):
         " WHERE entity_type = ? AND entity_id = ?", (entity_type, entity_id))]
 
 
-def _stories_mentioning(name: str, limit: int = 6):
+def _stories_mentioning(name: str, limit: int = 10):
+    # v7.5 — a party chip links to WHEREVER the party is mentioned (owner), so
+    # match the name across the story headline/summary AND the extracted
+    # who/what facts, not just the facts (a LEFT JOIN so a headline-only mention
+    # with no matching fact still surfaces).
     like = f"%{name}%"
     return [dict(r) for r in query(
         "SELECT DISTINCT s.id, s.headline, s.last_updated_at FROM stories s"
-        " JOIN story_members m ON m.story_id = s.id"
-        " JOIN extracted_facts f ON (f.id = m.fact_id OR f.event_id = m.event_id)"
-        " WHERE s.is_synthetic = 0 AND (f.who LIKE ? OR f.what LIKE ?)"
-        " ORDER BY s.last_updated_at DESC LIMIT ?", (like, like, limit))]
+        " LEFT JOIN story_members m ON m.story_id = s.id"
+        " LEFT JOIN extracted_facts f ON (f.id = m.fact_id OR f.event_id = m.event_id)"
+        " WHERE s.is_synthetic = 0 AND (s.headline LIKE ? OR s.summary LIKE ?"
+        "   OR f.who LIKE ? OR f.what LIKE ?)"
+        " ORDER BY s.last_updated_at DESC LIMIT ?", (like, like, like, like, limit))]
 
 
 @route("GET", "/api/background/{entity_type}/{entity_id}")

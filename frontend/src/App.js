@@ -32,7 +32,7 @@ import { exportSnapshot } from "./components/Snapshot.js";
 import { BOUNDARIES_50M_ENC } from "./data/boundaries50m.js";
 import { decodeBoundaries, countryAtPoint } from "./data/boundaryCodec.js";
 import { LANGUAGE_INFO, RELIGION_INFO, familyColor } from "./data/families.js";
-import { TIMEZONES, getTimeZone, setTimeZone } from "./data/timefmt.js";  // v6.2 header tz
+import { TIMEZONES, getTimeZone, setTimeZone, formatDateTime } from "./data/timefmt.js";  // v6.2 header tz
 import { LANGUAGES, applyLanguage } from "./i18n.js";   // v5 §2
 import { renderWhatIf } from "./components/panes/WhatIf.js";   // v7 §2
 import { renderSituationRoom } from "./components/panes/SituationRoom.js";  // v7 §3
@@ -211,7 +211,7 @@ for (const id of ["marked-toggle", "sat-toggle", "sensors-toggle", "blocs-btn", 
                   "lineage-overlay", "map-host", "feed-list", "tier-select",
                   "quality-select", "sound-toggle", "volume-slider", "preset-select",
                   "heatmap-toggle", "borders-toggle", "disputes-toggle", "actors-toggle",
-                  "names-toggle", "spin-toggle", "tz-header",
+                  "names-toggle", "spin-toggle", "az-toggle", "tz-header",
                   "palette-btn", "briefing-btn", "graph-btn", "watchlist-btn", "whatif-btn", "audio-briefing-btn",
                   "bookmarks-btn", "stories-btn", "settings-btn", "snapshot-btn", "help-btn",
                   "watchlist-panel", "conn-badge", "map-filters", "graph-overlay",
@@ -231,6 +231,7 @@ const state = {
   watchlistOnly: false,
   syntheticMode: false,
   syntheticData: null,
+  autonomousZones: [],   // v7.6 — always-on dotted autonomous-region borders
   mapData: { events: [], links: [] },
   clientConfig: {
     graphics: { quality_tier: "high", idle_tour_seconds: 0, ambient_sound_default: false },
@@ -588,7 +589,16 @@ function openSourceStories(src) {
     key: `source:${src.id}`,
     title: src.name.slice(0, 40),
     render: async (el) => {
-      el.innerHTML = `<h1>${src.name}</h1>
+      // v7.6 — the source's LOGO next to its name (owner: "Al Jazeera logo next
+      // to Al Jazeera"). Derived from the outlet's own domain via a favicon
+      // service; degrades to a 📰 glyph if it can't load.
+      let logo = "📰";
+      try {
+        const host = new URL(src.url).hostname.replace(/^www\./, "");
+        logo = `<img class="src-logo" src="https://icons.duckduckgo.com/ip3/${host}.ico"
+          alt="" onerror="this.outerHTML='📰'">`;
+      } catch { /* no url → glyph */ }
+      el.innerHTML = `<h1 class="src-title">${logo} <span>${src.name}</span></h1>
         <p class="cp-meta">${src.type || ""}${src.reliability_tier ? " · " + src.reliability_tier + " reliability" : ""} — stories and events sourced from this outlet.</p>
         <div class="src-stories"><p class="cp-meta">loading…</p></div>`;
       const box = el.querySelector(".src-stories");
@@ -831,6 +841,9 @@ function mountRenderer(tier) {
     state.renderer.setActorZones?.(state.actorZones);   // v5 §11
   }
   if (state.cities.length) state.renderer.setCities?.(state.cities);
+  // v7.6 — autonomous-region dotted borders, on by default (togglable)
+  if (state.autonomousZones && state.autonomousZones.length)
+    state.renderer.setAutonomousZones?.(state.azOn !== false ? state.autonomousZones : []);
   state.renderer.setCountryLabels?.(COUNTRY_LABELS);   // v6.1.1 dynamic labels
   if (state.renderer && state.renderer.onSelectRegion !== undefined)
     state.renderer.onSelectRegion = (region) => ctx.openRegion(region);  // v6.6
@@ -975,8 +988,16 @@ async function refreshStories() {
   // v7 — feed renders in English (translation scrapped; owner will
   // architect a replacement).
   const stories = data.stories || [];
-  feed.setStories(stories);
-  feed.currentIds = stories;
+  // v7.4.5 — a render error must NOT reject refreshStories (that would keep the
+  // safety-net poller from ever recovering the feed and leave it stuck on the
+  // boot placeholder). Rendering is best-effort; the fetch succeeding is what
+  // matters for "the backend answered".
+  try {
+    feed.setStories(stories);
+    feed.currentIds = stories;
+  } catch (e) {
+    console.error("feed render failed (non-fatal):", e);
+  }
 }
 
 async function refreshMap() {
@@ -1042,13 +1063,19 @@ async function loadReal() {
   // safety-net pollers below keep retrying, and a real error surfaces in the
   // console + an empty-but-live feed, never fake [SYNTHETIC] stories.
   await refreshStories().catch((e) => {
+    // v7.4.5 — surface the REAL error (was a permanent, mysterious "Connecting
+    // to the live feed…"). The socket + safety-net poller keep retrying, and
+    // any story push will populate the feed directly, so this is transient.
     console.error("live feed fetch failed (staying live, will retry):", e);
-    els.feedList.innerHTML = `<p class="cp-meta">Connecting to the live feed…</p>`;
+    els.feedList.innerHTML =
+      `<p class="cp-meta">Live feed loading… retrying.<br>` +
+      `<span style="opacity:.7">(${(e && e.message) || e})</span></p>`;
   });
   await refreshMap().catch((e) => console.error("map fetch failed:", e));
   await refreshInstability().catch((e) => console.error("instability fetch failed:", e));
   setConn("live");
   loadCities().catch(() => {});
+  loadAutonomousZones().catch(() => {});   // v7.6 — always-on dotted borders
   checkOnboarding().catch(() => {});
   loadCompleteness().catch(() => {});
 
@@ -1080,25 +1107,39 @@ async function loadReal() {
           pushMapData();
         }
       } else if (msg.type === "story_created" || msg.type === "story_updated") {
-        try {
-          const full = await api.stories({ limit: 30 });
-          const card = (full.stories || []).find((s) => s.id === msg.payload.id);
-          feed.upsert(card || msg.payload);
-        } catch { feed.upsert(msg.payload); }
+        // v7.4.5 — the push payload already carries the FULL story card
+        // (v7.4.1: real member/source counts, category, lat/lon, occurred
+        // span), so render the feed DIRECTLY from it. We no longer re-fetch
+        // /api/stories on every push — that hammered a heavier endpoint under
+        // live ingestion and, if it timed out (client 25s), the feed stuck on
+        // "Connecting to the live feed…" while the map kept working. Feed
+        // render and the breaking-news alert are now INDEPENDENT: a render
+        // hiccup must never swallow the notification (owner: "notification …
+        // still broken").
+        try { feed.upsert(msg.payload); }
+        catch (e) { console.error("feed upsert failed (non-fatal):", e); }
         if (msg.type === "story_created") {
-          sound.blip();
-          const ev = state.mapData.events.find((e) => e.story_id === msg.payload.id);
-          if (ev) state.renderer?.burst?.(ev.lat, ev.lon, ev.category);
-          // §25 — in-app breaking alert above the severity floor
-          const sev = ev ? ev.severity
-            : Math.max(0, ...state.mapData.events
-                .filter((e) => e.story_id === msg.payload.id)
-                .map((e) => e.severity || 0));
-          alerts.maybeAlert(msg.payload, sev);
+          try {
+            sound.blip();
+            const ev = state.mapData.events.find((e) => e.story_id === msg.payload.id);
+            if (ev) state.renderer?.burst?.(ev.lat, ev.lon, ev.category);
+            // §25 — in-app breaking alert above the severity floor
+            const sev = ev ? ev.severity
+              : Math.max(0, ...state.mapData.events
+                  .filter((e) => e.story_id === msg.payload.id)
+                  .map((e) => e.severity || 0));
+            alerts.maybeAlert(msg.payload, sev);
+          } catch (e) { console.error("breaking alert failed (non-fatal):", e); }
         }
         refreshMap().catch(() => {});
       } else if (msg.type === "instability_updated") {
         refreshInstability().catch(() => {});
+      }
+      // v7.5 — keep the War Mode conflict feed live too (it re-fetches only the
+      // conflict-scoped stories/events; the _busy guard drops overlapping loads)
+      if (state.warMode && (msg.type === "event_created"
+          || msg.type === "story_created" || msg.type === "story_updated")) {
+        warFeed.refresh();
       }
     },
   });
@@ -1121,6 +1162,14 @@ async function loadCities() {
   const data = await api.cities(50000, 4000);
   state.cities = data.cities || [];
   state.renderer?.setCities?.(state.cities);
+}
+
+// v7.6 — autonomous-region outlines, drawn as always-on DOTTED borders on the
+// map (like territories, but dashed). Loaded once at boot.
+async function loadAutonomousZones() {
+  const data = await api.autonomousZones();
+  state.autonomousZones = (data.zones || []).filter((z) => Array.isArray(z.outline));
+  state.renderer?.setAutonomousZones?.(state.azOn !== false ? state.autonomousZones : []);
 }
 
 // v4 §14, v5.1 §18 — first-run onboarding: surface the key setup, don't
@@ -1483,6 +1532,18 @@ els.namesToggle.addEventListener("click", () => {
   els.namesToggle.classList.toggle("active", state.namesOn);
   state.renderer?.setCountryLabelsVisible?.(state.namesOn);
 });
+// v7.6 — autonomous-region dotted borders on/off (on by default). Persisted.
+state.azOn = localStorage.getItem("tdl_az") !== "0";
+if (els.azToggle) {
+  els.azToggle.classList.toggle("active", state.azOn);
+  els.azToggle.addEventListener("click", () => {
+    state.azOn = !state.azOn;
+    localStorage.setItem("tdl_az", state.azOn ? "1" : "0");
+    els.azToggle.classList.toggle("active", state.azOn);
+    state.renderer?.setAutonomousZones?.(state.azOn ? state.autonomousZones : []);
+  });
+}
+
 // v6.6.6 — explicit auto-spin toggle (the globe no longer spins on its own when
 // idle; this is the deliberate way to make it rotate). Persisted.
 state.spinOn = localStorage.getItem("tdl_spin") === "1";
@@ -2279,7 +2340,9 @@ async function enterWarMode(conflictId) {
   }
   // v7.4.2 — War Mode CLOSES the live feed and shows a conflict-only panel
   // instead of filtering the feed. Nothing to snapshot/restore anymore.
+  // v7.5 — and opens the dedicated conflict feed (stories tab + events tab).
   setFeedVisible(false);
+  warFeed.open(conflictId, data.conflict.name);
   state.warMode = data;
   state.warTab = "";
   state.conflictId = conflictId;
@@ -2348,8 +2411,9 @@ function exitWarMode() {
   setFocus(null);
   state.renderer?.setColoredRings?.([]);
   state.renderer?.setActorZones?.(state.actorsOn ? state.actorZones : []);
-  // v7.4.2 — War Mode closed the live feed on entry; reopen it and refresh the
-  // full global feed (it was never filtered, so there's no snapshot to restore).
+  // v7.5 — close the conflict-only war feed, then v7.4.2 — reopen the global
+  // live feed (it was never filtered, so there's no snapshot to restore).
+  warFeed.close();
   setFeedVisible(true);
   refreshStories().catch(() => {});
 }
@@ -2442,6 +2506,116 @@ function setFeedVisible(on) {
   if (feedReopenTab) feedReopenTab.style.display = on ? "none" : "";
 }
 if (feedCloseBtn) feedCloseBtn.addEventListener("click", () => setFeedVisible(false));
+
+// v7.5 — War Mode's dedicated conflict-only feed. Entering War Mode CLOSES the
+// global live feed (setFeedVisible(false)) and shows THIS panel instead, with a
+// Stories tab and an Events tab, both funneling only what pertains to that war
+// (owner: "a specific live feed just for war mode … one tab for stories one tab
+// for events … JUST STUFF PERTAINING TO THAT CONFLICT"). Live pushes for the
+// active conflict refresh it in place.
+const warFeed = {
+  cid: null, tab: "stories", data: null, _busy: false,
+  async open(cid, name) {
+    this.cid = cid; this.tab = "stories"; this.data = null;
+    const panel = document.getElementById("war-feed-panel");
+    document.getElementById("war-feed-title").textContent = "⚔ " + (name || "war feed");
+    panel.style.display = "";
+    document.getElementById("war-feed-list").innerHTML =
+      `<p class="cp-meta">Loading the conflict feed…</p>`;
+    this._renderTabs();
+    await this._load();
+  },
+  close() {
+    this.cid = null; this.data = null;
+    const panel = document.getElementById("war-feed-panel");
+    if (panel) panel.style.display = "none";
+  },
+  // called from the socket when a new story/event lands while War Mode is open
+  refresh() { if (this.cid) this._load(); },
+  async _load() {
+    if (!this.cid || this._busy) return;
+    this._busy = true;
+    const cid = this.cid;
+    try {
+      const d = await api.conflictFeed(cid);
+      if (this.cid !== cid) return;   // exited/switched while loading
+      this.data = d;
+      this._renderList();
+    } catch (e) {
+      if (this.cid !== cid) return;
+      document.getElementById("war-feed-list").innerHTML =
+        `<p class="cp-meta">Couldn't load the conflict feed — retrying.<br>` +
+        `<span style="opacity:.7">(${(e && e.message) || e})</span></p>`;
+    } finally { this._busy = false; }
+  },
+  _renderTabs() {
+    const tabs = document.getElementById("war-feed-tabs");
+    tabs.innerHTML = "";
+    const sc = this.data ? (this.data.stories || []).length : "";
+    const ec = this.data ? (this.data.events || []).length : "";
+    const mk = (id, label) => {
+      const b = document.createElement("button");
+      b.className = "war-feed-tab" + (this.tab === id ? " active" : "");
+      b.textContent = label;
+      b.addEventListener("click", () => { this.tab = id; this._renderTabs(); this._renderList(); });
+      tabs.appendChild(b);
+    };
+    mk("stories", `📰 stories${sc !== "" ? " (" + sc + ")" : ""}`);
+    mk("events", `📍 events${ec !== "" ? " (" + ec + ")" : ""}`);
+  },
+  _renderList() {
+    this._renderTabs();
+    const list = document.getElementById("war-feed-list");
+    list.innerHTML = "";
+    if (!this.data) return;
+    if (this.tab === "stories") {
+      const items = this.data.stories || [];
+      if (!items.length) {
+        list.innerHTML = `<p class="cp-meta">No stories tracked for this conflict yet — ` +
+          `they appear as coverage is correlated to it.</p>`;
+        return;
+      }
+      for (const s of items) {
+        const card = document.createElement("div");
+        card.className = "story-card";
+        const conf = s.confidence || "low";
+        card.innerHTML = `<h3></h3><div class="card-meta">
+          <span class="chip cat-${s.category || "other"}">${s.category || "other"}</span>
+          <span class="badge-src">${s.source_count || 0} src · ${s.member_count || 0} ev</span>
+          <span class="conf conf-${conf}">${conf}</span>
+          <span class="we-when"></span></div>`;
+        card.querySelector("h3").textContent = s.headline || "(untitled story)";
+        card.querySelector(".we-when").textContent = formatDateTime(s.last_updated_at);
+        card.addEventListener("click", () => openStory(s.id));
+        list.appendChild(card);
+      }
+    } else {
+      const items = this.data.events || [];
+      if (!items.length) {
+        list.innerHTML = `<p class="cp-meta">No events tracked for this conflict yet.</p>`;
+        return;
+      }
+      for (const e of items) {
+        const row = document.createElement("div");
+        row.className = "war-event-row";
+        row.innerHTML = `<h4></h4><div class="we-meta">
+          <span class="chip cat-${e.category || "other"}">${e.category || "other"}</span>
+          <span class="we-loc"></span><span class="we-when"></span></div>`;
+        row.querySelector("h4").textContent = e.title || "(event)";
+        row.querySelector(".we-loc").textContent = e.location_name ? "📍 " + e.location_name : "";
+        row.querySelector(".we-when").textContent = formatDateTime(e.occurred_at);
+        row.addEventListener("click", () => {
+          if (e.story_id) openStory(e.story_id);
+          else if (e.lat != null && state.renderer?.flyTo)
+            state.renderer.flyTo(e.lat, e.lon, state.tier === 1 ? 1.9 : undefined, 900);
+        });
+        list.appendChild(row);
+      }
+    }
+  },
+};
+const warFeedExitBtn = document.getElementById("war-feed-exit");
+if (warFeedExitBtn) warFeedExitBtn.addEventListener("click", () => exitWarMode());
 
 // ---------- §12 — ESC closes panels one at a time (a real stack) ----------
 

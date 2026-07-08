@@ -662,6 +662,32 @@ export class Tier1Globe {
   // on the 2D overlay (facing-culled), under the same NSA toggle as markers
   setActorZones(zones) { this.actorZones = zones || []; }
 
+  // v7.6 — autonomous-region outlines as always-on DOTTED borders (owner: shown
+  // like territories by default, but slightly dotted). A finely-broken line so
+  // it reads as a dotted boundary distinct from settled country borders.
+  setAutonomousZones(zones) {
+    const gl = this.gl;
+    const verts = [];
+    for (const z of (zones || [])) {
+      const ring = Array.isArray(z.outline) ? z.outline : null;
+      if (!ring || ring.length < 3) continue;
+      // densify each edge into short dots: emit a small dash, skip a gap
+      for (let i = 0; i + 1 < ring.length; i++) {
+        const [lon0, lat0] = ring[i], [lon1, lat1] = ring[i + 1];
+        const steps = 10;
+        for (let s = 0; s < steps; s++) {
+          if (s % 2 === 1) continue;   // gap → dotted
+          const t0 = s / steps, t1 = (s + 0.55) / steps;
+          verts.push(...latLonToVec3(lat0 + (lat1 - lat0) * t0, lon0 + (lon1 - lon0) * t0, 1.0013),
+                     ...latLonToVec3(lat0 + (lat1 - lat0) * t1, lon0 + (lon1 - lon0) * t1, 1.0013));
+        }
+      }
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.autonomousBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+    this.autonomousCount = verts.length / 3;
+  }
+
   setCities(cities) { this.cities = cities || []; }
   // v6.1.1 — dynamic country labels: {name, lat, lon, span} where span is the
   // country's bbox size in degrees. Visibility is gated on APPARENT on-screen
@@ -826,6 +852,8 @@ export class Tier1Globe {
     this.borderCount = 0;
     this.disputeBuf = gl.createBuffer();
     this.disputeCount = 0;
+    this.autonomousBuf = gl.createBuffer();   // v7.6 — always-on dotted autonomous borders
+    this.autonomousCount = 0;
     this.actorBuf = gl.createBuffer();
     this.actorCount = 0;
     this._ensureBoundaryLod("50m");
@@ -1802,6 +1830,14 @@ export class Tier1Globe {
       gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
       gl.uniform4f(colLoc, 1.0, 0.72, 0.3, 0.85);
       gl.drawArrays(gl.LINES, 0, this.disputeCount);
+    }
+
+    // v7.6 — autonomous regions: always-on dotted light-blue borders
+    if (this.autonomousCount) {
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.autonomousBuf);
+      gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+      gl.uniform4f(colLoc, 0.47, 0.78, 1.0, 0.8);
+      gl.drawArrays(gl.LINES, 0, this.autonomousCount);
     }
 
     // v3 §14 / v6 §7 §8 — colored boundary-ring overlays: any number of
