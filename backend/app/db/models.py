@@ -927,6 +927,26 @@ def _upgrade_v5_to_v6() -> None:
             copy = ", ".join(c for c in new_cols if c in old_cols)
             conn.execute(f"INSERT INTO countries ({copy}) SELECT {copy} FROM countries_v5")
             conn.execute("DROP TABLE countries_v5")
+        # v7.2 §4 — an existing DB's sources CHECK predates 'ais'/'nightlights'
+        # (the type list only grows), so seeding the new physical-sensor rows
+        # would fail the constraint. Rebuild from the current DDL when the
+        # newest sentinel is absent; the column-intersection copy preserves
+        # every existing column. Runs here (not in _upgrade_v1_to_v2) because
+        # that path only fires for a v1 DB — a v6+ DB reaches only this fn.
+        srow = conn.execute("SELECT sql FROM sqlite_master WHERE type='table'"
+                            " AND name='sources'").fetchone()
+        if srow and "'ais'" not in (srow["sql"] or ""):
+            create_sources_sql = DDL[
+                DDL.index("CREATE TABLE IF NOT EXISTS sources"):
+                DDL.index("-- 6.2")
+            ].strip().rstrip(";") + ";"
+            conn.execute("ALTER TABLE sources RENAME TO sources_v6")
+            conn.execute(create_sources_sql)
+            new_cols = [r["name"] for r in conn.execute("PRAGMA table_info(sources)")]
+            old_cols = {r["name"] for r in conn.execute("PRAGMA table_info(sources_v6)")}
+            copy = ", ".join(c for c in new_cols if c in old_cols)
+            conn.execute(f"INSERT INTO sources ({copy}) SELECT {copy} FROM sources_v6")
+            conn.execute("DROP TABLE sources_v6")
         conn.execute("COMMIT")
     except Exception:
         conn.execute("ROLLBACK")
