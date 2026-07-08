@@ -277,12 +277,87 @@ def list_stories(params, q, body):
     return 200, {"stories": cards}
 
 
+def _impacted_entities(story_id: str) -> list[dict]:
+    """v7.4.1 — the entities this story impacts, as typed clickable chips shown
+    at the TOP of the story panel (owner: "at the top of event panels link
+    impacted countries/blocs/NSAs/zones/territories"). Resolves the story's
+    tracked canonical entity names against the entity tables."""
+    rows = query(
+        "SELECT DISTINCT f.canonical_entity_ids FROM story_members m"
+        " JOIN extracted_facts f ON f.id = m.fact_id"
+        " WHERE m.story_id = ? AND f.canonical_entity_ids IS NOT NULL"
+        " UNION"
+        " SELECT DISTINCT f.canonical_entity_ids FROM story_members m"
+        " JOIN events e ON e.id = m.event_id"
+        " JOIN extracted_facts f ON f.event_id = e.id"
+        " WHERE m.story_id = ? AND f.canonical_entity_ids IS NOT NULL",
+        (story_id, story_id))
+    names = set()
+    for r in rows:
+        try:
+            for cid in json.loads(r["canonical_entity_ids"]):
+                ce = query_one("SELECT canonical_name FROM canonical_entities WHERE id = ?", (cid,))
+                if ce:
+                    names.add(ce["canonical_name"])
+        except (json.JSONDecodeError, TypeError):
+            continue
+    if not names:
+        return []
+    out, seen = [], set()
+
+    def _add(kind, eid, nm):
+        key = (kind, eid)
+        if key not in seen:
+            seen.add(key)
+            out.append({"type": kind, "id": eid, "name": nm})
+
+    for nm in list(names)[:60]:
+        low = nm.lower()
+        c = query_one("SELECT id, name, status FROM countries WHERE lower(name) = ?", (low,))
+        if c:
+            _add("territory" if (c["status"] == "territory") else "country", c["id"], c["name"])
+            continue
+        a = query_one("SELECT id, name FROM alliances WHERE lower(name) = ?", (low,))
+        if a:
+            _add("alliance", a["id"], a["name"]); continue
+        nsa = query_one("SELECT id, name FROM non_state_actors WHERE lower(name) = ?", (low,))
+        if nsa:
+            _add("non_state_actor", nsa["id"], nsa["name"]); continue
+        ml = query_one("SELECT id, name FROM marked_locations WHERE lower(name) = ?", (low,))
+        if ml:
+            _add("zone", ml["id"], ml["name"]); continue
+    return out[:16]
+
+
+@route("GET", "/api/chains")
+def lineage_chains(params, q, body):
+    """v7.4.1 — dedicated lineage / connected-history chains for the stories
+    directory (owner: "a dedicated lineage / chains tab"). Returns recent stories
+    that carry a historical-chain link, each with the chain of past facts it
+    reaches back to — the fact chain made browsable."""
+    rows = query(
+        "SELECT DISTINCT s.id, s.headline, s.last_updated_at"
+        " FROM stories s JOIN story_members m ON m.story_id = s.id"
+        " WHERE m.linked_via = 'historical_chain' AND s.is_synthetic = 0"
+        " ORDER BY s.last_updated_at DESC LIMIT 40")
+    chains = []
+    for r in rows:
+        hist = _connected_history(r["id"])
+        if not hist:
+            continue
+        chains.append({"id": r["id"], "headline": r["headline"],
+                       "last_updated_at": r["last_updated_at"],
+                       "chain": hist[:8], "chain_len": len(hist)})
+    return 200, {"chains": chains}
+
+
 @route("GET", "/api/stories/{id}")
 def story_detail(params, q, body):
     row = query_one("SELECT * FROM stories WHERE id = ?", (params["id"],))
     if row is None:
         return 404, {"error": "story not found"}
     d = _story_card(row)
+    d["impacted"] = _impacted_entities(row["id"])   # v7.4.1
     events = _member_events(row["id"])
     d["members"] = events
     d["connected_history"] = _connected_history(row["id"])

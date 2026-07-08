@@ -55,12 +55,13 @@ export class StoryPage {
   // v4 §17 — story pages render in the same left-docked sliding pane as
   // country/wiki pages (one panel component, distinguished by template),
   // with the pane's navigation stack: event -> linked country -> back.
-  constructor(pane, { onOpenStory, onWatch, onOpenLineage, onPanTo } = {}) {
+  constructor(pane, { onOpenStory, onWatch, onOpenLineage, onPanTo, onOpenEntity } = {}) {
     this.pane = pane;
     this.onOpenStory = onOpenStory || (() => {});
     this.onWatch = onWatch || (() => {});
     this.onOpenLineage = onOpenLineage || (() => {});   // v3 §8
     this.onPanTo = onPanTo || null;                     // v6.6.8 pan to event
+    this.onOpenEntity = onOpenEntity || null;           // v7.4.1 impacted chips
   }
 
   close() { this.pane.close(); }
@@ -91,6 +92,7 @@ export class StoryPage {
         <span class="conf conf-${conf}">confidence: ${conf}</span>
       </div>
       <h1></h1>
+      <div class="impacted-row"></div>
       <div class="corroboration-banner"></div>
       <ul class="summary-bullets"></ul>
       <div class="full-summary-row">
@@ -127,6 +129,21 @@ export class StoryPage {
       </div>`;
 
     page.querySelector("h1").textContent = s.headline || "(untitled story)";
+    // v7.4.1 — impacted entities at the TOP: clickable chips for the countries,
+    // blocs, NSAs and zones this story touches (owner request).
+    const impactedRow = page.querySelector(".impacted-row");
+    const impacted = s.impacted || [];
+    if (impacted.length && this.onOpenEntity) {
+      const icon = { country: "🏳", territory: "🏝", alliance: "🤝",
+                     non_state_actor: "⚑", zone: "⚑" };
+      impactedRow.innerHTML = `<span class="impacted-label">Impacts:</span> ` +
+        impacted.map((e) =>
+          `<button class="ap-chip impacted-chip" data-type="${e.type}" data-id="${(e.id + "").replace(/"/g, "")}">${icon[e.type] || "•"} ${(e.name || "").replace(/</g, "&lt;")}</button>`).join(" ");
+      impactedRow.querySelectorAll(".impacted-chip").forEach((b) =>
+        b.addEventListener("click", () => this.onOpenEntity(b.dataset.type, b.dataset.id)));
+    } else {
+      impactedRow.remove();
+    }
     // v6 §3 — two densities of the SAME synthesis: digestible bullets by
     // default (sentence-split from the stored summary + causal consequences),
     // with the fuller prose behind the 'full summary' expand — never two

@@ -28,7 +28,11 @@ real content. Under each header write 2-5 tight bullet points; each bullet is
 one development with its why-it-matters in the same line. Start with a
 "### Top line" section of the 2-3 most consequential developments. No walls
 of prose, no preamble, no sign-off. Ground every claim in the supplied
-stories."""
+stories. Write like a sharp human desk editor briefing a smart reader — plain
+and concrete, naming the real actors and stakes. NEVER use hollow analyst-filler
+("structural forces", "underlying dynamics", "complex interplay", "geopolitical
+landscape", "ripple effects", "at a crossroads"); if a line could describe any
+story anywhere, replace it with the specific development."""
 
 
 # v6.1 — weekly and monthly briefings alongside the daily one. Each period

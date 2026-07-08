@@ -176,9 +176,18 @@ def _pipeline_loop() -> None:
                 for res in results:
                     story = query("SELECT * FROM stories WHERE id = ?", (res["story_id"],))
                     if story:
-                        payload = {k: story[0][k] for k in
-                                   ("id", "headline", "summary", "confidence",
-                                    "first_seen_at", "last_updated_at")}
+                        # v7.4.1 — build the FULL card (member_count/source_count,
+                        # category, lat/lon, occurred span) so the WS push carries
+                        # real counts. Without this the frontend fell back to a
+                        # bare payload → the "0 src 0 ev" cards. _story_card is
+                        # imported lazily to avoid an import cycle.
+                        try:
+                            from ..api.routes_stories import _story_card
+                            payload = _story_card(story[0])
+                        except Exception:  # noqa: BLE001 — never block the push
+                            payload = {k: story[0][k] for k in
+                                       ("id", "headline", "summary", "confidence",
+                                        "first_seen_at", "last_updated_at")}
                         hub.broadcast("story_created" if res["created"] else "story_updated",
                                       payload)
             causal_link.refresh_pending()

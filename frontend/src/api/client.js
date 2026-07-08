@@ -80,6 +80,7 @@ export const api = {
     return get(`/api/instability?${q}`);
   },
   sourcesStatus: () => get("/api/sources/status"),
+  sourceStories: (sid) => get(`/api/sources/${encodeURIComponent(sid)}/stories`),
   config: () => get("/api/config"),
   search: (term) => get(`/api/search?q=${encodeURIComponent(term)}`),
   graph: () => get("/api/graph"),
@@ -143,6 +144,7 @@ export const api = {
   background: (etype, eid) => get(`/api/background/${etype}/${eid}`),
   storiesDirectory: (type) =>
     get(`/api/stories-directory${type ? "?type=" + encodeURIComponent(type) : ""}`),
+  lineageChains: () => get("/api/chains"),                               // v7.4.1 chains tab
   storyTrace: (id) => get(`/api/stories/${id}/trace`),
   deepSummary: (id, expand) => post(`/api/stories/${id}/deep_summary`, expand ? { expand: true } : {}, { timeout: 60000 }),
   annotations: (targetType, targetId) => {
@@ -173,6 +175,11 @@ export const api = {
   mapMode: (mode) => get(`/api/mapmodes/${encodeURIComponent(mode)}`),   // §16
   threadDetail: (id) => get(`/api/threads/${id}`),                       // §27
   un: () => get("/api/un"),                                              // v6.1 UN panel
+  unFeed: () => get("/api/un/feed"),                                     // v7.4.1 UN news feed
+  recognitionSubjects: () => get("/api/recognition"),                    // v7.4.1 recognition map
+  recognition: (subject) => get(`/api/recognition/${encodeURIComponent(subject)}`),
+  autonomousZones: () => get("/api/autonomous-zones"),                   // v7.4.1 autonomous regions
+  autonomousZone: (zid) => get(`/api/autonomous-zones/${encodeURIComponent(zid)}`),
   leaderProfile: (name) =>                                              // v6.6 / v6.6.6 non-blocking
     get(`/api/leader-profile?name=${encodeURIComponent(name)}`, { timeout: 20000 }),
   leaderPortrait: (name) =>                                             // v6.2

@@ -166,7 +166,7 @@ audio:
   # buzz further fixed (drone raised out of the sub-rumble band + softDrone body
   # filter). Three experimental glacial/chimey presets added. Only presets in
   # this list appear in the picker.
-  presets_active: ["ambient_default", "nocturne_calm", "arctic_calm", "modal_drift", "storm_front", "data_sonification", "crystalline_chimes", "deep_glacier", "aurora_drift"]
+  presets_active: ["ambient_default", "nocturne_calm", "arctic_calm", "modal_drift", "storm_front", "data_sonification", "crystalline_chimes", "deep_glacier", "aurora_drift", "oceanic_deep", "desert_mirage", "neon_night", "monastery", "signal_static", "pulse_grid", "stargaze", "iron_march", "zen_garden", "thunderhead"]
 
 sourcing:
   historical_backfill_on_entity_add: true

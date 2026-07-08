@@ -176,9 +176,44 @@ def _gazetteer_ready() -> bool:
         return False
 
 
+# v7.4.1 — curated supplement of NEWSWORTHY smaller places that fall below the
+# 32k-city vendored gazetteer but are exactly where stories happen (owner:
+# "Ayodhya not Delhi"). name_lower -> (proper_name, lat, lon, population). The
+# population is set high enough to clear SINGLE_TOKEN_MIN_POP so a lone mention
+# still geocodes precisely. Consulted BEFORE the gazetteer so the precise point
+# wins over any collision.
+NOTABLE_PLACES = {
+    "ayodhya": ("Ayodhya", 26.80, 82.20, 250000),
+    "pahalgam": ("Pahalgam", 34.01, 75.32, 120000),
+    "sudzha": ("Sudzha", 51.19, 35.27, 120000),
+    "bakhmut": ("Bakhmut", 48.59, 38.00, 120000),
+    "avdiivka": ("Avdiivka", 48.14, 37.75, 120000),
+    "rafah": ("Rafah", 31.29, 34.25, 200000),
+    "khan younis": ("Khan Younis", 31.34, 34.30, 200000),
+    "fordow": ("Fordow", 34.88, 50.99, 120000),
+    "natanz": ("Natanz", 33.51, 51.92, 120000),
+    "dahiyeh": ("Dahiyeh (Beirut)", 33.85, 35.50, 200000),
+    "butler": ("Butler, Pennsylvania", 40.86, -79.90, 120000),
+    "kerrville": ("Kerrville", 30.05, -99.14, 120000),
+    "sagaing": ("Sagaing", 21.88, 95.98, 120000),
+    "goma": ("Goma", -1.68, 29.22, 700000),
+    "bukavu": ("Bukavu", -2.51, 28.84, 800000),
+    "latakia": ("Latakia", 35.52, 35.79, 400000),
+    "khartoum": ("Khartoum", 15.50, 32.56, 5000000),
+    "el fasher": ("El Fasher", 13.63, 25.35, 500000),
+    "port-au-prince": ("Port-au-Prince", 18.59, -72.31, 1000000),
+    "nuuk": ("Nuuk", 64.18, -51.72, 120000),
+    "comrat": ("Comrat", 46.30, 28.66, 120000),
+}
+
+
 @lru_cache(maxsize=4096)
 def _lookup_place(name_lower: str):
     """Best gazetteer_places hit for one candidate span (population-ranked)."""
+    # v7.4.1 — curated newsworthy places win over the vendored gazetteer so a
+    # story genuinely IN Ayodhya/Rafah/Bakhmut pins there, not at the capital.
+    if name_lower in NOTABLE_PLACES:
+        return NOTABLE_PLACES[name_lower]
     from ..db.session import query_one
     row = query_one(
         "SELECT name, lat, lon, population FROM gazetteer_places"
@@ -237,13 +272,14 @@ def geocode_text(text: str):
             return (span.title(), lat, lon)
 
     # 2. no dateline: collect candidates WITH their text positions
+    # tuple: (position, -population, name, lat, lon, is_country)
     lowered = text.lower()
-    candidates = []  # (position, -population, name, lat, lon)
+    candidates = []
     for name in _SORTED_NAMES:
         if name in lowered and _PATTERNS[name].search(lowered):
             lat, lon = PLACES[name]
             candidates.append((lowered.find(name), -COUNTRY_RANK_POPULATION,
-                               name.title(), lat, lon))
+                               name.title(), lat, lon, 1))   # is_country = 1
     for span in _candidate_spans(text):
         low_span = _ascii(span).lower()
         # v7 — a lone common-English word can't geocode a story by itself
@@ -261,17 +297,21 @@ def geocode_text(text: str):
             pos = lowered.find(span.lower())
             if pos < 0:
                 pos = len(lowered)
-            candidates.append((pos, -hit[3], hit[0], hit[1], hit[2]))
+            candidates.append((pos, -hit[3], hit[0], hit[1], hit[2], 0))  # specific place
     if not candidates:
         return None
     # earliest mention first; only IMMEDIATELY adjacent mentions (within ~15
-    # chars, e.g. "Tehran, Iran") compete on population — a city 40 chars
-    # later is a different mention, not a qualifier of the first
+    # chars, e.g. "Tehran, Iran") compete — a city 40 chars later is a different
+    # mention, not a qualifier of the first.
     candidates.sort()
     first_pos = candidates[0][0]
     near = [c for c in candidates if c[0] - first_pos <= 15]
-    near.sort(key=lambda c: c[1])   # most-populous of the near-front mentions
-    _, _, name, lat, lon = near[0]
+    # v7.4.1 location precision (owner: "Ayodhya not Delhi"): among adjacent
+    # mentions, a SPECIFIC place (a real city) outranks the COUNTRY that merely
+    # qualifies it — "Ayodhya, India" is IN Ayodhya, not at India's capital.
+    # Only then does population break ties between same-kind mentions.
+    near.sort(key=lambda c: (c[5], c[1]))   # specific (is_country=0) first, then population
+    _, _, name, lat, lon, _ = near[0]
     return (name, lat, lon)
 
 

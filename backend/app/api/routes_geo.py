@@ -156,11 +156,38 @@ def country_profile(params, q, body):
     _al = derive_alignments(iso3)   # v6.6.2 — derived for EVERY country now
     if _al:
         profile["alignments"] = _al
+    # v7.4.1 — autonomous regions inside this country (Iraq → Kurdistan, etc.)
+    from ..geopolitics.autonomous_zones import zones_list as _az_list
+    _azs = [z for z in _az_list() if z["parent"].lower() == (profile.get("name") or "").lower()]
+    if _azs:
+        profile["autonomous_zones"] = _azs
+    # v7.4.1 — "other languages": ALL significant languages spoken in the country
+    # (owner). Prefer the curated full list; else fall back to the remaining
+    # official languages beyond the primary so the row is never empty.
+    from ..geopolitics.country_extra import COUNTRY_OTHER_LANGUAGES
+    _other = COUNTRY_OTHER_LANGUAGES.get(iso3)
+    if not _other:
+        _langs = profile.get("languages")
+        if isinstance(_langs, str):
+            try:
+                _langs = json.loads(_langs)
+            except (json.JSONDecodeError, TypeError):
+                _langs = [_langs]
+        _other = list(_langs or [])
+    if _other:
+        profile["other_languages"] = _other
     ag = query_one("SELECT * FROM country_agenda_synthesis WHERE country_id = ?", (iso3,))
     profile["agenda"] = dict(ag) if ag else None
     if profile["agenda"] and profile["agenda"].get("source_story_ids"):
         profile["agenda"]["source_story_ids"] = json.loads(
             profile["agenda"]["source_story_ids"])
+    # v7.4.1 — every country shows a filled agenda: fall back to the curated
+    # floor (composed from alignment + region) when no AI synthesis exists yet.
+    if not profile["agenda"] or not (profile["agenda"].get("geopolitical_agenda")):
+        from ..geopolitics.synthesis import curated_agenda
+        ca = curated_agenda(iso3, profile)
+        if ca:
+            profile["agenda"] = ca
     trade = query_one("SELECT * FROM country_trade_stats WHERE country_id = ?", (iso3,))
     profile["trade"] = dict(trade) if trade else None
     profile["memberships"] = [dict(r) for r in query(
@@ -1062,6 +1089,73 @@ def un_overview(params, q, body):
                  "resolutions": resolutions}
 
 
+@route("GET", "/api/un/feed")
+def un_feed(params, q, body):
+    """v7.4.1 — a live UN news stream nested against the UN page (owner). Returns
+    recent stories that either come from a UN-family source OR mention the UN /
+    a UN agency in their headline or summary. Newest first, capped."""
+    like = ("%united nations%", "%\"un\"%", "% un %", "%unsc%", "%security council%",
+            "%unhcr%", "%unicef%", "%ohchr%", "%peacekeep%", "%general assembly%",
+            "%secretary-general%", "%guterres%", "%world food programme%", "%iaea%")
+    # UN-family sources feed straight in
+    un_src = query(
+        "SELECT id FROM sources WHERE lower(name) LIKE '%un %' OR lower(name) LIKE 'un %'"
+        " OR lower(name) LIKE '%united nations%' OR lower(name) LIKE '%unhcr%'"
+        " OR lower(name) LIKE '%unicef%' OR lower(name) LIKE '%ohchr%'"
+        " OR lower(name) LIKE '%reliefweb%' OR lower(name) LIKE '%ocha%'"
+        " OR lower(name) LIKE '%world food programme%' OR lower(name) LIKE '%iaea%'"
+        " OR lower(name) LIKE '%peacekeep%' OR lower(name) LIKE '%who %'"
+        " OR lower(name) LIKE '%world health%' OR lower(name) LIKE '%unesco%'"
+        " OR lower(name) LIKE '%unctad%' OR lower(name) LIKE '%court of justice%'")
+    src_ids = [r["id"] for r in un_src]
+    stories = {}
+    if src_ids:
+        marks = ",".join("?" * len(src_ids))
+        rows = query(
+            "SELECT DISTINCT st.id, st.headline, st.summary, st.first_seen_at,"
+            "  MAX(e.occurred_at) AS last_occurred"
+            " FROM events e JOIN raw_items r ON r.id = e.raw_item_id"
+            " JOIN story_members m ON m.event_id = e.id"
+            " JOIN stories st ON st.id = m.story_id"
+            f" WHERE r.source_id IN ({marks})"
+            " GROUP BY st.id ORDER BY last_occurred DESC LIMIT 40", src_ids)
+        for r in rows:
+            stories[r["id"]] = dict(r)
+    # plus keyword matches across all stories
+    kw = " OR ".join(["lower(headline) LIKE ?"] * len(like)
+                     + ["lower(summary) LIKE ?"] * len(like))
+    krows = query(
+        "SELECT id, headline, summary, first_seen_at FROM stories"
+        f" WHERE {kw} ORDER BY first_seen_at DESC LIMIT 40", like + like)
+    for r in krows:
+        stories.setdefault(r["id"], dict(r))
+    out = sorted(stories.values(),
+                 key=lambda s: s.get("last_occurred") or s.get("first_seen_at") or "",
+                 reverse=True)[:40]
+    return 200, {"stories": out}
+
+
+@route("GET", "/api/recognition")
+def recognition_subjects_route(params, q, body):
+    """v7.4.1 — list the partially-recognized states the recognition map mode
+    can visualize (Kosovo, Taiwan, Palestine, Israel, Western Sahara, …)."""
+    from ..geopolitics.recognition import recognition_subjects
+    return 200, {"subjects": recognition_subjects()}
+
+
+@route("GET", "/api/recognition/{subject}")
+def recognition_view_route(params, q, body):
+    """v7.4.1 — who recognizes a given state and who doesn't, normalized over the
+    seeded country universe so the map can color every country."""
+    from ..geopolitics.recognition import recognition_view
+    all_isos = [r["id"] for r in query(
+        "SELECT id FROM countries WHERE length(id) = 3")]
+    view = recognition_view(params["subject"], all_isos)
+    if not view:
+        return 404, {"error": "unknown recognition subject"}
+    return 200, view
+
+
 @route("POST", "/api/conflicts/confirm_tag")
 def confirm_conflict_tag(params, q, body):
     """§15.1 — one-click resolve of a suggested conflict tag."""
@@ -1133,6 +1227,24 @@ def disputed_zones(params, q, body):
     with per-zone context, for the disputed-mode clickable breakdown."""
     from ..geopolitics.disputed_zones import zones_list
     return 200, {"zones": zones_list()}
+
+
+@route("GET", "/api/autonomous-zones")
+def autonomous_zones(params, q, body):
+    """v7.4.1 — autonomous regions (Iraqi Kurdistan, Rojava, Bougainville,
+    Zanzibar, Gagauzia, Åland, Nakhchivan, Hong Kong, Catalonia, Greenland) as a
+    browsable entity type with per-zone breakdowns."""
+    from ..geopolitics.autonomous_zones import zones_list
+    return 200, {"zones": zones_list()}
+
+
+@route("GET", "/api/autonomous-zones/{zid}")
+def autonomous_zone_detail(params, q, body):
+    from ..geopolitics.autonomous_zones import zone_by_id
+    z = zone_by_id(params["zid"])
+    if not z:
+        return 404, {"error": "unknown autonomous zone"}
+    return 200, z
 
 
 @route("GET", "/api/orgs")

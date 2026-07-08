@@ -18,6 +18,83 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v7.4.1)
+
+**v7.4.1 (2026-07-08, GDELT purge + a big owner fix/feature batch):** the
+headline is a **permanent GDELT ban**. `ingestion/backfill.purge_gdelt()` runs
+at every boot (`main.create_app` after `migrate()`) and hard-deletes any GDELT
+source row and ALL derived rows (raw_items → events → extracted_facts →
+story_members, plus now-orphaned stories); belt-and-suspenders with the
+scheduler `_is_gdelt()` polling block, an **extract-time source guard** (a
+gdelt-typed raw_item is marked processed and never enters the chain), and a
+re-seed deactivation sweep in `seed.py`. **Critical safety:** the curated
+"Historical Archive (curated)" source (177 real 1945→present events) once
+carried the mislabeled type `'gdelt'` — it is re-typed to `'archive'` and
+excluded from the purge by name, so its events survive. Verified in-process: a
+real GDELT source + derived rows purged, curated archive protected, idempotent.
+
+**Owner fix/feature batch (all shipped, none deferred):**
+- **"0 src 0 ev" fixed** — the `story_created`/`story_updated` WS push now
+  carries the FULL `_story_card` (real member/source counts, category, lat/lon,
+  occurred span) instead of a bare payload the frontend fell back to.
+- **Every country has the alignment button** — `derive_alignments()` never
+  returns None for a real iso3 (nonaligned floor), plus ~40 African/small
+  states added to `COUNTRY_CAMP` (Chad et al. were missing).
+- **Country "other languages"** — `COUNTRY_OTHER_LANGUAGES` (curated full
+  language lists for the linguistically-diverse majors) → `other_languages` on
+  the profile, rendered after the official "Languages" stat.
+- **Pan-to-Event inside the event panel** — a panel-level "⌖ Pan to this area"
+  on the cluster/event pane (per-row pans and the story-page pan already exist).
+- **Sources drawer → click a source → its stories** (`GET /api/sources/{id}/
+  stories`; clickable rows in `StatusPanel` → `openSourceStories` pane).
+- **UN news feed nested on the UN page** (`GET /api/un/feed` — UN-family
+  sources + UN-keyword stories) + **16 UN/agency sources** (UNHCR, UNICEF, WFP,
+  IAEA, OCHA/ReliefWeb, OHCHR, Peacekeeping, UNCTAD, UNESCO, ICJ, …).
+- **De-robotified AI tone** — `DEEP_SUMMARY_PROMPT` (which literally said "the
+  structural forces at work"), the analyst `ANSWER_PROMPT`, causal `SYSTEM_
+  PROMPT` and `BRIEFING_PROMPT` all rewritten to a sharp-conversational-expert
+  voice with an explicit **banned-phrase list** (no "structural forces",
+  "underlying dynamics", "complex interplay", "geopolitical landscape", …).
+- **Detailed "?" guide** — rewritten as an **11-tab manual** (Overview, Map &
+  globe, Feed & stories, Countries & world, Conflicts & War Mode, AI tools, Map
+  modes, Audio, ⌨ Shortcuts [full table], AI setup); `?` key opens it.
+- **10 new diverse music tracks** (oceanic_deep, desert_mirage, neon_night,
+  monastery, signal_static, pulse_grid, stargaze, iron_march, zen_garden,
+  thunderhead) — buzz-free at droneOct -12; in `presets_active` + the fallback.
+- **Recognition map mode** (`geopolitics/recognition.py`, `GET /api/recognition
+  [/{subject}]`, 🏳 button on Kosovo/Taiwan/Palestine/Israel/Western Sahara/N.
+  Cyprus/Abkhazia/S. Ossetia pages) colors recognizers green / non-recognizers
+  red / subject gold; toggles + auto-clears on nav-away like alignments.
+- **Autonomous zones** as a new entity type (`geopolitics/autonomous_zones.py`,
+  10 regions incl. Iraqi Kurdistan, Rojava, Bougainville, Zanzibar, Gagauzia,
+  Åland, Nakhchivan, Hong Kong, Catalonia, Greenland; `GET /api/autonomous-
+  zones[/{id}]`, directory + per-zone pages, chips on the parent country page).
+- **Agendas for EVERY country** — `synthesis.curated_agenda()` composes a
+  strategic-agenda floor from alignment camp + rivalries + region brief; the
+  profile route falls back to it when no AI synthesis exists (offline-safe).
+- **Impacted-entity chips** at the TOP of the story page (`_impacted_entities`
+  resolves the story's canonical entities → clickable country/bloc/NSA/zone/
+  territory chips; `story.impacted` + `StoryPage.onOpenEntity`).
+- **Dedicated 🔗 chains tab** in the stories directory (`GET /api/chains` —
+  historical-chain stories with their fact-chain lineage).
+- **Categorization accuracy** — `classify_category` now uses WORD-BOUNDARY
+  matching for short keywords (so "war"≠"warning", "coup"≠"couple",
+  "market"≠"supermarket") and a fixed priority tie-break (disaster > conflict >
+  finance > technology > geopolitics).
+- **Precise geocoding (Ayodhya not Delhi)** — a specific city now beats the
+  COUNTRY that merely qualifies it in an adjacent mention ("Ayodhya, India" →
+  Ayodhya), and a curated `NOTABLE_PLACES` supplement pins newsworthy sub-32k
+  cities (Ayodhya, Pahalgam, Bakhmut, Rafah, Fordow, Goma, Nuuk, …). Zoom-gated
+  declustering already works via the screen-space cluster distance.
+- **All 216 countries have leaders** (verified) + the dynamic Wikidata/
+  accuracy-refresh path stays scheduled. Bullet spacing verified across
+  analyst / deep-summary / briefings. Version badge → **v7.4.1**.
+
+Verified: fresh boot clean (276 sources, **0 gdelt-typed after purge**, 216
+leaders, all seeds), every new module imports + every new endpoint/composer
+returns correct shapes in-process, full backend+frontend syntax sweep clean.
+(Live RSS/AI paths stay proxy-blocked in the sandbox and degrade cleanly.)
+
 ## Status (v7.2)
 
 **v7.2 (2026-07-08, "extreme amounts of knowledge and understanding"):** two

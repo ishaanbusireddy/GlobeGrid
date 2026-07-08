@@ -181,6 +181,15 @@ def create_app(start_scheduler: bool = True) -> ThreadingHTTPServer:
     from .config_schema import validate_config
     validate_config(CONFIG)  # v2 §7.3 — fail loud on a bad config.yaml
     migrate()
+    # v7.4.1 — GDELT is permanently banned; hard-purge any GDELT source + all
+    # of its derived rows at every boot before anything else touches the chain.
+    try:
+        from .ingestion.backfill import purge_gdelt
+        _purged = purge_gdelt()
+        if _purged["sources"]:
+            log.info("gdelt_purged_on_boot", extra={"data": _purged})
+    except Exception:  # noqa: BLE001 — a purge hiccup must never block serving
+        log.exception("gdelt_purge_failed")
     from .processing.embed import ensure_embedder_consistency
     ensure_embedder_consistency()
     # v2 §10 — one-time gazetteer import from the vendored dataset

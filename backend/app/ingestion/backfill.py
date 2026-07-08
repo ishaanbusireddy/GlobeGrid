@@ -1,41 +1,25 @@
-"""v7 Part 6 — historical news backfill.
+"""v7 Part 6 — historical news backfill (curated only, v7.4.1).
 
-Two layers fill the feed and fact chain with the recent past so correlation,
-threads and the analyst have months of context instead of starting cold:
+A CURATED pack of major world events (1945 → early 2026, dates and facts from
+the historical record) is seeded once at startup — works fully offline,
+attributed to the "Historical Archive (curated)" source (type 'archive') and
+dated in the past so it sorts below fresh news in the feed.
 
-1. A CURATED pack of major world events (mid-2024 → early 2026, dates and
-   facts from the historical record) seeded once at startup — works fully
-   offline. Attributed to the "Historical Archive (curated)" source and dated
-   in the past, so they sort below fresh news in the feed.
-
-2. A LIVE GDELT 2.0 archive backfill (config `backfill.*`): walks backward
-   day-by-day (default 180 days), fetching one 15-minute GDELT export
-   snapshot per day and ingesting the most-covered events. Resumable
-   (cursor in app_meta), budget-aware (a few days per scheduler tick), and
-   degrades cleanly when the network is blocked. GDELT was retired as a LIVE
-   source in v6; as a one-shot historical archive it is the only practical
-   way to reconstruct six months of global coverage.
-
-Both layers emit the standard raw_items envelope, so the normal extraction →
-facts → correlation pipeline (provenance included) does the rest.
+The old LIVE GDELT 2.0 archive walk that used to also live here is DELETED and
+GDELT is permanently banned (see purge_gdelt below). The curated packs emit the
+standard raw_items envelope, so the normal extraction → facts → correlation
+pipeline (provenance included) does the rest.
 """
 
-import csv
-import io
 import json
-import urllib.request
-import zipfile
-from datetime import datetime, timedelta, timezone
 
-from ..config import cfg
 from ..db.models import meta_get, meta_set, new_id, now_iso
-from ..db.session import query_one, write_tx
+from ..db.session import query, query_one, write_tx
 import logging
 
 log = logging.getLogger("backfill")
 
 ARCHIVE_SOURCE_NAME = "Historical Archive (curated)"
-GDELT_SOURCE_NAME = "GDELT Archive (backfill)"
 
 # (date, title, summary, category, lat, lon, location_name, severity)
 HISTORICAL_EVENTS = [
@@ -139,8 +123,20 @@ HISTORICAL_EVENTS = [
 
 
 def _ensure_source(name, kind, attribution):
-    row = query_one("SELECT id FROM sources WHERE name = ?", (name,))
+    """The curated historical packs get their OWN source row of type 'archive'
+    (v7.4.1). It is NEVER polled (is_active=0) — it only attributes the
+    hand-curated raw_items. It used to be mislabeled type 'gdelt', which
+    conflated our clean curated history with the banned GDELT junk feed and
+    made it look like GDELT was still a source."""
+    row = query_one("SELECT id, type FROM sources WHERE name = ?", (name,))
     if row:
+        # an existing DB may still carry the old mislabeled type 'gdelt' on this
+        # curated row — re-type it to 'archive' so it stops showing up as a
+        # GDELT source AND survives purge_gdelt()'s type='gdelt' sweep.
+        if row["type"] != kind:
+            with write_tx() as conn:
+                conn.execute("UPDATE sources SET type = ? WHERE id = ?",
+                             (kind, row["id"]))
         return row["id"]
     sid = new_id()
     with write_tx() as conn:
@@ -148,10 +144,7 @@ def _ensure_source(name, kind, attribution):
             "INSERT INTO sources (id, name, type, url, poll_interval_seconds,"
             " health_status, kind, attribution, reliability_tier, is_active)"
             " VALUES (?,?,?,?,?,?,?,?,?,?)",
-            # "gdelt" is a valid retired type with no live fetcher — the
-            # archive sources are never polled (is_active=0) and only exist
-            # to attribute the backfilled raw_items.
-            (sid, name, "gdelt", "", 86400, "ok", "reported",
+            (sid, name, "archive", "", 86400, "ok", "reported",
              attribution, "high", 0))   # is_active=0: never polled live
     return sid
 
@@ -218,101 +211,73 @@ def seed_deep_history():
     return n
 
 
-# ── GDELT archive backfill (live network; degrades in sandboxes) ────────────
+# ── GDELT PERMANENT BAN + PURGE (v7.4.1) ────────────────────────────────────
+# The GDELT 2.0 archive walk that used to live here is DELETED. GDELT is
+# banned everywhere (owner: "block them EVERYWHERE AND IN EVERY WAY … literally
+# DELETE them instantly … it keeps sending me shitty articles and trashing the
+# system"). purge_gdelt() runs at every startup and hard-deletes any GDELT
+# source row and ALL derived rows (raw_items → events → extracted_facts →
+# story_members, and now-orphaned stories) — belt-and-suspenders with the
+# scheduler _is_gdelt() thread block and the extract-time source-type guard.
 
-def _gdelt_url(day):
-    # one representative 15-min snapshot per day (12:00 UTC)
-    stamp = day.strftime("%Y%m%d") + "120000"
-    return f"http://data.gdeltproject.org/gdeltv2/{stamp}.export.CSV.zip"
-
-
-def _fetch_gdelt_day(day, max_events):
-    """Return envelope payloads for the most-covered events of one day."""
-    req = urllib.request.Request(_gdelt_url(day),
-                                 headers={"User-Agent": "GlobeGrid/7.0"})
-    with urllib.request.urlopen(req, timeout=25) as resp:
-        blob = resp.read()
-    zf = zipfile.ZipFile(io.BytesIO(blob))
-    raw = zf.read(zf.namelist()[0]).decode("utf-8", "replace")
-    rows = []
-    for line in csv.reader(io.StringIO(raw), delimiter="\t"):
-        if len(line) < 61:
-            continue
-        try:
-            rows.append({
-                "gid": line[0], "actor1": line[6], "actor2": line[16],
-                "goldstein": float(line[30] or 0), "n_articles": int(line[33] or 0),
-                "tone": float(line[34] or 0), "place": line[52],
-                "lat": float(line[56]) if line[56] else None,
-                "lon": float(line[57]) if line[57] else None,
-                "url": line[60],
-            })
-        except (ValueError, IndexError):
-            continue
-    rows.sort(key=lambda r: -r["n_articles"])
-    out, seen = [], set()
-    for r in rows:
-        if len(out) >= max_events:
-            break
-        if not r["place"] or r["lat"] is None or r["url"] in seen:
-            continue
-        seen.add(r["url"])
-        a1 = (r["actor1"] or "").title()
-        a2 = (r["actor2"] or "").title()
-        actors = " and ".join(x for x in (a1, a2) if x) or "Parties"
-        sev = 4 if r["goldstein"] <= -7 else 3 if r["goldstein"] <= -3 else 2
-        cat = ("conflict" if r["goldstein"] <= -5
-               else "geopolitics" if r["goldstein"] <= 0 else "diplomacy")
-        title = f"{actors}: widely-covered {cat} development in {r['place']}"
-        out.append({"title": title,
-                    "summary": (f"GDELT archive: event coded near "
-                                f"{r['place']} with {r['n_articles']} articles "
-                                f"of coverage (historical)"),
-                    "link": r["url"],
-                    "published": day.strftime("%Y-%m-%d") + "T12:00:00+00:00",
-                    "lat": r["lat"], "lon": r["lon"],
-                    "location_name": r["place"].split(",")[0],
-                    "category": cat, "severity": sev,
-                    "_ext": f"gdelt:{r['gid']}"})
-    return out
+# any source whose type, name or url smells of GDELT — but NEVER our clean
+# curated archive (it once carried the old mislabeled type 'gdelt'; we re-type
+# it first, then exclude it by name so its 177 curated events can never be swept)
+_GDELT_MATCH = (
+    "(type = 'gdelt' OR type = 'gdelt_events'"
+    " OR lower(name) LIKE '%gdelt%' OR lower(url) LIKE '%gdelt%')"
+    " AND name != ?"
+)
 
 
-def gdelt_backfill_tick():
-    """Process a few archive days per scheduler tick, walking backward from
-    yesterday to `backfill.days` ago. Resumable; safe to re-run."""
-    if not bool(cfg("backfill", "enabled")):
-        return {"status": "disabled"}
-    total_days = int(cfg("backfill", "days"))
-    per_tick = int(cfg("backfill", "days_per_tick"))
-    max_events = int(cfg("backfill", "max_events_per_day"))
-    done = int(meta_get("backfill:gdelt_days_done") or 0)
-    if done >= total_days:
-        return {"status": "complete", "days_done": done}
-    sid = _ensure_source(GDELT_SOURCE_NAME, "archive",
-                         "GDELT Project 2.0 event archive (historical)")
-    today = datetime.now(timezone.utc).date()
-    inserted = 0
-    for i in range(done, min(done + per_tick, total_days)):
-        day = today - timedelta(days=i + 1)
-        try:
-            payloads = _fetch_gdelt_day(
-                datetime(day.year, day.month, day.day), max_events)
-        except Exception as exc:  # noqa: BLE001 — network blocked/exhausted
-            log.info("gdelt_backfill_degraded",
-                     extra={"data": {"day": str(day), "error": str(exc)[:120]}})
-            return {"status": "degraded", "days_done": done, "error": str(exc)[:120]}
-        for p in payloads:
-            ext = p.pop("_ext")
-            if query_one("SELECT id FROM raw_items WHERE external_id = ?", (ext,)):
-                continue
-            with write_tx() as conn:
+def purge_gdelt() -> dict:
+    """Delete every GDELT-sourced entry and the GDELT source rows themselves.
+    Idempotent and cheap when there's nothing to purge. Cascades by hand
+    because SQLite FKs aren't ON DELETE CASCADE here."""
+    # first heal the curated archive row if a legacy DB still types it 'gdelt',
+    # so it survives the sweep below (it holds real 1945→present ground truth).
+    with write_tx() as conn:
+        conn.execute(
+            "UPDATE sources SET type = 'archive' WHERE name = ?"
+            " AND type IN ('gdelt', 'gdelt_events')", (ARCHIVE_SOURCE_NAME,))
+    sids = [r["id"] for r in query(
+        f"SELECT id FROM sources WHERE {_GDELT_MATCH}", (ARCHIVE_SOURCE_NAME,))]
+    if not sids:
+        return {"sources": 0, "raw_items": 0, "events": 0, "facts": 0}
+    marks = ",".join("?" * len(sids))
+    # raw_items from these sources, and the events/facts derived from them
+    raw_ids = [r["id"] for r in query(
+        f"SELECT id FROM raw_items WHERE source_id IN ({marks})", sids)]
+    ev_ids = [r["id"] for r in query(
+        f"SELECT id FROM events WHERE raw_item_id IN ({marks})", raw_ids)] if raw_ids else []
+    # facts can be attributed straight to the source too (extracted_facts.source_id)
+    fact_ids = set(r["id"] for r in query(
+        f"SELECT id FROM extracted_facts WHERE source_id IN ({marks})", sids))
+    if ev_ids:
+        em = ",".join("?" * len(ev_ids))
+        fact_ids.update(r["id"] for r in query(
+            f"SELECT id FROM extracted_facts WHERE event_id IN ({em})", ev_ids))
+    counts = {"sources": len(sids), "raw_items": len(raw_ids),
+              "events": len(ev_ids), "facts": len(fact_ids)}
+    with write_tx() as conn:
+        def _del(table, col, ids):
+            for i in range(0, len(ids), 400):
+                chunk = ids[i:i + 400]
                 conn.execute(
-                    "INSERT INTO raw_items (id, source_id, raw_content,"
-                    " fetched_at, processed, external_id) VALUES (?,?,?,?,0,?)",
-                    (new_id(), sid, json.dumps(p), now_iso(), ext))
-            inserted += 1
-        done = i + 1
-        meta_set("backfill:gdelt_days_done", str(done))
-    log.info("gdelt_backfill_tick",
-             extra={"data": {"days_done": done, "inserted": inserted}})
-    return {"status": "ok", "days_done": done, "inserted": inserted}
+                    f"DELETE FROM {table} WHERE {col} IN ({','.join('?' * len(chunk))})",
+                    chunk)
+        fids = list(fact_ids)
+        _del("story_members", "event_id", ev_ids)
+        _del("story_members", "fact_id", fids)
+        _del("extracted_facts", "id", fids)
+        _del("events", "id", ev_ids)
+        _del("raw_items", "id", raw_ids)
+        _del("sources", "id", sids)
+        # drop any stories left with no members (they were purely GDELT-built)
+        conn.execute(
+            "DELETE FROM stories WHERE id NOT IN"
+            " (SELECT DISTINCT story_id FROM story_members)")
+        # clear the retired backfill cursor so nothing tries to resume
+        conn.execute("DELETE FROM app_meta WHERE key LIKE 'backfill:gdelt%'")
+    log.info("gdelt_purged", extra={"data": counts})
+    return counts

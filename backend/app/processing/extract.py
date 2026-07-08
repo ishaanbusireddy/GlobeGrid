@@ -111,14 +111,47 @@ def strip_html(text: str) -> str:
     return _WS_RE.sub(" ", html.unescape(_TAG_RE.sub(" ", text or ""))).strip()
 
 
+# v7.4.1 — categorization accuracy pass (owner: "improve the accuracy of event/
+# story categorization"). Two problems fixed here:
+#  (1) naive substring matching produced false positives — "war" hit "warning"/
+#      "toward"/"warm", "market" hit "supermarket", "coup" hit "couple". Short
+#      keywords (<=5 chars, single word) now require WORD BOUNDARIES.
+#  (2) raw hit-count ties defaulted arbitrarily. A fixed priority breaks ties so
+#      unambiguous categories (disaster, conflict) win over the catch-all.
+import re as _re
+
+_CAT_PRIORITY = ["disaster", "conflict", "finance", "technology", "geopolitics"]
+# a small compiled word-boundary matcher cache for short single-word keywords
+_WB_CACHE: dict[str, "_re.Pattern"] = {}
+
+
+def _kw_hit(keyword: str, lowered: str) -> bool:
+    kw = keyword.strip()
+    # multi-word or long tokens: a plain substring is specific enough
+    if " " in kw or len(kw) > 5:
+        return kw in lowered
+    # short single word: require word boundaries so "war" != "warning"
+    pat = _WB_CACHE.get(kw)
+    if pat is None:
+        pat = _re.compile(r"\b" + _re.escape(kw) + r"\b")
+        _WB_CACHE[kw] = pat
+    return bool(pat.search(lowered))
+
+
 def classify_category(text: str) -> str:
     lowered = text.lower()
-    best, best_hits = "other", 0
+    scores = {}
     for cat, words in CATEGORY_KEYWORDS.items():
-        hits = sum(1 for w in words if w in lowered)
-        if hits > best_hits:
-            best, best_hits = cat, hits
-    return best
+        scores[cat] = sum(1 for w in words if _kw_hit(w, lowered))
+    best_hits = max(scores.values()) if scores else 0
+    if best_hits == 0:
+        return "other"
+    # among the top-scorers, pick the highest-priority category (deterministic)
+    top = [c for c, n in scores.items() if n == best_hits]
+    for cat in _CAT_PRIORITY:
+        if cat in top:
+            return cat
+    return top[0]
 
 
 def classify_severity(text: str) -> int:
@@ -346,6 +379,16 @@ def process_pending(limit: int = 200) -> list[dict]:
     new_events = []
     for row in rows:
         try:
+            # v7.4.1 — GDELT is permanently banned: never extract an event from a
+            # GDELT-typed source even if a stray raw_item slipped in. Mark it
+            # processed so it's skipped forever without ever entering the chain.
+            _st = (row["src_type"] or "").lower()
+            _sn = (row["src_name"] or "").lower()
+            if _st in ("gdelt", "gdelt_events") or "gdelt" in _sn:
+                with write_tx() as conn:
+                    conn.execute("UPDATE raw_items SET processed = 1 WHERE id = ?",
+                                 (row["id"],))
+                continue
             payload = json.loads(row["raw_content"])
             item = build_normalized_item(payload)
             vec = embed_text(item["description"])

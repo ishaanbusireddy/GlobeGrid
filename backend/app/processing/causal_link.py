@@ -42,7 +42,12 @@ Rules:
   state a direction when the evidence actually supports it.
 - If the cluster does not support a clear causal story, set confidence
   to "low" and describe the connection as correlational, not causal.
-- Do not invent facts not present in the input."""
+- Do not invent facts not present in the input.
+- Write the "cause" and "consequences" strings like a sharp human expert would
+  say them out loud — plain, concrete, specific to THESE actors and events.
+  Never use hollow analyst-filler ("structural forces", "underlying dynamics",
+  "complex interplay", "geopolitical landscape", "ripple effects"); if a phrase
+  could describe any conflict anywhere, replace it with the specific truth."""
 
 def _cluster_facts(story_id: str) -> list[dict]:
     rows = query(

@@ -646,7 +646,16 @@ body.theme-amber_terminal {
 /* v6.1 — welcome / help popup */
 #help-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(4,8,16,0.72); display: flex; align-items: center; justify-content: center; padding: 20px; }
 #help-overlay.hidden { display: none; }
-.help-card { position: relative; max-width: 540px; width: 100%; max-height: 86vh; overflow-y: auto; background: var(--panel, #0d1524); border: 1px solid var(--line, rgba(120,150,200,0.3)); border-radius: 12px; padding: 22px 26px; box-shadow: 0 18px 60px rgba(0,0,0,0.55); }
+.help-card { position: relative; max-width: 620px; width: 100%; max-height: 86vh; overflow: hidden; display: flex; flex-direction: column; background: var(--panel, #0d1524); border: 1px solid var(--line, rgba(120,150,200,0.3)); border-radius: 12px; padding: 20px 24px; box-shadow: 0 18px 60px rgba(0,0,0,0.55); }
+/* v7.4.1 — tabbed guide: a scrollable tab bar + a scrollable body */
+.help-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 30px 12px 0; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.help-tab { background: rgba(255,255,255,0.05); border: 1px solid var(--line); color: var(--text-dim); border-radius: 999px; padding: 4px 11px; font-size: 12px; cursor: pointer; }
+.help-tab:hover { color: var(--text); }
+.help-tab.active { background: var(--accent, #4da3ff); border-color: var(--accent, #4da3ff); color: #04121f; }
+.help-body { overflow-y: auto; padding-right: 6px; }
+.help-keys { width: 100%; border-collapse: collapse; font-size: 13px; }
+.help-keys td { padding: 5px 8px; border-bottom: 1px solid var(--line); line-height: 1.5; vertical-align: top; }
+.help-keys td:first-child { white-space: nowrap; width: 40%; }
 .help-card h2 { margin: 0 0 10px; }
 .help-card h3 { margin: 16px 0 6px; font-size: 14px; color: var(--accent, #4da3ff); }
 .help-card ul { margin: 6px 0; padding-left: 18px; }
@@ -658,6 +667,16 @@ body.theme-amber_terminal {
 .ollama-status { font-size: 13px; line-height: 1.5; }
 .help-card kbd { background: rgba(255,255,255,0.1); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; font-size: 11px; margin: 0 1px; }
 .help-foot { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--text-dim); }
+/* v7.4.1 — lineage/chains tab facts list */
+.chain-facts { margin: 6px 0 0; padding-left: 18px; }
+.chain-facts li { margin: 3px 0; line-height: 1.4; font-size: 12.5px; color: var(--text-dim); }
+/* v7.4.1 — impacted-entities chip row at the top of a story page */
+.impacted-row { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; margin: 4px 0 10px; }
+.impacted-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 2px; }
+.impacted-chip { cursor: pointer; }
+/* v7.4.1 — clickable source rows in the health drawer */
+.src-clickable { cursor: pointer; }
+.src-clickable:hover { background: rgba(255,255,255,0.05); }
 .help-close { position: absolute; top: 12px; right: 14px; background: none; border: none; color: var(--text-dim); font-size: 18px; cursor: pointer; }
 .help-close:hover { color: var(--text); }
 

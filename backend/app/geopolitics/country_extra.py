@@ -436,6 +436,81 @@ LEGISLATURE_NOTES = {
 }
 
 
+# v7.4.1 — the FULL language picture per country (owner: "after the language,
+# add other languages and list ALL of the languages in that country"). These are
+# the significant languages actually spoken — national, regional, minority and
+# major immigrant/lingua-franca tongues — beyond the one or two official ones in
+# COUNTRY_STATS. Curated from Ethnologue / national census summaries. Countries
+# not listed fall back (in the route) to the remaining COUNTRY_STATS languages,
+# so the "other languages" row is never empty.
+COUNTRY_OTHER_LANGUAGES = {
+    "IND": ["Hindi", "English", "Bengali", "Marathi", "Telugu", "Tamil", "Gujarati",
+            "Urdu", "Kannada", "Odia", "Malayalam", "Punjabi", "Assamese", "Maithili",
+            "Santali", "Kashmiri", "Nepali", "Konkani", "Sindhi", "Manipuri"],
+    "CHN": ["Mandarin Chinese", "Yue (Cantonese)", "Wu (Shanghainese)", "Min", "Hakka",
+            "Xiang", "Gan", "Uyghur", "Tibetan", "Mongolian", "Zhuang", "Korean"],
+    "USA": ["English", "Spanish", "Chinese", "Tagalog", "Vietnamese", "Arabic", "French",
+            "Korean", "Russian", "German", "Haitian Creole", "Hindi", "Portuguese", "Navajo"],
+    "NGA": ["English", "Hausa", "Yoruba", "Igbo", "Fulfulde", "Ibibio", "Kanuri",
+            "Tiv", "Nigerian Pidgin"],
+    "ZAF": ["Zulu", "Xhosa", "Afrikaans", "English", "Northern Sotho", "Tswana", "Sotho",
+            "Tsonga", "Swazi", "Venda", "Ndebele"],
+    "RUS": ["Russian", "Tatar", "Chechen", "Bashkir", "Chuvash", "Avar", "Ukrainian",
+            "Armenian", "Yakut", "Ossetian", "Buryat", "Kabardian"],
+    "PAK": ["Urdu", "Punjabi", "Pashto", "Sindhi", "Saraiki", "Balochi", "Hindko",
+            "Brahui", "English"],
+    "IDN": ["Indonesian", "Javanese", "Sundanese", "Madurese", "Minangkabau", "Buginese",
+            "Balinese", "Acehnese", "Batak", "Betawi"],
+    "PHL": ["Filipino (Tagalog)", "English", "Cebuano", "Ilocano", "Hiligaynon", "Waray",
+            "Kapampangan", "Bikol", "Pangasinan", "Maranao"],
+    "ETH": ["Amharic", "Oromo", "Somali", "Tigrinya", "Sidamo", "Wolaytta", "Afar",
+            "Gurage", "English"],
+    "COD": ["French", "Lingala", "Swahili", "Kikongo", "Tshiluba"],
+    "MEX": ["Spanish", "Nahuatl", "Yucatec Maya", "Mixtec", "Zapotec", "Otomí", "Tzeltal",
+            "Tzotzil"],
+    "CAN": ["English", "French", "Punjabi", "Mandarin", "Cantonese", "Spanish", "Tagalog",
+            "Arabic", "Italian", "Cree", "Inuktitut"],
+    "AUS": ["English", "Mandarin", "Arabic", "Vietnamese", "Cantonese", "Punjabi", "Greek",
+            "Italian", "Australian Aboriginal languages"],
+    "GBR": ["English", "Welsh", "Scots", "Scottish Gaelic", "Irish", "Polish", "Punjabi",
+            "Urdu", "Bengali"],
+    "FRA": ["French", "Occitan", "Alsatian", "Breton", "Corsican", "Basque", "Catalan",
+            "Arabic", "Portuguese"],
+    "ESP": ["Spanish (Castilian)", "Catalan", "Galician", "Basque", "Valencian", "Aranese"],
+    "DEU": ["German", "Turkish", "Russian", "Polish", "Kurdish", "Arabic", "Low German",
+            "Sorbian"],
+    "AFG": ["Dari (Persian)", "Pashto", "Uzbek", "Turkmen", "Balochi", "Nuristani", "Pashai"],
+    "IRN": ["Persian (Farsi)", "Azerbaijani", "Kurdish", "Gilaki", "Mazandarani", "Luri",
+            "Arabic", "Balochi", "Turkmen"],
+    "IRQ": ["Arabic", "Kurdish", "Turkmen", "Assyrian Neo-Aramaic", "Persian"],
+    "TUR": ["Turkish", "Kurdish (Kurmanji)", "Zazaki", "Arabic", "Circassian", "Laz"],
+    "KEN": ["Swahili", "English", "Kikuyu", "Luhya", "Luo", "Kalenjin", "Kamba", "Somali"],
+    "TZA": ["Swahili", "English", "Sukuma", "Chagga", "Nyamwezi", "Haya", "Makonde"],
+    "UGA": ["English", "Swahili", "Luganda", "Runyankole", "Acholi", "Lango", "Lugbara"],
+    "SDN": ["Arabic", "English", "Beja", "Fur", "Nubian", "Zaghawa"],
+    "MAR": ["Arabic", "Berber (Tamazight)", "French", "Hassaniya Arabic", "Spanish"],
+    "DZA": ["Arabic", "Berber (Tamazight)", "French", "Kabyle"],
+    "EGY": ["Arabic", "Egyptian Arabic", "Coptic", "Nubian", "Beja", "English"],
+    "BRA": ["Portuguese", "German (Hunsrückisch)", "Italian (Talian)", "Japanese", "Guarani",
+            "Tikuna", "indigenous Amazonian languages"],
+    "PER": ["Spanish", "Quechua", "Aymara", "Asháninka", "indigenous Amazonian languages"],
+    "BOL": ["Spanish", "Quechua", "Aymara", "Guaraní", "36 recognized indigenous languages"],
+    "SWZ": ["Swazi (siSwati)", "English"],
+    "NPL": ["Nepali", "Maithili", "Bhojpuri", "Tharu", "Tamang", "Newar", "Magar"],
+    "MMR": ["Burmese", "Shan", "Karen", "Rakhine", "Mon", "Kachin", "Chin"],
+    "VNM": ["Vietnamese", "Tày", "Mường", "Khmer", "Hmong", "Chinese", "Cham"],
+    "THA": ["Thai", "Isan (Lao)", "Northern Thai", "Malay", "Khmer", "Karen"],
+    "UKR": ["Ukrainian", "Russian", "Crimean Tatar", "Hungarian", "Romanian", "Polish"],
+    "CHE": ["German", "French", "Italian", "Romansh"],
+    "BEL": ["Dutch (Flemish)", "French", "German"],
+    "SGP": ["English", "Mandarin", "Malay", "Tamil"],
+    "LKA": ["Sinhala", "Tamil", "English"],
+    "BGD": ["Bengali", "Chittagonian", "Sylheti", "Chakma", "English"],
+    "GHA": ["English", "Akan (Twi)", "Ewe", "Ga", "Dagbani", "Hausa"],
+    "CMR": ["French", "English", "Fulfulde", "Ewondo", "Duala", "Cameroonian Pidgin"],
+    "AGO": ["Portuguese", "Umbundu", "Kimbundu", "Kikongo", "Chokwe"],
+}
+
 # v6.6 — current bloc secretaries-general / presidents for the bloc panels
 ALLIANCE_LEADERS = {
     "NATO": ("Mark Rutte", "Secretary General", "2024-10-01"),
@@ -512,6 +587,22 @@ COUNTRY_CAMP = {
     "YEM":"nonaligned","LBY":"nonaligned","SOM":"nonaligned","SEN":"nonaligned",
     "CIV":"nonaligned","CMR":"nonaligned","ZMB":"nonaligned","ZWE":"east",
     "CYN":"nonaligned","SOL":"nonaligned",
+    # v7.4.1 — the remaining recognized states that had NO camp, so their
+    # country profile was missing the alignment-map button entirely (owner:
+    # "Libya and Chad and some others don't have the alignment button").
+    # Placed by their broad contemporary orientation; every one now hedges/leans
+    # somewhere so the map + button work for the WHOLE world.
+    "TCD":"nonaligned","MRT":"nonaligned","GNQ":"nonaligned","GAB":"nonaligned",
+    "COG":"nonaligned","DJI":"nonaligned","MDG":"nonaligned","LSO":"west",
+    "SWZ":"nonaligned","BWA":"west","NAM":"nonaligned","MWI":"west",
+    "GNB":"nonaligned","SLE":"west","LBR":"west","TGO":"nonaligned",
+    "BEN":"nonaligned","GMB":"nonaligned","CPV":"west","STP":"nonaligned",
+    "COM":"nonaligned","SYC":"nonaligned","MUS":"west","BDI":"nonaligned",
+    "RWA":"nonaligned","UGA":"nonaligned","GIN":"nonaligned","BTN":"nonaligned",
+    "NPL":"nonaligned","MDV":"nonaligned","BRN":"nonaligned","TLS":"nonaligned",
+    "PNG":"nonaligned","FJI":"nonaligned","GUY":"west","SUR":"nonaligned",
+    "TTO":"west","JAM":"west","HTI":"west","HND":"west","SLV":"west",
+    "BLZ":"west","BHS":"west","BRB":"west","SDN":"nonaligned",
 }
 
 # camp-level cores used to build derived alignments
@@ -658,10 +749,12 @@ def derive_alignments(iso3):
     # even a country with no camp gets an alignment if it appears in the
     # rivalry/friendship tables (so e.g. every listed pair renders)
     if base is None:
-        if iso3 in RIVALRIES or iso3 in FRIENDSHIPS or \
-           any(iso3 in v for v in RIVALRIES.values()) or \
-           any(iso3 in v for v in FRIENDSHIPS.values()):
-            base = {"strong": [], "partner": [], "rival": []}
+        # v7.4.1 — NEVER return None for a real 3-letter country code: every
+        # country must get the alignment-map button (owner). A country with no
+        # camp and no explicit rivalry falls back to a neutral nonaligned view
+        # (hedges between the major powers) rather than vanishing.
+        if len(iso3) == 3 and iso3.isalpha():
+            base = {"strong": [], "partner": ["USA", "CHN", "RUS", "EU"], "rival": []}
         else:
             return None
     return _apply_overrides(iso3, base)

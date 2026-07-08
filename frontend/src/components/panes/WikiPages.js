@@ -283,6 +283,14 @@ export async function renderCountry(el, iso3, ctx) {
 
   // v6 §15 — profile depth: authoritative stats (World Bank / UNDP / Pew)
   const langs = Array.isArray(p.languages) ? p.languages.join(", ") : "";
+  // v7.4.1 — ALL languages spoken in the country, shown right after the
+  // official ones (owner). Drop any already listed as an official language so
+  // the row genuinely reads as the *additional* tongues.
+  const officialSet = new Set((Array.isArray(p.languages) ? p.languages : [])
+    .map((s) => String(s).toLowerCase()));
+  const otherLangs = Array.isArray(p.other_languages)
+    ? p.other_languages.filter((l) => !officialSet.has(String(l).toLowerCase())).join(", ")
+    : "";
   const fmtB = (v) => v >= 1e12 ? "$" + (v / 1e12).toFixed(2) + "T"
     : v >= 1e9 ? "$" + (v / 1e9).toFixed(1) + "B" : "$" + (v / 1e6).toFixed(0) + "M";
   // v6.6.5 — metric-bearing stat cells are clickable (data-metric) and open a
@@ -295,6 +303,7 @@ export async function renderCountry(el, iso3, ctx) {
     p.hdi != null && ["HDI", Number(p.hdi).toFixed(3), "hdi"],
     p.area_km2 != null && ["Area", Math.round(p.area_km2).toLocaleString() + " km²", "area"],
     langs && ["Languages", langs],
+    otherLangs && ["Other languages", otherLangs],
     p.dominant_religion && ["Dominant religion", p.dominant_religion],
     p.currency_code && ["Currency",   // v6.1 — every country's currency
       `${p.currency_name} (${p.currency_code}${p.currency_symbol ? " " + p.currency_symbol : ""})`],
@@ -353,9 +362,15 @@ export async function renderCountry(el, iso3, ctx) {
     <section><h4>Treaties</h4>${treaties}</section>
     <section><h4>Notable persons</h4>${persons}</section>
     <section><h4>Elections</h4>${elections}</section>
+    ${(p.autonomous_zones || []).length ? `<section><h4>🏛 Autonomous regions</h4>
+      ${p.autonomous_zones.map((z) =>
+        `<button class="ap-chip az-open" data-id="${esc(z.id)}">🏛 ${esc(z.name)}</button>`).join(" ")}</section>` : ""}
     <section><h4>Recent tracked coverage ${thinBadge(p.coverage)}</h4>${storyChips(p.recent_stories)}</section>`;
 
   wireStoryChips(el, ctx);
+  // v7.4.1 — autonomous-region chips open the region page
+  el.querySelectorAll(".az-open").forEach((b) =>
+    b.addEventListener("click", () => ctx.openAutonomousZone && ctx.openAutonomousZone(b.dataset.id)));
   // v6.2 — if the featured leader has no photo yet, fetch it on demand from
   // Wikipedia (reliable lead image) and swap it in, so e.g. Xi Jinping shows
   // next to the China flag immediately instead of waiting on a weekly sync.
@@ -382,6 +397,23 @@ export async function renderCountry(el, iso3, ctx) {
       ctx.showAlignments(p.id, p.alignments);
       btn.textContent = "🗺 alignments ✓";
     }
+  }
+  // v7.4.1 — recognition map mode: for a partially-recognized state (Kosovo,
+  // Taiwan, Palestine, Israel, Western Sahara, N. Cyprus, Abkhazia, S. Ossetia)
+  // a button colors who recognizes it (green) vs who doesn't (red).
+  const RECOGNITION_SUBJECTS = new Set(["XKX", "TWN", "PSE", "ISR", "ESH", "CYN", "ABK", "OST"]);
+  if (p && RECOGNITION_SUBJECTS.has(p.id) && ctx.showRecognition) {
+    const meta = el.querySelector(".wiki-head-meta") || el;
+    const rbtn = document.createElement("button");
+    rbtn.className = "ap-chip recog-btn";
+    const on = ctx.recognitionActive && ctx.recognitionActive() === p.id;
+    rbtn.textContent = on ? "🏳 recognition ✓" : "🏳 recognition";
+    rbtn.title = "who recognizes this state (green) vs who doesn't (red)";
+    rbtn.addEventListener("click", async () => {
+      const active = await ctx.showRecognition(p.id);
+      rbtn.textContent = active ? "🏳 recognition ✓" : "🏳 recognition";
+    });
+    meta.appendChild(rbtn);
   }
   const ph = el.querySelector(".leader-photo-empty[data-leader]");
   if (ph && ph.dataset.leader) {
@@ -956,6 +988,31 @@ const memberChip = (m) => `<button class="ap-chip country-link" data-id="${esc(m
 function wireUnContent(host, ctx) {
   host.querySelectorAll(".country-link").forEach((b) =>
     b.addEventListener("click", () => ctx.openEntity("country", b.dataset.id)));
+  // v7.4.1 — the nested UN news feed on the Overview tab (owner: "un-related
+  // news should have its own feed that streams … nested against the UN page").
+  const unFeed = host.querySelector(".un-news-feed");
+  if (unFeed) {
+    api.unFeed().then((d) => {
+      const stories = d.stories || [];
+      if (!stories.length) {
+        unFeed.innerHTML = `<p class="cp-meta">No UN-tagged stories yet — they stream in as UN-family sources publish.</p>`;
+        return;
+      }
+      unFeed.innerHTML = "";
+      for (const s of stories) {
+        const row = document.createElement("div");
+        row.className = "story-card";
+        row.style.cursor = "pointer";
+        row.innerHTML = `<h3></h3>
+          <div class="card-meta"><span class="cp-meta" style="margin-left:auto">${(s.last_occurred || s.first_seen_at || "").slice(0, 10)}</span></div>`;
+        row.querySelector("h3").textContent = s.headline || "(untitled)";
+        row.addEventListener("click", () => ctx.openStory && ctx.openStory(s.id));
+        unFeed.appendChild(row);
+      }
+    }).catch(() => {
+      unFeed.innerHTML = `<p class="cp-meta">UN news feed unavailable right now.</p>`;
+    });
+  }
   host.querySelectorAll(".res-expand").forEach((b) =>
     b.addEventListener("click", () => {
       const full = host.querySelector(`.res-full[data-ri="${b.dataset.ri}"]`);
@@ -1018,6 +1075,9 @@ function unMainHtml(d) {
       ${sc.elected ? sc.elected.map(memberChip).join(" ") : ""}</section>
     <section><h4>Other principal organs</h4>
       ${(d.other_councils || []).map((c) => `<div class="src-row"><b>${esc(c.name)}</b> <span class="cp-meta">${esc(c.note)}</span></div>`).join("")}</section>
+    <section class="un-news-section"><h4>📰 Live UN news</h4>
+      <p class="cp-meta">Stories from UN-family sources and reporting that mentions the UN.</p>
+      <div class="un-news-feed"><p class="cp-meta">loading…</p></div></section>
     <section><h4>Notable resolutions & recorded votes</h4>${unResolutionsHtml(d.resolutions)}</section>`;
 }
 
@@ -1152,6 +1212,44 @@ export async function renderDisputedZone(el, zid, ctx) {
     <section><h4>Context</h4><p class="leader-bio">${esc(z.context)}</p></section>`;
 }
 
+// v7.4.1 — autonomous regions directory + per-zone page (a new entity type:
+// self-governing regions inside a sovereign parent).
+export async function renderAutonomousZones(el, ctx) {
+  el.innerHTML = `<h1>🏛 Autonomous regions</h1>
+    <p class="cp-meta">Self-governing regions with real autonomy inside a sovereign state —
+      click one for its full breakdown.</p>
+    <div class="az-list"><p class="cp-meta">loading…</p></div>`;
+  const d = await api.autonomousZones().catch(() => ({ zones: [] }));
+  const list = el.querySelector(".az-list");
+  list.innerHTML = (d.zones || []).map((z) =>
+    `<div class="src-row az-row" data-id="${esc(z.id)}" style="cursor:pointer">
+      <b>${esc(z.name)}</b>
+      <span class="cp-meta" style="margin-left:auto">in ${esc(z.parent)}</span></div>`).join("");
+  list.querySelectorAll(".az-row").forEach((r) =>
+    r.addEventListener("click", () => ctx.openAutonomousZone(r.dataset.id)));
+}
+
+export async function renderAutonomousZone(el, zid, ctx) {
+  el.innerHTML = `<p class="cp-meta">loading…</p>`;
+  const z = await api.autonomousZone(zid).catch(() => null);
+  if (!z) { el.innerHTML = "<p>autonomous region not found</p>"; return; }
+  el.innerHTML = `
+    <div class="wiki-header"><div class="wiki-flag">🏛</div>
+      <div class="wiki-head-meta"><h1>${esc(z.name)}</h1>
+        <p class="cp-meta">Autonomous region of ${esc(z.parent)}</p></div></div>
+    <section><h4>Key facts</h4>
+      <div class="stat-grid">
+        <div class="stat-cell"><span class="cp-meta">Parent state</span><b class="az-parent" data-name="${esc(z.parent)}" style="cursor:pointer">${esc(z.parent)}</b></div>
+        <div class="stat-cell"><span class="cp-meta">Capital / seat</span><b>${esc(z.capital)}</b></div>
+      </div></section>
+    <section><h4>Basis of autonomy</h4><p>${esc(z.autonomy_basis)}</p></section>
+    <section><h4>Context</h4><p class="leader-bio">${esc(z.context)}</p></section>`;
+  const parentEl = el.querySelector(".az-parent");
+  if (parentEl && ctx.openEntityByName) {
+    parentEl.addEventListener("click", () => ctx.openEntityByName("country", parentEl.dataset.name));
+  }
+}
+
 // v6.6.5 — a country statistic detail panel: distribution (by city/province),
 // composition (GDP by sector / geographic), and a growth trajectory. Uses an
 // AI synthesis grounded in the country's known figures (no vendored city-level
@@ -1224,12 +1322,48 @@ export async function renderThread(el, id, ctx) {
 }
 
 export async function renderStoriesDirectory(el, ctx, activeType) {
-  const data = await api.storiesDirectory(activeType || undefined);
-  const tabs = ["", ...Object.keys(TYPE_META)].map((t) => {
-    const label = t ? TYPE_META[t][0] + " " + TYPE_META[t][1] : "all";
+  // v7.4.1 — a dedicated "chains" tab renders fact-chain lineage instead of the
+  // normal directory list (owner request).
+  const tabDefs = ["", ...Object.keys(TYPE_META), "chains"];
+  const tabs = tabDefs.map((t) => {
+    const label = t === "chains" ? "🔗 chains"
+      : t ? TYPE_META[t][0] + " " + TYPE_META[t][1] : "all";
     return `<button class="conflict-tab dir-tab ${((activeType || "") === t) ? "active" : ""}"
       data-type="${t}">${label}</button>`;
   }).join("");
+  if (activeType === "chains") {
+    el.innerHTML = `<h1>Stories</h1>
+      <p class="cp-meta">Lineage / chains — how today's stories connect back through the
+        permanent fact chain across time.</p>
+      <div class="dir-tabs">${tabs}</div><div class="chains-list"><p class="cp-meta">loading…</p></div>`;
+    el.querySelectorAll(".dir-tab").forEach((b) =>
+      b.addEventListener("click", () => ctx.openDirectory(b.dataset.type || null)));
+    const clist = el.querySelector(".chains-list");
+    try {
+      const cd = await api.lineageChains();
+      const chains = cd.chains || [];
+      if (!chains.length) { clist.innerHTML = `<p class="cp-meta">No historical-chain links yet — they form as the fact chain grows.</p>`; return; }
+      clist.innerHTML = "";
+      for (const ch of chains) {
+        const card = document.createElement("div");
+        card.className = "story-card dir-card";
+        card.style.cursor = "pointer";
+        card.innerHTML = `<div class="card-meta"><span class="chip">🔗 chain</span>
+            <span class="cp-meta">${ch.chain_len} linked facts</span>
+            <span class="cp-meta" style="margin-left:auto">${esc((ch.last_updated_at || "").slice(0, 10))}</span></div>
+          <h3></h3>
+          <ul class="chain-facts">${(ch.chain || []).map((f) =>
+            `<li>${esc((f.when_occurred || "").slice(0, 10))} — ${esc((f.what || f.who || "").slice(0, 100))}</li>`).join("")}</ul>`;
+        card.querySelector("h3").textContent = ch.headline || "(untitled)";
+        card.addEventListener("click", () => ctx.openStory(ch.id));
+        clist.appendChild(card);
+      }
+    } catch (err) {
+      clist.innerHTML = `<p class="cp-meta">Chains unavailable: ${esc(err.message || "")}</p>`;
+    }
+    return;
+  }
+  const data = await api.storiesDirectory(activeType || undefined);
   el.innerHTML = `<h1>Stories</h1>
     <p class="cp-meta">The browsing surface for slower-moving story shapes — the live feed stays
       chronological; this is where threads, wars, alliances, patterns and agendas live (§8, v6 §27).</p>

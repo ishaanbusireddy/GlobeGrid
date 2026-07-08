@@ -467,6 +467,26 @@ SOURCES += [
     ("European External Action Service", "rss", "https://www.eeas.europa.eu/eeas/rss_en", "n/a", "official"),
     ("Chatham House", "rss", "https://www.chathamhouse.org/rss/feed", "center", "reported"),
     ("Carnegie Endowment", "rss", "https://carnegieendowment.org/rss/solr?fa=feeds", "center", "reported"),
+
+    # ---------- UN SYSTEM & AGENCIES (v7.4.1 — owner: "many un sources", a
+    # dedicated UN news stream nested against the UN page). All official UN-family
+    # feeds; UN_SOURCE_NAMES below tags them so the UN panel can filter to them.
+    ("UN News — Peace & Security", "rss", "https://news.un.org/feed/subscribe/en/news/topic/peace-and-security/feed/rss.xml", "n/a", "official"),
+    ("UN News — Humanitarian Aid", "rss", "https://news.un.org/feed/subscribe/en/news/topic/humanitarian-aid/feed/rss.xml", "n/a", "official"),
+    ("UN News — Human Rights", "rss", "https://news.un.org/feed/subscribe/en/news/topic/human-rights/feed/rss.xml", "n/a", "official"),
+    ("UN Security Council (UN News)", "rss", "https://news.un.org/feed/subscribe/en/news/region/feed/rss.xml", "n/a", "official"),
+    ("UNHCR News", "rss", "https://www.unhcr.org/rss/news.xml", "n/a", "official"),
+    ("UNICEF", "rss", "https://www.unicef.org/rss.xml", "n/a", "official"),
+    ("World Food Programme", "rss", "https://www.wfp.org/rss.xml", "n/a", "official"),
+    ("IAEA News", "rss", "https://www.iaea.org/feeds/topnews.rss", "n/a", "official"),
+    ("UN OCHA ReliefWeb", "rss", "https://reliefweb.int/updates/rss.xml?advanced-search=%28S1503%29", "n/a", "official"),
+    ("UN Peacekeeping", "rss", "https://peacekeeping.un.org/en/rss.xml", "n/a", "official"),
+    ("UN Human Rights (OHCHR)", "rss", "https://www.ohchr.org/en/rss.xml", "n/a", "official"),
+    ("UNCTAD", "rss", "https://unctad.org/rss.xml", "n/a", "official"),
+    ("UNESCO", "rss", "https://www.unesco.org/en/rss.xml", "n/a", "official"),
+    ("World Health Organization (alerts)", "rss", "https://www.who.int/rss-feeds/news-english.xml", "n/a", "official"),
+    ("UN Environment (UNEP)", "rss", "https://www.unep.org/rss.xml", "n/a", "official"),
+    ("International Court of Justice", "rss", "https://www.icj-cij.org/rss/news", "n/a", "official"),
 ]
 
 # v6 §2 — sources removed from the product entirely. Their rows persist for
@@ -565,6 +585,15 @@ def seed_sources() -> int:
             conn.execute("UPDATE sources SET is_active = 0, health_status = 'down',"
                          " last_error = 'retired (v6 §2 — source removed)'"
                          " WHERE name = ?", (name,))
+        # v7.4.1 — GDELT permanent ban (redundant with purge_gdelt at boot, kept
+        # deliberately so no re-seed path can ever re-activate a GDELT source):
+        # deactivate ANY gdelt-typed/named row EXCEPT the clean curated archive.
+        conn.execute(
+            "UPDATE sources SET is_active = 0, health_status = 'down',"
+            " last_error = 'GDELT permanently banned (v7.4.1)'"
+            " WHERE (type IN ('gdelt','gdelt_events') OR lower(name) LIKE '%gdelt%'"
+            "        OR lower(url) LIKE '%gdelt%') AND name != ?",
+            ("Historical Archive (curated)",))
     return added
 
 

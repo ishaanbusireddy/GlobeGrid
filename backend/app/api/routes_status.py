@@ -87,6 +87,37 @@ def sources_status(params, q, body):
     return 200, {"sources": sources, "attribution": [GEONAMES_ATTRIBUTION]}
 
 
+@route("GET", "/api/sources/{sid}/stories")
+def source_stories(params, q, body):
+    """v7.4.1 — click a source in the health drawer to see the stories/events
+    it fed (owner). Walks source → raw_items → events → story_members → stories,
+    newest first, capped."""
+    sid = params["sid"]
+    src = query_one("SELECT id, name, type FROM sources WHERE id = ?", (sid,))
+    if not src:
+        return 404, {"error": "source not found"}
+    rows = query(
+        "SELECT DISTINCT st.id, st.headline, st.summary, st.first_seen_at,"
+        "  MAX(e.occurred_at) AS last_occurred, COUNT(DISTINCT e.id) AS n_events"
+        " FROM events e"
+        " JOIN raw_items r ON r.id = e.raw_item_id"
+        " JOIN story_members m ON m.event_id = e.id"
+        " JOIN stories st ON st.id = m.story_id"
+        " WHERE r.source_id = ?"
+        " GROUP BY st.id"
+        " ORDER BY st.first_seen_at DESC LIMIT 60", (sid,))
+    stories = [dict(r) for r in rows]
+    # also raw events from this source not (yet) correlated into a story
+    loose = query(
+        "SELECT e.id, e.title, e.location_name, e.category, e.occurred_at"
+        " FROM events e JOIN raw_items r ON r.id = e.raw_item_id"
+        " LEFT JOIN story_members m ON m.event_id = e.id"
+        " WHERE r.source_id = ? AND m.story_id IS NULL"
+        " ORDER BY e.occurred_at DESC LIMIT 40", (sid,))
+    return 200, {"source": dict(src), "stories": stories,
+                 "uncorrelated_events": [dict(r) for r in loose]}
+
+
 @route("GET", "/api/config")
 def client_config(params, q, body):
     """Client-relevant tunables only — never secrets."""

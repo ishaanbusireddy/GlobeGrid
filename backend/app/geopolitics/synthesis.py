@@ -66,6 +66,53 @@ def stories_mentioning(name: str, days: int = 7, limit: int = 12) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def curated_agenda(iso3, profile=None):
+    """v7.4.1 — a curated strategic-agenda FLOOR for EVERY country (owner:
+    "the agendas should be filled and updated for each country"). Composed
+    offline from the country's alignment camp, rivalries/friendships, region
+    and brief — so a profile always shows a real agenda even with no AI provider
+    and no recent coverage. The AI synthesis (when available) overrides it."""
+    iso3 = (iso3 or "").upper()
+    try:
+        from .country_extra import (COUNTRY_CAMP, RIVALRIES, FRIENDSHIPS,
+                                    derive_alignments)
+        from .world_knowledge import country_knowledge
+    except Exception:  # noqa: BLE001
+        return None
+    name = (profile or {}).get("name") or iso3
+    camp = COUNTRY_CAMP.get(iso3)
+    camp_line = {
+        "west": "aligns with the US-led Western bloc (NATO/EU orbit), prioritizing "
+                "security ties, sanctions coordination and market integration with the West",
+        "east": "sits in the Russia-aligned camp, deepening ties with Moscow and "
+                "fellow revisionist states while resisting Western pressure",
+        "china": "leans toward Beijing — Belt-and-Road investment, technology and "
+                 "diplomatic cover — while hedging its other relationships",
+        "nonaligned": "hedges between the major powers, courting investment and arms "
+                      "from all sides while avoiding a hard bloc commitment",
+    }.get(camp, "pursues a pragmatic, interest-driven foreign policy without a fixed bloc")
+    al = derive_alignments(iso3) or {}
+    rivals = (al.get("rival") or [])[:4]
+    friends = (al.get("strong") or [])[:4]
+    geo = f"{name} {camp_line}."
+    if friends:
+        geo += f" Its closest partners include {', '.join(friends)}."
+    if rivals:
+        geo += f" Its principal frictions are with {', '.join(rivals)}."
+    kn = country_knowledge(iso3, profile) or {}
+    if kn.get("region_brief"):
+        geo += f" Regionally, it operates in this context: {kn['region_brief'][:280].rstrip()}…"
+    gdp = (profile or {}).get("gdp_usd")
+    econ = (f"{name}'s economic agenda centers on growth, investment and trade access")
+    if gdp:
+        econ += f" (GDP ≈ ${gdp/1e9:,.0f}B)"
+    econ += ", diversifying partners and shoring up the sectors that anchor its budget and employment."
+    stance = (f"{name} {camp_line.split(',')[0]}, managing its rivalries and "
+              "leaning on its partners to advance national interests.")
+    return {"geopolitical_agenda": geo, "economic_agenda": econ,
+            "stance_summary": stance, "curated": True}
+
+
 def synthesize_country_agendas(limit_countries: int = 5) -> int:
     """Periodic agenda synthesis for the countries with the most recent
     coverage (config: agenda_synthesis_interval_hours)."""

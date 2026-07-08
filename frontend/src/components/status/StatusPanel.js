@@ -4,9 +4,10 @@
 import { api } from "../../api/client.js";
 
 export class StatusPanel {
-  constructor(drawerEl, toggleBtn) {
+  constructor(drawerEl, toggleBtn, onSelectSource) {
     this.drawer = drawerEl;
     this.toggleBtn = toggleBtn;
+    this.onSelectSource = onSelectSource;   // v7.4.1 — click a source → its stories
     this.timer = null;
     toggleBtn.addEventListener("click", (ev) => {
       ev.stopPropagation();
@@ -68,8 +69,12 @@ export class StatusPanel {
           s.health_status === "ok"
             ? `${uptime || ""} last: ${(s.last_fetched_at || "").slice(11, 19) || "–"}`
             : (s.last_error || "").slice(0, 48);
-        row.title = `${s.type} · every ${s.poll_interval_seconds}s · `
-          + (s.last_error || `${s.health_status}`);
+        row.title = `${s.type} · every ${s.poll_interval_seconds}s · click to see its stories`;
+        // v7.4.1 — click a source to open the stories/events it fed (owner)
+        if (this.onSelectSource) {
+          row.classList.add("src-clickable");
+          row.addEventListener("click", () => this.onSelectSource(s));
+        }
         this.drawer.appendChild(row);
       }
       // v3 §11 — visible chain-verification indicator, with the scope

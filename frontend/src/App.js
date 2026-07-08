@@ -81,6 +81,7 @@ document.addEventListener("keydown", (ev) => {
   else if (k === "c") { openLastOrRandomCountry(); }
   else if (k === "g") { switchToTier(1); }
   else if (k === "m") { switchToTier(2); }
+  else if (ev.key === "?") { showHelp(); }   // v7.4.1 — open the full guide
 });
 
 function cycleLanguage() {   // v6.6.2 — advance to the next interface language
@@ -285,6 +286,8 @@ const pane = new SlidePane(els.slidePane, {
     // (owner: "auto disable alignment mode if navigated to another page").
     if (!entry || entry.targetType !== "country") {
       if (state.alignmentIso) { applyAlignmentOverlay(null); state.alignmentIso = null; }
+      // v7.4.1 — recognition overlay also auto-clears when leaving a country panel
+      if (state.recognitionIso) { state.renderer?.setColoredRings?.(null); state.recognitionIso = null; }
     }
     if (!entry) {
       // v7.4 — fully closing the war-mode pane exits war mode (owner: "War
@@ -371,6 +374,38 @@ const ctx = {
     return true;
   },
   alignmentActive: () => state.alignmentIso || null,
+  // v7.4.1 — recognition map mode: color who recognizes a partially-recognized
+  // state (green) vs who doesn't (red), the subject itself gold. Toggle.
+  showRecognition: async (iso3) => {
+    if (state.recognitionIso === iso3) {
+      state.renderer?.setColoredRings?.(null);
+      state.recognitionIso = null;
+      return false;
+    }
+    try {
+      const v = await api.recognition(iso3);
+      const ringsFor = (isos) => {
+        const r = [];
+        for (const i of isos) {
+          const c = BOUNDARIES_50M.find((b) => b.i === i);
+          if (c) r.push(...c.r);
+        }
+        return r;
+      };
+      const groups = [];
+      const rec = ringsFor(v.recognizers || []);
+      const non = ringsFor(v.non_recognizers || []);
+      const subj = ringsFor([iso3]);
+      if (rec.length) groups.push({ color: [0.15, 0.8, 0.35], rings: rec });
+      if (non.length) groups.push({ color: [0.9, 0.3, 0.25], rings: non });
+      if (subj.length) groups.push({ color: [1.0, 0.78, 0.2], rings: subj });
+      state.renderer?.setColoredRings?.(groups.length ? groups : null);
+      state.recognitionIso = iso3;
+      alerts.toast?.(`Recognition of ${v.name}: green = recognizes (${v.recognizer_count}), red = does not`);
+      return true;
+    } catch { return false; }
+  },
+  recognitionActive: () => state.recognitionIso || null,
   openThread: (id) => pane.push({                     // v6 §27
     key: `thread:${id}`, title: "story thread",
     render: (el) => Wiki.renderThread(el, id, ctx),
@@ -387,6 +422,18 @@ const ctx = {
     key: "disputed:" + zid, title: "disputed territory",
     render: (el) => Wiki.renderDisputedZone(el, zid, ctx),
   }),
+  openAutonomousZones: () => pane.push({                 // v7.4.1 autonomous regions
+    key: "autonomous", title: "Autonomous regions",
+    render: (el) => Wiki.renderAutonomousZones(el, ctx),
+  }),
+  openAutonomousZone: (zid) => pane.push({
+    key: "autonomous:" + zid, title: "autonomous region",
+    render: (el) => Wiki.renderAutonomousZone(el, zid, ctx),
+  }),
+  openEntityByName: (type, name) => {                    // v7.4.1 resolve name→iso3
+    const c = BOUNDARIES_50M.find((b) => b.n && b.n.toLowerCase() === (name || "").toLowerCase());
+    if (c && c.i) openEntity(type, c.i);
+  },
   openCountryStat: (iso3, metric, name) => pane.push({   // v6.6.5 stat detail
     key: `stat:${iso3}:${metric}`, title: metric,
     render: (el) => Wiki.renderCountryStat(el, iso3, metric, name, ctx),
@@ -476,7 +523,17 @@ function openClusterList(cluster) {
       el.innerHTML = `<h1>${members.length} events in this cluster</h1>
         <p class="cp-meta">Too many overlapping points to separate by zoom — browse them
           all here. Sorted by severity, then recency.</p>
+        <button class="full-summary-btn pan-cluster">⌖ Pan to this area</button>
         <div class="cluster-list"></div>`;
+      // v7.4.1 — a panel-level Pan-to-Event control (owner: "pan event button
+      // should be available from within the event panel as well"). Flies to the
+      // cluster centroid; individual rows keep their own per-event pan buttons.
+      const panCluster = el.querySelector(".pan-cluster");
+      if (cluster.lat != null && cluster.lon != null) {
+        panCluster.addEventListener("click", () =>
+          state.renderer?.flyTo?.(cluster.lat, cluster.lon,
+            state.tier === 1 ? 2.0 : undefined, 900));
+      } else { panCluster.remove(); }
       const list = el.querySelector(".cluster-list");
       for (const ev of members) {
         const row = document.createElement("div");
@@ -506,6 +563,59 @@ function openClusterList(cluster) {
           row.querySelector("p").textContent += " · not yet correlated into a story";
         }
         list.appendChild(row);
+      }
+    },
+  });
+}
+
+// v7.4.1 — click a source in the health drawer to browse the stories + events
+// it fed (owner: "in the sources tab you should be able to click on a source
+// and see the stories sourced from that source").
+function openSourceStories(src) {
+  pane.push({
+    key: `source:${src.id}`,
+    title: src.name.slice(0, 40),
+    render: async (el) => {
+      el.innerHTML = `<h1>${src.name}</h1>
+        <p class="cp-meta">${src.type || ""}${src.reliability_tier ? " · " + src.reliability_tier + " reliability" : ""} — stories and events sourced from this outlet.</p>
+        <div class="src-stories"><p class="cp-meta">loading…</p></div>`;
+      const box = el.querySelector(".src-stories");
+      try {
+        const data = await api.sourceStories(src.id);
+        box.innerHTML = "";
+        if (!(data.stories || []).length && !(data.uncorrelated_events || []).length) {
+          box.innerHTML = `<p class="cp-meta">No stored stories or events from this source yet.</p>`;
+          return;
+        }
+        for (const s of data.stories || []) {
+          const row = document.createElement("div");
+          row.className = "story-card";
+          row.style.cursor = "pointer";
+          row.innerHTML = `<h3></h3>
+            <div class="card-meta"><span class="badge-src">${s.n_events || 0} ev</span>
+            <span class="cp-meta" style="margin-left:auto">${(s.last_occurred || s.first_seen_at || "").slice(0, 10)}</span></div>`;
+          row.querySelector("h3").textContent = s.headline || "(untitled story)";
+          row.addEventListener("click", () => openStory(s.id));
+          box.appendChild(row);
+        }
+        if ((data.uncorrelated_events || []).length) {
+          const h = document.createElement("h4");
+          h.textContent = "Recent events (not yet in a story)";
+          h.style.marginTop = "14px";
+          box.appendChild(h);
+          for (const e of data.uncorrelated_events) {
+            const row = document.createElement("div");
+            row.className = "story-card cluster-row";
+            const cat = e.category || "other";
+            row.innerHTML = `<div class="card-meta"><span class="chip cat-${cat}">${cat}</span>
+              <span class="cp-meta" style="margin-left:auto">${(e.occurred_at || "").slice(0, 10)}</span></div><h3></h3><p class="cp-meta"></p>`;
+            row.querySelector("h3").textContent = e.title || "(untitled event)";
+            row.querySelector("p").textContent = e.location_name || "";
+            box.appendChild(row);
+          }
+        }
+      } catch (err) {
+        box.innerHTML = `<p class="cp-meta">Couldn't load: ${err.message}</p>`;
       }
     },
   });
@@ -576,11 +686,19 @@ const storyPage = new StoryPage(pane, {
   onWatch: () => watchlist.refresh(),
   onOpenLineage: (factId) => lineageView.open(factId),
   onPanTo: (lat, lon) => state.renderer?.flyTo?.(lat, lon, state.tier === 1 ? 2.0 : undefined, 900),
+  onOpenEntity: (type, id) => {                       // v7.4.1 impacted chips
+    // territories are country rows (status='territory') so they open as a
+    // country page; zones (marked_locations) fall back to the disputed directory
+    if (type === "territory") openEntity("country", id);
+    else if (type === "zone") ctx.openDisputedZones && ctx.openDisputedZones();
+    else openEntity(type, id);
+  },
 });
 const feed = new LiveFeed(els.feedList, { onOpenStory: (id) => openStory(id),
   onOpenConflict: (cid) => enterWarMode(cid) });   // v6.6.2 conflict chip → War Mode
 const instChart = new InstabilityChart(els.instabilityValue, els.instabilitySpark);
-const statusPanel = new StatusPanel(els.statusDrawer, els.statusToggle);
+const statusPanel = new StatusPanel(els.statusDrawer, els.statusToggle,
+  (src) => openSourceStories(src));   // v7.4.1 — click a source → its stories
 const graphExplorer = new GraphExplorer(els.graphOverlay);
 // v6.1 — music plays from the start by default (owner request). A saved
 // preference still wins; armAutoplay() (below) works around the browser
@@ -1082,52 +1200,184 @@ sound.armAutoplay();
 // v6.1 — a friendly "what is this / how do I use it" popup, hidden behind the
 // header "?" button and shown once automatically on the very first visit.
 const HELP_SEEN_KEY = "tdl_help_seen";
+// v7.4.1 — the "?" guide rebuilt as a full, tabbed manual to EVERY part of the
+// system (owner: "make the startup guide a total detailed guide of every single
+// thing … the first page should be a general overview and one tab should have
+// all the keyboard shortcuts"). First tab = overview; last tabs = shortcuts + AI
+// setup. Self-contained; no network.
+const HELP_TABS = [
+  ["Overview", `
+    <h2>🌍 Welcome to GlobeGrid</h2>
+    <p>GlobeGrid is a live <b>global-events intelligence system</b> on a 3-D world map.
+       It continuously ingests news (hundreds of RSS wires), USGS earthquakes, market
+       data, Reddit and physical sensors; extracts the <b>who / what / where / when</b> of
+       every event into a permanent <b>fact chain</b>; correlates related events across
+       the world <i>and across decades</i>; and explains <i>what happened and why</i> with
+       AI-written causal storylines — every fact linked to its source.</p>
+    <p>Use the tabs above to learn every part of the system. The short version:</p>
+    <ul>
+      <li><b>The globe</b> shows live events as glowing dots — click one to read the story.</li>
+      <li><b>The live feed</b> (right) streams correlated stories as they form.</li>
+      <li><b>Click any country</b> for a full profile; the <b>Conflicts</b> button opens War Mode.</li>
+      <li>The <b>Modes</b> bar (bottom) paints thematic maps — HDI, GDP, alignments, recognition, and more.</li>
+      <li>The glowing <b>orb</b> (bottom-right) is the AI analyst — ask it anything about world events.</li>
+      <li>Turn on the AI in one step — see the <b>AI setup</b> tab.</li>
+    </ul>
+    <p class="help-foot">Tip: press <kbd>?</kbd> or click the header <b>?</b> any time to reopen this guide.</p>`],
+  ["Map & globe", `
+    <h3>The world map</h3>
+    <ul>
+      <li><b>Rotate</b> by dragging; <b>zoom</b> with the scroll wheel or <kbd>Q</kbd>/<kbd>E</kbd>;
+          pan/tilt with <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>.</li>
+      <li>Three tiers auto-select for your device: a <b>WebGL2 globe</b> (best), a
+          <b>2-D canvas map</b> (<kbd>M</kbd>), and a plain <b>list</b> on low-power hardware.
+          Press <kbd>G</kbd> for the globe, <kbd>M</kbd> for the 2-D map.</li>
+      <li><b>Event dots</b> are colored by category and sized by severity. Dense areas
+          cluster into a counted circle — zoom in to split them, or click to browse them all.</li>
+      <li><b>⟳ spin</b> toggles a slow auto-rotation; <b>names</b> toggles country labels.</li>
+      <li><b>Shift-drag</b> box-selects a region and lists every event inside it.</li>
+      <li><b>Pan to Event</b> buttons (on story pages and event panels) fly the camera to the spot.</li>
+      <li>The <b>📡 sensor</b> toggle overlays physical ground truth (fires, flights, quakes, ships, blackouts).</li>
+    </ul>`],
+  ["Feed & stories", `
+    <h3>Live feed &amp; story pages</h3>
+    <ul>
+      <li>The <b>live feed</b> streams correlated <b>stories</b> (clusters of related events),
+          newest first, each showing its source and event counts. Close it with <kbd>F</kbd> or the ✕.</li>
+      <li>Filter by <b>category</b> chips; <b>sort</b> newest / oldest / most-active.</li>
+      <li>Click a card to open the <b>story page</b>: a one-line takeaway, bulleted deep
+          summary (AI), the full event timeline, every source link, a <b>bias view</b>, and
+          <b>connected history</b> reaching back decades.</li>
+      <li><b>full summary</b> expands the analysis; <b>⌖ pan to event</b> flies the map there.</li>
+      <li>A <b>📡 corroboration</b> badge means physical sensors agree with the reporting.</li>
+      <li>The <b>history / archive</b> view browses the entire permanent fact chain by date &amp; category.</li>
+      <li>Historical landmark events (1945→present) are seeded into the chain and marked <i>(historical)</i>.</li>
+    </ul>`],
+  ["Countries & world", `
+    <h3>Countries, leaders &amp; institutions</h3>
+    <ul>
+      <li><b>Click a country</b> for its profile: flag, paramount leader (with portrait),
+          legislature seat-arc, currency, population/GDP/HDI (clickable for breakdowns),
+          languages + <b>other languages</b>, alliances, conflicts, and a deep-background dossier.</li>
+      <li><b>Leader / party</b> names open rich profile pages (ideology, career, policies).</li>
+      <li>The <b>🇺🇳 UN</b> button opens the United Nations panel — Security Council,
+          resolutions with recorded votes, every principal organ as a tab, and a <b>live UN news feed</b>.</li>
+      <li><b>Bloc / alliance</b> chips (NATO, EU, BRICS, ASEAN…) open full panels like the UN page.</li>
+      <li><b>Disputed territories</b> and <b>Antarctica</b> claims render on the map and open breakdowns.</li>
+      <li><b>Compare</b> two countries side by side; <b>bookmark</b> ★ anything for later.</li>
+    </ul>`],
+  ["Conflicts & War Mode", `
+    <h3>Conflicts &amp; War Mode</h3>
+    <ul>
+      <li>The <b>Conflicts</b> button opens a directory of active wars and insurgencies.</li>
+      <li>Pick one to enter <b>War Mode</b>: side-colored countries, belligerents vs backers,
+          an approximate front line, and a feed filtered to that conflict
+          (military / civilian / diplomatic / economic tabs).</li>
+      <li>In a conflict panel, the <b>🎙 Situation Room</b> puts four AI analysts
+          (realist, economist, humanitarian, military) into a threaded argument over the war.</li>
+      <li>The <b>🎧 audio briefing</b> button narrates a detailed spoken rundown of the conflict.</li>
+      <li><b>Order of battle</b> gives an AI-structured breakdown of forces, offensives and tactics.</li>
+      <li>Opening any entity auto-exits War Mode and restores your feed.</li>
+    </ul>`],
+  ["AI tools", `
+    <h3>The AI toolset</h3>
+    <ul>
+      <li><b>Analyst orb</b> (bottom-right): a conversational geopolitics assistant. It reads
+          the same fact chain, is aware of the panel you have open, cites clickable stories,
+          and can navigate the map for you. Clear the chat with 🗑.</li>
+      <li><b>🔮 Counterfactual</b> (header): perturb the world ("What if the Strait of Hormuz
+          closes?") for an AI branching consequence tree — each branch scored, probability-weighted,
+          and expandable with <b>↳ deepen</b>.</li>
+      <li><b>🎯 Forecasting scorecard</b>: a public "how right were we?" Brier backtest —
+          a category only shows live forecasts once it earns calibration.</li>
+      <li><b>🎧 Morning briefing</b>: a ~3-minute personalized spoken digest while the globe
+          auto-flies between story locations.</li>
+      <li>Daily / weekly / monthly <b>briefings</b> and a <b>market briefing</b> summarize the world.</li>
+    </ul>
+    <p class="help-foot">All AI features degrade gracefully when no AI provider is running —
+       the maps, data and feed always work. Turn AI on in the <b>AI setup</b> tab.</p>`],
+  ["Map modes", `
+    <h3>Thematic map modes (bottom bar)</h3>
+    <p>The <b>Modes</b> bar recolors the whole map from authoritative data — never AI-guessed:</p>
+    <ul>
+      <li><b>Data choropleths</b>: population, area, density, GDP, GDP per capita, HDI.</li>
+      <li><b>Categorical</b>: dominant religion, language family (with hover tooltips).</li>
+      <li><b>Nuclear arsenals</b>: the nine nuclear states by estimated warhead count.</li>
+      <li><b>Alignments</b>: from a chosen country's view — allies green, partners light-green, rivals red.
+          Every country has this button now.</li>
+      <li><b>Recognition</b>: for a partially-recognized state (Kosovo, Taiwan, Palestine, Israel,
+          Western Sahara…), who recognizes it and who doesn't.</li>
+      <li><b>Disputed</b>: every contested zone as a clickable marker with its own breakdown.</li>
+      <li><b>Blocs</b>: overlay one or several alliances at once, each its own color.</li>
+    </ul>`],
+  ["Audio", `
+    <h3>Sound &amp; music</h3>
+    <ul>
+      <li>GlobeGrid has a generative music engine with <b>19 diverse presets</b> — from
+          <i>ambient</i>, <i>arctic calm</i>, <i>oceanic deep</i> and <i>zen garden</i> to
+          <i>neon night</i>, <i>pulse grid</i>, <i>iron march</i> and <i>thunderhead</i>.</li>
+      <li>Pick a track in <b>Settings</b>; the <b>volume slider</b> is in the header.</li>
+      <li><b>Data sonification</b> turns live event arrivals into sound — the feed becomes audible.</li>
+      <li>New stories ping softly; mass-update alerts use a gentle chime.</li>
+    </ul>`],
+  ["⌨ Shortcuts", `
+    <h3>Keyboard shortcuts</h3>
+    <table class="help-keys">
+      <tr><td><kbd>drag</kbd></td><td>rotate the globe</td></tr>
+      <tr><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></td><td>pan / tilt the camera</td></tr>
+      <tr><td><kbd>Q</kbd> / <kbd>E</kbd></td><td>zoom out / in</td></tr>
+      <tr><td>scroll</td><td>zoom</td></tr>
+      <tr><td><kbd>shift</kbd> + drag</td><td>box-select a region → grouped events</td></tr>
+      <tr><td><kbd>F</kbd></td><td>toggle the live feed</td></tr>
+      <tr><td><kbd>G</kbd></td><td>globe (3-D) view</td></tr>
+      <tr><td><kbd>M</kbd></td><td>2-D map view</td></tr>
+      <tr><td><kbd>L</kbd></td><td>next interface language</td></tr>
+      <tr><td><kbd>C</kbd></td><td>open last / random country</td></tr>
+      <tr><td><kbd>t</kbd> or <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>T</kbd></td><td>cycle color themes</td></tr>
+      <tr><td><kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>K</kbd></td><td>command palette (jump anywhere)</td></tr>
+      <tr><td><kbd>?</kbd></td><td>open this guide</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>close one layer at a time (palette → modes → drawers → panels → War Mode)</td></tr>
+    </table>
+    <p class="help-foot">Single-key shortcuts only fire when you're not typing in a field.</p>`],
+  ["AI setup", `
+    <h3>Switch on the AI (one-time)</h3>
+    <p>GlobeGrid's AI (analyst, causal storylines, summaries, briefings) runs on
+       <b>Ollama</b> — a free local AI server on your own machine. No account, no key,
+       no rate limits, fully private:</p>
+    <ol class="help-setup">
+      <li>Install Ollama from <b>ollama.com</b> (Windows/Mac/Linux — one installer).</li>
+      <li>In a terminal run <code>ollama pull llama3.1</code> (~4.9&nbsp;GB, one time).</li>
+      <li>Done — Ollama runs in the background and GlobeGrid finds it automatically.
+          Verify at <a href="/api/diagnostics" target="_blank">/api/diagnostics</a> (all rows ✅).</li>
+    </ol>
+    <p class="help-foot">Slow on an older PC? Use the smaller model
+       <code>ollama pull llama3.2:3b</code> and set <code>llm_provider.ollama_model</code>
+       in <code>backend/config.yaml</code>. Prefer the cloud? Add a free <b>Groq</b> key in
+       Settings — it's the automatic fallback whenever Ollama isn't running.</p>`],
+];
+
 function showHelp() {
   let ov = document.getElementById("help-overlay");
   if (!ov) {
     ov = document.createElement("div");
     ov.id = "help-overlay";
+    const tabsBar = HELP_TABS.map((t, i) =>
+      `<button class="help-tab${i === 0 ? " active" : ""}" data-i="${i}">${t[0]}</button>`).join("");
     ov.innerHTML = `
       <div class="help-card">
         <button class="help-close" title="close">✕</button>
-        <h2>🌍 Welcome to GlobeGrid</h2>
-        <p>GlobeGrid is a live <b>global-events intelligence map</b>. It reads news,
-           disasters, markets and social signal in real time, extracts the who / what /
-           where / when, and connects related events across the world — then explains
-           <i>what happened and why</i> with AI-written causal storylines, every fact
-           linked to its source.</p>
-        <h3>Getting around</h3>
-        <ul>
-          <li><b>Spin the globe</b> — drag, or use <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>
-              to move and <kbd>Q</kbd>/<kbd>E</kbd> to zoom, like a game.</li>
-          <li><b>Click a dot</b> for the event; <b>click a country</b> for its full profile
-              (leaders, legislature, currency, alliances).</li>
-          <li><b>Conflicts</b> button → pick a war to enter <b>War Mode</b> (sides, backers,
-              front, filtered feed).</li>
-          <li><b>Modes</b> (bottom bar) paints thematic maps — HDI, GDP, population,
-              religion, language.</li>
-          <li><b>Language</b> selector translates the whole feed instantly.</li>
-          <li>The glowing <b>orb</b> (bottom-right) is the AI analyst — ask it anything.</li>
-          <li><kbd>Esc</kbd> closes one layer at a time; <b>shift-drag</b> box-selects a region.</li>
-        </ul>
-        <h3>Switch on the AI (one-time setup)</h3>
-        <p>GlobeGrid's AI (analyst, causal storylines, translation, summaries) runs on
-           <b>Ollama</b> — a free local AI server on your own machine. No account, no key,
-           no rate limits, fully private:</p>
-        <ol class="help-setup">
-          <li>Install Ollama from <b>ollama.com</b> (Windows/Mac/Linux — one installer).</li>
-          <li>Open a terminal and run <code>ollama pull llama3.1</code> (~4.9&nbsp;GB, one time).</li>
-          <li>That's it — Ollama runs in the background and GlobeGrid finds it
-              automatically. Verify at <a href="/api/diagnostics" target="_blank">/api/diagnostics</a>
-              (all rows should be ✅).</li>
-        </ol>
-        <p class="help-foot">Slow answers on an older PC? Try the smaller model:
-           <code>ollama pull llama3.2:3b</code>, then set <code>llm_provider.ollama_model</code>
-           in <code>backend/config.yaml</code>. Prefer the cloud instead? Add a free
-           <b>Groq</b> key in Settings — it's the automatic fallback whenever Ollama
-           isn't running.</p>
+        <div class="help-tabs">${tabsBar}</div>
+        <div class="help-body">${HELP_TABS[0][1]}</div>
       </div>`;
     document.body.appendChild(ov);
+    const body = ov.querySelector(".help-body");
+    ov.querySelectorAll(".help-tab").forEach((b) =>
+      b.addEventListener("click", () => {
+        ov.querySelectorAll(".help-tab").forEach((x) => x.classList.remove("active"));
+        b.classList.add("active");
+        body.innerHTML = HELP_TABS[+b.dataset.i][1];
+        body.scrollTop = 0;
+      }));
     const close = () => ov.classList.add("hidden");
     ov.querySelector(".help-close").addEventListener("click", close);
     ov.addEventListener("click", (e) => { if (e.target === ov) close(); });
@@ -1155,7 +1405,9 @@ const activePresets = () =>
   // new tracks never appear ("audio tracks still don't show").
   || ["ambient_default", "nocturne_calm", "arctic_calm", "modal_drift",
       "storm_front", "data_sonification", "crystalline_chimes", "deep_glacier",
-      "aurora_drift"];
+      "aurora_drift", "oceanic_deep", "desert_mirage", "neon_night", "monastery",
+      "signal_static", "pulse_grid", "stargaze", "iron_march", "zen_garden",
+      "thunderhead"];
 for (const [name, p] of Object.entries(PRESETS)) {
   if (!activePresets().includes(name)) continue;
   const o = document.createElement("option");

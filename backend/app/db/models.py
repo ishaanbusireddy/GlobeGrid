@@ -40,13 +40,19 @@ from .session import get_conn, write_tx
 
 SCHEMA_VERSION = 6
 
-# 'gdelt'/'gdelt_events' stay valid CHECK values even though the sources were
-# removed in v6 §2 — historical fact-chain rows keep their attribution; the
-# rows are just retired (is_active=0) and never polled again.
+# 'gdelt'/'gdelt_events' stay valid CHECK values only so any leftover row on
+# an un-migrated DB can still be read long enough for purge_gdelt() to delete
+# it (db.session import is a startup-order edge case); GDELT is PERMANENTLY
+# BANNED as of v7.4.1 — no fetcher, no seeder, and no code path may ever
+# create a row of either type again (see ingestion/backfill.py purge_gdelt,
+# ingestion/scheduler.py _is_gdelt, processing/extract.py process_pending).
+# v7.4.1 — 'archive' is the curated-history source type (was mislabeled
+# 'gdelt' purely for CHECK-constraint compatibility, which conflated real
+# GDELT junk with our own hand-curated historical packs).
 SOURCE_TYPES = ("rss", "gdelt", "gdelt_events", "usgs", "market", "reddit",
                 "firms", "volcano", "wikipedia", "wiki_views", "mastodon",
                 "bluesky", "opensky", "acled", "ais", "nightlights",
-                "synthetic")
+                "archive", "synthetic")
 
 DDL = f"""
 CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -760,12 +766,13 @@ def _upgrade_v1_to_v2() -> None:
                          f" SELECT {cols}, 'reported' FROM sources_v1")
             conn.execute("DROP TABLE sources_v1")
         # sources: an older CHECK constraint doesn't admit newer types
-        # (v2 added 'firms'…; v7.2 adds 'ais'/'nightlights') -> rebuild.
-        # Trigger on the newest sentinel so already-migrated DBs still upgrade.
+        # (v2 added 'firms'…; v7.2 adds 'ais'/'nightlights'; v7.4.1 adds
+        # 'archive') -> rebuild. Trigger on the newest sentinel so
+        # already-migrated DBs still upgrade.
         src_sql = conn.execute(
             "SELECT sql FROM sqlite_master WHERE type='table' AND name='sources'"
         ).fetchone()
-        if src_sql and "'ais'" not in (src_sql["sql"] or ""):
+        if src_sql and "'archive'" not in (src_sql["sql"] or ""):
             conn.execute("ALTER TABLE sources RENAME TO sources_v1")
             conn.execute(create_sources_sql)
             # preserve `kind` if the old table already had it (v2+); an
@@ -933,9 +940,12 @@ def _upgrade_v5_to_v6() -> None:
         # newest sentinel is absent; the column-intersection copy preserves
         # every existing column. Runs here (not in _upgrade_v1_to_v2) because
         # that path only fires for a v1 DB — a v6+ DB reaches only this fn.
+        # v7.4.1 — sentinel bumped to 'archive' (the new curated-history type
+        # that replaces the old 'gdelt' mislabeling) so a DB already migrated
+        # through the v7.2 'ais' rebuild still gets rebuilt one more time here.
         srow = conn.execute("SELECT sql FROM sqlite_master WHERE type='table'"
                             " AND name='sources'").fetchone()
-        if srow and "'ais'" not in (srow["sql"] or ""):
+        if srow and "'archive'" not in (srow["sql"] or ""):
             create_sources_sql = DDL[
                 DDL.index("CREATE TABLE IF NOT EXISTS sources"):
                 DDL.index("-- 6.2")
