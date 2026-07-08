@@ -725,7 +725,7 @@ function setConn(mode) {
   els.connBadge.className = `conn-${mode}`;
   els.connBadge.textContent =
     mode === "live" ? "live" : mode === "polling" ? "polling (15s)"
-    : mode === "capsule" ? "time capsule" : "synthetic dataset";
+    : mode === "capsule" ? "time capsule" : "offline";
 }
 
 // ---------- story deep links (§5.3) ----------
@@ -735,30 +735,14 @@ function openStory(id, { push = true } = {}) {
   // v7 §6 — learn interests locally from what the user actually opens
   const st = feed?.snapshot?.().find((x) => x.id === id);
   if (st) morning.trackInterest(st);
-  if (state.syntheticMode) openSyntheticStory(id);
-  else storyPage.open(id);
+  // v7.4.4 — the synthetic/demo path was deleted; every story is a real
+  // backend story now.
+  storyPage.open(id);
 }
 window.addEventListener("popstate", (ev) => {
   if (ev.state && ev.state.storyId) openStory(ev.state.storyId, { push: false });
   else pane.close();
 });
-
-function openSyntheticStory(id) {
-  const ds = state.syntheticData;
-  const s = ds.stories.find((x) => x.id === id);
-  if (!s) return;
-  const members = ds.story_members.filter((m) => m.story_id === id).map((m) => {
-    const e = ds.events.find((x) => x.id === m.event_id);
-    return e && { ...e, linked_via: m.linked_via,
-      source: { name: "Synthetic Dataset Generator", url: "#", leaning: "n/a",
-                kind: "reported", article_link: "" } };
-  }).filter(Boolean);
-  storyPage.open(id, { syntheticStory: { ...s, members, connected_history: [],
-    predictions: [], second_order_links: [],
-    bias_view: { left: [], center: [], right: [] },
-    sources: [{ name: "Synthetic Dataset Generator", url: "#", leaning: "n/a",
-                kind: "reported", article_link: "" }] } });
-}
 
 function onSelectEvent(event) {
   if (event.story_id) openStory(event.story_id);
@@ -1027,7 +1011,13 @@ const scrubber = new TimeScrubber(els.scrubberHost, {
 // ---------- live wiring ----------
 
 async function loadReal() {
-  const cfgData = await api.config().catch(() => null);
+  // v7.4.3/v7.4.4 — the backend is the source of truth. If /api/config answers,
+  // the backend is REACHABLE and the app is LIVE. The bundled demo dataset was
+  // DELETED in v7.4.4 (owner: "delete the synthetic data, I don't need it"), so
+  // there is no fake-data path left at all; a config failure just shows an
+  // honest "backend not reachable" offline screen. A hiccup in one feed fetch
+  // must not swap the whole app off the live backend.
+  const cfgData = await api.config();   // throws → real "API unavailable" → offline screen
   if (cfgData) state.clientConfig = { ...state.clientConfig, ...cfgData };
   // v7 — patch-version badge next to the wordmark (owner: "so I know I'm
   // running the right patch"); sourced from the backend's APP_VERSION.
@@ -1046,9 +1036,17 @@ async function loadReal() {
     ? sound.volume : (state.clientConfig.audio || {}).master_gain_default ?? 0.4;
   els.volumeSlider.value = String(Math.round(sound.volume * 100));
 
-  await refreshStories();
-  await refreshMap();
-  await refreshInstability();
+  // v7.4.3 — config succeeded, so the backend is live. A failure in any single
+  // feed/map/instability fetch must NOT throw out of loadReal (that would drop
+  // the whole app into the bundled demo dataset). Each is best-effort; the
+  // safety-net pollers below keep retrying, and a real error surfaces in the
+  // console + an empty-but-live feed, never fake [SYNTHETIC] stories.
+  await refreshStories().catch((e) => {
+    console.error("live feed fetch failed (staying live, will retry):", e);
+    els.feedList.innerHTML = `<p class="cp-meta">Connecting to the live feed…</p>`;
+  });
+  await refreshMap().catch((e) => console.error("map fetch failed:", e));
+  await refreshInstability().catch((e) => console.error("instability fetch failed:", e));
   setConn("live");
   loadCities().catch(() => {});
   checkOnboarding().catch(() => {});
@@ -1165,33 +1163,33 @@ async function loadCompleteness() {
   }
 }
 
+// v7.4.4 — the bundled synthetic/demo dataset was DELETED at the owner's
+// request ("could you actually delete the synthetic data? I don't need it").
+// There is no longer any fake-data fallback: if the backend can't be reached
+// the app stays honestly empty and says so, and keeps polling. It will NEVER
+// again paint `[SYNTHETIC]` rows that could be mistaken for live coverage.
 async function loadSynthetic() {
-  const mod = await import("./data/syntheticDataset.js");
-  const ds = mod.SYNTHETIC_DATASET;
-  state.syntheticMode = true;
-  state.syntheticData = ds;
-  setConn("synthetic");
-  const storyOf = {};
-  for (const m of ds.story_members) storyOf[m.event_id] = m.story_id;
-  const events = ds.events.map((e) => ({
-    ...e, lat: e.location?.lat, lon: e.location?.lon, story_id: storyOf[e.id] || null,
-  }));
-  const links = [];
-  const byStory = {};
-  for (const e of events) if (e.story_id) (byStory[e.story_id] ||= []).push(e);
-  for (const [sid, evs] of Object.entries(byStory)) {
-    evs.sort((a, b) => a.occurred_at.localeCompare(b.occurred_at));
-    for (let i = 0; i + 1 < evs.length; i++)
-      links.push({ story_id: sid, from: [evs[i].lat, evs[i].lon],
-                   to: [evs[i + 1].lat, evs[i + 1].lon] });
-  }
-  state.mapData = { events, links };
+  state.syntheticMode = false;
+  state.syntheticData = null;
+  setConn("offline");
+  try {
+    if (!document.getElementById("synthetic-warning-banner")) {
+      const warn = document.createElement("div");
+      warn.id = "synthetic-warning-banner";
+      warn.style.cssText = "position:absolute;top:8px;left:50%;transform:translateX(-50%);"
+        + "z-index:9999;background:#b45309;color:#fff;padding:8px 16px;border-radius:6px;"
+        + "font-size:13px;box-shadow:0 2px 10px rgba(0,0,0,.5);max-width:90%;text-align:center;";
+      warn.innerHTML = "⚠ Backend not reachable — the live feed is offline. "
+        + "Start the server (<code>python run.py</code>) and reload.";
+      document.getElementById("map-panel").appendChild(warn);
+    }
+  } catch { /* non-fatal */ }
+  state.mapData = { events: [], links: [] };
   pushMapData();
-  feed.setStories(ds.stories.map((s) => ({ ...s,
-    member_count: ds.story_members.filter((m) => m.story_id === s.id).length,
-    source_count: 1, category: "other" })));
-  const history = ds.instability_scores;
-  instChart.update({ latest: history[history.length - 1], history });
+  feed.setStories([], { force: true });
+  els.feedList.innerHTML = `<p class="cp-meta">Backend not reachable — no live feed. `
+    + `Start <code>python run.py</code> and reload.</p>`;
+  instChart.update({ latest: null, history: [] });
 }
 
 // ---------- topbar controls ----------
@@ -2011,7 +2009,7 @@ paintSoundBtn();
 els.instabilityWidget.addEventListener("click", () => refreshInstability().catch(() => {}));
 
 loadReal().catch((err) => {
-  console.warn("API unavailable, using synthetic dataset:", err.message);
+  console.warn("API unavailable — showing offline screen (no demo data):", err.message);
   loadSynthetic().catch((e2) => {
     els.feedList.innerHTML = `<p>no data available: ${e2.message}</p>`;
   });

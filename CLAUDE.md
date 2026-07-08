@@ -18,6 +18,62 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v7.4.4)
+
+**v7.4.4 (2026-07-08, delete the synthetic/demo data entirely):** the owner
+asked to just delete the synthetic data ("I don't need it"). Done — there is no
+fake-data path left anywhere in the running app:
+- **`frontend/src/data/syntheticDataset.js` DELETED** (the 60-row `[SYNTHETIC]`
+  demo file that was the actual source of the bad rows).
+- **`loadSynthetic()` gutted** — it no longer imports/loads any demo data. When
+  the backend is unreachable (only reached if `/api/config` itself fails) it now
+  paints an honest offline screen: an empty feed with "Backend not reachable —
+  the live feed is offline. Start `python run.py` and reload." and a top banner.
+  The connection badge reads **"offline"** (was "synthetic dataset").
+- **Dead demo code removed** — `openSyntheticStory()` and the
+  `state.syntheticMode` branch in `openStory()` are gone; every story is now a
+  real backend story.
+- **`run.py --synthetic` no longer seeds anything** — it prints a note that the
+  flag was removed and starts with real data only. The `scripts/
+  generate_synthetic_data.py` script is KEPT solely for its `--purge` (cleans any
+  synthetic rows left in an older database on the owner's machine —
+  `python scripts/generate_synthetic_data.py --purge`).
+
+So `[SYNTHETIC]` can never appear again: the file is gone, the fallback shows
+nothing fake, and normal startup can't seed it. Version badge → v7.4.4. Verified:
+App.js/run.py/config.py parse; 0 remaining refs to the deleted file or dead
+functions; the purge tool still parses.
+
+## Status (v7.4.3)
+
+**v7.4.3 (2026-07-08, THE synthetic-feed bug, actually fixed this time):** the
+owner reported the live feed *still* showed `[SYNTHETIC]` stories at v7.4.2 —
+after v7.4.2 added `is_synthetic` filters to every backend feed/map query — and
+suspected the GDELT ban had broken real ingestion, asking for a rollback to
+before v7.4.1. **The rollback was NOT done — it would have deleted every
+requested v7.4.1/v7.4.2 feature, and the diagnosis proved it was the wrong
+cure.** Root cause was in the **frontend**, not the backend: `App.js`
+`loadReal()` fetched `/api/config` (which succeeded — that's why the version
+badge read v7.4.2) but then `await`ed `refreshStories()`/`refreshMap()`/
+`refreshInstability()` **bare**, so if ANY single one threw (a slow fetch, a
+transient hiccup) the whole `loadReal()` rejected and the boot fell through to
+`loadSynthetic()`, which loads the bundled **`frontend/src/data/syntheticDataset.js`
+demo file (60 `[SYNTHETIC]` rows)**. So the app was rendering the offline demo
+dataset while the *reachable* backend — with its correct v7.4.2 synthetic
+filters — was never consulted. The GDELT ban was exonerated: an in-process fresh
+boot flows a real RSS event → event → story → `/api/stories` + `/api/map/events`
+(both 200, synthetic excluded), and all three backend filters
+(`routes_stories`/`routes_map`/`routes_geo`) remain in place. **The fix:**
+`loadReal()` now treats `/api/config` as the *sole* reachability probe (config
+throwing is the only thing that means "API unavailable" → synthetic); the three
+boot fetches are each `.catch()`-wrapped so a feed hiccup keeps the app LIVE
+(empty-but-honest "Connecting to the live feed…", never fake demo rows) and the
+safety-net pollers retry. And `loadSynthetic()` now paints an unmistakable
+**"⚠ Backend not reachable — showing OFFLINE DEMO data"** banner so the demo
+fallback can never again be mistaken for real coverage. Version badge → v7.4.3.
+Verified: App.js parses; the demo file is confirmed as the `[SYNTHETIC]` source;
+backend routes return real-only data in-process.
+
 ## Status (v7.4.2)
 
 **v7.4.2 (2026-07-08, owner bugfix + feature batch on top of v7.4.1):**

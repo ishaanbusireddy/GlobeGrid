@@ -3,9 +3,10 @@
 
     python run.py               start everything, open the browser
     python run.py --no-browser  start without opening a browser
-    python run.py --synthetic   seed the Section 12 demo dataset first
-                                (purge later with:
-                                 python scripts/generate_synthetic_data.py --purge)
+
+The synthetic/demo dataset was removed at the owner's request (v7.4.4): the
+app now only ever shows REAL backend data. To clean any synthetic rows left
+in an older database, run: python scripts/generate_synthetic_data.py --purge
 
 Zero-install build: Python 3.10+ standard library only. No PostgreSQL, no
 pip install, no npm. The database is a SQLite file created automatically
@@ -33,10 +34,11 @@ def main() -> None:
     from backend.app.main import create_app
 
     if "--synthetic" in args:
-        from backend.app.db.models import migrate
-        migrate()
-        import scripts.generate_synthetic_data as synth
-        synth.generate()
+        # v7.4.4 — the demo dataset was deleted (owner: "delete the synthetic
+        # data, I don't need it"). This flag no longer seeds anything; the app
+        # shows only real backend data. Purge old rows with
+        # scripts/generate_synthetic_data.py --purge.
+        print("note: --synthetic was removed in v7.4.4; starting with real data only.")
 
     server = create_app()
     # use the actually-bound port — create_app falls back automatically if
