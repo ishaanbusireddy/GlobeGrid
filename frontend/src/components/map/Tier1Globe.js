@@ -477,7 +477,11 @@ export class Tier1Globe {
     this.tip.id = "map-tip";
     host.appendChild(this.tip);
     this.hoverId = null;
-    const gl = this.canvas.getContext("webgl2", { antialias: true, alpha: true });
+    // v6.6.2 — preserveDrawingBuffer so the snapshot export can read the
+    // rendered frame back (without it, the buffer is cleared after compositing
+    // and screenshots came out a black/garbage "broken mess").
+    const gl = this.canvas.getContext("webgl2",
+      { antialias: true, alpha: true, preserveDrawingBuffer: true });
     if (!gl) throw new Error("WebGL2 unavailable");
     this.gl = gl;
 
@@ -2091,8 +2095,8 @@ export class Tier1Globe {
       this._zoneScreenPolys.push({ pts, zone: z });
     }
 
-    const HEX = { geopolitics: "#4da3ff", finance: "#ffd166", disaster: "#ff6b6b",
-                  conflict: "#ff8c42", military: "#4acc73", other: "#93a1b8" };
+    const HEX = { geopolitics: "#4da3ff", finance: "#ffd166", technology: "#b26bff",
+                  disaster: "#ff6b6b", conflict: "#ff8c42", military: "#4acc73", other: "#93a1b8" };
     for (const c of this.clusters) {
       const [x, y, z] = latLonToVec3(c.lat, c.lon, 1.006);
       if (this._facing(model, x, y, z) < 0.02) continue;

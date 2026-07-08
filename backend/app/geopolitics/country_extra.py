@@ -346,13 +346,88 @@ LEGISLATURES = {
             "parties": [("AKP", 268, "#e5941b"), ("CHP", 169, "#e30613"),
                         ("DEM Party", 61, "#8a2be2"), ("MHP", 50, "#c8102e"),
                         ("Other", 52, "#888888")]},
+    # v6.6.2 — democracies the owner flagged as still blank (Mongolia, Finland)
+    # plus other common omissions, so their legislature graphic renders too.
+    "MNG": {"chamber": "State Great Khural", "total": 126, "note": "2024 election",
+            "parties": [("MPP", 68, "#d21f26"), ("Democratic Party", 42, "#25a0da"),
+                        ("HUN Party", 8, "#2e7d32"), ("Other", 8, "#888888")]},
+    "FIN": {"chamber": "Eduskunta", "total": 200, "note": "2023 election",
+            "parties": [("National Coalition", 48, "#006288"), ("Finns Party", 46, "#ffd700"),
+                        ("SDP", 43, "#e11931"), ("Centre", 23, "#01954b"),
+                        ("Greens", 13, "#61bf1a"), ("Left Alliance", 11, "#f0463c"),
+                        ("Other", 16, "#888888")]},
+    "NOR": {"chamber": "Storting", "total": 169, "note": "2021 election",
+            "parties": [("Labour", 48, "#e4003b"), ("Conservative", 36, "#0087dc"),
+                        ("Centre", 28, "#01954b"), ("Progress", 21, "#004f9f"),
+                        ("SV", 13, "#e30613"), ("Other", 23, "#888888")]},
+    "DNK": {"chamber": "Folketing", "total": 179, "note": "2022 election",
+            "parties": [("Social Democrats", 50, "#e4003b"), ("Liberals (V)", 23, "#0057b8"),
+                        ("Moderates", 16, "#7b3f99"), ("SF", 15, "#e30613"),
+                        ("Other", 75, "#888888")]},
+    "AUT": {"chamber": "National Council", "total": 183, "note": "2024 election",
+            "parties": [("FPÖ", 57, "#0d3b82"), ("ÖVP", 51, "#63c3d0"),
+                        ("SPÖ", 41, "#e4003b"), ("NEOS", 18, "#e84188"),
+                        ("Greens", 16, "#88b626")]},
+    "BEL": {"chamber": "Chamber of Representatives", "total": 150, "note": "2024 election",
+            "parties": [("N-VA", 24, "#ffcd00"), ("Vlaams Belang", 20, "#ffe500"),
+                        ("MR", 20, "#1560bd"), ("PS", 16, "#e4003b"),
+                        ("Other", 70, "#888888")]},
+    "PRT": {"chamber": "Assembly of the Republic", "total": 230, "note": "2024 election",
+            "parties": [("PSD (AD)", 80, "#f57e20"), ("PS", 78, "#e4003b"),
+                        ("Chega", 50, "#202056"), ("IL", 8, "#00adef"),
+                        ("Other", 14, "#888888")]},
+    "IRL": {"chamber": "Dáil Éireann", "total": 174, "note": "2024 election",
+            "parties": [("Fianna Fáil", 48, "#66bb66"), ("Sinn Féin", 39, "#326760"),
+                        ("Fine Gael", 38, "#6699ff"), ("Other", 49, "#888888")]},
+    "NZL": {"chamber": "House of Representatives", "total": 123, "note": "2023 election",
+            "parties": [("National", 49, "#00529f"), ("Labour", 34, "#d82c20"),
+                        ("Green", 15, "#098137"), ("ACT", 11, "#ffd700"),
+                        ("NZ First", 8, "#000000"), ("Other", 6, "#888888")]},
+}
+
+# v6.6.2 — countries WITHOUT an ordinary elected legislature (or with an
+# appointed/advisory body): explain what governs law-making and why, instead of
+# leaving the panel blank (owner: "explain to the user why the country doesn't
+# have one and if it used to ever have one and why it was abolished").
+LEGISLATURE_NOTES = {
+    "SAU": "No elected legislature. The appointed Consultative Assembly (Majlis "
+           "al-Shura, 150 members) advises the King but cannot pass laws; Saudi "
+           "Arabia is an absolute monarchy where the King and Council of "
+           "Ministers hold legislative authority by royal decree.",
+    "ARE": "The Federal National Council (40 members, half elected by a limited "
+           "electoral college since 2006) is consultative only. The UAE is a "
+           "federation of absolute monarchies; binding legislation rests with "
+           "the Federal Supreme Council of rulers.",
+    "QAT": "The Shura Council (45 members) became partly elected in 2021, but "
+           "the Emir retains veto and appoints a third of members; real "
+           "legislative power remains with the ruling Al Thani monarchy.",
+    "OMN": "The Council of Oman is bicameral but largely advisory: the elected "
+           "Consultative Assembly (Majlis al-Shura) and appointed State Council "
+           "advise the Sultan, who legislates by royal decree.",
+    "BRN": "Brunei's Legislative Council (33 members) is entirely appointed by "
+           "the Sultan and advisory only. The elected body was suspended in "
+           "1984; Brunei is an absolute monarchy under a state of emergency in "
+           "force since 1962.",
+    "VAT": "Vatican City is an absolute elective monarchy. Legislative power is "
+           "held by the Pope and exercised through the Pontifical Commission; "
+           "there is no popularly elected legislature.",
+    "AFG": "Afghanistan's bicameral National Assembly was dissolved when the "
+           "Taliban took power in August 2021. There is currently no "
+           "functioning legislature; rule is by decree from the Taliban's "
+           "supreme leadership pending an undefined future structure.",
+    "PRK": "The Supreme People's Assembly nominally legislates but is a "
+           "single-party rubber-stamp body that meets briefly and ratifies "
+           "decisions of the ruling Workers' Party under the Kim leadership.",
+    "ERI": "Eritrea's National Assembly has not convened since 2002. No "
+           "national elections have been held since independence (1993); the "
+           "PFDJ one-party state governs by executive authority.",
 }
 
 
 # v6.6 — current bloc secretaries-general / presidents for the bloc panels
 ALLIANCE_LEADERS = {
     "NATO": ("Mark Rutte", "Secretary General", "2024-10-01"),
-    "EU": ("Ursula von der Leyen", "Commission President", "2019-12-01"),
+    "European Union": ("Ursula von der Leyen", "Commission President", "2019-12-01"),
     "CSTO": ("Imangali Tasmagambetov", "Secretary General", "2023-01-01"),
     "Arab League": ("Ahmed Aboul Gheit", "Secretary-General", "2016-07-03"),
     "ASEAN": ("Kao Kim Hourn", "Secretary-General", "2023-01-01"),
@@ -363,10 +438,13 @@ ALLIANCE_LEADERS = {
 }
 
 # v6.6 — diplomatic alignments for the experimental country-alignment map mode
-# (strong ally / partner / rival, from the aligned country's perspective)
+# (strong ally / partner / rival, from the aligned country's perspective).
+# Hand-authored for the three power centres; every OTHER country is derived
+# from its geopolitical camp below (v6.6.2 — owner: "expand alignments to every
+# country … Argentina should be US allies").
 ALIGNMENTS = {
     "USA": {"strong": ["GBR","CAN","AUS","NZL","JPN","KOR","ISR","DEU","FRA","ITA","POL","NLD","NOR","DNK","ESP","PRT","BEL","CZE","ROU","LTU","LVA","EST","FIN","SWE","PHL","TWN"],
-            "partner": ["IND","VNM","SAU","ARE","QAT","JOR","EGY","MAR","SGP","THA","IDN","MEX","BRA","COL","CHL","KEN","NGA","UKR"],
+            "partner": ["IND","VNM","SAU","ARE","QAT","JOR","EGY","MAR","SGP","THA","IDN","MEX","BRA","COL","CHL","ARG","KEN","NGA","UKR"],
             "rival": ["RUS","CHN","IRN","PRK","CUB","VEN","BLR","SYR","NIC"]},
     "RUS": {"strong": ["BLR","PRK","IRN","SYR","CUB","NIC","VEN","ERI","MLI","BFA","NER"],
             "partner": ["CHN","IND","KAZ","ARM","AZE","UZB","TJK","KGZ","SRB","HUN","MMR","DZA","EGY","ZAF","BRA","SAU","ARE","TUR"],
@@ -374,4 +452,164 @@ ALIGNMENTS = {
     "CHN": {"strong": ["PRK","PAK","RUS","BLR","KHM","LAO","MMR","IRN"],
             "partner": ["KAZ","UZB","THA","IDN","MYS","BGD","LKA","ETH","EGY","DZA","ZAF","NGA","BRA","ARG","VEN","CUB","SRB","HUN","SAU","ARE"],
             "rival": ["USA","JPN","IND","AUS","GBR","CAN","PHL","KOR","TWN","LTU","CZE","NLD"]},
+}
+
+# v6.6.2 — geopolitical camp for each country. "west" leans US/NATO/EU;
+# "east" leans Russia; "china" leans Beijing; "nonaligned" hedges. Alignments
+# for any country without an explicit entry above are derived from these camps
+# by derive_alignments(): fellow-camp members are strong allies, the opposing
+# bloc's core are rivals, and neutrals become partners. Not exhaustive-perfect,
+# but a coherent, data-driven picture for every country.
+COUNTRY_CAMP = {
+    # --- West (US/NATO/EU-aligned) ---
+    "USA":"west","GBR":"west","CAN":"west","AUS":"west","NZL":"west","JPN":"west",
+    "KOR":"west","ISR":"west","DEU":"west","FRA":"west","ITA":"west","ESP":"west",
+    "PRT":"west","NLD":"west","BEL":"west","LUX":"west","IRL":"west","NOR":"west",
+    "DNK":"west","SWE":"west","FIN":"west","ISL":"west","POL":"west","CZE":"west",
+    "SVK":"west","HUN":"west","ROU":"west","BGR":"west","GRC":"west","HRV":"west",
+    "SVN":"west","LTU":"west","LVA":"west","EST":"west","AUT":"west","CHE":"west",
+    "ALB":"west","MNE":"west","MKD":"west","UKR":"west","GEO":"west","MDA":"west",
+    "PHL":"west","TWN":"west","COL":"west","CHL":"west","ARG":"west","PAN":"west",
+    "CRI":"west","DOM":"west","GTM":"west","ECU":"west","PRY":"west","URY":"west",
+    "JOR":"west","KWT":"west","BHR":"west","MAR":"west","XKX":"west",
+    # --- Russia-aligned (east) ---
+    "RUS":"east","BLR":"east","PRK":"east","SYR":"east","CUB":"east","NIC":"east",
+    "VEN":"east","ERI":"east","MLI":"east","BFA":"east","NER":"east","IRN":"east",
+    "ARM":"east","SSD":"east","CAF":"east",
+    # --- China-aligned ---
+    "CHN":"china","PAK":"china","KHM":"china","LAO":"china","MMR":"china",
+    # --- Non-aligned / hedging ---
+    "IND":"nonaligned","BRA":"nonaligned","ZAF":"nonaligned","IDN":"nonaligned",
+    "SAU":"nonaligned","ARE":"nonaligned","QAT":"nonaligned","EGY":"nonaligned",
+    "TUR":"nonaligned","VNM":"nonaligned","THA":"nonaligned","MYS":"nonaligned",
+    "SGP":"nonaligned","MEX":"nonaligned","NGA":"nonaligned","KEN":"nonaligned",
+    "ETH":"nonaligned","DZA":"nonaligned","KAZ":"nonaligned","UZB":"nonaligned",
+    "AZE":"nonaligned","SRB":"nonaligned","BGD":"nonaligned","LKA":"nonaligned",
+    "IRQ":"nonaligned","OMN":"nonaligned","TUN":"nonaligned","GHA":"nonaligned",
+    "AGO":"nonaligned","TZA":"nonaligned","MOZ":"nonaligned","BOL":"nonaligned",
+    "PER":"nonaligned","MNG":"nonaligned","LBN":"nonaligned","AFG":"nonaligned",
+    "KGZ":"nonaligned","TJK":"nonaligned","TKM":"nonaligned",
+}
+
+# camp-level cores used to build derived alignments
+_WEST_CORE = ["USA","GBR","DEU","FRA","CAN","JPN","AUS","ITA","POL","NLD"]
+_EAST_CORE = ["RUS","BLR","IRN","PRK","SYR"]
+_CHINA_CORE = ["CHN","PRK","PAK","RUS"]
+
+
+def _camp_members(camp, exclude=None):
+    return [c for c, v in COUNTRY_CAMP.items() if v == camp and c != exclude]
+
+
+def derive_alignments(iso3):
+    """v6.6.2 — build a {strong, partner, rival} alignment view for any country
+    from its camp. Explicit ALIGNMENTS entries win; everyone else is derived so
+    the alignment map works for every country, not just the three powers."""
+    iso3 = (iso3 or "").upper()
+    if iso3 in ALIGNMENTS:
+        return ALIGNMENTS[iso3]
+    camp = COUNTRY_CAMP.get(iso3)
+    if not camp:
+        return None
+    if camp == "west":
+        return {"strong": [c for c in _WEST_CORE if c != iso3][:9],
+                "partner": ["UKR","ISR","KOR","TWN","ARG","COL","JOR","SGP"],
+                "rival": _EAST_CORE + ["CHN"]}
+    if camp == "east":
+        return {"strong": [c for c in _EAST_CORE if c != iso3] + ["RUS"] if iso3 != "RUS" else _EAST_CORE,
+                "partner": ["CHN","IND","SRB","HUN","VEN","DZA"],
+                "rival": [c for c in _WEST_CORE if c != iso3][:8] + ["UKR"]}
+    if camp == "china":
+        return {"strong": [c for c in _CHINA_CORE if c != iso3][:6],
+                "partner": ["KAZ","THA","IDN","ETH","ZAF","SRB","SAU"],
+                "rival": ["USA","JPN","IND","AUS","TWN","PHL"]}
+    # nonaligned — hedges both ways, no strong bloc allegiance, no declared rival
+    return {"strong": [],
+            "partner": ["USA","CHN","RUS","IND","BRA","SAU","TUR","ZAF"][:6],
+            "rival": []}
+
+
+# v6.6.2 — rich bloc-profile metadata for the full bloc panels (owner wanted
+# NATO/CSTO/EU/Arab League/etc. to open pages like the UN: purpose, HQ,
+# policies/strategies, notable measures). Keyed by alliance NAME. Missing blocs
+# still render from their DB description + members; this just deepens the majors.
+ALLIANCE_PROFILES = {
+    "NATO": {"hq": "Brussels, Belgium",
+             "purpose": "Collective defense (Article 5): an attack on one member is an attack on all.",
+             "policies": ["Article 5 collective defense", "Eastern-flank enhanced Forward Presence",
+                          "2% GDP defense-spending target", "Open Door enlargement policy",
+                          "Support to Ukraine via the NATO-Ukraine Council"],
+             "measures": [("Finland accession", "2023-04-04"), ("Sweden accession", "2024-03-07"),
+                          ("Washington Summit pledge to Ukraine", "2024-07-10")]},
+    "European Union": {"hq": "Brussels, Belgium",
+           "purpose": "Political and economic union: single market, customs union, common policies.",
+           "policies": ["Single market & free movement", "Common Agricultural Policy",
+                        "European Green Deal (climate neutrality by 2050)", "Common Foreign & Security Policy",
+                        "Enlargement negotiations (Ukraine, Moldova, Western Balkans)"],
+           "measures": [("14th sanctions package on Russia", "2024-06-24"),
+                        ("Ukraine accession talks opened", "2024-06-25"),
+                        ("AI Act entered into force", "2024-08-01")]},
+    "CSTO": {"hq": "Moscow, Russia",
+             "purpose": "Russia-led collective-security treaty organization.",
+             "policies": ["Collective defense (Article 4)", "Rapid Reaction Collective Forces",
+                          "Joint air-defense system"],
+             "measures": [("Kazakhstan peacekeeping deployment", "2022-01-06"),
+                          ("Armenia freezes participation", "2024-02-23")]},
+    "Arab League": {"hq": "Cairo, Egypt",
+                    "purpose": "Regional bloc coordinating political, economic and cultural affairs of Arab states.",
+                    "policies": ["Joint Arab position on Palestine", "Arab Peace Initiative",
+                                 "Greater Arab Free Trade Area"],
+                    "measures": [("Syria readmitted", "2023-05-07"),
+                                 ("Joint statement on Gaza ceasefire", "2023-10-21")]},
+    "ASEAN": {"hq": "Jakarta, Indonesia",
+              "purpose": "Southeast Asian political-economic bloc promoting integration and stability.",
+              "policies": ["ASEAN Free Trade Area", "Non-interference principle",
+                           "ASEAN Outlook on the Indo-Pacific", "Five-Point Consensus on Myanmar"],
+              "measures": [("Timor-Leste in-principle membership", "2022-11-11")]},
+    "African Union": {"hq": "Addis Ababa, Ethiopia",
+                      "purpose": "Continental union of all 55 African states.",
+                      "policies": ["Agenda 2063", "African Continental Free Trade Area (AfCFTA)",
+                                   "Silencing the Guns", "Peace & Security Council operations"],
+                      "measures": [("AU joins the G20", "2023-09-09")]},
+    "BRICS": {"hq": "(rotating chair)",
+              "purpose": "Bloc of major emerging economies coordinating on finance and multipolar reform.",
+              "policies": ["New Development Bank", "Local-currency trade settlement",
+                           "Expansion of membership"],
+              "measures": [("Bloc expansion (Egypt, Ethiopia, Iran, UAE join)", "2024-01-01")]},
+    "OPEC": {"hq": "Vienna, Austria",
+             "purpose": "Coordinates petroleum policy among major oil-exporting nations.",
+             "policies": ["Production quotas to stabilize prices", "OPEC+ cooperation with Russia"],
+             "measures": [("Voluntary output cuts extended", "2024-06-02")]},
+    "Five Eyes": {"hq": "(distributed)",
+                  "purpose": "Anglophone signals-intelligence sharing alliance.",
+                  "policies": ["Intelligence sharing (SIGINT)", "Joint threat assessments"],
+                  "measures": []},
+    "QUAD": {"hq": "(distributed)",
+             "purpose": "Indo-Pacific strategic dialogue (US, Japan, India, Australia).",
+             "policies": ["Free and open Indo-Pacific", "Maritime domain awareness",
+                          "Critical & emerging technology cooperation"],
+             "measures": []},
+    "AUKUS": {"hq": "(distributed)",
+              "purpose": "Trilateral security pact (Australia, UK, US) — nuclear submarines & advanced tech.",
+              "policies": ["Pillar 1: nuclear-powered submarines for Australia",
+                           "Pillar 2: advanced capabilities (AI, hypersonics, quantum)"],
+              "measures": []},
+}
+
+# v6.6.2 — European Parliament composition (political groups), for the EU bloc
+# panel's parliament breakdown. Seats out of 720 (2024-2029 term). Colors for
+# the hemicycle graphic.
+EU_PARLIAMENT = {
+    "total": 720,
+    "groups": [
+        ("EPP", "European People's Party", 188, "#3399ff"),
+        ("S&D", "Socialists & Democrats", 136, "#f0001c"),
+        ("PfE", "Patriots for Europe", 84, "#183a63"),
+        ("ECR", "European Conservatives & Reformists", 78, "#0a6cbf"),
+        ("Renew", "Renew Europe", 77, "#ffd700"),
+        ("Greens/EFA", "Greens / EFA", 53, "#57b45f"),
+        ("The Left", "The Left", 46, "#af1e2d"),
+        ("ESN", "Europe of Sovereign Nations", 25, "#2b2b6b"),
+        ("NI", "Non-Inscrits", 33, "#999999"),
+    ],
 }

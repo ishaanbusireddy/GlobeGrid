@@ -89,6 +89,11 @@ def _story_card(row) -> dict:
     d["has_historical_link"] = bool(query_one(
         "SELECT 1 FROM story_members WHERE story_id = ? AND linked_via = 'historical_chain'"
         " LIMIT 1", (row["id"],)))
+    # v6.6.2 — attach the tagged conflict's name so the feed card can show a
+    # clickable conflict chip that opens War Mode for it
+    if d.get("conflict_id"):
+        c = query_one("SELECT name FROM conflicts WHERE id = ?", (row["conflict_id"],))
+        d["conflict_name"] = c["name"] if c else None
     return d
 
 
@@ -332,11 +337,18 @@ def predictions_view(params, q, body):
 
 @route("GET", "/api/briefings")
 def briefings_view(params, q, body):
-    # v6.1 — period is 'day' (default) | 'week' | 'month'
+    # v6.1 — period is 'day' (default) | 'week' | 'month'; v6.6.2 adds 'market'
     period = q.get("period", "day")
-    if period not in ("day", "week", "month"):
+    if period not in ("day", "week", "month", "market"):
         period = "day"
-    from ..processing.briefing import generate_briefing, _period_key
+    from ..processing.briefing import (generate_briefing, generate_market_briefing,
+                                       _period_key)
+    if period == "market":   # v6.6.2 — dynamic market briefing, hourly cache
+        key = _period_key("market")
+        row = query_one("SELECT * FROM daily_briefings WHERE briefing_date = ?", (key,))
+        if row is None and q.get("generate") == "1":
+            return 200, {"briefing": generate_market_briefing(), "period": "market"}
+        return 200, {"briefing": dict(row) if row else None, "period": "market"}
     if q.get("date"):
         row = query_one("SELECT * FROM daily_briefings WHERE briefing_date = ?",
                         (q["date"],))

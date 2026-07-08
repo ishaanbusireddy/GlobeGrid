@@ -143,20 +143,41 @@ export class AnalystPanel {
   // known-safe subset (bold/italic/code/links/line breaks). The analyst now
   // returns real prose — possibly with web-source links — so plain
   // textContent would show raw ** and [](: markup.
+  // v6.6.2 — line-based render so bullets ALWAYS land on their own spaced line.
+  // Broadened bullet detection (-, •, *, + and "1." numbered) because models
+  // emit different markers; inline spans (bold/italic/code/links) are applied
+  // per line. Blank lines become real vertical gaps, not stray <br>s wedged
+  // between block elements (the old cause of run-together bullets).
+  _inline(s) {
+    return s
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/__([^_]+)__/g, "<strong>$1</strong>")
+      .replace(/(^|[^*])\*([^*]+)\*(?!\*)/g, "$1<em>$2</em>")
+      .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+               '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  }
   _md(text) {
     const esc = (text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
-    return esc
-      .replace(/^### (.+)$/gm, "<h4 class='ap-h'>$1</h4>")
-      .replace(/^## (.+)$/gm, "<h4 class='ap-h'>$1</h4>")
-      .replace(/^[-•] (.+)$/gm, "<div class='ap-li'>• $1</div>")
-      .replace(/\n\n+/g, "<div class='ap-gap'></div>")
-      .replace(/`([^`]+)`/g, "<code>$1</code>")
-      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-      .replace(/(^|[^*])\*([^*]+)\*/g, "$1<em>$2</em>")
-      .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
-               '<a href="$2" target="_blank" rel="noopener">$1</a>')
-      .replace(/\n/g, "<br>");
+    const out = [];
+    for (const raw of esc.split("\n")) {
+      const line = raw.trim();
+      if (!line) { out.push("<div class='ap-gap'></div>"); continue; }
+      let m;
+      if ((m = line.match(/^#{2,4}\s+(.+)$/))) {
+        out.push(`<h4 class='ap-h'>${this._inline(m[1])}</h4>`);
+      } else if ((m = line.match(/^(?:[-•*+])\s+(.+)$/))) {
+        out.push(`<div class='ap-li'>• ${this._inline(m[1])}</div>`);
+      } else if ((m = line.match(/^(\d+)[.)]\s+(.+)$/))) {
+        out.push(`<div class='ap-li'>${m[1]}. ${this._inline(m[2])}</div>`);
+      } else {
+        out.push(`<div class='ap-p'>${this._inline(line)}</div>`);
+      }
+    }
+    // collapse consecutive gaps so we never stack blank space
+    return out.join("").replace(/(<div class='ap-gap'><\/div>)+/g,
+                                "<div class='ap-gap'></div>");
   }
 
   _render(role, text, citations, navigation, scroll, confidence,

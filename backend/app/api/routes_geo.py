@@ -115,6 +115,11 @@ def country_profile(params, q, body):
                                  if not fresh else None)
     leg = query_one("SELECT * FROM country_legislature WHERE country_id = ?", (iso3,))
     profile["legislature"] = dict(leg) if leg else None
+    if not profile["legislature"]:   # v6.6.2 — explain absence instead of blank
+        from ..geopolitics.country_extra import LEGISLATURE_NOTES
+        profile["legislature_note"] = LEGISLATURE_NOTES.get(iso3) or (
+            "No detailed seat composition is on file yet for this country's "
+            "legislature. It will populate on the next data sync.")
     if profile["legislature"] and profile["legislature"].get("seats_json"):
         try:  # v6.1 — parsed party seats for the parliamentary arc graphic
             profile["legislature"]["seats"] = json.loads(
@@ -129,9 +134,10 @@ def country_profile(params, q, body):
         if cur:
             profile["currency_code"], profile["currency_name"], \
                 profile["currency_symbol"] = cur
-    from ..geopolitics.country_extra import ALIGNMENTS
-    if iso3 in ALIGNMENTS:   # v6.6 — experimental diplomatic-alignment map
-        profile["alignments"] = ALIGNMENTS[iso3]
+    from ..geopolitics.country_extra import derive_alignments
+    _al = derive_alignments(iso3)   # v6.6.2 — derived for EVERY country now
+    if _al:
+        profile["alignments"] = _al
     ag = query_one("SELECT * FROM country_agenda_synthesis WHERE country_id = ?", (iso3,))
     profile["agenda"] = dict(ag) if ag else None
     if profile["agenda"] and profile["agenda"].get("source_story_ids"):
@@ -140,7 +146,8 @@ def country_profile(params, q, body):
     trade = query_one("SELECT * FROM country_trade_stats WHERE country_id = ?", (iso3,))
     profile["trade"] = dict(trade) if trade else None
     profile["memberships"] = [dict(r) for r in query(
-        "SELECT a.name, a.type, am.status FROM alliance_memberships am"
+        "SELECT a.id AS alliance_id, a.name, a.type, am.status"
+        " FROM alliance_memberships am"
         " JOIN alliances a ON a.id = am.alliance_id WHERE am.country_id = ?"
         " ORDER BY a.name", (iso3,))]
     profile["relations"] = [dict(r) for r in query(
@@ -387,6 +394,58 @@ def alliances_list(params, q, body):
     return 200, {"alliances": out}
 
 
+@route("GET", "/api/alliance/{aid}")
+def alliance_profile(params, q, body):
+    """v6.6.2 — the full bloc panel (owner: NATO/CSTO/EU/etc. should open pages
+    like the UN). One call returns: the bloc record + leader, its members with
+    flags and key stats, aggregate statistics, purpose/HQ/policies/measures,
+    the conflicts its members are party to (for military blocs), recent tracked
+    stories mentioning it, and — for the EU — a parliament breakdown."""
+    from ..geopolitics.country_extra import (ALLIANCE_LEADERS, ALLIANCE_PROFILES,
+                                             EU_PARLIAMENT)
+    a = query_one("SELECT * FROM alliances WHERE id = ?", (params["aid"],))
+    if not a:
+        return 404, {"error": "alliance not registered"}
+    out = dict(a)
+    if out["name"] in ALLIANCE_LEADERS:
+        out["leader"] = ALLIANCE_LEADERS[out["name"]]
+    prof = ALLIANCE_PROFILES.get(out["name"])
+    if prof:
+        out["profile"] = prof
+    # members with display data + running stat totals
+    members = query(
+        "SELECT c.id, c.name, c.flag_image_url, c.population, c.gdp_usd, c.region,"
+        " am.status FROM alliance_memberships am JOIN countries c ON c.id = am.country_id"
+        " WHERE am.alliance_id = ? ORDER BY c.name", (params["aid"],))
+    out["members"] = [dict(m) for m in members]
+    member_ids = [m["id"] for m in members if m["status"] == "member"]
+    tot_pop = sum(m["population"] or 0 for m in members if m["status"] == "member")
+    tot_gdp = sum(m["gdp_usd"] or 0 for m in members if m["status"] == "member")
+    out["stats"] = {"member_count": len(member_ids), "total_population": tot_pop,
+                    "total_gdp_usd": tot_gdp}
+    # conflicts any member is a party to (esp. relevant for military blocs)
+    if member_ids:
+        marks = ",".join("?" * len(member_ids))
+        out["conflicts"] = [dict(r) for r in query(
+            f"SELECT DISTINCT c.id, c.name, c.status FROM conflicts c"
+            f" JOIN conflict_parties cp ON cp.conflict_id = c.id"
+            f" WHERE cp.country_id IN ({marks})"
+            f" ORDER BY CASE c.status WHEN 'active' THEN 0 ELSE 1 END", member_ids)]
+    else:
+        out["conflicts"] = []
+    # recent tracked stories mentioning the bloc by name (FTS-lite LIKE)
+    out["recent_stories"] = [dict(r) for r in query(
+        "SELECT DISTINCT s.id, s.headline, s.last_updated_at FROM stories s"
+        " JOIN story_members m ON m.story_id = s.id"
+        " JOIN extracted_facts f ON (f.id = m.fact_id OR f.event_id = m.event_id)"
+        " WHERE s.is_synthetic = 0 AND (f.who LIKE ? OR f.what LIKE ?)"
+        " ORDER BY s.last_updated_at DESC LIMIT 8",
+        (f"%{a['name']}%", f"%{a['name']}%"))]
+    if out["name"] in ("EU", "European Union"):   # EU panel parliament breakdown
+        out["parliament"] = EU_PARLIAMENT
+    return 200, out
+
+
 @route("GET", "/api/conflicts")
 def conflicts_list(params, q, body):
     rows = query("SELECT * FROM conflicts ORDER BY"
@@ -625,10 +684,55 @@ def _wiki_action_image(clean: str) -> str:
     return ""
 
 
+LEADER_PROFILE_PROMPT = """You are a political biographer. From the CONTEXT (a
+world leader's name, the office(s) they hold, party, and a Wikipedia biography
+extract) write a concise, neutral structured profile.
+
+Return ONLY valid JSON:
+{
+  "summary": string,                 // 2-3 sentences: who they are and why they matter now
+  "ideology": string,                // their political ideology / orientation, one line
+  "career_history": [string, ...],   // 3-6 bullets: prior professions & positions, roughly chronological
+  "party_history": [string, ...],    // 1-4 bullets: party affiliations over time
+  "key_policies": [string, ...]      // 3-6 bullets: signature policies / positions / agenda
+}
+Be accurate and grounded ONLY in the provided extract and offices. If the
+extract is thin, still fill what you can and keep the rest short. Never invent
+specific dates or figures you weren't given."""
+
+
+def _wiki_intro_extract(clean):
+    """v6.6.2 — a fuller multi-paragraph intro (action API extracts, plaintext)
+    rather than the one-sentence REST summary, for the biography section."""
+    import json as _json
+    import urllib.request as _rq
+    from ..processing import llm as _llm
+    base = "https://en.wikipedia.org/w/api.php"
+    q = urllib.parse.urlencode({"action": "query", "prop": "extracts",
+                                "exintro": "1", "explaintext": "1", "redirects": "1",
+                                "titles": clean, "format": "json"})
+    try:
+        req = _rq.Request(f"{base}?{q}", headers={"user-agent": _llm.USER_AGENT,
+                                                  "accept": "application/json"})
+        with _rq.urlopen(req, timeout=7) as resp:
+            pages = _json.loads(resp.read()).get("query", {}).get("pages", {})
+        for _pid, page in pages.items():
+            ex = page.get("extract")
+            if ex:
+                return ex.strip()
+    except Exception:  # noqa: BLE001
+        pass
+    return None
+
+
 @route("GET", "/api/leader-profile")
 def leader_profile(params, q, body):
-    """v6.6 — a personal panel for any world leader: role/party/tenure from the
-    leadership table + a Wikipedia biography extract fetched on demand."""
+    """v6.6 / v6.6.2 — a rich personal panel for any world leader: role/party/
+    tenure from the leadership table, a fuller Wikipedia biography, and (when an
+    AI provider is available, cached) an AI-synthesized structured profile —
+    ideology, career history, party history, key policies."""
+    import json as _json
+    from ..db.models import meta_get, meta_set
     name = (q.get("name") or "").strip()
     if not name:
         return 400, {"error": "name required"}
@@ -639,7 +743,6 @@ def leader_profile(params, q, body):
         (clean + "%",))]
     bio = None
     try:
-        import json as _json
         import urllib.request as _rq
         from ..processing import llm as _llm
         url = ("https://en.wikipedia.org/api/rest_v1/page/summary/"
@@ -649,12 +752,46 @@ def leader_profile(params, q, body):
         with _rq.urlopen(req, timeout=6) as resp:
             d = _json.loads(resp.read())
         if d.get("type") != "disambiguation":
-            bio = {"extract": d.get("extract"), "description": d.get("description"),
+            bio = {"extract": _wiki_intro_extract(clean) or d.get("extract"),
+                   "description": d.get("description"),
                    "url": (d.get("content_urls", {}).get("desktop", {}) or {}).get("page"),
                    "image_url": ((d.get("thumbnail") or {}).get("source"))}
     except Exception:  # noqa: BLE001 — offline/blocked: roles still render
         pass
-    return 200, {"name": clean, "roles": rows, "bio": bio}
+    # AI-synthesized structured profile (cached; best-effort, degrades cleanly)
+    synth = None
+    cache_key = f"leaderprof:{clean.lower()}"
+    cached = meta_get(cache_key)
+    if cached:
+        try:
+            synth = _json.loads(cached)
+        except _json.JSONDecodeError:
+            synth = None
+    elif bio and (bio.get("extract") or rows):
+        from ..processing import llm
+        if llm.available():
+            ctx = {"name": clean,
+                   "offices": [{"role": r.get("role"), "country": r.get("country_name"),
+                                "party": r.get("party"), "since": r.get("since_date")}
+                               for r in rows],
+                   "party": rows[0].get("party") if rows else None,
+                   "wikipedia_extract": (bio.get("extract") or "")[:2500]}
+            text = llm.complete(LEADER_PROFILE_PROMPT,
+                                [{"role": "user", "content": _json.dumps(ctx)}],
+                                max_tokens=700, timeout=40, json_mode=True)
+            if text:
+                t = text.strip()
+                if t.startswith("```"):
+                    t = t.strip("`").removeprefix("json").strip()
+                b = t.find("{")
+                if b != -1:
+                    t = t[b:t.rfind("}") + 1]
+                try:
+                    synth = _json.loads(t)
+                    meta_set(cache_key, _json.dumps(synth))
+                except _json.JSONDecodeError:
+                    synth = None
+    return 200, {"name": clean, "roles": rows, "bio": bio, "synthesis": synth}
 
 
 @route("GET", "/api/leader-portrait")
@@ -788,6 +925,15 @@ def nsa_zones(params, q, body):
     return 200, {"zones": [{"nsa_id": r["nsa_id"], "nsa_name": r["nsa_name"],
                             "confidence": r["confidence"],
                             "geojson": json.loads(r["zone_geojson"])} for r in rows]}
+
+
+@route("GET", "/api/disputed-zones")
+def disputed_zones(params, q, body):
+    """v6.6.2 — individually-named disputed territories (Crimea, Donetsk,
+    Luhansk, Zaporizhzhia, Kherson, Kashmir, Taiwan, Western Sahara, Kosovo)
+    with per-zone context, for the disputed-mode clickable breakdown."""
+    from ..geopolitics.disputed_zones import zones_list
+    return 200, {"zones": zones_list()}
 
 
 @route("GET", "/api/orgs")

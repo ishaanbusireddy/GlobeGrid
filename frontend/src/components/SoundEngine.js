@@ -620,7 +620,15 @@ export class SoundEngine {
       this._kick(t, 0.12, false);
       return;
     }
-    this._note(midiHz(scale.root + 36), t, 0.4, 0.1, "sine", 0);
+    // v6.6.2 — softer, cooler "alert" chime (owner: the mass-update screech was
+    // too harsh). Was a single very-high sine (root+36, ~2-4kHz) that stacked
+    // into a screech when many stories arrived at once. Now a gentle rising
+    // perfect-fifth two-tone at a comfortable octave, soft attack + low-pass so
+    // rapid repeats blend into a pleasant notification instead of a screech.
+    const chime = { attack: 0.02, decay: 0.12, sustain: 0.35, release: 0.4,
+                    cutoff: 2400, resonance: 0.6 };
+    this._note(midiHz(scale.root + 12), t, 0.5, 0.055, "triangle", 0, chime);
+    this._note(midiHz(scale.root + 19), t + 0.11, 0.6, 0.05, "sine", 0, chime);
   }
 
   noteSeverity(sev) { this.lastSeverity = Math.max(this.lastSeverity, sev || 1); }

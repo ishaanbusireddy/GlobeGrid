@@ -4,9 +4,10 @@
 import { formatDateTime } from "../../data/timefmt.js";   // v6.1.1 tz-aware
 
 export class LiveFeed {
-  constructor(listEl, { onOpenStory } = {}) {
+  constructor(listEl, { onOpenStory, onOpenConflict } = {}) {
     this.listEl = listEl;
     this.onOpenStory = onOpenStory || (() => {});
+    this.onOpenConflict = onOpenConflict || (() => {});   // v6.6.2 conflict chip
     this.stories = new Map(); // id -> story card data
   }
 
@@ -15,6 +16,10 @@ export class LiveFeed {
     for (const s of stories) this.stories.set(s.id, s);
     this._render();
   }
+
+  // v6.6.2 — a real snapshot of the current cards (full objects), so War Mode
+  // can restore the exact accumulated feed on exit instead of re-fetching.
+  snapshot() { return [...this.stories.values()]; }
 
   upsert(story, { flash = true } = {}) {
     this.stories.delete(story.id);
@@ -38,9 +43,16 @@ export class LiveFeed {
           <span class="badge-src">${s.source_count || 0} src · ${s.member_count || 0} ev</span>
           <span class="conf conf-${conf}">${conf}</span>
           ${s.has_historical_link ? '<span class="badge-chain" title="linked to the historical fact chain">⛓ chain</span>' : ""}
+          ${s.conflict_id && s.conflict_name ? `<span class="chip chip-conflict" data-cid="${s.conflict_id}" title="part of this conflict — open War Mode">⚔ ${s.conflict_name}</span>` : ""}
           <span>${when}</span>
         </div>`;
       card.querySelector("h3").textContent = s.headline || "(untitled story)";
+      // v6.6.2 — the conflict chip opens the conflict; don't also open the story
+      const cchip = card.querySelector(".chip-conflict");
+      if (cchip) cchip.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        this.onOpenConflict(cchip.dataset.cid);
+      });
       card.addEventListener("click", () => this.onOpenStory(s.id));
       this.listEl.appendChild(card);
     }

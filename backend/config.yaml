@@ -250,7 +250,7 @@ panels:
 # v6 §23 — ten additional themes on the same CSS-variable-swap mechanism
 # (single line: the minimal YAML parser reads inline lists only)
 themes:
-  available: ["amber_terminal", "cold_war", "colorblind_safe", "crimson_edge", "crimson_gold", "dark_teal_default", "desert_ops", "fire_rises", "forest_floor", "gunmetal", "high_contrast", "neon_grid", "new_order", "nightfall", "royal_gold", "synthwave"]
+  available: ["amber_terminal", "cold_war", "colorblind_safe", "crimson_edge", "crimson_gold", "dark_teal_default", "desert_ops", "ember", "fire_rises", "forest_floor", "gunmetal", "high_contrast", "neon_grid", "new_order", "nightfall", "royal_gold", "synthwave"]
 
 # v6 §1 — Groq-first architecture: Groq is PRIMARY for all LLM calls (analyst,
 # translation, synthesis, title correction, web-search verification), not a

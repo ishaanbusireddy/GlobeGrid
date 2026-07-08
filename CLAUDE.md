@@ -18,6 +18,58 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v6.6.2)
+
+**v6.6.2 (2026-07-08, owner's post-6.6.1 fix list):** ~20 items. **Themes
+recolored:** `new_order` → cyan/teal on near-black steel; `fire_rises` →
+violet/magenta on near-black (both per owner screenshots); the original orange
+ember look kept as a new **`ember`** theme (list re-alphabetized). **Settings
+tabs actually split now:** every `.hidden` rule was ID-scoped, so
+`.settings-tab-ai.hidden` did nothing — added the scoped rule; Display|AI now
+truly separate. **Bloc panels open + are rich (the thrice-reported bug):** the
+bloc dropdown rows were inert `<label>`s with no click-through — added a
+clickable name that opens a new UN-style `/api/alliance/{id}` panel (leader +
+portrait, purpose/HQ, policies & strategies, aggregate stats [members, combined
+pop/GDP], member flag grid with click-through, conflicts members are party to,
+recent stories, notable measures, and — for the EU — a European Parliament
+hemicycle); bloc chips on country profiles now open it too (added `alliance_id`
+to memberships; ALLIANCE_PROFILES/ALLIANCE_LEADERS keyed as "European Union").
+**Alignments** derived for EVERY country from a camp model (`COUNTRY_CAMP` +
+`derive_alignments`) — Argentina now reads US-aligned; the button moved into the
+header row (no more thin-coverage collision), toggles off on re-click, and
+re-targets when you open another country. **UN vote graphic fixed:** `voteArc`
+read `tally.for/.against` (always 0) while the data uses `yes/no` — the "for 0,
+against 0" bug; now clickable **full breakdown** per resolution (all named
+yes/no/abstain grouped + residual counts). **UN sub-orgs** are now horizontal
+navigable **tabs** (Overview + each organ as its own page) instead of inline
+accordions. **Leader profiles** enriched (fuller Wikipedia intro + cached AI
+synthesis: ideology / career / party history / key policies, large portrait),
+reachable from portraits, bloc leaders and country panels. **Screenshot fixed:**
+WebGL context now `preserveDrawingBuffer:true` (was a black/garbage capture).
+**Market briefing tab** (right-aligned) — dynamic global-markets overview +
+tentative story-grounded forecasts (`generate_market_briefing`, hourly cache,
+"not financial advice"). **Legislatures:** added MNG/FIN/NOR/DNK/AUT/BEL/PRT/
+IRL/NZL; `LEGISLATURE_NOTES` explains absence (SAU/ARE/QAT/OMN/BRN/VAT/AFG/PRK/
+ERI) instead of blank. **Shortcuts:** F feed · L next language · C last/random
+country · G globe · M map. **Feed:** the all/military/conflict dev-filter is now
+War-Mode-only; **technology** is a first-class category (chip color + filter +
+map colors, next to finance); conflict-tagged cards show a clickable **⚔
+conflict chip** → War Mode. **War Mode** feed preservation fixed for real
+(`feed.currentIds` never existed → snapshot was a silent no-op; now
+`feed.snapshot()` of real story objects). **Alerts** pop even when the feed is
+closed (separate host) + a Settings toggle. **Softer alert sound** (the mass-
+update "screech" → a gentle rising perfect-fifth chime). **Bullets** in AI text
+render one-per-line with spacing (line-based `_md`, broadened bullet markers).
+**Disputed territories:** Crimea/Donetsk/Luhansk/**Zaporizhzhia**/**Kherson**/
+Kashmir/Taiwan/Western Sahara/Kosovo as individual zones (`/api/disputed-zones`)
+— disputed mode opens a clickable directory, each with a context breakdown.
+Verified: boot clean; `/api/alliance/NATO` (32 members, $51.7T, 5 conflicts),
+EU parliament 720, ARG alignment US-aligned, FIN legislature seats, disputed
+zones incl. Zaporizhzhia/Kherson, market briefing fallback, UN tally 141/5/35 +
+10 sub-org tabs; headless Chromium 0 JS errors (only sandbox-blocked flag
+images). Whole-UI translation still deferred (owner: fix dedicatedly next
+patch). Live Wikipedia/AI paths degrade cleanly behind the sandbox proxy.
+
 ## Status (v6.6.1)
 
 **v6.6.1 (2026-07-07):** the four items v6.6 deferred. **Bloc panels

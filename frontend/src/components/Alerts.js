@@ -9,9 +9,13 @@ export class Alerts {
     this.host = hostEl;
     this.severityFloor = severityFloor;
     this.onOpenStory = onOpenStory || (() => {});
+    // v6.6.2 — user-toggleable in Settings; alerts render in their own host
+    // (outside the feed panel) so they always pop even when the feed is closed
+    this.enabled = localStorage.getItem("tdl_alerts_enabled") !== "0";
   }
 
   maybeAlert(story, severity) {
+    if (!this.enabled) return;
     if ((severity || 0) < this.severityFloor) return;
     const toast = document.createElement("div");
     toast.className = "breaking-toast";

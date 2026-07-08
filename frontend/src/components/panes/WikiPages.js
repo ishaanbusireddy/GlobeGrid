@@ -170,8 +170,9 @@ export async function renderCountry(el, iso3, ctx) {
       <span class="cp-meta" style="margin-left:auto">${src}</span></div>`;
   }).join("") || '<p class="cp-meta">no leadership data yet (fills in from Wikidata)</p>';
 
+  // v6.6.2 — bloc chips open the full bloc panel (click-through from members)
   const memberships = (p.memberships || []).map((m) =>
-    `<span class="chip">${esc(m.name)}</span>`).join(" ") ||
+    `<button class="ap-chip bloc-link" data-id="${esc(m.alliance_id || "")}">${esc(m.name)}</button>`).join(" ") ||
     '<span class="cp-meta">none registered</span>';
 
   const parties = (p.parties || []).map((pt) =>
@@ -286,7 +287,9 @@ export async function renderCountry(el, iso3, ctx) {
       ? `<section><h4>Legislature</h4>${parliamentGraphic(p.legislature)}</section>`
       : (p.legislature && p.legislature.composition_summary
           ? `<section><h4>Legislature</h4><p>${esc(p.legislature.chamber_name || "")}</p><p class="cp-meta">${esc(p.legislature.composition_summary)}</p></section>`
-          : "")}
+          : (p.legislature_note   /* v6.6.2 — explain absence, don't leave blank */
+              ? `<section><h4>Legislature</h4><p class="cp-meta">${esc(p.legislature_note)}</p></section>`
+              : ""))}
     <section><h4>Political parties</h4>${parties}</section>
     <section><h4>Agendas & stances <span class="cp-meta">(AI-synthesized, source-linked)</span></h4>
       <div class="narrative-grid">${agenda}</div>
@@ -307,14 +310,29 @@ export async function renderCountry(el, iso3, ctx) {
   // v6.2 — if the featured leader has no photo yet, fetch it on demand from
   // Wikipedia (reliable lead image) and swap it in, so e.g. Xi Jinping shows
   // next to the China flag immediately instead of waiting on a weekly sync.
-  // v6.6 — experimental: diplomatic-alignment overlay button (US/RU/CN seeded)
+  // v6.6 — experimental: diplomatic-alignment overlay button (derived for all
+  // countries in v6.6.2). Placed in the header actions row (v6.6.2 — was
+  // absolutely positioned and collided with the thin-coverage badge). Reflects
+  // the live on/off state and re-targets when you navigate to another country.
   if (p && p.alignments) {
+    const meta = el.querySelector(".wiki-head-meta") || el;
     const btn = document.createElement("button");
-    btn.className = "ap-chip"; btn.style.cssText = "position:absolute;top:10px;right:44px";
-    btn.textContent = "🗺 alignments";
-    btn.title = "highlight allies (green), partners (light green) and rivals (red) on the map";
-    btn.addEventListener("click", () => ctx.showAlignments && ctx.showAlignments(p.id, p.alignments));
-    el.style.position = "relative"; el.prepend(btn);
+    btn.className = "ap-chip align-btn";
+    const on = ctx.alignmentActive && ctx.alignmentActive() === p.id;
+    btn.textContent = on ? "🗺 alignments ✓" : "🗺 alignments";
+    btn.title = "toggle allies (green), partners (light green) and rivals (red) on the map";
+    btn.addEventListener("click", () => {
+      const active = ctx.showAlignments && ctx.showAlignments(p.id, p.alignments);
+      btn.textContent = active ? "🗺 alignments ✓" : "🗺 alignments";
+    });
+    meta.appendChild(btn);
+    // v6.6.2 — if alignment mode is already ON for a DIFFERENT country, opening
+    // this one re-targets the overlay to it (owner: "should switch to that
+    // country's alignments, not the previous country's").
+    if (ctx.alignmentActive && ctx.alignmentActive() && ctx.alignmentActive() !== p.id) {
+      ctx.showAlignments(p.id, p.alignments);
+      btn.textContent = "🗺 alignments ✓";
+    }
   }
   const ph = el.querySelector(".leader-photo-empty[data-leader]");
   if (ph && ph.dataset.leader) {
@@ -340,6 +358,8 @@ export async function renderCountry(el, iso3, ctx) {
     b.addEventListener("click", () => ctx.openConflict(b.dataset.id)));
   el.querySelectorAll(".compare-link").forEach((b) =>
     b.addEventListener("click", () => ctx.openCompare(iso3, b.dataset.id)));
+  el.querySelectorAll(".bloc-link").forEach((b) =>   // v6.6.2 — open bloc panel
+    b.addEventListener("click", () => b.dataset.id && ctx.openEntity("alliance", b.dataset.id)));
 }
 
 // ---------- §6.2 other wiki pages ----------
@@ -444,52 +464,96 @@ export async function renderOrg(el, id, ctx) {
       <p>${esc(o.posture_synthesis)}</p></section>` : ""}`;
 }
 
+// v6.6.2 — full bloc panel modeled on the UN page: leader portrait, purpose &
+// HQ, policies/strategies, aggregate stats, member flag grid (click-through),
+// conflicts members are party to (military blocs), recent stories, notable
+// measures, and — for the EU — a parliament hemicycle. One backend call.
 export async function renderAlliance(el, id, ctx) {
-  const data = await api.alliances();
-  const a = (data.alliances || []).find((x) => x.id === id);
-  if (!a) { el.innerHTML = "<p>alliance not registered</p>"; return; }
-  const countries = await api.countries().catch(() => ({ countries: [] }));
-  const byId = new Map((countries.countries || []).map((c) => [c.id, c]));
-  const members = (a.members || []).map((iso3) => {
-    const c = byId.get(iso3);
-    return `<button class="ap-chip country-link" data-id="${esc(iso3)}">
-      ${c ? flagInline(c) + " " + esc(c.name) : esc(iso3)}</button>`;
-  }).join(" ");
+  let a;
+  try { a = await api.alliance(id); }
+  catch { el.innerHTML = "<p>alliance not registered</p>"; return; }
+  if (!a || a.error) { el.innerHTML = "<p>alliance not registered</p>"; return; }
+  const prof = a.profile || {};
+  const stats = a.stats || {};
+  const fmtN = (n) => n >= 1e12 ? "$" + (n / 1e12).toFixed(1) + "T"
+    : n >= 1e9 ? "$" + (n / 1e9).toFixed(0) + "B" : "$" + (n || 0);
+  const fmtPop = (n) => n >= 1e9 ? (n / 1e9).toFixed(2) + "B"
+    : n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : String(n || 0);
+  const memberChips = (a.members || []).filter((m) => m.status === "member").map((m) =>
+    `<button class="ap-chip country-link" data-id="${esc(m.id)}">
+      ${m.flag_image_url ? flagInline(m) : ""} ${esc(m.name)}</button>`).join(" ");
+  const observers = (a.members || []).filter((m) => m.status !== "member");
   el.innerHTML = `
     <div class="wiki-header"><div class="wiki-flag">⬡</div>
       <div class="wiki-head-meta"><h1>${esc(a.name)}</h1>
-        <p class="cp-meta">${esc(a.type)} alliance · founded ${esc(a.founded_date || "?")}
-          · ${(a.members || []).length} members</p>
+        <p class="cp-meta">${esc(a.type)} bloc · founded ${esc(a.founded_date || "?")}
+          · ${stats.member_count || 0} members${prof.hq ? " · HQ " + esc(prof.hq) : ""}</p>
       </div></div>
     ${freshness(a.last_updated_at)}
     ${a.leader ? `<section><h4>Leadership</h4>
       <div class="wiki-header"><div class="leader-photo leader-photo-empty" data-leader="${esc(a.leader[0])}">👤</div>
-      <div><b>${esc(a.leader[0])}</b><p class="cp-meta">${esc(a.leader[1])} · since ${esc(a.leader[2])}</p></div></div>
+      <div><b class="leader-link" data-leader="${esc(a.leader[0])}" style="cursor:pointer">${esc(a.leader[0])}</b>
+        <p class="cp-meta">${esc(a.leader[1])} · since ${esc(a.leader[2])}</p></div></div>
     </section>` : ""}
-    <section><h4>About</h4><p>${esc(a.description || "—")}</p></section>
+    <section><h4>Purpose</h4><p>${esc(prof.purpose || a.description || "—")}</p></section>
+    <section class="bloc-stats"><h4>Statistics</h4>
+      <div class="stat-grid">
+        <div class="stat-cell"><span class="cp-meta">Members</span><b>${stats.member_count || 0}</b></div>
+        <div class="stat-cell"><span class="cp-meta">Combined population</span><b>${fmtPop(stats.total_population)}</b></div>
+        <div class="stat-cell"><span class="cp-meta">Combined GDP</span><b>${fmtN(stats.total_gdp_usd)}</b></div>
+      </div></section>
+    ${prof.policies ? `<section><h4>Policies & strategies</h4>
+      <ul class="bloc-policies">${prof.policies.map((p) => `<li>${esc(p)}</li>`).join("")}</ul></section>` : ""}
+    <section class="bloc-parliament"></section>
+    <section class="bloc-conflicts"></section>
     <section class="bloc-stories"><h4>Recent related stories</h4><p class="cp-meta">loading…</p></section>
-    <section><h4>Members <span class="cp-meta">(complete roster — Wikidata-synced)</span></h4>
-      <div class="member-grid">${members}</div></section>`;
+    ${prof.measures && prof.measures.length ? `<section><h4>Recent measures</h4>
+      ${prof.measures.map(([t, d]) => `<div class="src-row"><b>${esc(t)}</b>
+        <span class="cp-meta" style="margin-left:auto">${esc(d)}</span></div>`).join("")}</section>` : ""}
+    <section><h4>Members <span class="cp-meta">(${stats.member_count || 0} — click to open)</span></h4>
+      <div class="member-grid">${memberChips || '<span class="cp-meta">roster syncing…</span>'}</div>
+      ${observers.length ? `<p class="cp-meta" style="margin-top:8px">Observers / candidates: ${
+        observers.map((o) => esc(o.name)).join(", ")}</p>` : ""}
+    </section>`;
   el.querySelectorAll(".country-link").forEach((b) =>
     b.addEventListener("click", () => ctx.openEntity("country", b.dataset.id)));
-  // v6.6.1 — bloc leader portrait + recent stories mentioning the bloc
+  // leader portrait + click-through to the leader profile page
   const bph = el.querySelector(".leader-photo-empty[data-leader]");
   if (bph) api.leaderPortrait(bph.dataset.leader).then((r) => {
     if (r && r.image_url && bph.isConnected) {
       const img = new Image(); img.className = "leader-photo"; img.src = r.image_url;
-      img.onload = () => bph.replaceWith(img);
+      img.style.cursor = "pointer";
+      img.onload = () => { bph.replaceWith(img);
+        img.addEventListener("click", () => ctx.openLeader && ctx.openLeader(bph.dataset.leader)); };
     }
   }).catch(() => {});
+  el.querySelectorAll(".leader-link").forEach((b) =>
+    b.addEventListener("click", () => ctx.openLeader && ctx.openLeader(b.dataset.leader)));
+  // EU parliament hemicycle — reuse the same column-first oneChamber graphic
+  if (a.parliament) {
+    const host = el.querySelector(".bloc-parliament");
+    const cham = { chamber: "European Parliament", total: a.parliament.total,
+                   parties: a.parliament.groups.map(([abbr, , seats, color]) => [abbr, seats, color]) };
+    host.innerHTML = `<h4>Parliament breakdown</h4>${oneChamber(cham, "European Parliament")}`;
+  }
+  // conflicts members are party to
+  const cf = el.querySelector(".bloc-conflicts");
+  if ((a.conflicts || []).length) {
+    cf.innerHTML = `<h4>Conflicts involving members</h4>` + a.conflicts.map((c) =>
+      `<div class="src-row conflict-hit" data-id="${esc(c.id)}" style="cursor:pointer">
+        <b>${esc(c.name)}</b><span class="chip" style="margin-left:auto">${esc(c.status)}</span></div>`).join("");
+    cf.querySelectorAll(".conflict-hit").forEach((r) =>
+      r.addEventListener("click", () => ctx.openConflict && ctx.openConflict(r.dataset.id)));
+  }
+  // recent stories from the same backend call (no extra request)
   const bs = el.querySelector(".bloc-stories");
-  if (bs) api.search(a.name).then((res) => {
-    const hits = (res.results || res.stories || []).slice(0, 6);
-    bs.innerHTML = `<h4>Recent related stories</h4>` + (hits.length
-      ? hits.map((h) => `<div class="src-row story-hit" data-id="${esc(h.id)}" style="cursor:pointer">
-          <b>${esc(h.headline || h.title || "")}</b></div>`).join("")
-      : `<p class="cp-meta">no tracked stories mention ${esc(a.name)} yet</p>`);
-    bs.querySelectorAll(".story-hit").forEach((r) =>
-      r.addEventListener("click", () => ctx.openStory && ctx.openStory(r.dataset.id)));
-  }).catch(() => { bs.querySelector("p") && (bs.querySelector("p").textContent = "unavailable"); });
+  const hits = a.recent_stories || [];
+  bs.innerHTML = `<h4>Recent related stories</h4>` + (hits.length
+    ? hits.map((h) => `<div class="src-row story-hit" data-id="${esc(h.id)}" style="cursor:pointer">
+        <b>${esc(h.headline || "")}</b></div>`).join("")
+    : `<p class="cp-meta">no tracked stories mention ${esc(a.name)} yet</p>`);
+  bs.querySelectorAll(".story-hit").forEach((r) =>
+    r.addEventListener("click", () => ctx.openStory && ctx.openStory(r.dataset.id)));
 }
 
 // ---------- §24 compare view ----------
@@ -709,9 +773,16 @@ export function renderWarMode(el, data, ctx) {
 // the recorded tally — a real parliamentary-style diagram of the vote
 function voteArc(tally) {
   // v6.6 — column-first fill (sorted by angular fraction), matching the
-  // parliamentary hemicycles, so for/against/abstain form clean wedges
-  const groups = [["for", tally.for || 0, "#3ddc84"], ["against", tally.against || 0, "#ff5a5a"],
-                  ["abstain", tally.abstain || 0, "#8a94a8"]];
+  // parliamentary hemicycles, so for/against/abstain form clean wedges.
+  // v6.6.2 BUGFIX: the tally uses yes/no/abstain, but this read for/against
+  // (always undefined→0) — the graphic showed "for 0, against 0" while the
+  // text tally showed the real numbers. Read yes/no with for/against fallback.
+  tally = tally || {};
+  const yes = tally.yes ?? tally.for ?? 0;
+  const no = tally.no ?? tally.against ?? 0;
+  const abstain = tally.abstain ?? 0;
+  const groups = [["for", yes, "#3ddc84"], ["against", no, "#ff5a5a"],
+                  ["abstain", abstain, "#8a94a8"]];
   const colors = [];
   for (const [, n, c] of groups) for (let i = 0; i < n; i++) colors.push(c);
   const n = colors.length || 1;
@@ -736,9 +807,9 @@ function voteArc(tally) {
   const dots = seats.map((sd, i) =>
     `<circle cx="${sd.x.toFixed(1)}" cy="${sd.y.toFixed(1)}" r="2.8" fill="${colors[i] || "#888"}"></circle>`);
   return `<svg viewBox="0 0 ${W} ${H}" class="parliament-svg" preserveAspectRatio="xMidYMax meet">${dots.join("")}</svg>
-    <div class="seat-legend-row"><span class="seat-legend"><i style="background:#3ddc84"></i>for <b>${tally.for || 0}</b></span>
-    <span class="seat-legend"><i style="background:#ff5a5a"></i>against <b>${tally.against || 0}</b></span>
-    <span class="seat-legend"><i style="background:#8a94a8"></i>abstain <b>${tally.abstain || 0}</b></span></div>`;
+    <div class="seat-legend-row"><span class="seat-legend"><i style="background:#3ddc84"></i>for <b>${yes}</b></span>
+    <span class="seat-legend"><i style="background:#ff5a5a"></i>against <b>${no}</b></span>
+    <span class="seat-legend"><i style="background:#8a94a8"></i>abstain <b>${abstain}</b></span></div>`;
 }
 
 const VOTE_CLASS = { yes: "vote-yes", no: "vote-no", abstain: "vote-abstain" };
@@ -751,11 +822,36 @@ function unSubOrgsHtml(orgs) {   // v6.6 — major UN organs & agencies
       <p>${esc(o.role)}</p></details>`).join("") + `</section>`;
 }
 
-export async function renderUN(el, ctx) {
-  const d = await api.un();
-  const sc = d.security_council || {};
-  const memberChip = (m) => `<button class="ap-chip country-link" data-id="${esc(m.id)}">${flagInline(m)} ${esc(m.name)}${m.term ? ` <i class="cp-meta">${esc(m.term)}</i>` : ""}</button>`;
-  const resolutions = (d.resolutions || []).map((r) => {
+const memberChip = (m) => `<button class="ap-chip country-link" data-id="${esc(m.id)}">${flagInline(m)} ${esc(m.name)}${m.term ? ` <i class="cp-meta">${esc(m.term)}</i>` : ""}</button>`;
+
+// wire the country-link + resolution-expand handlers inside a UN content host
+function wireUnContent(host, ctx) {
+  host.querySelectorAll(".country-link").forEach((b) =>
+    b.addEventListener("click", () => ctx.openEntity("country", b.dataset.id)));
+  host.querySelectorAll(".res-expand").forEach((b) =>
+    b.addEventListener("click", () => {
+      const full = host.querySelector(`.res-full[data-ri="${b.dataset.ri}"]`);
+      if (!full) return;
+      const open = full.classList.toggle("hidden");
+      b.textContent = open ? "▾ full breakdown" : "▴ hide breakdown";
+      full.querySelectorAll(".country-link").forEach((cb) =>
+        cb.addEventListener("click", () => ctx.openEntity("country", cb.dataset.id)));
+    }));
+}
+
+// the resolutions block (with full-breakdown expanders), shared by the main UN
+// page and the UNGA sub-page
+function unResolutionsHtml(resList) {
+  const voteCol = (r, kind, label, cls) => {
+    const named = (r.notable_votes || []).filter((v) => v.vote === kind);
+    const total = kind === "yes" ? r.tally.yes : kind === "no" ? r.tally.no : r.tally.abstain;
+    const rest = Math.max(0, (total || 0) - named.length);
+    return `<div class="vote-col"><div class="vote-col-head ${cls}">${label} (${total || 0})</div>
+      ${named.map((v) => `<button class="ap-chip country-link ${cls}" data-id="${esc(v.id)}">${flagInline(v)} ${esc(v.name)}</button>`).join(" ")
+        || '<span class="cp-meta">none named</span>'}
+      ${rest ? `<div class="cp-meta">+ ${rest} more ${label.toLowerCase()}</div>` : ""}</div>`;
+  };
+  return (resList || []).map((r, ri) => {
     const nv = (r.notable_votes || []).map((v) =>
       `<button class="ap-chip country-link ${VOTE_CLASS[v.vote] || ""}" data-id="${esc(v.id)}" title="${esc(v.vote)}">${flagInline(v)} ${esc(v.name)} · ${esc(v.vote)}</button>`).join(" ");
     return `<div class="un-res">
@@ -769,9 +865,20 @@ export async function renderUN(el, ctx) {
           <span class="cp-meta">— ${esc(r.result)}</span>
         </div>
         <div class="un-notable"><span class="cp-meta">Notable positions:</span> ${nv}</div>
+        <button class="ap-chip res-expand" data-ri="${ri}">▾ full breakdown</button>
+        <div class="res-full hidden" data-ri="${ri}">
+          ${voteCol(r, "yes", "For", "vote-yes")}
+          ${voteCol(r, "no", "Against", "vote-no")}
+          ${voteCol(r, "abstain", "Abstain", "vote-abstain")}
+        </div>
       </div>`;
   }).join("");
-  el.innerHTML = `
+}
+
+// the main UN overview page content
+function unMainHtml(d) {
+  const sc = d.security_council || {};
+  return `
     <div class="wiki-header"><div class="wiki-head-meta">
       <h1>🇺🇳 United Nations</h1>
       <p class="cp-meta">Security Council, recent resolutions and how members voted.</p>
@@ -782,28 +889,94 @@ export async function renderUN(el, ctx) {
       ${sc.elected ? sc.elected.map(memberChip).join(" ") : ""}</section>
     <section><h4>Other principal organs</h4>
       ${(d.other_councils || []).map((c) => `<div class="src-row"><b>${esc(c.name)}</b> <span class="cp-meta">${esc(c.note)}</span></div>`).join("")}</section>
-    <section><h4>Notable resolutions & recorded votes</h4>${resolutions}</section>`;
-  try { const d = await api.un(); el.insertAdjacentHTML("beforeend", unSubOrgsHtml(d.sub_orgs)); } catch {}
-  el.querySelectorAll(".country-link").forEach((b) =>
-    b.addEventListener("click", () => ctx.openEntity("country", b.dataset.id)));
-  // v6.6.1 — bloc leader portrait + recent stories mentioning the bloc
-  const bph = el.querySelector(".leader-photo-empty[data-leader]");
-  if (bph) api.leaderPortrait(bph.dataset.leader).then((r) => {
-    if (r && r.image_url && bph.isConnected) {
-      const img = new Image(); img.className = "leader-photo"; img.src = r.image_url;
-      img.onload = () => bph.replaceWith(img);
-    }
-  }).catch(() => {});
-  const bs = el.querySelector(".bloc-stories");
-  if (bs) api.search(a.name).then((res) => {
-    const hits = (res.results || res.stories || []).slice(0, 6);
-    bs.innerHTML = `<h4>Recent related stories</h4>` + (hits.length
-      ? hits.map((h) => `<div class="src-row story-hit" data-id="${esc(h.id)}" style="cursor:pointer">
-          <b>${esc(h.headline || h.title || "")}</b></div>`).join("")
-      : `<p class="cp-meta">no tracked stories mention ${esc(a.name)} yet</p>`);
-    bs.querySelectorAll(".story-hit").forEach((r) =>
-      r.addEventListener("click", () => ctx.openStory && ctx.openStory(r.dataset.id)));
-  }).catch(() => { bs.querySelector("p") && (bs.querySelector("p").textContent = "unavailable"); });
+    <section><h4>Notable resolutions & recorded votes</h4>${unResolutionsHtml(d.resolutions)}</section>`;
+}
+
+// a sub-organ page, structured like the main page (facts + role, and the
+// council/assembly its data belongs to)
+function unOrgHtml(org, d) {
+  const sc = d.security_council || {};
+  const isUNGA = /General Assembly/i.test(org.name);
+  const isUNSC = /Security Council/i.test(org.name);
+  let extra = "";
+  if (isUNSC) {
+    extra = `<section><h4>Permanent members (P5)</h4>${(sc.permanent || []).map(memberChip).join(" ")}</section>
+      <section><h4>Elected members</h4>${(sc.elected || []).map(memberChip).join(" ")}</section>`;
+  } else if (isUNGA) {
+    extra = `<section><h4>Recent resolutions & recorded votes</h4>${unResolutionsHtml(d.resolutions)}</section>`;
+  }
+  return `
+    <div class="wiki-header"><div class="wiki-head-meta">
+      <h1>${esc(org.name)}</h1>
+      <p class="cp-meta">${esc(org.members)}</p></div></div>
+    <section><h4>Key facts</h4>
+      <div class="stat-grid">
+        <div class="stat-cell"><span class="cp-meta">Headquarters</span><b>${esc(org.hq)}</b></div>
+        <div class="stat-cell"><span class="cp-meta">Head</span><b>${esc(org.head)}</b></div>
+        <div class="stat-cell"><span class="cp-meta">Membership</span><b>${esc(org.members)}</b></div>
+      </div></section>
+    <section><h4>Mandate</h4><p>${esc(org.role)}</p></section>
+    ${extra}`;
+}
+
+// v6.6.2 — the UN page is now tabbed: a horizontal, navigable top-tab bar with
+// the main overview plus each principal organ/agency as its OWN page (structured
+// like the main page), replacing the old inline <details> accordions.
+export async function renderUN(el, ctx) {
+  const d = await api.un();
+  const orgs = d.sub_orgs || [];
+  const short = (n) => {
+    const m = n.match(/\(([^)]+)\)/);   // prefer the abbreviation
+    return m ? m[1] : n.split(/[\s—]/)[0];
+  };
+  const tabs = [{ label: "Overview", org: null },
+                ...orgs.map((o) => ({ label: short(o.name), org: o }))];
+  el.innerHTML = `<div class="un-tabs conflict-tabs">${tabs.map((t, i) =>
+    `<button class="conflict-tab un-tab ${i === 0 ? "active" : ""}" data-i="${i}">${esc(t.label)}</button>`).join("")}</div>
+    <div class="un-content"></div>`;
+  const content = el.querySelector(".un-content");
+  const show = (i) => {
+    el.querySelectorAll(".un-tab").forEach((b, bi) => b.classList.toggle("active", bi === i));
+    content.innerHTML = tabs[i].org ? unOrgHtml(tabs[i].org, d) : unMainHtml(d);
+    wireUnContent(content, ctx);
+  };
+  el.querySelectorAll(".un-tab").forEach((b) =>
+    b.addEventListener("click", () => show(+b.dataset.i)));
+  show(0);
+}
+
+// ---------- v6.6.2 — disputed territories ----------
+
+// directory of all disputed zones; each opens its own breakdown
+export async function renderDisputedZones(el, ctx) {
+  el.innerHTML = `<h1>⚑ Disputed territories</h1>
+    <p class="cp-meta">Contested regions with rival claims — click one for the full breakdown.</p>
+    <div class="disp-list"><p class="cp-meta">loading…</p></div>`;
+  const d = await api.disputedZones().catch(() => ({ zones: [] }));
+  const list = el.querySelector(".disp-list");
+  list.innerHTML = (d.zones || []).map((z) =>
+    `<div class="src-row disp-row" data-id="${esc(z.id)}" style="cursor:pointer">
+      <b>${esc(z.name)}</b>
+      <span class="cp-meta" style="margin-left:auto">${esc(z.status)}</span></div>`).join("");
+  list.querySelectorAll(".disp-row").forEach((r) =>
+    r.addEventListener("click", () => ctx.openDisputedZone(r.dataset.id)));
+}
+
+// per-zone breakdown with context
+export async function renderDisputedZone(el, zid, ctx) {
+  const d = await api.disputedZones().catch(() => ({ zones: [] }));
+  const z = (d.zones || []).find((x) => x.id === zid);
+  if (!z) { el.innerHTML = "<p>disputed zone not found</p>"; return; }
+  el.innerHTML = `
+    <div class="wiki-header"><div class="wiki-flag">⚑</div>
+      <div class="wiki-head-meta"><h1>${esc(z.name)}</h1>
+        <p class="cp-meta">${esc(z.status)}</p></div></div>
+    <section><h4>Control &amp; claims</h4>
+      <div class="stat-grid">
+        <div class="stat-cell"><span class="cp-meta">De-facto control</span><b>${esc(z.controller)}</b></div>
+        <div class="stat-cell"><span class="cp-meta">Claimants</span><b>${(z.claimants || []).map(esc).join(" vs ")}</b></div>
+      </div></section>
+    <section><h4>Context</h4><p class="leader-bio">${esc(z.context)}</p></section>`;
 }
 
 // ---------- v6 §27 — story thread page ----------
@@ -949,6 +1122,8 @@ export async function renderSettings(el, ctx) {
         <select id="lang-select"></select></label>
       <label class="settings-row">Night-side city lights
         <input type="checkbox" id="citylights-toggle"></label>
+      <label class="settings-row">Breaking-event pop-up alerts
+        <input type="checkbox" id="alerts-toggle"></label>
       <label class="settings-row">Timezone
         <select id="tz-select"></select></label>
       <label class="settings-row">Date format
@@ -990,6 +1165,12 @@ export async function renderSettings(el, ctx) {
   const cl = el.querySelector("#citylights-toggle");
   cl.checked = ctx.cityLights ? ctx.cityLights() : true;
   cl.addEventListener("change", () => ctx.setCityLights && ctx.setCityLights(cl.checked));
+  // v6.6.2 — breaking-event pop-up alert toggle
+  const al = el.querySelector("#alerts-toggle");
+  if (al) {
+    al.checked = ctx.alertsEnabled ? ctx.alertsEnabled() : true;
+    al.addEventListener("change", () => ctx.setAlertsEnabled && ctx.setAlertsEnabled(al.checked));
+  }
   // v6.1.1 — timezone + date format (applied to every rendered timestamp)
   const tzSel = el.querySelector("#tz-select");
   for (const g of TIMEZONES) {
@@ -1049,24 +1230,40 @@ export async function renderSettings(el, ctx) {
 }
 
 
-// v6.6 — personal profile panel for a world leader (roles + Wikipedia bio)
+// v6.6 / v6.6.2 — rich personal profile panel for a world leader: large
+// portrait, offices held, AI-synthesized ideology / career / party history /
+// key policies, and a full Wikipedia biography.
 export async function renderLeader(el, name, ctx) {
   el.innerHTML = `<h1>${esc(name)}</h1><p class="cp-meta">loading profile…</p>`;
   const d = await api.leaderProfile(name).catch(() => null);
   if (!d) { el.innerHTML += `<p>profile unavailable</p>`; return; }
   const bio = d.bio || {};
+  const s = d.synthesis || null;
   const img = bio.image_url
-    ? `<img class="leader-photo" style="width:150px!important;height:150px!important" src="${esc(bio.image_url)}">`
-    : `<div class="leader-photo leader-photo-empty">👤</div>`;
+    ? `<img class="leader-photo leader-photo-lg" src="${esc(bio.image_url)}">`
+    : `<div class="leader-photo leader-photo-lg leader-photo-empty">👤</div>`;
+  const bullets = (arr) => (arr || []).map((x) => `<li>${esc(x)}</li>`).join("");
+  const flag = (d.roles || []).find((r) => r.flag_image_url);
   el.innerHTML = `
     <div class="wiki-header">${img}
-      <div><h1>${esc(d.name)}</h1>
-      <p class="cp-meta">${esc(bio.description || "")}</p></div></div>
-    ${(d.roles || []).map((r) => `<div class="src-row">
+      <div class="wiki-head-meta"><h1>${esc(d.name)}</h1>
+        <p class="cp-meta">${esc(bio.description || (d.roles || [])[0]?.role?.replace(/_/g, " ") || "")}
+          ${flag ? " · " + esc(flag.country_name) : ""}</p>
+        ${s && s.ideology ? `<p class="leader-ideology"><span class="cp-meta">Ideology:</span> ${esc(s.ideology)}</p>` : ""}
+      </div></div>
+    ${s && s.summary ? `<section><p>${esc(s.summary)}</p></section>` : ""}
+    <section><h4>Offices held</h4>${(d.roles || []).map((r) => `<div class="src-row">
        <span class="leaning">${esc((r.role || "").replace(/_/g, " "))}</span>
        <b>${esc(r.country_name || "")}</b>
-       <span class="cp-meta">${esc(r.party || "")}${r.since_date ? " · since " + esc(r.since_date) : ""}</span></div>`).join("")}
-    ${bio.extract ? `<section><h4>Biography</h4><p>${esc(bio.extract)}</p>
+       <span class="cp-meta">${esc(r.party || "")}${r.since_date ? " · since " + esc(r.since_date) : ""}</span></div>`).join("")
+       || '<p class="cp-meta">no tracked office</p>'}</section>
+    ${s && (s.career_history || []).length ? `<section><h4>Career &amp; positions</h4>
+       <ul class="leader-list">${bullets(s.career_history)}</ul></section>` : ""}
+    ${s && (s.party_history || []).length ? `<section><h4>Party history</h4>
+       <ul class="leader-list">${bullets(s.party_history)}</ul></section>` : ""}
+    ${s && (s.key_policies || []).length ? `<section><h4>Key policies &amp; positions</h4>
+       <ul class="leader-list">${bullets(s.key_policies)}</ul></section>` : ""}
+    ${bio.extract ? `<section><h4>Biography</h4><p class="leader-bio">${esc(bio.extract)}</p>
        ${bio.url ? `<p><a href="${esc(bio.url)}" target="_blank" rel="noopener">Wikipedia →</a></p>` : ""}</section>`
-     : `<p class="cp-meta">Biography loads live from Wikipedia when online.</p>`}`;
+     : `<p class="cp-meta">Biography &amp; AI profile load live when online with an AI provider configured.</p>`}`;
 }

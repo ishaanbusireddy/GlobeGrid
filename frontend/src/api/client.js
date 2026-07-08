@@ -102,6 +102,7 @@ export const api = {
   countries: (q_) => get(`/api/countries${q_ ? "?q=" + encodeURIComponent(q_) : ""}`),
   country: (iso3) => get(`/api/countries/${iso3}`),
   alliances: () => get("/api/alliances"),
+  alliance: (id) => get(`/api/alliance/${encodeURIComponent(id)}`),   // v6.6.2 rich bloc panel
   conflicts: () => get("/api/conflicts"),
   confirmConflictTag: (storyId, confirm) =>
     post("/api/conflicts/confirm_tag", { story_id: storyId, confirm }),
@@ -122,6 +123,7 @@ export const api = {
   cities: (minPop, limit) =>
     get(`/api/cities?min_population=${minPop || 500000}&limit=${limit || 4000}`),
   borderDisputes: () => get("/api/border-disputes"),
+  disputedZones: () => get("/api/disputed-zones"),   // v6.6.2 disputed territories
   parties: () => get("/api/parties"),
   party: (id) => get(`/api/parties/${id}`),
   person: (id) => get(`/api/persons/${id}`),

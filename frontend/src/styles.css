@@ -98,7 +98,11 @@ select:hover, button:hover { border-color: var(--accent); }
 .chip { padding: 1px 8px; border-radius: 10px; font-size: 10.5px; border: 1px solid; }
 .chip.cat-geopolitics { color: var(--geopolitics); } .chip.cat-finance { color: var(--finance); }
 .chip.cat-disaster { color: var(--disaster); } .chip.cat-conflict { color: var(--conflict); }
-.chip.cat-other { color: var(--other); }
+.chip.cat-other { color: var(--other); } .chip.cat-technology { color: var(--technology); }
+/* v6.6.2 — clickable conflict chip on conflict-tagged feed cards */
+.chip.chip-conflict { color: var(--conflict); border: 1px solid var(--conflict);
+  border-radius: 10px; padding: 0 6px; cursor: pointer; }
+.chip.chip-conflict:hover { background: var(--conflict); color: var(--bg); }
 .conf { text-transform: uppercase; font-size: 10px; letter-spacing: 1px; }
 .conf-high { color: var(--ok); } .conf-medium { color: var(--degraded); } .conf-low { color: var(--text-dim); }
 .badge-src { background: rgba(77,163,255,.12); color: var(--accent); border-radius: 10px; padding: 1px 8px; }
@@ -434,6 +438,25 @@ button.active { border-color: var(--accent); color: var(--accent); }
 }
 .bg-box .chip { margin-right: 6px; }
 .member-grid { display: flex; flex-wrap: wrap; gap: 5px; }
+/* v6.6.2 — bloc panel policies list */
+.bloc-policies { margin: 6px 0; padding-left: 18px; }
+.bloc-policies li { margin: 5px 0; line-height: 1.5; }
+/* v6.6.2 — UN full vote breakdown + tabbed sub-org pages */
+.un-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.res-full { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px;
+  padding: 8px; background: var(--bg-card); border: 1px solid var(--line); border-radius: 8px; }
+.res-full.hidden { display: none; }
+.vote-col { flex: 1; min-width: 150px; }
+.vote-col-head { font-weight: 700; margin-bottom: 4px; font-size: 12px; }
+.res-expand { margin-top: 6px; }
+/* v6.6.2 — leader profile page */
+.leader-photo-lg { width: 150px !important; height: 150px !important;
+  object-position: center 12%; }
+.leader-list { margin: 6px 0; padding-left: 18px; }
+.leader-list li { margin: 5px 0; line-height: 1.5; }
+.leader-ideology { margin-top: 6px; font-size: 13px; }
+.leader-bio { line-height: 1.6; }
+.leader-link, .align-btn { cursor: pointer; }
 
 /* §19 — the user's own notes: visually distinct from AI output, always */
 .annot-section { border-top: 2px dashed var(--finance); margin-top: 26px; padding-top: 4px; }
@@ -459,7 +482,11 @@ button.active { border-color: var(--accent); color: var(--accent); }
 .trace-row { display: flex; gap: 8px; align-items: baseline; padding: 5px 0; border-bottom: 1px dashed var(--line); font-size: 12.5px; }
 .trace-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .trace-body.hidden, .deep-summary.hidden { display: none; }
-.deep-summary { margin-top: 10px; padding: 12px 14px; background: var(--bg-card); border: 1px solid var(--line); border-radius: 8px; white-space: pre-wrap; font-size: 13px; line-height: 1.6; }
+.deep-summary { margin-top: 10px; padding: 12px 14px; background: var(--bg-card); border: 1px solid var(--line); border-radius: 8px; font-size: 13px; line-height: 1.6; }
+/* v6.6.2 — spaced-out deep-summary bullets (was pre-wrap, which crammed the list) */
+.deep-summary ul { margin: 6px 0; padding-left: 20px; }
+.deep-summary li { margin: 6px 0; line-height: 1.55; }
+.deep-summary p { margin: 8px 0; }
 .read-more-row { margin: 8px 0; }
 
 /* §24 compare view */
@@ -586,7 +613,9 @@ body.theme-amber_terminal {
 .bloc-clear { width: 100%; margin-top: 4px; background: var(--bg-card, rgba(255,255,255,0.05)); border: 1px solid var(--line); border-radius: 6px; color: var(--text-dim); padding: 5px; cursor: pointer; font: inherit; }
 
 /* v6.1 — briefing period tabs */
-.briefing-tabs { display: inline-flex; gap: 4px; }
+.briefing-tabs { display: flex; gap: 4px; flex: 1; align-items: center; }
+/* v6.6.2 — market briefing tab pushed to the right of daily/weekly/monthly */
+.brief-tab-market { margin-left: auto; border-color: var(--finance) !important; }
 .brief-tab { background: var(--bg-card, rgba(255,255,255,0.05)); border: 1px solid var(--line); border-radius: 6px; color: var(--text-dim); padding: 4px 10px; cursor: pointer; font: inherit; }
 .brief-tab.active { color: var(--text); border-color: var(--accent, #4da3ff); }
 
@@ -738,15 +767,25 @@ body.theme-synthwave { --bg: #0a0416; --bg-panel: #140a24; --bg-card: #1c0f31;
   --geopolitics: #ff50c8; --finance: #ffe15a; --disaster: #ff5a7a;
   --conflict: #ff8a5a; --other: #50d0ff; }
 
-/* ===== v6.6 ===== */
-/* New Order — TNO-style: cold-war austerity, sepia paper greys, muted red */
-body.theme-new_order { --bg: #14120e; --bg-panel: #1e1b15; --bg-card: #27231b;
-  --line: rgba(196,180,140,0.28); --text: #d8cdb4; --text-dim: #97906f;
-  --accent: #b03a2e; --accent-2: #c4b48c;
-  --geopolitics: #c4b48c; --finance: #a68c5a; --disaster: #b03a2e;
-  --conflict: #8c3a32; --other: #97906f; --ok: #7a8c5a; --down: #b03a2e; }
-/* Fire Rises — TFR-style: near-black steel, ember orange/red crisis glow */
-body.theme-fire_rises { --bg: #0b0a09; --bg-panel: #16130f; --bg-card: #1f1a13;
+/* ===== v6.6 / recolored v6.6.2 ===== */
+/* New Order — TNO strategy-UI look: near-black steel with cold cyan/teal
+   readouts (owner's screenshot: dark SS console, cyan accents). */
+body.theme-new_order { --bg: #05090b; --bg-panel: #0a1216; --bg-card: #0f1c22;
+  --line: rgba(90,200,220,0.26); --text: #cfeef4; --text-dim: #6f95a0;
+  --accent: #2fd4e6; --accent-2: #7fe9d6;
+  --geopolitics: #2fd4e6; --finance: #7fe9d6; --disaster: #ff6a5a;
+  --conflict: #4fb8d8; --other: #6f95a0; --ok: #3fd6b0; --degraded: #e8c05a;
+  --down: #ff6a5a; }
+/* Fire Rises — recolored to the owner's purple/magenta map look: deep violet
+   panels, magenta + amethyst crisis glow on near-black. */
+body.theme-fire_rises { --bg: #0a0512; --bg-panel: #150a22; --bg-card: #1f0f31;
+  --line: rgba(200,90,220,0.30); --text: #f0e2fb; --text-dim: #a98cc4;
+  --accent: #c74ce0; --accent-2: #8a5cff;
+  --geopolitics: #c74ce0; --finance: #b98cff; --disaster: #ff5aa0;
+  --conflict: #a24ce0; --other: #a98cc4; --ok: #7ad0c0; --down: #ff5aa0; }
+/* Ember — the original TFR ember-on-black look, kept by owner request as its
+   own orange theme after Fire Rises was recolored to purple. */
+body.theme-ember { --bg: #0b0a09; --bg-panel: #16130f; --bg-card: #1f1a13;
   --line: rgba(255,120,40,0.30); --text: #e8ddd0; --text-dim: #9a8d7c;
   --accent: #ff6a2a; --accent-2: #ffb03a;
   --geopolitics: #ffb03a; --finance: #e8c05a; --disaster: #ff4a2a;
@@ -761,6 +800,9 @@ body.colorblind, body.theme-colorblind_safe { --technology: #cc79a7; }
   background: var(--bg-panel); border: 1px solid var(--line); border-right: none;
   border-radius: 8px 0 0 8px; color: var(--text-dim); cursor: pointer; }
 /* v6.6 — settings tabs */
+/* v6.6.2 — the .hidden rules are all ID-scoped, so the settings tabs never
+   actually hid. Scope-hide the two tab bodies here so Display|AI truly split. */
+.settings-tab-display.hidden, .settings-tab-ai.hidden { display: none; }
 .settings-tabs { display: flex; gap: 6px; margin: 8px 0 14px; }
 .settings-tabs button { padding: 6px 14px; border-radius: 8px 8px 0 0;
   border: 1px solid var(--line); border-bottom: none; background: var(--bg-card);
@@ -775,7 +817,10 @@ body.colorblind, body.theme-colorblind_safe { --technology: #cc79a7; }
 .leader-photo-empty { width: 108px !important; height: 108px !important;
   font-size: 44px; display: flex; align-items: center; justify-content: center; }
 /* v6.6 — analyst structured output */
-.ap-h { margin: 10px 0 4px; font-size: 12.5px; letter-spacing: 0.05em;
+.ap-h { margin: 14px 0 6px; font-size: 12.5px; letter-spacing: 0.05em;
   text-transform: uppercase; color: var(--accent); }
-.ap-li { margin: 3px 0 3px 6px; line-height: 1.5; }
-.ap-gap { height: 8px; }
+/* v6.6.2 — each bullet a clearly separated block line with a hanging indent */
+.ap-li { display: block; margin: 6px 0; padding-left: 16px; text-indent: -12px;
+  line-height: 1.55; }
+.ap-p { display: block; margin: 7px 0; line-height: 1.55; }
+.ap-gap { height: 10px; }

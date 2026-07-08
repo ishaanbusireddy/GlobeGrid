@@ -13,8 +13,8 @@ import { DISPUTED_BOUNDARIES_ENC } from "../../data/disputedBoundaries.js";
 import { decodeBoundaries } from "../../data/boundaryCodec.js";
 
 const CATEGORY_COLORS = {
-  geopolitics: "#4da3ff", finance: "#ffd166", disaster: "#ff6b6b",
-  conflict: "#ff8c42", military: "#4acc73", other: "#93a1b8",
+  geopolitics: "#4da3ff", finance: "#ffd166", technology: "#b26bff",   // v6.6.2 tech
+  disaster: "#ff6b6b", conflict: "#ff8c42", military: "#4acc73", other: "#93a1b8",
 };
 const MARKED_COLORS = {
   capital: "#8d9cbf", strategic_chokepoint: "#59e6f2", contested_territory: "#ff9e59",

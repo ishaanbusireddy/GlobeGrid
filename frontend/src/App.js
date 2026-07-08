@@ -63,6 +63,43 @@ document.addEventListener("keydown", (ev) => {
   }
 });
 
+// v6.6.2 — single-key navigation shortcuts (owner-requested):
+//   F = toggle live feed   L = next language   C = last/random country
+//   G = globe mode         M = 2D map mode
+// Plain unmodified keypresses only, and never while typing in a field.
+document.addEventListener("keydown", (ev) => {
+  if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+  if (ev.target && /INPUT|TEXTAREA|SELECT/.test(ev.target.tagName)) return;
+  const k = ev.key.toLowerCase();
+  if (k === "f") { setFeedVisible(feedPanelEl.style.display === "none"); }
+  else if (k === "l") { cycleLanguage(); }
+  else if (k === "c") { openLastOrRandomCountry(); }
+  else if (k === "g") { switchToTier(1); }
+  else if (k === "m") { switchToTier(2); }
+});
+
+function cycleLanguage() {   // v6.6.2 — advance to the next interface language
+  const cur = localStorage.getItem("tdl_lang") || "en";
+  const i = LANGUAGES.findIndex((l) => l.code === cur);
+  const next = LANGUAGES[(i + 1) % LANGUAGES.length];
+  setSiteLanguage(next.code);
+  if (els.langBtn) els.langBtn.value = next.code;
+}
+function openLastOrRandomCountry() {   // v6.6.2 — last opened, or a random one
+  let id = state.lastCountryId;
+  if (!id) {
+    const pool = BOUNDARIES_50M.filter((b) => b.i && b.i.length === 3);
+    id = pool.length ? pool[Math.floor(Math.random() * pool.length)].i : "USA";
+  }
+  openEntity("country", id);
+}
+function switchToTier(tier) {   // v6.6.2 — G/M mode switch, persisted like the picker
+  if (state.tier === tier) return;
+  if (els.tierSelect) els.tierSelect.value = String(tier);
+  try { localStorage.setItem("tdl_tier_override", String(tier)); } catch { /* ignore */ }
+  mountRenderer(tier);
+}
+
 function applyTheme(theme) {
   document.body.classList.remove(...THEME_CLASSES, "colorblind");
   if (theme && theme !== "dark_teal_default") {
@@ -134,7 +171,7 @@ const COUNTRY_LABELS = BOUNDARIES_50M.map((c) => {
 const ISO3_NAME = {};
 for (const c of BOUNDARIES_50M) ISO3_NAME[c.i] = c.n;
 
-const CATEGORIES = ["", "geopolitics", "finance", "disaster", "conflict", "military", "other"];
+const CATEGORIES = ["", "geopolitics", "finance", "technology", "disaster", "conflict", "military", "other"];
 const CONTINENTS = ["", "Africa", "America", "Asia", "Europe", "Oceania", "Middle East"];
 const MAP_REFRESH_MS = 45000;
 const STORY_REFRESH_MS = 12000;   // v6.3 — feed safety-net poll (always streaming, faster)
@@ -260,6 +297,11 @@ const ctx = {
     state.renderer?.setCityLights?.(on);
   },
   cityLights: () => state.cityLights,
+  setAlertsEnabled: (on) => {                         // v6.6.2 breaking-alert toggle
+    alerts.enabled = !!on;
+    localStorage.setItem("tdl_alerts_enabled", on ? "1" : "0");
+  },
+  alertsEnabled: () => alerts.enabled,
   onTimeSettingsChanged: () => refreshStories().catch(() => {}),  // v6.1.1 tz re-render
   onAiKeySaved: async () => {                                      // v6.2 instant ping
     try { state.clientConfig = { ...state.clientConfig, ...(await api.config()) }; }
@@ -274,20 +316,20 @@ const ctx = {
     title: name, key: "leader:" + name,
     render: (el) => Wiki.renderLeader(el, name, ctx),
   }),
-  showAlignments: (iso3, alignments) => {              // v6.6 — experimental
-    const tone = { strong: [0.15, 0.85, 0.3], partner: [0.55, 0.9, 0.55],
-                   rival: [0.95, 0.25, 0.2] };
-    const groups = [];
-    for (const [kind, isos] of Object.entries(alignments || {})) {
-      const rings = [];
-      for (const iso of isos) {
-        const c = BOUNDARIES_50M.find((b) => b.i === iso);
-        if (c) rings.push(...c.r);
-      }
-      if (rings.length) groups.push({ color: tone[kind] || [0.7, 0.7, 0.7], rings });
+  // v6.6.2 — alignment overlay is now a toggle: clicking the same country's
+  // button again turns it off; navigating to a different country re-targets.
+  // Returns the new on/off state so the button label can reflect it.
+  showAlignments: (iso3, alignments) => {
+    if (state.alignmentIso === iso3) {          // same country → toggle off
+      applyAlignmentOverlay(null);
+      state.alignmentIso = null;
+      return false;
     }
-    state.renderer?.setColoredRings?.(groups.length ? groups : null);
+    applyAlignmentOverlay(alignments);
+    state.alignmentIso = iso3;
+    return true;
   },
+  alignmentActive: () => state.alignmentIso || null,
   openThread: (id) => pane.push({                     // v6 §27
     key: `thread:${id}`, title: "story thread",
     render: (el) => Wiki.renderThread(el, id, ctx),
@@ -295,6 +337,14 @@ const ctx = {
   openUN: () => pane.push({                            // v6.1 UN panel
     key: "un", title: "United Nations",
     render: (el) => Wiki.renderUN(el, ctx),
+  }),
+  openDisputedZones: () => pane.push({                 // v6.6.2 disputed territories
+    key: "disputed", title: "Disputed territories",
+    render: (el) => Wiki.renderDisputedZones(el, ctx),
+  }),
+  openDisputedZone: (zid) => pane.push({
+    key: "disputed:" + zid, title: "disputed territory",
+    render: (el) => Wiki.renderDisputedZone(el, zid, ctx),
   }),
 };
 pane.openEntity = (type, id, opts) => openEntity(type, id, opts);
@@ -307,6 +357,24 @@ const ENTITY_RENDER = {
   org: (el, id) => Wiki.renderOrg(el, id, ctx),
   alliance: (el, id) => Wiki.renderAlliance(el, id, ctx),
 };
+
+// v6.6.2 — paint the diplomatic-alignment overlay (allies green / partners
+// light-green / rivals red). Passing null clears it.
+function applyAlignmentOverlay(alignments) {
+  if (!alignments) { state.renderer?.setColoredRings?.(null); return; }
+  const tone = { strong: [0.15, 0.85, 0.3], partner: [0.55, 0.9, 0.55],
+                 rival: [0.95, 0.25, 0.2] };
+  const groups = [];
+  for (const [kind, isos] of Object.entries(alignments || {})) {
+    const rings = [];
+    for (const iso of isos) {
+      const c = BOUNDARIES_50M.find((b) => b.i === iso);
+      if (c) rings.push(...c.r);
+    }
+    if (rings.length) groups.push({ color: tone[kind] || [0.7, 0.7, 0.7], rings });
+  }
+  state.renderer?.setColoredRings?.(groups.length ? groups : null);
+}
 
 // v6 §26 — pulse the focused country/region borders on the map; cleared by
 // the pane's onNavigate(null) when the panel closes
@@ -321,7 +389,7 @@ function highlightCountries(iso3List) {
 async function openEntity(type, id, { replace = false } = {}) {
   const render = ENTITY_RENDER[type];
   if (!render) return;
-  if (type === "country") highlightCountries([id]);   // v6 §26
+  if (type === "country") { highlightCountries([id]); state.lastCountryId = id; }   // v6 §26 / v6.6.2 C-shortcut
   await pane.push({
     key: `${type}:${id}`,
     title: type.replace(/_/g, " "),
@@ -395,8 +463,8 @@ function openHistory() {
           <label>from <input type="date" class="h-from"></label>
           <label>to <input type="date" class="h-to"></label>
           <select class="h-cat"><option value="">all categories</option>
-            <option>geopolitics</option><option>finance</option>
-            <option>disaster</option><option>conflict</option><option>other</option></select>
+            <option>geopolitics</option><option>finance</option><option>technology</option>
+            <option>disaster</option><option>conflict</option><option>military</option><option>other</option></select>
         </div>
         <div class="hist-list"></div>
         <div class="hist-more"><button class="h-more">load more</button></div>`;
@@ -446,7 +514,8 @@ const storyPage = new StoryPage(pane, {
   onWatch: () => watchlist.refresh(),
   onOpenLineage: (factId) => lineageView.open(factId),
 });
-const feed = new LiveFeed(els.feedList, { onOpenStory: (id) => openStory(id) });
+const feed = new LiveFeed(els.feedList, { onOpenStory: (id) => openStory(id),
+  onOpenConflict: (cid) => enterWarMode(cid) });   // v6.6.2 conflict chip → War Mode
 const instChart = new InstabilityChart(els.instabilityValue, els.instabilitySpark);
 const statusPanel = new StatusPanel(els.statusDrawer, els.statusToggle);
 const graphExplorer = new GraphExplorer(els.graphOverlay);
@@ -1043,6 +1112,10 @@ els.disputesToggle.addEventListener("click", () => {
   state.disputesOn = !state.disputesOn;
   els.disputesToggle.classList.toggle("active", state.disputesOn);
   state.renderer?.setDisputes?.(state.disputesOn);
+  // v6.6.2 — entering disputed mode opens the clickable disputed-territories
+  // directory (Crimea, Donetsk, Luhansk, Zaporizhzhia, Kherson, …), each with
+  // its own context breakdown
+  if (state.disputesOn) ctx.openDisputedZones();
 });
 // v6.2 — timezone picker in the header (was buried in Settings and hard to find)
 for (const g of TIMEZONES) {
@@ -1134,8 +1207,10 @@ document.addEventListener("click", (ev) => {
   }
 });
 
-// v6.1 — daily / weekly / monthly briefings, switchable in the overlay
-const BRIEFING_LABELS = { day: "Daily", week: "Weekly", month: "Monthly" };
+// v6.1 — daily / weekly / monthly briefings, switchable in the overlay.
+// v6.6.2 — a right-aligned Market briefing tab (global markets + tentative
+// story-driven forecasts).
+const BRIEFING_LABELS = { day: "Daily", week: "Weekly", month: "Monthly", market: "📈 Market" };
 async function showBriefing(period = "day") {
   els.briefingOverlay.classList.remove("hidden");
   els.briefingOverlay.innerHTML =
@@ -1149,6 +1224,7 @@ async function showBriefing(period = "day") {
       <div class="briefing-tabs">
         ${["day", "week", "month"].map((p) =>
           `<button class="brief-tab ${p === period ? "active" : ""}" data-p="${p}">${BRIEFING_LABELS[p]}</button>`).join("")}
+        <button class="brief-tab brief-tab-market ${period === "market" ? "active" : ""}" data-p="market">${BRIEFING_LABELS.market}</button>
       </div>
       <button class="close-btn">✕ close</button></div>
     <h3>${BRIEFING_LABELS[period]} briefing${b ? " — " + b.briefing_date : ""}</h3>
@@ -1237,18 +1313,11 @@ sortSel.addEventListener("change", () => {
 });
 els.feedTools.appendChild(sortSel);
 
-// v5 §3 — military-development feed filter (never populates a conflict tab)
-const devSel = document.createElement("select");
-devSel.className = "filter-chip";
-devSel.title = "conflict / military development filter (v5 §3)";
-devSel.innerHTML = `<option value="">all developments</option>`
-  + `<option value="conflict">⚔ conflict only</option>`
-  + `<option value="military">🎖 military only</option>`;
-devSel.addEventListener("change", () => {
-  state.devType = devSel.value;
-  refreshStories().catch(() => {});
-});
-els.feedTools.appendChild(devSel);
+// v5 §3 / v6.6.2 — the conflict/military development filter is War-Mode-only
+// now (owner: "remove all developments vs military vs conflict from the base
+// live feed … that's only for war mode"). War Mode's own sub-filter tabs
+// (Military/Civilian/Diplomatic/Economic) drive that split via state.warTab,
+// so the base feed no longer shows this dropdown. state.devType stays unset.
 
 // v5 §1 — History / archive view (paginated, date+category filterable)
 const histBtn = document.createElement("button");
@@ -1372,10 +1441,20 @@ async function loadAlliances() {
   try {
     const data = await api.alliances();
     alliancesCache = data.alliances || [];
+    // v6.6.2 — each row has BOTH a checkbox (map overlay) and a clickable name
+    // that OPENS the full bloc panel. Previously the name was inert, so "NATO
+    // won't open" — there was no click-through to renderAlliance at all.
     els.blocPanel.innerHTML = alliancesCache.map((a) =>
-      `<label class="bloc-row"><input type="checkbox" value="${a.id}"> ${a.name}
-        <span class="cp-meta">${a.type || ""}</span></label>`).join("")
+      `<div class="bloc-row"><input type="checkbox" value="${a.id}" title="show on map">
+        <button class="bloc-open" data-id="${a.id}">${a.name}</button>
+        <span class="cp-meta">${a.type || ""}</span></div>`).join("")
       + `<button class="bloc-clear">clear all</button>`;
+    els.blocPanel.querySelectorAll(".bloc-open").forEach((b) =>
+      b.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        els.blocPanel.classList.add("hidden");
+        openEntity("alliance", b.dataset.id);
+      }));
     els.blocPanel.querySelectorAll("input[type=checkbox]").forEach((cb) =>
       cb.addEventListener("change", () => {
         cb.checked ? activeBlocs.add(cb.value) : activeBlocs.delete(cb.value);
@@ -1593,8 +1672,10 @@ els.conflictsBtn.addEventListener("click", () => {
 
 async function enterWarMode(conflictId) {
   // v6.6 — snapshot the accumulated general feed so exiting war mode
-  // restores it instantly instead of erasing what was collected
-  if (!state.warMode && feed.currentIds) state.preWarStories = feed.currentIds;
+  // restores it instantly instead of erasing what was collected.
+  // v6.6.2 — fixed: snapshot the real story objects (feed.currentIds never
+  // existed, so this used to be a no-op silently masked by the exit re-fetch).
+  if (!state.warMode) state.preWarStories = feed.snapshot();
   if ((state.clientConfig.war_mode || {}).enabled === false) {
     selectConflict(conflictId, { forceOn: true });
     return;
@@ -1653,7 +1734,10 @@ async function enterWarMode(conflictId) {
 }
 
 function exitWarMode() {
-  if (state.preWarStories) { feed.setStories(state.preWarStories); feed.currentIds = state.preWarStories; }
+  // v6.6.2 — restore the exact pre-war feed snapshot (full story objects)
+  if (state.preWarStories && state.preWarStories.length) {
+    feed.setStories(state.preWarStories);
+  }
   if (!state.warMode) return;
   state.warMode = null;
   state.warTab = "";
