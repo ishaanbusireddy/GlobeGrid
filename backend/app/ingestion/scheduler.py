@@ -169,6 +169,13 @@ def _pipeline_loop() -> None:
                         hub.broadcast("story_created" if res["created"] else "story_updated",
                                       payload)
             causal_link.refresh_pending()
+            # v6.6.6 — LLM geoplacement correction: nudge a few low-confidence /
+            # mis-placed events (the "everything lands in India" bug) to their
+            # real coordinates and move the live pins. Self-limiting (flags each
+            # event once) and a no-op with no provider, so it never spins.
+            from ..processing import geoplace
+            for mv in geoplace.correct_recent():
+                hub.broadcast("event_relocated", mv)
         except Exception:  # noqa: BLE001
             log.exception("pipeline_tick_failed")
         stop_event.wait(PIPELINE_TICK_SECONDS)
@@ -335,6 +342,12 @@ def _second_order_loop() -> None:
 
 def start_all() -> list[threading.Thread]:
     threads = []
+    # v6.6.6 — ensure the llm_geoplaced flag column exists (additive migration)
+    try:
+        from ..processing import geoplace
+        geoplace.ensure_column()
+    except Exception:  # noqa: BLE001
+        log.exception("geoplace_column_init_failed")
     # v6 §2 — retired sources (is_active=0) and types with no registered
     # fetcher never get a polling thread
     for row in query("SELECT id, name, type FROM sources WHERE type != 'synthetic'"

@@ -506,6 +506,7 @@ export class Tier1Globe {
     // v6 §13 — the globe never moves on its own outside the idle tour;
     // starting with autoRotate=true was the "random panning" bug.
     this.autoRotate = false;
+    this.spinLocked = false;       // v6.6.6 — explicit user-toggled auto-spin
     this.tween = null;             // fly-to state
     this.lastInteraction = performance.now();
     this.tourIndex = 0;
@@ -608,6 +609,9 @@ export class Tier1Globe {
     this.showDisputes = !!on;
     if (on && !this.disputeCount) this._buildDisputed();
   }
+
+  // v6.6.6 — explicit user-toggled auto-spin (independent of the idle tour)
+  setAutoSpin(on) { this.spinLocked = !!on; }
 
   setActors(actors) {
     const gl = this.gl;
@@ -1642,7 +1646,10 @@ export class Tier1Globe {
     } else {
       this.autoRotate = false;
     }
-    if (this.autoRotate) this.yaw += 0.0016;
+    // v6.6.6 — an EXPLICIT user-toggled auto-spin (button), independent of the
+    // idle tour. The idle-tour path above is disabled by default now
+    // (idle_tour_seconds: 0) so the globe never rotates on its own uninvited.
+    if (this.spinLocked || this.autoRotate) this.yaw += 0.0016;
     else {
       this.yaw += this.velYaw *= 0.94;
       this.pitch = Math.max(-1.35, Math.min(1.35, this.pitch + (this.velPitch *= 0.94)));

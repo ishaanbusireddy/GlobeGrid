@@ -398,9 +398,9 @@ MARKED_LOCATIONS = [
      "Israeli-occupied territory claimed by Syria."),
     ("Western Sahara", "contested_territory", 24.5, -13.0,
      "Non-self-governing territory disputed between Morocco and the Polisario Front."),
-    ("Nagorno-Karabakh", "contested_territory", 39.8, 46.75,
-     "Formerly contested; Azerbaijan regained full control in 2023 and the "
-     "self-declared Artsakh republic dissolved on 1 Jan 2024 (dispute resolved)."),
+    # v6.6.6 — Nagorno-Karabakh removed from contested territories: Azerbaijan
+    # regained full control in 2023 and the Artsakh republic dissolved on
+    # 1 Jan 2024. The dispute is resolved, so it no longer shows as disputed.
     ("TSMC Hsinchu Fabs", "semiconductor_fab", 24.77, 121.0,
      "The world's most advanced logic-chip fabrication cluster."),
     ("TSMC Tainan (Fab 18)", "semiconductor_fab", 23.1, 120.27,

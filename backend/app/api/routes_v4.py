@@ -73,7 +73,7 @@ def party_detail(params, q, body):
         (row["name"], row["name"].split(" (")[0] + "%"))]
     d["background"] = _background("party", row["id"])
     d["recent_stories"] = _stories_mentioning(row["name"].split(" (")[0])
-    d["synthesis"] = _party_synthesis(row)   # v6.6.5 comprehensive AI profile
+    d["synthesis"], d["synth_pending"] = _party_synthesis(row)   # v6.6.5/6.6.6
     return 200, d
 
 
@@ -96,27 +96,40 @@ recognize the party, keep fields short rather than fabricating."""
 
 
 def _party_synthesis(row):
-    """v6.6.5 — cached AI-synthesized comprehensive party profile so party
-    pages are as rich as leader pages, even without live web content."""
+    """v6.6.5/6.6.6 — cached AI-synthesized comprehensive party profile. Returns
+    (synthesis_or_None, pending_bool). NON-BLOCKING: the generation runs in a
+    background thread so the party pane opens instantly instead of hanging on a
+    20-60s local-Ollama call (the 'can't open political parties' bug); the
+    frontend re-fetches once to pick up the result."""
     import json as _json
-    from ..db.models import meta_get, meta_set
+    from ..db.models import meta_get
     from ..processing import llm
     key = f"partyprof:{row['id']}"
     cached = meta_get(key)
     if cached:
         try:
-            return _json.loads(cached)
+            return _json.loads(cached), False
         except _json.JSONDecodeError:
-            return None
+            return None, False
     if not llm.available():
-        return None
+        return None, False
+    from ..processing.bg_synth import kick
     ctx = {"name": row["name"], "country": row.get("country_name"),
            "ideology_tags": row.get("ideology_tags"), "founded": row.get("founded_date")}
+    pending = kick(key, lambda: _generate_party_synth(key, ctx))
+    return None, pending
+
+
+def _generate_party_synth(key, ctx):
+    """v6.6.6 — background party synthesis generation + cache."""
+    import json as _json
+    from ..db.models import meta_set
+    from ..processing import llm
     text = llm.complete(PARTY_PROFILE_PROMPT,
                         [{"role": "user", "content": _json.dumps(ctx)}],
-                        max_tokens=800, timeout=40, json_mode=True)
+                        max_tokens=800, timeout=90, json_mode=True)
     if not text:
-        return None
+        return
     t = text.strip()
     if t.startswith("```"):
         t = t.strip("`").removeprefix("json").strip()
@@ -126,9 +139,8 @@ def _party_synthesis(row):
     try:
         synth = _json.loads(t)
     except _json.JSONDecodeError:
-        return None
+        return
     meta_set(key, _json.dumps(synth))
-    return synth
 
 
 @route("GET", "/api/persons/{id}")

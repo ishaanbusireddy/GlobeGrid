@@ -38,7 +38,7 @@ SCHEMA: dict = {
     },
     "graphics": {
         "quality_tier": (str, lambda v: v in ("standard", "high", "ultra")),
-        "idle_tour_seconds": (NUMBER, lambda v: v >= 5),
+        "idle_tour_seconds": (NUMBER, lambda v: v == 0 or v >= 5),   # v6.6.6 — 0 disables idle auto-rotation
         "ambient_sound_default": (bool, None),
     },
     "ops": {},          # nested; validated below

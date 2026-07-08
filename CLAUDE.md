@@ -18,6 +18,52 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v6.6.6)
+
+**v6.6.6 (2026-07-08, owner "quick patch" — mostly correctness + the
+profile-load hang):** ~17 items. **Leader/party/stat profiles no longer hang
+("profile unavailable", "can't open parties"):** the AI synthesis call ran
+INSIDE the request and, on a local Ollama box, a single 800-token generation
+(20-60s) blew the client fetch timeout. Rebuilt as **non-blocking**
+(`processing/bg_synth.py`): the route returns instantly with the cached result
+or the curated floor and kicks a daemon thread that generates + caches; the
+frontend re-fetches once (`synth_pending`/`detail_pending`) and upgrades the
+page in place. For a seeded leader the AI is **merged over** the curated floor
+(owner: "use the AI to add to seeded data"). Applied to leader, party AND
+country-stat routes; leaderProfile client timeout 12s→20s as a safety net.
+**Political parties open + are chips:** the opening bug was the same synthesis
+hang (now fixed); party-link chips were already wired to `openEntity("party")`.
+**Alignments:** **Syria realigned to the al-Sharaa regime** — camp east→
+nonaligned, dropped from `_EAST_CORE`/RUS-strong/USA-rival, now `RIVALRIES
+IRN+RUS` / `FRIENDSHIPS TUR+QAT` (verified: SYR strong={TUR,QAT}, rival=
+{IRN,ISR,RUS}). **Pakistan added as a US ally** (USA⇄PAK friendship).
+**All 32 NATO members are mutual allies** (`NATO_MEMBERS`; a member becomes a
+strong ally of every other member EXCEPT a genuine active dispute — Greece–
+Türkiye stays rival, per owner "unless a massive dispute"). Verified:
+DEU/GRC/TUR strong-lists fill with NATO, GRC⇄TUR still rival.
+**Disputed zones:** **Nagorno-Karabakh/Artsakh removed** (resolved 2023-24 —
+dropped the `contested_territory` marked-location); **Antarctica added** — the
+7 territorial claims (UK/Argentina/Chile overlap + Australia/NZ/Norway/France)
+as Antarctic-Treaty-frozen disputed zones, and a dedicated **Antarctica page**
+(`renderAntarctica`) opens when you click the landmass (was blank) with the
+Treaty explainer + claim chips. **Audio:** the v6.6.5 `presets_active` config
+edit never landed, so `nocturne_calm`/`storm_front` weren't in the picker —
+fixed. **Live-feed buzz** killed: the story-blip and sonification grains
+weren't rate-limited, so by-the-minute arrivals stacked into a continuous buzz;
+now throttled (blip ≤1/700ms, grains ≤1/300ms). **Globe:** the "random idle
+rotation" is gone (`idle_tour_seconds` default 0; schema allows 0), and an
+explicit **⟳ spin** toggle button drives deliberate auto-spin
+(`Tier1Globe.setAutoSpin` + `spinLocked`, persisted). **Orb** pinned flush to
+the bottom-right edge (was `right:380px`). **War Mode:** a themed **edge-glow
+vignette** (`#war-glow`, reddish-orange default, per-theme tints) turns on with
+war mode, and navigating to any entity now **auto-exits war mode**. **UNSC page
+fill (real this time):** resolutions render in the UNSC subtab (was only the
+overview/UNGA), SC-body filtered. **Event geoplacement:** an LLM correction
+pass (`processing/geoplace.py`, `llm_geoplaced` column) re-places recent
+low-confidence/mis-placed events (the "everything lands in India" bug) and
+pushes `event_relocated` to move the live pins. Verified: fresh boot clean,
+headless Chromium 0 non-network console errors, all endpoints correct shapes.
+
 ## Status (v6.6.5)
 
 **v6.6.5 (2026-07-08, "code everything you deferred" + the empty-leader-page

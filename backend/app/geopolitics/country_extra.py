@@ -445,8 +445,8 @@ ALLIANCE_LEADERS = {
 ALIGNMENTS = {
     "USA": {"strong": ["GBR","CAN","AUS","NZL","JPN","KOR","ISR","DEU","FRA","ITA","POL","NLD","NOR","DNK","ESP","PRT","BEL","CZE","ROU","LTU","LVA","EST","FIN","SWE","PHL","TWN"],
             "partner": ["IND","VNM","SAU","ARE","QAT","JOR","EGY","MAR","SGP","THA","IDN","MEX","BRA","COL","CHL","ARG","KEN","NGA","UKR"],
-            "rival": ["RUS","CHN","IRN","PRK","CUB","VEN","BLR","SYR","NIC"]},
-    "RUS": {"strong": ["BLR","PRK","IRN","SYR","CUB","NIC","VEN","ERI","MLI","BFA","NER"],
+            "rival": ["RUS","CHN","IRN","PRK","CUB","VEN","BLR","NIC"]},
+    "RUS": {"strong": ["BLR","PRK","IRN","CUB","NIC","VEN","ERI","MLI","BFA","NER"],
             "partner": ["CHN","IND","KAZ","ARM","AZE","UZB","TJK","KGZ","SRB","HUN","MMR","DZA","EGY","ZAF","BRA","SAU","ARE","TUR"],
             "rival": ["USA","GBR","UKR","POL","DEU","FRA","CZE","EST","LVA","LTU","FIN","SWE","NOR","DNK","NLD","CAN","AUS","JPN","KOR"]},
     "CHN": {"strong": ["PRK","PAK","RUS","BLR","KHM","LAO","MMR","IRN"],
@@ -473,8 +473,12 @@ COUNTRY_CAMP = {
     "CRI":"west","DOM":"west","GTM":"west","ECU":"west","PRY":"west","URY":"west",
     "JOR":"west","KWT":"west","BHR":"west","MAR":"west","XKX":"west",
     # --- Russia-aligned (east) ---
-    "RUS":"east","BLR":"east","PRK":"east","SYR":"east","CUB":"east","NIC":"east",
+    "RUS":"east","BLR":"east","PRK":"east","CUB":"east","NIC":"east",
     "VEN":"east","ERI":"east","MLI":"east","BFA":"east","NER":"east","IRN":"east",
+    # v6.6.6 — Syria realigned: the al-Sharaa (HTS-led) government that toppled
+    # Assad in Dec 2024 is hostile to Assad's backers (Russia, Iran) and warming
+    # to Türkiye/Qatar/Gulf and cautiously the West → nonaligned, not east.
+    "SYR":"nonaligned",
     "ARM":"east","SSD":"east","CAF":"east",
     # --- China-aligned ---
     "CHN":"china","PAK":"china","KHM":"china","LAO":"china","MMR":"china",
@@ -493,8 +497,19 @@ COUNTRY_CAMP = {
 
 # camp-level cores used to build derived alignments
 _WEST_CORE = ["USA","GBR","DEU","FRA","CAN","JPN","AUS","ITA","POL","NLD"]
-_EAST_CORE = ["RUS","BLR","IRN","PRK","SYR"]
+_EAST_CORE = ["RUS","BLR","IRN","PRK"]   # v6.6.6 — Syria dropped (al-Sharaa regime)
 _CHINA_CORE = ["CHN","PRK","PAK","RUS"]
+
+# v6.6.6 — the 32 NATO members. Every member is a US ally and a mutual ally of
+# every other member; a NATO pair that is a genuine, active dispute (Greece–
+# Türkiye over the Aegean/Cyprus) stays a rival, per owner ("unless there is
+# actually a massive dispute"); any other tension downgrades to a partner
+# ("tentative ally") rather than strong.
+NATO_MEMBERS = {
+    "USA","GBR","CAN","FRA","DEU","ITA","ESP","PRT","NLD","BEL","LUX","NOR",
+    "DNK","ISL","POL","CZE","SVK","HUN","ROU","BGR","GRC","HRV","SVN","LTU",
+    "LVA","EST","ALB","MNE","MKD","TUR","FIN","SWE",
+}
 
 
 def _camp_members(camp, exclude=None):
@@ -518,12 +533,17 @@ RIVALRIES = {
     "ETH": ["ERI"], "ERI": ["ETH"], "SRB": ["XKX"], "XKX": ["SRB"],
     "DZA": ["MAR"], "MAR": ["DZA"], "VEN": ["USA"], "CUB": ["USA"],
     "SDN": ["SSD"], "SSD": ["SDN"], "GBR": ["ARG"], "ARG": ["GBR"],
+    # v6.6.6 — al-Sharaa's Syria is hostile to Assad's backers Russia & Iran.
+    "SYR": ["IRN", "RUS"],
 }
 FRIENDSHIPS = {
     "IND": ["ARM", "RUS", "ISR"], "ARM": ["IND", "IRN", "FRA", "USA"],
-    "USA": ["ISR", "GBR", "ARM"], "ISR": ["USA", "IND"],
-    "PAK": ["CHN", "TUR", "SAU"], "AZE": ["TUR", "ISR"], "TUR": ["AZE", "PAK"],
+    # v6.6.6 — owner: add Pakistan as a US ally (tentative but explicit).
+    "USA": ["ISR", "GBR", "ARM", "PAK"], "ISR": ["USA", "IND"],
+    "PAK": ["CHN", "TUR", "SAU", "USA"], "AZE": ["TUR", "ISR"], "TUR": ["AZE", "PAK"],
     "GRC": ["CYP"], "CYP": ["GRC"], "RUS": ["BLR", "IND"],
+    # v6.6.6 — new Syria's backers: Türkiye and Qatar (and Saudi outreach).
+    "SYR": ["TUR", "QAT"],
 }
 
 
@@ -556,6 +576,16 @@ def _apply_overrides(iso3, res):
         partner = [c for c in partner if c != f]
         if f not in strong:
             strong.insert(0, f)
+    # v6.6.6 — NATO members are mutual allies. A fellow member becomes a strong
+    # ally UNLESS it is already a genuine active dispute (kept as a rival, e.g.
+    # Greece–Türkiye); such a member is never demoted to a plain partner here.
+    if iso3 in NATO_MEMBERS:
+        for m in NATO_MEMBERS:
+            if m == iso3 or m in rival:
+                continue
+            partner = [c for c in partner if c != m]
+            if m not in strong:
+                strong.append(m)
     return {"strong": strong, "partner": [p for p in partner if p not in strong and p not in rival],
             "rival": rival}
 

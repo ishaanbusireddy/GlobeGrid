@@ -16,7 +16,22 @@ Built to the [v1 build manual](docs/talkdiplomacy_live_v1_build_manual.pdf),
 **zero-install build**: Python standard library only. No PostgreSQL, no pip
 install, no npm, no Docker.
 
-**v6.6.5 highlights (current):** comprehensive people & data pages.
+**v6.6.6 highlights (current):** a correctness + responsiveness patch.
+**Leader, party and country-stat pages no longer hang** — the AI profile is
+generated in the background and the page fills instantly (with a curated floor
+for major leaders, then AI enrichment merged on top). **Syria's alignments**
+now reflect the al-Sharaa government (allies Türkiye/Qatar; rivals Iran, Russia
+and Israel). **Pakistan** is now a US ally, and **all NATO members are mutual
+allies** (Greece–Türkiye stays a rivalry — a real dispute). **Nagorno-Karabakh**
+is gone from disputed territories (resolved), and **Antarctica** is now
+clickable — a full page with the Antarctic Treaty and the seven frozen claims.
+Two **new audio tracks** (nocturne / storm front) finally show in the picker,
+the **live-feed buzz** is fixed, the **globe no longer drifts when idle** (with
+an explicit **⟳ spin** toggle instead), **War Mode** gets a themed edge-glow and
+auto-exits when you navigate away, the **UNSC page** shows its resolutions, and
+an LLM pass corrects mis-placed events on the map.
+
+**v6.6.5 highlights:** comprehensive people & data pages.
 **Leader profiles** are now rich even offline — a full biography, ideology,
 career and key-policies synthesis is generated from the model's general
 knowledge (no Wikipedia extract required), with a robust portrait fallback and

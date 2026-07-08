@@ -252,7 +252,9 @@ button.active { border-color: var(--accent); color: var(--accent); }
 
 /* analyst orb + panel (§24) */
 #analyst-orb {
-  position: fixed; bottom: 22px; right: 380px; z-index: 30;
+  /* v6.6.6 — always flush to the bottom-right edge regardless of window size
+     (was right:380px, which left it floating detached from the edge). */
+  position: fixed; bottom: 22px; right: 22px; z-index: 30;
   width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--accent);
   background: radial-gradient(circle at 40% 35%, rgba(77,163,255,.45), rgba(10,14,23,.9));
   cursor: pointer; padding: 0;
@@ -890,3 +892,22 @@ body.colorblind, body.theme-colorblind_safe { --technology: #cc79a7; }
   line-height: 1.55; }
 .ap-p { display: block; margin: 7px 0; line-height: 1.55; }
 .ap-gap { height: 10px; }
+
+/* v6.6.6 — War Mode edge lighting: a themed vignette glow around the whole
+   viewport while a war dashboard is active, so the globe/map reads as "under
+   war conditions". Reddish-orange by default; themes may override --war-glow.
+   pointer-events:none so it never blocks the map. */
+#war-glow {
+  position: fixed; inset: 0; z-index: 8; pointer-events: none; opacity: 0;
+  transition: opacity .5s ease;
+  box-shadow: inset 0 0 220px 70px var(--war-glow, rgba(255, 74, 20, 0.42)),
+              inset 0 0 70px 8px var(--war-glow, rgba(255, 74, 20, 0.30));
+  --war-glow: rgba(255, 74, 20, 0.40);
+}
+body.war-active #war-glow { opacity: 1; animation: war-pulse 4.5s ease-in-out infinite; }
+@keyframes war-pulse { 0%,100% { filter: brightness(0.85); } 50% { filter: brightness(1.15); } }
+/* per-theme war tint (fall back to reddish-orange otherwise) */
+body.theme-new_order   #war-glow { --war-glow: rgba(0, 224, 208, 0.32); }
+body.theme-fire_rises  #war-glow { --war-glow: rgba(190, 60, 255, 0.38); }
+body.theme-crimson_gold #war-glow { --war-glow: rgba(255, 180, 40, 0.34); }
+body.theme-light       #war-glow { --war-glow: rgba(220, 40, 10, 0.22); }

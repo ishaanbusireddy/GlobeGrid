@@ -279,26 +279,36 @@ def country_stat(params, q, body):
             pass
     if not llm.available():
         return 200, {"headline": headline, "detail": None}
+    # v6.6.6 — NON-BLOCKING: generate in the background so the stat pane opens
+    # instantly (same fix as leader/party pages); frontend re-fetches to upgrade.
+    from ..processing.bg_synth import kick
     ctx = {"country": c["name"], "metric": metric, "region": c["region"],
            "population": c["population"], "gdp_usd": c["gdp_usd"],
            "area_km2": c["area_km2"]}
+    pending = kick(key, lambda: _generate_country_stat(key, ctx))
+    return 200, {"headline": headline, "detail": None, "detail_pending": pending}
+
+
+def _generate_country_stat(key, ctx):
+    """v6.6.6 — background country-stat detail generation + cache."""
+    from ..processing import llm
+    from ..db.models import meta_set
     text = llm.complete(COUNTRY_STAT_PROMPT,
                         [{"role": "user", "content": _json.dumps(ctx)}],
-                        max_tokens=900, timeout=45, json_mode=True)
-    detail = None
-    if text:
-        t = text.strip()
-        if t.startswith("```"):
-            t = t.strip("`").removeprefix("json").strip()
-        b = t.find("{")
-        if b != -1:
-            t = t[b:t.rfind("}") + 1]
-        try:
-            detail = _json.loads(t)
-            meta_set(key, _json.dumps(detail))
-        except _json.JSONDecodeError:
-            detail = None
-    return 200, {"headline": headline, "detail": detail}
+                        max_tokens=900, timeout=90, json_mode=True)
+    if not text:
+        return
+    t = text.strip()
+    if t.startswith("```"):
+        t = t.strip("`").removeprefix("json").strip()
+    b = t.find("{")
+    if b != -1:
+        t = t[b:t.rfind("}") + 1]
+    try:
+        detail = _json.loads(t)
+    except _json.JSONDecodeError:
+        return
+    meta_set(key, _json.dumps(detail))
 
 
 @route("GET", "/api/region/{region}")
@@ -857,10 +867,16 @@ def leader_profile(params, q, body):
         bio = bio or {}
         bio.setdefault("extract", detail.get("bio_extract"))
     # AI-synthesized structured profile (cached; best-effort, degrades cleanly).
-    # v6.6.5 — run WHENEVER a provider is available and we know who this is
-    # (name + at least one tracked office), NOT only when a Wikipedia extract
-    # loaded — the model writes a full profile from general knowledge. This is
-    # what makes the page comprehensive even with Wikipedia blocked.
+    # v6.6.6 — NON-BLOCKING: the LLM call (20-60s on local Ollama) used to run
+    # inside this request and blow the client's fetch timeout → "profile
+    # unavailable". Now: return instantly with the cached synthesis (if any) or
+    # the curated floor, and kick a background job to generate/enrich + cache.
+    # The frontend re-fetches once shortly after to pick up the richer result.
+    curated_floor = None
+    if detail:
+        curated_floor = {k: detail[k] for k in
+                         ("summary", "ideology", "career_history", "party_history", "key_policies")
+                         if k in detail}
     synth = None
     cache_key = f"leaderprof:{clean.lower()}"
     cached = meta_get(cache_key)
@@ -869,37 +885,52 @@ def leader_profile(params, q, body):
             synth = _json.loads(cached)
         except _json.JSONDecodeError:
             synth = None
+    synth_pending = False
     if synth is None:
         from ..processing import llm
+        synth = curated_floor            # instant floor (may be None)
         if llm.available() and (rows or bio):
+            from ..processing.bg_synth import kick
             ctx = {"name": clean,
                    "offices": [{"role": r.get("role"), "country": r.get("country_name"),
                                 "party": r.get("party"), "since": r.get("since_date")}
                                for r in rows],
                    "party": rows[0].get("party") if rows else None,
                    "wikipedia_extract": ((bio or {}).get("extract") or "")[:2500]}
-            text = llm.complete(LEADER_PROFILE_PROMPT,
-                                [{"role": "user", "content": _json.dumps(ctx)}],
-                                max_tokens=800, timeout=40, json_mode=True)
-            if text:
-                t = text.strip()
-                if t.startswith("```"):
-                    t = t.strip("`").removeprefix("json").strip()
-                b = t.find("{")
-                if b != -1:
-                    t = t[b:t.rfind("}") + 1]
-                try:
-                    synth = _json.loads(t)
-                    meta_set(cache_key, _json.dumps(synth))
-                except _json.JSONDecodeError:
-                    synth = None
-    # curated data as the final floor when neither cache nor a live provider
-    # produced a synthesis
-    if synth is None and detail:
-        synth = {k: detail[k] for k in
-                 ("summary", "ideology", "career_history", "party_history", "key_policies")
-                 if k in detail}
-    return 200, {"name": clean, "roles": rows, "bio": bio, "synthesis": synth}
+            synth_pending = kick(cache_key,
+                                 lambda: _generate_leader_synth(cache_key, ctx, curated_floor))
+    return 200, {"name": clean, "roles": rows, "bio": bio,
+                 "synthesis": synth, "synth_pending": synth_pending}
+
+
+def _generate_leader_synth(cache_key, ctx, curated_floor):
+    """v6.6.6 — background: generate the leader AI synthesis, MERGE it over any
+    curated floor (AI enriches/extends seeded data, owner: 'use the AI to add to
+    seeded data') and cache it."""
+    from ..processing import llm
+    from ..db.models import meta_set
+    text = llm.complete(LEADER_PROFILE_PROMPT,
+                        [{"role": "user", "content": _json.dumps(ctx)}],
+                        max_tokens=800, timeout=90, json_mode=True)
+    if not text:
+        return
+    t = text.strip()
+    if t.startswith("```"):
+        t = t.strip("`").removeprefix("json").strip()
+    b = t.find("{")
+    if b != -1:
+        t = t[b:t.rfind("}") + 1]
+    try:
+        ai = _json.loads(t)
+    except _json.JSONDecodeError:
+        return
+    if curated_floor:
+        merged = dict(curated_floor)
+        for k, v in ai.items():
+            if v:                        # AI value wins where present
+                merged[k] = v
+        ai = merged
+    meta_set(cache_key, _json.dumps(ai))
 
 
 @route("GET", "/api/leader-portrait")

@@ -88,6 +88,64 @@ DISPUTED_ZONES = [
      "the two fought a war over them in 1982 (Argentina defeated). A 2013 "
      "referendum saw islanders vote 99.8% to remain British. Argentina "
      "continues to press the claim diplomatically at the UN."),
+    # v6.6.6 — Antarctica: seven states maintain territorial claims (all frozen
+    # by the 1959 Antarctic Treaty, in force 1961). Three overlap in the
+    # Antarctic Peninsula (UK / Argentina / Chile). Marié Byrd Land is unclaimed.
+    ("antarctica_uk", "British Antarctic Territory", "Claim frozen (Antarctic Treaty)",
+     ["United Kingdom", "Argentina", "Chile"],
+     "20°W–80°W sector; overlaps the Argentine and Chilean claims.",
+     -75.0, -50.0,
+     "The British Antarctic Territory (20°W to 80°W) is the UK's Antarctic claim, "
+     "dating to 1908. It overlaps almost entirely with the Argentine and Chilean "
+     "claims on the Antarctic Peninsula. Like all Antarctic claims it is held in "
+     "abeyance by the 1959 Antarctic Treaty, which reserves the continent for "
+     "peaceful and scientific use and neither recognizes nor disputes claims."),
+    ("antarctica_arg", "Argentine Antarctica", "Claim frozen (Antarctic Treaty)",
+     ["Argentina", "United Kingdom", "Chile"],
+     "25°W–74°W sector; overlaps the British and Chilean claims.",
+     -75.0, -49.0,
+     "Argentina claims the sector between 25°W and 74°W as part of Tierra del "
+     "Fuego province, overlapping the British and Chilean claims. Argentina "
+     "operates several year-round bases and stresses its permanent presence. "
+     "The claim is frozen under the Antarctic Treaty."),
+    ("antarctica_chile", "Chilean Antarctic Territory", "Claim frozen (Antarctic Treaty)",
+     ["Chile", "United Kingdom", "Argentina"],
+     "53°W–90°W sector; overlaps the British and Argentine claims.",
+     -75.0, -70.0,
+     "Chile claims the sector between 53°W and 90°W as the Antarctic Chilean "
+     "Province, overlapping the British and Argentine claims on the Peninsula. "
+     "Chile maintains bases and even a civilian settlement (Villa Las Estrellas). "
+     "The claim is suspended under the Antarctic Treaty."),
+    ("antarctica_aus", "Australian Antarctic Territory", "Claim frozen (Antarctic Treaty)",
+     ["Australia"],
+     "The largest single claim: ~42% of Antarctica (two sectors).",
+     -75.0, 100.0,
+     "The Australian Antarctic Territory is the largest of the seven claims, "
+     "covering roughly 42% of the continent in two sectors (45°E–136°E and "
+     "142°E–160°E). Australia runs major research stations (Davis, Mawson, "
+     "Casey). The claim is frozen under the Antarctic Treaty."),
+    ("antarctica_nzl", "Ross Dependency", "Claim frozen (Antarctic Treaty)",
+     ["New Zealand"],
+     "160°E–150°W sector, including the Ross Ice Shelf.",
+     -80.0, 175.0,
+     "New Zealand's Ross Dependency (160°E to 150°W) includes the Ross Ice Shelf "
+     "and Ross Island, home to Scott Base and (nearby) the US McMurdo Station. "
+     "The claim dates to 1923 and is held in abeyance by the Antarctic Treaty."),
+    ("antarctica_nor", "Queen Maud Land", "Claim frozen (Antarctic Treaty)",
+     ["Norway"],
+     "20°W–45°E sector on the Atlantic-facing coast.",
+     -72.0, 10.0,
+     "Norway claims Queen Maud Land (Dronning Maud Land), the sector roughly "
+     "20°W to 45°E, plus Peter I Island. Norway runs the Troll research station. "
+     "The claim is frozen under the Antarctic Treaty."),
+    ("antarctica_fra", "Adélie Land", "Claim frozen (Antarctic Treaty)",
+     ["France"],
+     "136°E–142°E sector, enclosed by the Australian claim.",
+     -75.0, 139.0,
+     "France's Adélie Land (Terre Adélie, 136°E to 142°E) is a narrow sector "
+     "enclosed within the Australian claim, administered as part of the French "
+     "Southern and Antarctic Lands. France runs Dumont d'Urville station. The "
+     "claim is frozen under the Antarctic Treaty."),
 ]
 
 def zones_list():

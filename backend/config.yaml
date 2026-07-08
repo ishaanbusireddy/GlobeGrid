@@ -48,7 +48,7 @@ resilience:
 
 graphics:
   quality_tier: "high"          # standard | high | ultra
-  idle_tour_seconds: 45
+  idle_tour_seconds: 0          # v6.6.6 — 0 disables autonomous idle rotation (owner: "globe shouldn't randomly rotate when idle"); use the ⟳ spin button for deliberate auto-spin
   ambient_sound_default: false
 
 ops:
@@ -152,7 +152,7 @@ audio:
   # buzz further fixed (drone raised out of the sub-rumble band + softDrone body
   # filter). Three experimental glacial/chimey presets added. Only presets in
   # this list appear in the picker.
-  presets_active: ["ambient_default", "arctic_calm", "modal_drift", "data_sonification", "crystalline_chimes", "deep_glacier", "aurora_drift"]
+  presets_active: ["ambient_default", "nocturne_calm", "arctic_calm", "modal_drift", "storm_front", "data_sonification", "crystalline_chimes", "deep_glacier", "aurora_drift"]
 
 sourcing:
   historical_backfill_on_entity_add: true

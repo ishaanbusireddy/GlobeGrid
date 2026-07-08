@@ -372,7 +372,20 @@ export async function renderCountry(el, iso3, ctx) {
 // ---------- §6.2 other wiki pages ----------
 
 export async function renderParty(el, id, ctx) {
-  const p = await api.party(id);
+  el.innerHTML = `<p class="cp-meta">loading party…</p>`;
+  const p = await api.party(id).catch(() => null);
+  if (!p) { el.innerHTML = `<p class="cp-meta">This party could not be loaded. Try again in a moment.</p>`; return; }
+  paintParty(el, id, p, ctx);
+  // v6.6.6 — AI synthesis generates in the background; re-fetch once to upgrade.
+  if (p.synth_pending) {
+    setTimeout(async () => {
+      const p2 = await api.party(id).catch(() => null);
+      if (p2 && p2.synthesis && el.isConnected) paintParty(el, id, p2, ctx);
+    }, 5000);
+  }
+}
+
+function paintParty(el, id, p, ctx) {
   const leaders = (p.leaders || []).map((l) =>
     `<div class="src-row"><b>${esc(l.name)}</b>
      <span class="cp-meta">${esc(l.role.replace(/_/g, " "))} · since ${esc(l.since_date || "?")}</span></div>`
@@ -384,6 +397,7 @@ export async function renderParty(el, id, ctx) {
         <p class="cp-meta">ideology: ${esc((p.ideology_tags || "").replace(/;/g, " · "))}</p>
       </div></div>
     ${freshness(p.last_updated_at)}
+    ${(p.synth_pending && !p.synthesis) ? `<p class="cp-meta">✨ generating a detailed profile with AI… (updates in a moment)</p>` : ""}
     ${(() => { const s = p.synthesis; const b = (a) => (a || []).map((x) => `<li>${esc(x)}</li>`).join("");
       if (!s) return "";
       return `${s.summary ? `<section><p>${esc(s.summary)}</p></section>` : ""}
@@ -923,10 +937,15 @@ function unOrgHtml(org, d) {
   const isUNSC = /Security Council/i.test(org.name);
   let extra = "";
   if (isUNSC) {
+    // v6.6.6 — the UNSC tab now also lists the Security Council resolutions
+    // (the fill was landing only on the overview/UNGA before).
+    const scRes = (d.resolutions || []).filter((r) => /Security Council/i.test(r.body || ""));
     extra = `<section><h4>Permanent members (P5)</h4>${(sc.permanent || []).map(memberChip).join(" ")}</section>
-      <section><h4>Elected members</h4>${(sc.elected || []).map(memberChip).join(" ")}</section>`;
+      <section><h4>Elected members</h4>${(sc.elected || []).map(memberChip).join(" ")}</section>
+      <section><h4>Resolutions & recorded votes</h4>${unResolutionsHtml(scRes.length ? scRes : d.resolutions)}</section>`;
   } else if (isUNGA) {
-    extra = `<section><h4>Recent resolutions & recorded votes</h4>${unResolutionsHtml(d.resolutions)}</section>`;
+    const gaRes = (d.resolutions || []).filter((r) => /General Assembly/i.test(r.body || ""));
+    extra = `<section><h4>Recent resolutions & recorded votes</h4>${unResolutionsHtml(gaRes.length ? gaRes : d.resolutions)}</section>`;
   }
   return `
     <div class="wiki-header"><div class="wiki-head-meta">
@@ -966,6 +985,45 @@ export async function renderUN(el, ctx) {
   el.querySelectorAll(".un-tab").forEach((b) =>
     b.addEventListener("click", () => show(+b.dataset.i)));
   show(0);
+}
+
+// ---------- v6.6.6 — Antarctica ----------
+
+// Clicking the Antarctic landmass (no country polygon) opens this page: the
+// continent, the Antarctic Treaty, and the seven territorial claims as chips
+// that open the matching disputed-zone breakdown.
+export async function renderAntarctica(el, ctx) {
+  el.innerHTML = `<h1>🧊 Antarctica</h1>
+    <p class="cp-meta">The southern polar continent · no permanent population · governed by the Antarctic Treaty System</p>`;
+  const d = await api.disputedZones().catch(() => ({ zones: [] }));
+  const claims = (d.zones || []).filter((z) => (z.id || "").startsWith("antarctica_"));
+  el.innerHTML += `
+    <section><p>Antarctica is the only continent with no sovereign government and
+      no indigenous population. Roughly 98% is covered by ice averaging ~1.9 km
+      thick — about 60% of the world's fresh water. It hosts only research
+      stations, staffed by scientists and support crews from many nations.</p></section>
+    <section><h4>The Antarctic Treaty</h4>
+      <p>The 1959 Antarctic Treaty (in force 1961), now with 50+ parties,
+      reserves the continent for peaceful and scientific use, bans military
+      activity and mineral mining (the 1991 Madrid Protocol), and — crucially —
+      <b>freezes all territorial claims</b>: it neither recognizes, disputes, nor
+      establishes them. Seven states nonetheless maintain formal claims, three of
+      which overlap on the Antarctic Peninsula.</p></section>
+    <section><h4>Territorial claims (frozen)</h4>
+      <p class="cp-meta">Seven claimant states — click a claim for its full breakdown.</p>
+      <div class="disp-list">${claims.map((z) =>
+        `<button class="ap-chip disp-open" data-id="${esc(z.id)}">⚑ ${esc(z.name)}
+          <span class="cp-meta">${esc((z.claimants || [])[0] || "")}</span></button>`).join(" ")
+        || '<p class="cp-meta">Enable disputed mode to see the claims on the map.</p>'}</div></section>
+    <section><h4>Key facts</h4>
+      <div class="stat-grid">
+        <div class="stat-cell"><span class="cp-meta">Area</span><b>14.2M km²</b></div>
+        <div class="stat-cell"><span class="cp-meta">Ice volume</span><b>~26.5M km³</b></div>
+        <div class="stat-cell"><span class="cp-meta">Coldest recorded</span><b>−89.2 °C</b></div>
+        <div class="stat-cell"><span class="cp-meta">Population</span><b>~1,000–5,000 (seasonal)</b></div>
+      </div></section>`;
+  el.querySelectorAll(".disp-open").forEach((b) =>
+    b.addEventListener("click", () => ctx.openDisputedZone(b.dataset.id)));
 }
 
 // ---------- v6.6.2 — disputed territories ----------
@@ -1013,6 +1071,14 @@ export async function renderCountryStat(el, iso3, metric, countryName, ctx) {
     <p class="cp-meta">loading breakdown…</p>`;
   const d = await api.countryStat(iso3, metric).catch(() => null);
   if (!d || !d.detail) {
+    // v6.6.6 — the breakdown generates in the background; if pending, re-fetch.
+    if (d && d.detail_pending) {
+      el.innerHTML = `<h1>${esc(countryName || iso3)} — ${esc(STAT_LABEL[metric] || metric)}</h1>
+        <p class="cp-meta">✨ generating a detailed breakdown with AI… (updates in a moment).
+        Headline figure: ${esc(String(d.headline || "—"))}.</p>`;
+      setTimeout(() => { if (el.isConnected) renderCountryStat(el, iso3, metric, countryName, ctx); }, 5500);
+      return;
+    }
     el.innerHTML = `<h1>${esc(countryName || iso3)} — ${esc(STAT_LABEL[metric] || metric)}</h1>
       <p class="cp-meta">A detailed breakdown loads when an AI provider is
       configured (run Ollama or add a key). Headline figure: ${esc(String(d && d.headline || "—"))}.</p>`;
@@ -1310,10 +1376,30 @@ export async function renderSettings(el, ctx) {
 // key policies, and a full Wikipedia biography.
 export async function renderLeader(el, name, ctx) {
   el.innerHTML = `<h1>${esc(name)}</h1><p class="cp-meta">loading profile…</p>`;
-  const d = await api.leaderProfile(name).catch(() => null);
-  if (!d) { el.innerHTML += `<p>profile unavailable</p>`; return; }
+  let d = await api.leaderProfile(name).catch(() => null);
+  if (!d || (!(d.roles || []).length && !d.synthesis && !(d.bio && d.bio.extract))) {
+    el.innerHTML = `<h1>${esc(name)}</h1>
+      <p class="cp-meta">No profile is available for this name yet. Detailed
+      profiles generate live when an AI provider (Ollama or a key) is running —
+      open this page again in a few seconds.</p>`;
+    return;
+  }
+  paintLeader(el, name, d, ctx);
+  // v6.6.6 — the AI synthesis is generated in the background; if it's still
+  // pending, re-fetch once shortly to upgrade the page in place.
+  if (d.synth_pending) {
+    setTimeout(async () => {
+      const d2 = await api.leaderProfile(name).catch(() => null);
+      if (d2 && d2.synthesis && el.isConnected) paintLeader(el, name, d2, ctx);
+    }, 5000);
+  }
+}
+
+function paintLeader(el, name, d, ctx) {
   const bio = d.bio || {};
   const s = d.synthesis || null;
+  const pendingNote = (d.synth_pending && !s)
+    ? `<p class="cp-meta">✨ generating a detailed profile with AI… (updates in a moment)</p>` : "";
   const img = bio.image_url
     ? `<img class="leader-photo leader-photo-lg" src="${esc(bio.image_url)}">`
     : `<div class="leader-photo leader-photo-lg leader-photo-empty">👤</div>`;
@@ -1326,6 +1412,7 @@ export async function renderLeader(el, name, ctx) {
           ${flag ? " · " + esc(flag.country_name) : ""}</p>
         ${s && s.ideology ? `<p class="leader-ideology"><span class="cp-meta">Ideology:</span> ${esc(s.ideology)}</p>` : ""}
       </div></div>
+    ${pendingNote}
     ${s && s.summary ? `<section><p>${esc(s.summary)}</p></section>` : ""}
     <section><h4>Offices held</h4>${(d.roles || []).map((r) => `<div class="src-row">
        <span class="leaning">${esc((r.role || "").replace(/_/g, " "))}</span>

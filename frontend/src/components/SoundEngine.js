@@ -614,6 +614,13 @@ export class SoundEngine {
   // short morse burst instead (§12.3)
   blip() {
     if (!this.enabled || !this.ctx) return;
+    // v6.6.6 — rate-limit the live-feed blip. With by-the-minute ingestion a
+    // burst of story_created events used to stack overlapping chimes into a
+    // continuous "buzz" (owner: "the live feed sound causes infinite buzzing").
+    // One blip per 700ms at most; extra arrivals in the window are silent.
+    const nowMs = (this.ctx.currentTime * 1000);
+    if (this._lastBlipMs && nowMs - this._lastBlipMs < 700) return;
+    this._lastBlipMs = nowMs;
     const p = this.preset();
     const t = this.ctx.currentTime;
     const scale = this._scale();
@@ -684,6 +691,11 @@ export class SoundEngine {
   // pitch by severity, pan by longitude, texture by category
   onLiveEvent(ev) {
     if (!this.enabled || !this.ctx || !this.preset().sonify) return;
+    // v6.6.6 — throttle the sonification grains so a stream of arrivals can't
+    // pile into a continuous buzz (max one grain cluster per 300ms).
+    const nowMs = this.ctx.currentTime * 1000;
+    if (this._lastSonifyMs && nowMs - this._lastSonifyMs < 300) return;
+    this._lastSonifyMs = nowMs;
     const t = this.ctx.currentTime;
     const sev = ev.severity || 1;
     const lon = (ev.location && ev.location.lon) || 0;

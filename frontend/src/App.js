@@ -205,7 +205,7 @@ for (const id of ["marked-toggle", "sat-toggle", "blocs-btn", "bloc-panel", "xr-
                   "lineage-overlay", "map-host", "feed-list", "tier-select",
                   "quality-select", "sound-toggle", "volume-slider", "preset-select",
                   "heatmap-toggle", "borders-toggle", "disputes-toggle", "actors-toggle",
-                  "names-toggle", "tz-header",
+                  "names-toggle", "spin-toggle", "tz-header",
                   "palette-btn", "briefing-btn", "graph-btn", "watchlist-btn",
                   "bookmarks-btn", "stories-btn", "settings-btn", "snapshot-btn", "help-btn",
                   "watchlist-panel", "conn-badge", "map-filters", "graph-overlay",
@@ -227,7 +227,7 @@ const state = {
   syntheticData: null,
   mapData: { events: [], links: [] },
   clientConfig: {
-    graphics: { quality_tier: "high", idle_tour_seconds: 45, ambient_sound_default: false },
+    graphics: { quality_tier: "high", idle_tour_seconds: 0, ambient_sound_default: false },
     globe: { hit_test_use_facing_occlusion: true, cluster_screen_distance_px: 40 },
     geocoding: { min_confidence_for_solid_marker: 0.6 },
     map2d: { wraparound_enabled: true },
@@ -376,6 +376,10 @@ const ctx = {
     key: `stat:${iso3}:${metric}`, title: metric,
     render: (el) => Wiki.renderCountryStat(el, iso3, metric, name, ctx),
   }),
+  openAntarctica: () => pane.push({                      // v6.6.6 Antarctica page
+    key: "antarctica", title: "Antarctica",
+    render: (el) => Wiki.renderAntarctica(el, ctx),
+  }),
 };
 pane.openEntity = (type, id, opts) => openEntity(type, id, opts);
 
@@ -419,6 +423,10 @@ function highlightCountries(iso3List) {
 async function openEntity(type, id, { replace = false } = {}) {
   const render = ENTITY_RENDER[type];
   if (!render) return;
+  // v6.6.6 — navigating to any entity leaves War Mode (owner: "exit war mode
+  // automatically when navigating away from it"). The war coloring, edge glow
+  // and feed all restore before the new page opens.
+  if (state.warMode) exitWarMode();
   if (type === "country") { highlightCountries([id]); state.lastCountryId = id; }   // v6 §26 / v6.6.2 C-shortcut
   await pane.push({
     key: `${type}:${id}`,
@@ -649,6 +657,11 @@ function mountRenderer(tier) {
       if (c) {
         setFocus("country", c.n);
         openEntity("country", c.i);
+      } else if (lat < -60) {
+        // v6.6.6 — Antarctica has no country polygon; clicking it used to be
+        // blank. Open a dedicated Antarctica page (Treaty + the 7 claims).
+        setFocus("region", "Antarctica");
+        ctx.openAntarctica();
       } else {
         setFocus(null);               // §16.2 — empty-space click clears focus
       }
@@ -666,6 +679,7 @@ function mountRenderer(tier) {
   }
   state.renderer.setHeatmap?.(els.heatmapToggle.classList.contains("active"));
   state.renderer.setBorders?.(state.bordersOn);
+  if (state.spinOn) state.renderer.setAutoSpin?.(true);   // v6.6.6 re-apply auto-spin
   state.renderer.setDisputes?.(state.disputesOn);
   if (state.disputesOn && state.disputedZones)   // v6.6.4 re-apply clickable markers
     state.renderer.setDisputedZones?.(state.disputedZones);
@@ -917,6 +931,15 @@ async function loadReal() {
             global_relevance_score: p.global_relevance_score, story_id: null });
           pushMapData();
           state.renderer?.burst?.(p.location.lat, p.location.lon, p.category);
+        }
+      } else if (msg.type === "event_relocated") {
+        // v6.6.6 — the backend LLM re-placed an event; move its pin in place.
+        const p = msg.payload;
+        const ev = state.mapData.events.find((e) => e.id === p.id);
+        if (ev) {
+          ev.lat = p.lat; ev.lon = p.lon;
+          if (p.location_name) ev.location_name = p.location_name;
+          pushMapData();
         }
       } else if (msg.type === "story_created" || msg.type === "story_updated") {
         try {
@@ -1184,6 +1207,19 @@ els.namesToggle.addEventListener("click", () => {
   els.namesToggle.classList.toggle("active", state.namesOn);
   state.renderer?.setCountryLabelsVisible?.(state.namesOn);
 });
+// v6.6.6 — explicit auto-spin toggle (the globe no longer spins on its own when
+// idle; this is the deliberate way to make it rotate). Persisted.
+state.spinOn = localStorage.getItem("tdl_spin") === "1";
+if (els.spinToggle) {
+  els.spinToggle.classList.toggle("active", state.spinOn);
+  state.renderer?.setAutoSpin?.(state.spinOn);
+  els.spinToggle.addEventListener("click", () => {
+    state.spinOn = !state.spinOn;
+    localStorage.setItem("tdl_spin", state.spinOn ? "1" : "0");
+    els.spinToggle.classList.toggle("active", state.spinOn);
+    state.renderer?.setAutoSpin?.(state.spinOn);
+  });
+}
 els.actorsToggle.addEventListener("click", async () => {
   state.actorsOn = !state.actorsOn;
   els.actorsToggle.classList.toggle("active", state.actorsOn);
@@ -1789,11 +1825,13 @@ async function enterWarMode(conflictId) {
     render: (el) => Wiki.renderWarMode(el, data, ctx),
   });
 
+  document.body.classList.add("war-active");   // v6.6.6 — themed edge glow
   renderConflictTabs();   // shows the war sub-filter row
   refreshStories().catch(() => {});
 }
 
 function exitWarMode() {
+  document.body.classList.remove("war-active");   // v6.6.6 — clear edge glow
   // v6.6.2 — restore the exact pre-war feed snapshot (full story objects)
   if (state.preWarStories && state.preWarStories.length) {
     feed.setStories(state.preWarStories);
