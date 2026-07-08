@@ -68,8 +68,16 @@ async function translateNodes(nodes, lang) {
     const orig = ORIG.get(n);
     const key = orig.trim();
     const tr = map[key];
-    // preserve the node's leading/trailing whitespace around the swapped text
-    if (tr && tr !== key) n.nodeValue = orig.replace(key, tr);
+    // Preserve the node's leading/trailing whitespace around the swapped text.
+    // NOTE: never use orig.replace(key, tr) — String.replace treats `$` runs in
+    // the replacement as special patterns (a real hazard in currency/price
+    // strings) and only swaps the first match. Splice the whitespace back on by
+    // hand instead.
+    if (tr && tr !== key) {
+      const lead = (orig.match(/^\s*/) || [""])[0];
+      const trail = (orig.match(/\s*$/) || [""])[0];
+      n.nodeValue = lead + tr + trail;
+    }
   }
 }
 

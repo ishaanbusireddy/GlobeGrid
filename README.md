@@ -16,7 +16,55 @@ Built to the [v1 build manual](docs/talkdiplomacy_live_v1_build_manual.pdf),
 **zero-install build**: Python standard library only. No PostgreSQL, no pip
 install, no npm, no Docker.
 
-**v6.6.9 highlights (current):** closes the translation gap and rounds out
+**v6.6.12 highlights (current):** translation **rebuilt around the technique
+dedicated local-LLM translators actually use** — the JSON approach was the wrong
+tool. Forcing Ollama's `format:"json"` on a translation task makes small local
+models (llama3.1 etc.) **echo the English back** inside the JSON instead of
+translating, which is why everything stayed English. Now: **no JSON** — a
+"professional translator" role prompt that says *output only the translation*,
+**small numbered-line batches** with a tolerant line parser (handles chatty
+preambles, `1)`/`1.` styles, un-numbered replies), and a **per-string fallback**
+(one call, whole reply = the translation — the most reliable shape for a small
+model) for anything a batch misses. New **`GET /api/i18n/diagnostics?lang=sq`**
+shows the exact prompt sent to *your* model, its **raw reply**, and the parsed
+translation, so you can confirm your Ollama is translating without any faking.
+Verified end-to-end against a plain-text `format`-free Ollama simulator: real
+Albanian fills the UI and the welcome popup, chatty preambles are stripped,
+English restores exactly, 0 console errors.
+
+**v6.6.11 highlights:** the **startup/welcome window (and any long
+text) now translates too**. v6.6.10 fixed the object-vs-array bug, but the
+welcome popup's long paragraphs still stayed English on a real Ollama: local
+models under `format:"json"` often emit long values with an unescaped newline
+or quote, and the strict JSON parse then threw away the **entire batch** — and
+the popup is exactly that batch. Added a tolerant regex **salvage** that pulls
+`"key":"value"` pairs out of malformed/truncated JSON, **size-aware batching**
+(cap by characters so long paragraphs don't overflow the model's token limit),
+and a **retry** that re-sends any stragglers a batch missed in small groups.
+Verified: the welcome popup goes fully Albanian in a headless browser against a
+deliberately-malformed `format:json` simulator (was 0/58 on a broken batch),
+and `_parse_reply` recovers numbered/English-keyed/wrapper/array/fenced AND
+malformed-truncated replies.
+
+**v6.6.10 highlights:** the translation feature **actually works
+against a real local model now** — the headline bug. Ollama runs the model
+under `format:"json"`, which makes it return a JSON **object**, but the backend
+only ever accepted a JSON **array** of the exact same length; every real reply
+(a key→value map) was silently discarded and the original English passed
+through — so nothing translated, on any machine with a real Ollama. Rebuilt the
+protocol to send a **numbered key→value object** (the shape `format:json`
+naturally produces) and match replies **by key**, with fallbacks for every
+other shape a model might emit (English-keyed object, bare array,
+`{"translations":[…]}` wrapper). The cache namespace was bumped (`i18n2:`) so
+the English passthrough that earlier broken builds cached is bypassed, and the
+fixed code never writes a passthrough back, so it can't recur. The frontend
+whitespace-preserving swap no longer uses `String.replace` (which mangles `$`
+runs in prices). Verified end-to-end against a realistic `format:json` Ollama
+simulator: real Albanian ("konflikte", "informim", "Transmetim i drejtpërdrejtë")
+renders in the live DOM across all three model reply shapes; English restores
+exactly; zero console errors.
+
+**v6.6.9 highlights:** closes the translation gap and rounds out
 world coverage. Dropdown text (timezone, quality, audio presets, etc.) now
 translates too — the language picker itself deliberately stays untranslated
 since its entries are endonyms ("Français", "日本語"). Every unrecognized state

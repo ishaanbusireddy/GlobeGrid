@@ -474,3 +474,13 @@ def i18n_translate(params, q, body):
                      "ai_available": i18n.available()}
     return 200, {"lang": lang, "translations": i18n.translate_strings(texts, lang),
                  "ai_available": i18n.available()}
+
+
+@route("GET", "/api/i18n/diagnostics")
+def i18n_diagnostics(params, q, body):
+    """v6.6.12 — a REAL translation self-test the owner can run on their own
+    machine: shows the exact prompt sent to their model, the model's RAW reply,
+    and the parsed translation. Answers 'is my Ollama actually translating?'
+    without any faking. Open /api/i18n/diagnostics?lang=sq (default Albanian)."""
+    from ..processing import i18n
+    return 200, i18n.diagnostics(str(q.get("lang") or "sq"))
