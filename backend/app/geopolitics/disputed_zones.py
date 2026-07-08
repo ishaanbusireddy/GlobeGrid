@@ -146,6 +146,28 @@ DISPUTED_ZONES = [
      "enclosed within the Australian claim, administered as part of the French "
      "Southern and Antarctic Lands. France runs Dumont d'Urville station. The "
      "claim is frozen under the Antarctic Treaty."),
+    # v7.3 — Arunachal Pradesh (owner: "Why is arunachal pradesh not appearing
+    # as a disputed zone orb"). India-administered; claimed by China as "South
+    # Tibet."
+    ("arunachal", "Arunachal Pradesh", "India (administered)",
+     ["India", "China"],
+     "India-administered NE state; claimed in full by China as 'South Tibet'.",
+     28.2, 94.7,
+     "Arunachal Pradesh is an Indian state administered by India since it was "
+     "organized from the North-East Frontier Agency, but claimed in its entirety "
+     "by China as 'Zangnan' / South Tibet. China periodically renames localities "
+     "there and objects to visits by Indian leaders; the two fought the 1962 war "
+     "partly over this frontier, and the McMahon Line remains disputed. Tawang, "
+     "with its major Tibetan-Buddhist monastery, is a particular flashpoint."),
+    # v7.3 — Aksai Chin, the other India–China front, China-administered.
+    ("aksai_chin", "Aksai Chin", "China (administered)",
+     ["China", "India"],
+     "China-administered high-altitude plateau; claimed by India (Ladakh).",
+     35.1, 79.4,
+     "Aksai Chin is a high-altitude desert plateau administered by China as part "
+     "of Xinjiang/Tibet but claimed by India as part of Ladakh. China built the "
+     "G219 highway across it in the 1950s, a trigger for the 1962 war. The Line "
+     "of Actual Control here saw deadly clashes as recently as Galwan (2020)."),
 ]
 
 def zones_list():

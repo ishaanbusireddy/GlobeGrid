@@ -20,10 +20,26 @@ export function trackInterest(story) {
   } catch { /* localStorage full/blocked — learning is best-effort */ }
 }
 
+// v7.4 — how BIG a development is, independent of personal interest (owner:
+// "have audio briefing focus on the most massive developments and stories, not
+// just insignifcant random local events"). Rewards multi-source corroboration,
+// many linked events, conflict relevance, severity and confidence.
+function significance(story) {
+  const conf = { high: 1, medium: 0.55, low: 0.2 }[story.confidence] ?? 0.4;
+  let s = conf;
+  s += Math.min(3, (story.source_count || 0)) * 0.5;   // many outlets = big
+  s += Math.min(4, (story.member_count || 0)) * 0.35;  // many linked events
+  if (story.conflict_id || story.conflict_name) s += 1.2;   // active conflict
+  if (story.corroboration) s += (story.corroboration || 0) * 1.5;  // sensor-backed
+  if (["conflict", "military", "geopolitics"].includes(story.category)) s += 0.4;
+  return s;
+}
+
 function interestScore(story, watchTerms) {
   let w = {};
   try { w = JSON.parse(localStorage.getItem(INTEREST_KEY) || "{}"); } catch { }
-  let sc = (story.confidence || 0.4);
+  // v7.4 — significance dominates; personal interest and the watchlist tilt it.
+  let sc = significance(story);
   sc += (w["cat:" + (story.category || "other")] || 0) * 0.08;
   const hl = String(story.headline || "");
   for (const e of (hl.match(/[A-Z][a-z]{3,}/g) || []))
@@ -32,7 +48,7 @@ function interestScore(story, watchTerms) {
   // the things YOU follow" is the point of the briefing.
   const low = hl.toLowerCase() + " " + String(story.summary || "").toLowerCase();
   for (const t of (watchTerms || []))
-    if (t && low.includes(t.toLowerCase())) sc += 1.0;
+    if (t && low.includes(t.toLowerCase())) sc += 1.2;
   return sc;
 }
 

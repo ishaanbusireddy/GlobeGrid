@@ -128,6 +128,16 @@ LEADERSHIP = [
     # profile case; countries.status='de_facto' carries the recognition nuance)
     ("AFG", "head_of_state", "Hibatullah Akhundzada (Supreme Leader)", "Taliban", "2021-08-15"),
     ("AFG", "head_of_government", "Mohammad Hassan Akhund (Acting PM)", "Taliban", "2021-09-07"),
+    # v7.3 — the three UN members/observers that had NO leadership row (owner:
+    # "why do minor entities like Palestine still not have leaders"), plus the
+    # two newly-added de-facto states (Abkhazia, South Ossetia).
+    ("PSE", "head_of_state", "Mahmoud Abbas", "Fatah", "2005-01-15"),
+    ("PSE", "head_of_government", "Mohammad Mustafa", "Independent", "2024-03-31"),
+    ("VAT", "head_of_state", "Pope Leo XIV", None, "2025-05-08"),
+    ("ESP", "head_of_state", "King Felipe VI", None, "2014-06-19"),
+    ("ESP", "head_of_government", "Pedro Sánchez", "PSOE", "2018-06-02"),
+    ("ABK", "head_of_state", "Badra Gunba", "Independent", "2025-03-08"),
+    ("OST", "head_of_state", "Alan Gagloev", "Nykhas", "2022-05-24"),
 ]
 
 # (name, type, founded, description, [member iso3...])
@@ -664,6 +674,11 @@ COUNTRIES_V4_EXTRA = [
     ('XKX', 'Kosovo', 'Pristina', 'Southern Europe', None, 42.67, 21.17),
     ('ZMB', 'Zambia', 'Lusaka', 'Eastern Africa', None, -15.41, 28.28),
     ('ZWE', 'Zimbabwe', 'Harare', 'Eastern Africa', None, -17.82, 31.04),
+    # v7.3 — Russia-backed de-facto states in the Caucasus (owner: "Add Abkhazia
+    # and South Ossetia as defacto independent states"). Recognized by Russia
+    # and a handful of states; claimed by Georgia.
+    ('ABK', 'Abkhazia', 'Sukhumi', 'Western Asia', None, 43.0, 41.02),
+    ('OST', 'South Ossetia', 'Tskhinvali', 'Western Asia', None, 42.22, 43.96),
 ]
 
 COUNTRY_STATUS = {
@@ -673,6 +688,8 @@ COUNTRY_STATUS = {
     'TWN': 'de_facto',
     'VAT': 'observer_state',
     'XKX': 'de_facto',
+    'ABK': 'de_facto',   # v7.3 — Abkhazia
+    'OST': 'de_facto',   # v7.3 — South Ossetia
     # v6 §21/§15 — Taliban-governed Afghanistan: UN seat contested, governing
     # authority unrecognized by most states, so the honest status is de_facto
     'AFG': 'de_facto',

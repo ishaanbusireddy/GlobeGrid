@@ -289,6 +289,12 @@ _WIKI_TITLE_OVERRIDES = {
     "Morena": "National Regeneration Movement",
     "CDU": "Christian Democratic Union of Germany",
     "SPD": "Social Democratic Party of Germany",
+    # v7.3 — "People's Defence Forces" is ALSO the name of the PKK's armed wing
+    # (HPG), so the bare title resolved to the PKK article on the Myanmar PDF
+    # page (owner: "People's Defence Forces page in Myanmar shows the PKK
+    # Kurdistan as its wiki summary"). Pin the correct Myanmar article.
+    "People's Defence Forces (Myanmar)": "People's Defence Force (Myanmar)",
+    "Kurdistan Workers' Party (PKK)": "Kurdistan Workers' Party",
 }
 
 

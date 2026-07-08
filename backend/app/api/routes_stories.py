@@ -98,6 +98,26 @@ def _story_card(row) -> dict:
     d["has_historical_link"] = bool(query_one(
         "SELECT 1 FROM story_members WHERE story_id = ? AND linked_via = 'historical_chain'"
         " LIMIT 1", (row["id"],)))
+    # v7.4 — the real WHEN of the story: the min/max of its member events'
+    # occurred_at, so the UI can date a story by when it actually happened
+    # (a 1945 landmark reads "1945", not today's ingestion time).
+    span = query_one(
+        "SELECT MIN(e.occurred_at) AS first_occurred, MAX(e.occurred_at) AS last_occurred"
+        " FROM story_members m JOIN events e ON e.id = m.event_id WHERE m.story_id = ?",
+        (row["id"],))
+    if span:
+        d["first_occurred_at"] = span["first_occurred"]
+        d["last_occurred_at"] = span["last_occurred"]
+        # a story is "historical" when even its newest event predates the live
+        # window — the UI badges it and shows the event date, not "today"
+        import datetime as _dt
+        try:
+            newest = _dt.datetime.fromisoformat(
+                (span["last_occurred"] or "").replace("Z", "+00:00"))
+            d["is_historical"] = (
+                _dt.datetime.now(_dt.timezone.utc) - newest).days > 60
+        except (ValueError, TypeError):
+            d["is_historical"] = False
     # v6.6.2 — attach the tagged conflict's name so the feed card can show a
     # clickable conflict chip that opens War Mode for it
     if d.get("conflict_id"):
@@ -108,6 +128,25 @@ def _story_card(row) -> dict:
 
 def _stories_rows(q) -> list:
     conditions, args = ["1=1"], []
+    # v7.4 — the LIVE feed only shows stories whose newest tracked event is
+    # recent (owner: "Historical events and new stories from YEARS ago should
+    # NOT appear in the live feed but instead somewhere else, like the
+    # archives"). A story built purely from historical events (1945→2024 packs,
+    # correctly dated by occurred_at) is thus kept out of the live feed but
+    # stays fully browsable in the History/Archive view — which sets `from`/`to`
+    # and therefore skips this gate, as do the `as_of` time-capsule and an
+    # explicit include_historical=1.
+    if not (q.get("from") or q.get("to") or q.get("as_of")
+            or q.get("include_historical") == "1"):
+        from datetime import datetime, timedelta, timezone as _tz
+        from ..config import CONFIG
+        days = int((CONFIG.get("feed") or {}).get("live_window_days", 45))
+        cutoff = (datetime.now(_tz.utc) - timedelta(days=days)).isoformat(
+            timespec="seconds").replace("+00:00", "Z")
+        conditions.append(
+            "EXISTS (SELECT 1 FROM story_members m JOIN events e ON e.id = m.event_id"
+            " WHERE m.story_id = s.id AND e.occurred_at >= ?)")
+        args.append(cutoff)
     if q.get("since"):
         conditions.append("s.last_updated_at > ?")
         args.append(q["since"])

@@ -43,16 +43,32 @@ function freshness(ts) {   // §15.3 — visible 'last updated', always
 // v7 Part 6 — curated world-knowledge dossier, rendered INSTANTLY on open
 // (no LLM, no network): the "explain this to someone who just discovered it"
 // layer. `k` is the route's knowledge object {brief, region_brief?, curated}.
+// v7.3 — break a dense one-paragraph brief into 2-sentence chunks so it reads
+// as scannable paragraphs, not a wall of text (owner: "this is not readable at
+// all … how is someone who doesnt know that much supposed to understand it").
+function _paras(text) {
+  const sentences = String(text || "").match(/[^.!?]+[.!?]+(?:["')\]]|\s|$)/g)
+    || [text];
+  const out = [];
+  for (let i = 0; i < sentences.length; i += 2) {
+    out.push(sentences.slice(i, i + 2).join("").trim());
+  }
+  return out.filter(Boolean);
+}
 export function knowledgeSection(k, title = "Deep background") {
   if (!k || (!k.brief && !k.region_brief)) return "";
   const tag = k.curated
     ? '<span class="chip">curated intelligence · early 2026</span>'
     : '<span class="chip">composed from tracked data</span>';
+  const briefHtml = k.brief
+    ? _paras(k.brief).map((p) => `<p class="knowledge-text">${esc(p)}</p>`).join("")
+    : "";
   return `<section class="knowledge-sec"><h4>🌍 ${esc(title)} ${tag}</h4>
-    ${k.brief ? `<p class="knowledge-text">${esc(k.brief)}</p>` : ""}
-    ${k.region_brief ? `<p class="knowledge-text knowledge-region">
-      <b>Regional context${k.region ? ` — ${esc(k.region)}` : ""}:</b>
-      ${esc(k.region_brief)}</p>` : ""}
+    ${briefHtml}
+    ${k.region_brief ? `<div class="knowledge-region">
+      <h5>Regional context${k.region ? ` — ${esc(k.region)}` : ""}</h5>
+      ${_paras(k.region_brief).map((p) => `<p class="knowledge-text">${esc(p)}</p>`).join("")}
+      </div>` : ""}
   </section>`;
 }
 
@@ -567,16 +583,35 @@ export async function renderAlliance(el, id, ctx) {
     `<button class="ap-chip country-link" data-id="${esc(m.id)}">
       ${m.flag_image_url ? flagInline(m) : ""} ${esc(m.name)}</button>`).join(" ");
   const observers = (a.members || []).filter((m) => m.status !== "member");
-  // v6.6.4 — a recognizable emblem per bloc on its page
+  // v6.6.4 — a recognizable emblem per bloc; v7.4 — REAL bloc flags/emblems
+  // from Wikimedia (owner: "make sure bloc panels have actual symbols or flags
+  // of the blocs … not random ahh emojis"). Falls back to the emoji on load
+  // error so a bloc without a hosted flag still shows something sensible.
   const BLOC_EMBLEM = {
     "NATO": "🛡️", "European Union": "🇪🇺", "CSTO": "🛡️", "Arab League": "🕌",
     "ASEAN": "🌏", "African Union": "🌍", "BRICS": "🧱", "OPEC": "🛢️",
     "Five Eyes": "👁️", "QUAD": "🀫", "AUKUS": "⚓", "G7": "7️⃣", "OECD": "📊",
     "SCO": "🌏", "Mercosur": "🌎", "GCC": "🕌", "ECOWAS": "🌍",
   };
-  const emblem = BLOC_EMBLEM[a.name] || "⬡";
+  const BLOC_FLAG_FILE = {
+    "NATO": "Flag of NATO.svg", "European Union": "Flag of Europe.svg",
+    "African Union": "Flag of the African Union.svg", "ASEAN": "Flag of ASEAN.svg",
+    "Arab League": "Flag of the Arab League.svg",
+    "SCO": "Flag of the Shanghai Cooperation Organisation.svg",
+    "CSTO": "Emblem of the Collective Security Treaty Organization.svg",
+    "Mercosur": "Flag of Mercosur.svg", "ECOWAS": "Flag of ECOWAS.svg",
+    "GCC": "Flag of the Cooperation Council for the Arab States of the Gulf.svg",
+    "OPEC": "Flag of OPEC.svg", "OECD": "OECD logo.svg", "AUKUS": "AUKUS logo.svg",
+  };
+  const emblemChar = BLOC_EMBLEM[a.name] || "⬡";
+  const flagFile = BLOC_FLAG_FILE[a.name];
+  const emblem = flagFile
+    ? `<img class="wiki-flag-img" src="https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(flagFile)}?width=120"
+         alt="${esc(a.name)} flag"
+         onerror="this.outerHTML='<div style=&quot;font-size:56px;text-align:center&quot;>${emblemChar}</div>'">`
+    : `<div style="font-size:56px;text-align:center">${emblemChar}</div>`;
   el.innerHTML = `
-    <div class="wiki-header"><div class="wiki-flag" style="font-size:56px;text-align:center">${emblem}</div>
+    <div class="wiki-header"><div class="wiki-flag">${emblem}</div>
       <div class="wiki-head-meta"><h1>${esc(a.name)}</h1>
         <p class="cp-meta">${esc(a.type)} bloc · founded ${esc(a.founded_date || "?")}
           · ${stats.member_count || 0} members${prof.hq ? " · HQ " + esc(prof.hq) : ""}</p>

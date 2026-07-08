@@ -40,6 +40,7 @@ export class AnalystPanel {
         <label class="ap-autonav" title="jump the UI to the answer's subject automatically">
           <input type="checkbox" ${this.autoNav ? "checked" : ""}> auto-navigate
         </label>
+        <button class="ap-clear" title="clear conversation history">🗑 clear</button>
         <button class="ap-close">✕</button>
       </div>
       <div class="ap-messages"></div>
@@ -56,6 +57,7 @@ export class AnalystPanel {
 
     this.orb.addEventListener("click", () => this.toggle());
     this.panel.querySelector(".ap-close").addEventListener("click", () => this.hide());
+    this.panel.querySelector(".ap-clear").addEventListener("click", () => this._clear());
     this.panel.querySelector(".ap-autonav input").addEventListener("change", (ev) => {
       this.autoNav = ev.target.checked;
       localStorage.setItem(AUTONAV_KEY, this.autoNav ? "1" : "0");
@@ -122,6 +124,15 @@ export class AnalystPanel {
       this.inflight.abort(new Error("stopped by user"));
       this.inflight = null;
     }
+  }
+
+  // v7.3 — clear conversation history: wipe the panel + the stored session so
+  // the next question starts a clean thread.
+  async _clear() {
+    this._stop();
+    this.messagesEl.innerHTML = "";
+    try { await api.analystClear(this.sessionId); } catch { /* best-effort */ }
+    this.sessionId = null;
   }
 
   async _ask(question) {

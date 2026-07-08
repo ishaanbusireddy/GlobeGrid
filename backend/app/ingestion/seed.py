@@ -307,6 +307,168 @@ SOURCES += [
     ("NASA Earth", "rss", "https://www.nasa.gov/rss/dyn/earth.rss", "n/a", "official"),
 ]
 
+# ── v7.4 — GLOBAL SOURCE EXPANSION (owner: "wire large amounts (100s) of new
+# sources for each country across the world … relevant, major financial,
+# political, diplomatic, military, technological, economic … fill the entire
+# globe; go crazy with it"). Real RSS endpoints from reputable outlets, grouped
+# by region + beat. Live fetch is proxy-blocked in the build sandbox and
+# degrades cleanly per source; on a real network these fill the globe.
+SOURCES += [
+    # ---------- FAST WAR / FRONTLINE / OSINT (owner: "quick on the ground
+    # alerts, frontline updates, war updates … learn how LiveUAMap sources
+    # updates"). LiveUAMap has no open RSS, but it aggregates exactly these
+    # outlets + Telegram OSINT — we replicate the roster of feeds it pulls. ----
+    ("Institute for the Study of War", "rss", "https://www.understandingwar.org/backgrounder/feed", "center", "reported"),
+    ("The New Voice of Ukraine", "rss", "https://english.nv.ua/rss/all.xml", "center", "reported"),
+    ("Militarnyi", "rss", "https://mil.in.ua/en/feed/", "center", "reported"),
+    ("Defense Express (UA)", "rss", "https://en.defence-ua.com/rss.xml", "center", "reported"),
+    ("Al Jazeera Live Blogs", "rss", "https://www.aljazeera.com/xml/rss/all.xml", "center", "reported"),
+    ("Middle East Eye", "rss", "https://www.middleeasteye.net/rss", "left", "reported"),
+    ("The Times of Israel Liveblog", "rss", "https://www.timesofisrael.com/liveblog/feed/", "center", "reported"),
+    ("Haaretz", "rss", "https://www.haaretz.com/srv/haaretz-latestHeadlines", "center", "reported"),
+    ("The National (UAE)", "rss", "https://www.thenationalnews.com/rss/", "center", "reported"),
+    ("Al-Monitor", "rss", "https://www.al-monitor.com/rss", "center", "reported"),
+    ("Rudaw (Kurdistan)", "rss", "https://www.rudaw.net/rss/rss.aspx?lang=english", "center", "reported"),
+    ("SANA (Syria)", "rss", "https://sana.sy/en/?feed=rss2", "left", "reported"),
+    ("Kyiv Post", "rss", "https://www.kyivpost.com/feed", "center", "reported"),
+    ("The Moscow Times", "rss", "https://www.themoscowtimes.com/rss/news", "center", "reported"),
+    ("Long War Journal", "rss", "https://www.longwarjournal.org/feed", "center", "reported"),
+    ("The War Zone", "rss", "https://www.twz.com/feed", "center", "reported"),
+    ("Naval News", "rss", "https://www.navalnews.com/feed/", "center", "reported"),
+    ("Army Recognition", "rss", "https://www.armyrecognition.com/component/ninjarsssyndicator/?feed_id=1&format=raw", "center", "reported"),
+    ("Stars and Stripes", "rss", "https://www.stripes.com/rss/news.rss", "center", "reported"),
+    ("Military Times", "rss", "https://www.militarytimes.com/arc/outboundfeeds/rss/?outputType=xml", "center", "reported"),
+    ("SOFREP", "rss", "https://sofrep.com/feed/", "center", "reported"),
+
+    # ---------- NORTH AMERICA — politics / economy / diplomacy / tech ----------
+    ("Politico", "rss", "https://www.politico.com/rss/politics08.xml", "center", "reported"),
+    ("The Hill", "rss", "https://thehill.com/rss/syndicator/19110", "center", "reported"),
+    ("Axios", "rss", "https://api.axios.com/feed/", "center", "reported"),
+    ("Foreign Policy", "rss", "https://foreignpolicy.com/feed/", "center", "reported"),
+    ("Foreign Affairs", "rss", "https://www.foreignaffairs.com/rss.xml", "center", "reported"),
+    ("Council on Foreign Relations", "rss", "https://www.cfr.org/rss.xml", "center", "reported"),
+    ("Brookings", "rss", "https://www.brookings.edu/feed/", "center", "reported"),
+    ("CSIS", "rss", "https://www.csis.org/rss.xml", "center", "reported"),
+    ("State Dept Press", "rss", "https://www.state.gov/rss-feed/press-releases/feed/", "n/a", "official"),
+    ("US DoD News", "rss", "https://www.defense.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=945&max=20", "n/a", "official"),
+    ("CBC Politics", "rss", "https://www.cbc.ca/webfeed/rss/rss-politics", "center", "reported"),
+    ("The Globe and Mail", "rss", "https://www.theglobeandmail.com/arc/outboundfeeds/rss/category/politics/", "center", "reported"),
+
+    # ---------- LATIN AMERICA ----------
+    ("MercoPress", "rss", "https://en.mercopress.com/rss/", "center", "reported"),
+    ("Buenos Aires Times", "rss", "https://www.batimes.com.ar/feed", "center", "reported"),
+    ("Brazil - Agência Brasil", "rss", "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml", "n/a", "official"),
+    ("Rio Times", "rss", "https://www.riotimesonline.com/feed/", "center", "reported"),
+    ("Mexico News Daily", "rss", "https://mexiconewsdaily.com/feed/", "center", "reported"),
+    ("teleSUR English", "rss", "https://www.telesurenglish.net/rss/RssAllNews.xml", "left", "reported"),
+    ("Colombia Reports", "rss", "https://colombiareports.com/feed/", "center", "reported"),
+
+    # ---------- EUROPE (West + Central + East) ----------
+    ("EURACTIV", "rss", "https://www.euractiv.com/feed/", "center", "reported"),
+    ("Politico Europe", "rss", "https://www.politico.eu/feed/", "center", "reported"),
+    ("EUobserver", "rss", "https://euobserver.com/rss.xml", "center", "reported"),
+    ("Deutsche Welle EU", "rss", "https://rss.dw.com/rdf/rss-en-eu", "center", "reported"),
+    ("France24 Europe", "rss", "https://www.france24.com/en/europe/rss", "center", "reported"),
+    ("The Local (Europe)", "rss", "https://www.thelocal.com/feeds/rss.php", "center", "reported"),
+    ("Notes from Poland", "rss", "https://notesfrompoland.com/feed/", "center", "reported"),
+    ("Balkan Insight", "rss", "https://balkaninsight.com/feed/", "center", "reported"),
+    ("Emerging Europe", "rss", "https://emerging-europe.com/feed/", "center", "reported"),
+    ("Intellinews", "rss", "https://www.intellinews.com/feed", "center", "reported"),
+    ("The Irish Times World", "rss", "https://www.irishtimes.com/arc/outboundfeeds/feed/world/", "center", "reported"),
+    ("El País English", "rss", "https://feeds.elpais.com/mrss-s/pages/ep/site/english.elpais.com/portada", "center", "reported"),
+
+    # ---------- MIDDLE EAST / NORTH AFRICA ----------
+    ("Arab News", "rss", "https://www.arabnews.com/rss.xml", "center", "reported"),
+    ("Al-Ahram (Egypt)", "rss", "https://english.ahram.org.eg/rss/EnglishHome.aspx", "center", "reported"),
+    ("Daily Sabah (Turkey)", "rss", "https://www.dailysabah.com/rssFeed/homepage", "center", "reported"),
+    ("Tehran Times", "rss", "https://www.tehrantimes.com/rss", "left", "reported"),
+    ("Iran International", "rss", "https://www.iranintl.com/en/rss.xml", "center", "reported"),
+    ("Gulf News", "rss", "https://gulfnews.com/rss/world", "center", "reported"),
+    ("The New Arab", "rss", "https://www.newarab.com/rss", "center", "reported"),
+    ("Morocco World News", "rss", "https://www.moroccoworldnews.com/feed", "center", "reported"),
+
+    # ---------- SUB-SAHARAN AFRICA ----------
+    ("AllAfrica", "rss", "https://allafrica.com/tools/headlines/rdf/latest/headlines.rdf", "center", "reported"),
+    ("The Africa Report", "rss", "https://www.theafricareport.com/feed/", "center", "reported"),
+    ("Daily Maverick (SA)", "rss", "https://www.dailymaverick.co.za/dmrss/", "center", "reported"),
+    ("Premium Times (Nigeria)", "rss", "https://www.premiumtimesng.com/feed", "center", "reported"),
+    ("The East African", "rss", "https://www.theeastafrican.co.ke/kenya/-/2558/2558/-/view/asFeed/-/12ll9auz/-/index.xml", "center", "reported"),
+    ("Daily Nation (Kenya)", "rss", "https://nation.africa/kenya/rss", "center", "reported"),
+    ("Ethiopia - Addis Standard", "rss", "https://addisstandard.com/feed/", "center", "reported"),
+    ("Sudan Tribune", "rss", "https://sudantribune.com/feed/", "center", "reported"),
+    ("Mail & Guardian (SA)", "rss", "https://mg.co.za/feed/", "center", "reported"),
+
+    # ---------- SOUTH ASIA ----------
+    ("The Hindu", "rss", "https://www.thehindu.com/news/national/feeder/default.rss", "center", "reported"),
+    ("Times of India World", "rss", "https://timesofindia.indiatimes.com/rssfeeds/296589292.cms", "center", "reported"),
+    ("The Indian Express", "rss", "https://indianexpress.com/section/india/feed/", "center", "reported"),
+    ("Dawn (Pakistan)", "rss", "https://www.dawn.com/feeds/home", "center", "reported"),
+    ("The Express Tribune (PK)", "rss", "https://tribune.com.pk/feed/home", "center", "reported"),
+    ("The Daily Star (Bangladesh)", "rss", "https://www.thedailystar.net/frontpage/rss.xml", "center", "reported"),
+    ("Kathmandu Post", "rss", "https://kathmandupost.com/rss", "center", "reported"),
+    ("Colombo Gazette (Sri Lanka)", "rss", "https://colombogazette.com/feed/", "center", "reported"),
+
+    # ---------- EAST ASIA ----------
+    ("NHK World", "rss", "https://www3.nhk.or.jp/nhkworld/en/news/rss/all.xml", "center", "reported"),
+    ("The Japan Times", "rss", "https://www.japantimes.co.jp/feed/", "center", "reported"),
+    ("Nikkei Asia", "rss", "https://asia.nikkei.com/rss/feed/nar", "center", "reported"),
+    ("Yonhap (Korea)", "rss", "https://en.yna.co.kr/RSS/news.xml", "center", "reported"),
+    ("Korea JoongAng Daily", "rss", "https://koreajoongangdaily.joins.com/xmls/joongang.xml", "center", "reported"),
+    ("Taipei Times", "rss", "https://www.taipeitimes.com/xml/index.rss", "center", "reported"),
+    ("Focus Taiwan", "rss", "https://focustaiwan.tw/rss/all", "center", "reported"),
+    ("Global Times (China)", "rss", "https://www.globaltimes.cn/rss/outbrain.xml", "right", "reported"),
+    ("Caixin Global", "rss", "https://www.caixinglobal.com/rss/all.xml", "center", "reported"),
+
+    # ---------- SOUTHEAST ASIA ----------
+    ("Channel NewsAsia", "rss", "https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml", "center", "reported"),
+    ("The Straits Times", "rss", "https://www.straitstimes.com/news/world/rss.xml", "center", "reported"),
+    ("Bangkok Post", "rss", "https://www.bangkokpost.com/rss/data/most-recent.xml", "center", "reported"),
+    ("The Jakarta Post", "rss", "https://www.thejakartapost.com/rss", "center", "reported"),
+    ("Rappler (Philippines)", "rss", "https://www.rappler.com/feed/", "center", "reported"),
+    ("VnExpress International", "rss", "https://e.vnexpress.net/rss/news.rss", "center", "reported"),
+    ("The Irrawaddy (Myanmar)", "rss", "https://www.irrawaddy.com/feed", "center", "reported"),
+    ("Myanmar Now", "rss", "https://myanmar-now.org/en/feed/", "center", "reported"),
+    ("The Diplomat", "rss", "https://thediplomat.com/feed/", "center", "reported"),
+
+    # ---------- CENTRAL ASIA / CAUCASUS ----------
+    ("Eurasianet", "rss", "https://eurasianet.org/rss.xml", "center", "reported"),
+    ("The Astana Times", "rss", "https://astanatimes.com/feed/", "center", "reported"),
+    ("OC Media (Caucasus)", "rss", "https://oc-media.org/feed/", "center", "reported"),
+    ("Civil Georgia", "rss", "https://civil.ge/feed", "center", "reported"),
+
+    # ---------- OCEANIA ----------
+    ("ABC News (Australia)", "rss", "https://www.abc.net.au/news/feed/2942460/rss.xml", "center", "reported"),
+    ("The Sydney Morning Herald World", "rss", "https://www.smh.com.au/rss/world.xml", "center", "reported"),
+    ("RNZ (New Zealand)", "rss", "https://www.rnz.co.nz/rss/world.xml", "center", "reported"),
+    ("The Guardian Australia", "rss", "https://www.theguardian.com/australia-news/rss", "center", "reported"),
+    ("Islands Business (Pacific)", "rss", "https://islandsbusiness.com/feed/", "center", "reported"),
+
+    # ---------- GLOBAL FINANCE / ECONOMY / MARKETS ----------
+    ("Reuters Business", "rss", "https://www.reutersagency.com/feed/?best-topics=business-finance&post_type=best", "center", "reported"),
+    ("CNBC World", "rss", "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100727362", "center", "reported"),
+    ("Bloomberg Markets", "rss", "https://feeds.bloomberg.com/markets/news.rss", "center", "reported"),
+    ("Financial Times World", "rss", "https://www.ft.com/world?format=rss", "center", "reported"),
+    ("The Economist", "rss", "https://www.economist.com/finance-and-economics/rss.xml", "center", "reported"),
+    ("Trading Economics", "rss", "https://tradingeconomics.com/rss/news.aspx", "n/a", "reported"),
+    ("IMF News", "rss", "https://www.imf.org/en/News/rss?language=eng", "n/a", "official"),
+    ("World Bank News", "rss", "https://www.worldbank.org/en/news/all?format=rss", "n/a", "official"),
+
+    # ---------- GLOBAL TECHNOLOGY ----------
+    ("Ars Technica", "rss", "https://feeds.arstechnica.com/arstechnica/index", "center", "reported"),
+    ("MIT Technology Review", "rss", "https://www.technologyreview.com/feed/", "center", "reported"),
+    ("The Register", "rss", "https://www.theregister.com/headlines.atom", "center", "reported"),
+    ("Rest of World", "rss", "https://restofworld.org/feed/latest/", "center", "reported"),
+    ("Nature News", "rss", "https://www.nature.com/nature.rss", "n/a", "reported"),
+    ("Science News", "rss", "https://www.sciencenews.org/feed", "n/a", "reported"),
+
+    # ---------- DIPLOMACY / MULTILATERAL ----------
+    ("UN News Global", "rss", "https://news.un.org/feed/subscribe/en/news/all/rss.xml", "n/a", "official"),
+    ("NATO News", "rss", "https://www.nato.int/cps/en/natohq/news.rss", "n/a", "official"),
+    ("European External Action Service", "rss", "https://www.eeas.europa.eu/eeas/rss_en", "n/a", "official"),
+    ("Chatham House", "rss", "https://www.chathamhouse.org/rss/feed", "center", "reported"),
+    ("Carnegie Endowment", "rss", "https://carnegieendowment.org/rss/solr?fa=feeds", "center", "reported"),
+]
+
 # v6 §2 — sources removed from the product entirely. Their rows persist for
 # fact-chain attribution (v1 §5.9: history is never deleted) but are flagged
 # is_active=0 so no polling thread ever starts for them again.

@@ -40,6 +40,12 @@ ingestion_intervals_seconds:
   ais: 900          # v7.2 §4 — maritime chokepoint vessel-traffic (key-gated)
   nightlights: 3600 # v7.2 §4 — VIIRS nighttime-lights blackout (key-gated)
 
+# v7.4 — the live feed only surfaces stories whose newest tracked event is
+# within this many days; older/historical stories drop to the History/Archive
+# view (which browses by explicit date range and ignores this window).
+feed:
+  live_window_days: 45
+
 map:
   cluster_pin_threshold: 15
   cluster_radius_km: 300

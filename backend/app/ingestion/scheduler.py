@@ -41,6 +41,17 @@ log = logging.getLogger("scheduler")
 
 # v6 §2 — GDELT (Events + Cloud) removed entirely: fetchers deleted, source
 # rows retired via is_active=0 (historical fact-chain rows keep attribution)
+# v7.4 — HARD BLOCK on GDELT ingestion (owner: "add an internal blocker/note
+# against ingesting GDELT news sources, they are horribly mass produced and low
+# quality"). Any source whose type or url/name smells of GDELT is refused a
+# polling thread AND skipped in the fetch path, so it can never be reintroduced
+# accidentally by a seed edit or a manually-added source row.
+GDELT_BLOCKED = ("gdelt", "gdelt_events")
+
+
+def _is_gdelt(name: str, stype: str, url: str = "") -> bool:
+    s = f"{name} {stype} {url}".lower()
+    return stype in GDELT_BLOCKED or "gdelt" in s
 FETCHERS = {
     "rss": rss.fetch,
     "usgs": usgs.fetch, "market": market.fetch, "reddit": reddit.fetch,
@@ -354,9 +365,10 @@ def _second_order_loop() -> None:
 
 
 def _backfill_loop() -> None:
-    """v7 Part 6 — historical backfill: seed the curated events pack once,
-    then walk the GDELT archive backward a few days per tick until
-    `backfill.days` of history is ingested. Degrades cleanly offline."""
+    """v7 Part 6 / v7.4 — historical backfill: seed the curated + deep event
+    packs once. The GDELT archive walk is GONE (owner: "Scrap all GDELT news
+    sources … they are horribly mass produced and low quality"); only the
+    hand-curated, correctly-dated history packs seed the chain now."""
     from . import backfill
     try:
         backfill.seed_curated_history()
@@ -366,14 +378,15 @@ def _backfill_loop() -> None:
         backfill.seed_deep_history()   # v7.2 — 1945→present deep pack
     except Exception:  # noqa: BLE001
         log.exception("deep_history_seed_failed")
-    while not stop_event.is_set():
-        try:
-            res = backfill.gdelt_backfill_tick()
-            if res.get("status") in ("complete", "disabled"):
-                return   # done forever — no need to keep the thread alive
-        except Exception:  # noqa: BLE001
-            log.exception("backfill_tick_failed")
-        stop_event.wait(float(cfg("backfill", "tick_interval_seconds")))
+    # v7.4 — GDELT archive backfill deliberately not run (see GDELT_BLOCKED).
+    # v7.4 — one-time pass: auto-classify already-ingested untagged stories into
+    # their conflicts so War Mode / conflict tabs fill immediately.
+    try:
+        from ..processing.correlate import reclassify_untagged_conflicts
+        n = reclassify_untagged_conflicts()
+        log.info("conflict_reclassify_backfill", extra={"data": {"stories": n}})
+    except Exception:  # noqa: BLE001
+        log.exception("conflict_reclassify_failed")
 
 
 def start_all() -> list[threading.Thread]:
@@ -391,9 +404,12 @@ def start_all() -> list[threading.Thread]:
         log.exception("corroborate_column_init_failed")
     # v6 §2 — retired sources (is_active=0) and types with no registered
     # fetcher never get a polling thread
-    for row in query("SELECT id, name, type FROM sources WHERE type != 'synthetic'"
+    for row in query("SELECT id, name, type, url FROM sources WHERE type != 'synthetic'"
                      " AND is_active = 1"):
         if row["type"] not in FETCHERS:
+            continue
+        if _is_gdelt(row["name"], row["type"], row["url"]):   # v7.4 hard block
+            log.info("gdelt_source_blocked", extra={"data": {"name": row["name"]}})
             continue
         t = threading.Thread(target=_source_loop, args=(row["id"],),
                              name=f"ingest-{row['name']}", daemon=True)

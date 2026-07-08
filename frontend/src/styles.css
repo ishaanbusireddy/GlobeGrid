@@ -243,6 +243,10 @@ a { color: var(--accent); }
 /* misc v2 */
 #feed-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 #feed-header h2 { margin-bottom: 0; }
+/* v7.3 — feed tools wrap so the CSV/history chips are never clipped off the
+   right edge of the feed panel (owner: "csv download buttn is cut off") */
+#feed-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 10px; }
+#feed-tools > select, #feed-tools > .filter-chip { flex: 0 0 auto; max-width: 100%; }
 .chip-official { color: var(--ok); border-color: var(--ok); }
 .watch-row { display: flex; gap: 10px; margin-top: 18px; }
 button.active { border-color: var(--accent); color: var(--accent); }
@@ -282,6 +286,8 @@ button.active { border-color: var(--accent); color: var(--accent); }
 .ap-head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); font-size: 12px; letter-spacing: 1.5px; }
 .ap-head em { color: var(--text-dim); font-style: normal; letter-spacing: 0; text-transform: none; }
 .ap-autonav { margin-left: auto; font-size: 11px; color: var(--text-dim); letter-spacing: 0; display: flex; gap: 4px; align-items: center; }
+.ap-clear { padding: 2px 8px; font-size: 11px; letter-spacing: 0; color: var(--text-dim); cursor: pointer; }
+.ap-clear:hover { color: #ff8f80; border-color: #ff6b57; }
 .ap-close { padding: 2px 8px; }
 .ap-messages { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
 .ap-msg { max-width: 92%; padding: 9px 12px; border-radius: 10px; font-size: 13px; line-height: 1.5; }
@@ -678,6 +684,14 @@ body.theme-amber_terminal {
 .chip.war-side-b { background: rgba(92,168,255,0.2); }
 #conflict-tabs .war-name { font-weight: 700; font-size: 12px; margin-right: 6px; color: var(--accent, #59e6f2); align-self: center; }
 #conflict-tabs .war-exit { margin-left: auto; border-color: #ff6b57; color: #ff8f80; }
+/* v7.3 — per-pane icon actions next to the fullscreen toggle (war-mode
+   Situation Room + conflict audio briefing). */
+.pane-actions { display: inline-flex; gap: 4px; align-items: center; }
+.pane-action {
+  background: none; border: 1px solid var(--line); border-radius: 6px;
+  padding: 2px 7px; cursor: pointer; font-size: 13px; line-height: 1;
+}
+.pane-action:hover { border-color: var(--accent, #59e6f2); filter: brightness(1.15); }
 
 /* §6 — drag-to-select rectangle (always screen-axis-aligned) */
 #rect-select { position: absolute; z-index: 40; border: 1.5px dashed var(--accent, #59e6f2); background: rgba(89,230,242,0.08); pointer-events: none; }
@@ -926,10 +940,14 @@ body.theme-light       #war-glow { --war-glow: rgba(220, 40, 10, 0.22); }
 .nsa-official { font-style: italic; opacity: 0.9; }
 
 /* v7 Part 6 — curated world-knowledge dossiers in every panel */
-.knowledge-sec { border-left: 3px solid var(--accent); padding-left: 10px;
+.knowledge-sec { border-left: 3px solid var(--accent); padding: 4px 12px;
   background: color-mix(in srgb, var(--accent) 6%, transparent); border-radius: 0 6px 6px 0; }
-.knowledge-text { line-height: 1.55; margin: 6px 0; }
-.knowledge-region { opacity: 0.85; font-size: 0.93em; }
+/* v7.3 — more readable dense briefs: airier line height + real paragraph gaps */
+.knowledge-text { line-height: 1.7; margin: 0 0 10px; max-width: 68ch; }
+.knowledge-region { margin-top: 12px; padding-top: 10px;
+  border-top: 1px dashed color-mix(in srgb, var(--accent) 35%, transparent); }
+.knowledge-region h5 { margin: 0 0 6px; font-size: 0.9em; letter-spacing: 0.5px;
+  text-transform: uppercase; color: var(--accent); }
 
 /* v7 §2 — Counterfactual Engine */
 .cfx-input-row { display: flex; gap: 8px; margin: 10px 0; }

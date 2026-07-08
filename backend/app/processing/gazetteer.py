@@ -137,7 +137,14 @@ def _ascii(s: str) -> str:
 AMBIGUOUS_SINGLE = frozenset(
     "central mobile split nice most bath deal sale reading along date media "
     "normal surprise commerce enterprise industry price march best close hit "
-    "man bar of many crane eagle liberty union orange golden".split())
+    "man bar of many crane eagle liberty union orange golden pen "
+    "same rally front".split())
+
+# v7.3 — a lone capitalized token matching a tiny place is almost always a
+# name-fragment collision (e.g. "Le Pen" → Pen, a ~30k town near Mumbai), not
+# the story's real location; single-word body matches must clear this bar.
+# Datelines (step 1) and multi-word place names bypass it entirely.
+SINGLE_TOKEN_MIN_POP = 100000
 
 
 def _candidate_spans(text: str) -> list[str]:
@@ -243,6 +250,13 @@ def geocode_text(text: str):
         if " " not in low_span and low_span in AMBIGUOUS_SINGLE:
             continue
         hit = _lookup_place(low_span)
+        # v7.3 — a LONE capitalized token that resolves to a tiny place is
+        # almost always a name-fragment collision, not the story's location
+        # (owner: "Le Pen" → "Pen", a 30k-pop town near Mumbai, pooled French
+        # politics into India). Require a meaningful population for single-word
+        # matches; multi-word places and datelines are unaffected.
+        if hit and " " not in low_span and (hit[3] or 0) < SINGLE_TOKEN_MIN_POP:
+            continue
         if hit:
             pos = lowered.find(span.lower())
             if pos < 0:

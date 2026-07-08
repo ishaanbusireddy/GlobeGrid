@@ -246,6 +246,23 @@ def correlate_event(event_id: str) -> dict:
     return {"story_id": story_id, "created": created, "updated": updated}
 
 
+def reclassify_untagged_conflicts(limit: int = 2000) -> int:
+    """v7.4 — run the conflict auto-classifier over stories that have no firm
+    conflict_id yet, so existing/backfilled coverage funnels into War Mode and
+    the conflict tabs without waiting for each story to be re-correlated."""
+    rows = query(
+        "SELECT id FROM stories WHERE conflict_id IS NULL"
+        " ORDER BY last_updated_at DESC LIMIT ?", (limit,))
+    n = 0
+    for r in rows:
+        try:
+            _suggest_conflict_tag(r["id"])
+            n += 1
+        except Exception:  # noqa: BLE001 — best-effort, never blocks startup
+            pass
+    return n
+
+
 def _conflict_party_entities() -> dict:
     """canonical-entity-id set per conflict, from registered parties (v3 §15).
     NSAs carry a canonical id directly; countries resolve theirs by name."""
@@ -267,49 +284,62 @@ def _conflict_party_entities() -> dict:
 
 
 def _suggest_conflict_tag(story_id: str) -> None:
-    """Write stories.suggested_conflict_id when a story's member facts share
-    canonical entities with a conflict's parties AND at least one member
-    event is development_type='conflict'. One-click confirm still applies
-    (routes_geo.confirm_conflict_tag) — this only fills the suggest queue
-    that v3 left permanently empty."""
+    """v7.4 — AUTO-CLASSIFY a story into a conflict (owner: "i want to see all
+    the appropriate events for things like israel, iran, ukraine, etc going into
+    the conflict slots and appearing in war mode … instead of just having the
+    user manually tag them"). A story whose facts share canonical entities with
+    a conflict's parties is auto-assigned `conflict_id` (so it appears in War
+    Mode / conflict tabs immediately) on a strong match; a weaker single-party
+    match still only fills `suggested_conflict_id` for one-click confirm.
+
+    The old gate required a war-scale development_type='conflict' event, which
+    starved the conflict tabs — now any event category qualifies as long as the
+    story genuinely names the conflict's parties (that is the signal)."""
     existing = query_one(
         "SELECT conflict_id, suggested_conflict_id FROM stories WHERE id = ?",
         (story_id,))
-    if not existing or existing["conflict_id"] or existing["suggested_conflict_id"]:
-        return  # already tagged or already suggested
-    # v5 §3 — only literal war-scale ('conflict') developments qualify;
-    # a story that's purely 'military' posturing never auto-suggests a tag
-    has_conflict_dev = query_one(
-        "SELECT 1 FROM story_members m JOIN events e ON e.id = m.event_id"
-        " WHERE m.story_id = ? AND e.development_type = 'conflict' LIMIT 1",
-        (story_id,))
-    if not has_conflict_dev:
-        return
+    if not existing or existing["conflict_id"]:
+        return  # already firmly tagged — never override a human/auto assignment
     story_ents: set = set()
     for f in query(
             "SELECT f.canonical_entity_ids FROM story_members m"
             " JOIN extracted_facts f ON (f.id = m.fact_id OR f.event_id = m.event_id)"
             " WHERE m.story_id = ? AND f.canonical_entity_ids IS NOT NULL",
             (story_id,)):
-        story_ents.update(json.loads(f["canonical_entity_ids"]))
+        try:
+            story_ents.update(json.loads(f["canonical_entity_ids"]))
+        except (ValueError, TypeError):
+            pass
     if not story_ents:
         return
-    floor = float(cfg("geopolitical_entities", "conflict_autotag_confidence_floor"))
-    best_cid, best_conf = None, 0.0
+    # does the story carry a conflict/military development? two party matches
+    # don't need it, but a lone match does (so a US–Israel trade story doesn't
+    # get funnelled into the Israel–Palestine war off one shared entity).
+    has_conflict_dev = query_one(
+        "SELECT 1 FROM story_members m JOIN events e ON e.id = m.event_id"
+        " WHERE m.story_id = ? AND (e.development_type IN ('conflict','military')"
+        " OR e.category IN ('conflict','military')) LIMIT 1", (story_id,))
+    best_cid, best_matches = None, 0
     for cid, ents in _conflict_party_entities().items():
         matches = len(story_ents & ents)
-        if matches == 0:
-            continue
-        confidence = min(1.0, 0.6 + 0.15 * matches)
-        if confidence > best_conf:
-            best_cid, best_conf = cid, confidence
-    if best_cid and best_conf >= floor:
-        with write_tx() as conn:
+        if matches > best_matches:
+            best_cid, best_matches = cid, matches
+    if not best_cid:
+        return
+    # strong = ≥2 belligerent entities named (e.g. BOTH Israel & Hamas, or both
+    # Russia & Ukraine), OR ≥1 party + an actual conflict/military development.
+    strong = best_matches >= 2 or (best_matches >= 1 and has_conflict_dev)
+    with write_tx() as conn:
+        if strong:
+            conn.execute("UPDATE stories SET conflict_id = ?,"
+                         " suggested_conflict_id = NULL WHERE id = ?",
+                         (best_cid, story_id))
+            log.info("conflict_auto_tagged",
+                     extra={"data": {"story_id": story_id, "conflict_id": best_cid,
+                                     "party_matches": best_matches}})
+        elif not existing["suggested_conflict_id"]:
             conn.execute("UPDATE stories SET suggested_conflict_id = ? WHERE id = ?",
                          (best_cid, story_id))
-        log.info("conflict_suggested", extra={"data": {"story_id": story_id,
-                                                       "conflict_id": best_cid,
-                                                       "confidence": round(best_conf, 2)}})
 
 
 def correlate_new_events(event_ids: list[str]) -> list[dict]:

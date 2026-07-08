@@ -29,6 +29,7 @@ export class SlidePane {
         <button class="pane-prev hidden" title="previous entry">⟨</button>
         <button class="pane-next hidden" title="next entry">⟩</button>
         <span class="pane-title"></span>
+        <span class="pane-actions"></span>
         <button class="pane-bookmark hidden" title="bookmark this page">☆</button>
         <button class="pane-full" title="fullscreen">⛶</button>
         <button class="pane-close" title="close">✕</button>
@@ -173,6 +174,19 @@ export class SlidePane {
       } catch { bm.textContent = "☆"; }
     } else {
       bm.classList.add("hidden");
+    }
+    // v7.3 — per-pane icon actions (e.g. the war-mode Situation Room + conflict
+    // audio-briefing icons sit next to the fullscreen toggle). entry.actions is
+    // [{icon, title, onClick}].
+    const actions = this.host.querySelector(".pane-actions");
+    actions.innerHTML = "";
+    for (const a of (entry.actions || [])) {
+      const b = document.createElement("button");
+      b.className = "pane-action";
+      b.textContent = a.icon;
+      b.title = a.title || "";
+      b.addEventListener("click", a.onClick);
+      actions.appendChild(b);
     }
   }
 

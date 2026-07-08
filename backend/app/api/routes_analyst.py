@@ -873,3 +873,19 @@ def history(params, q, body):
             if m.get(f):
                 m[f] = json.loads(m[f])
     return 200, {"session_id": session_id, "messages": messages}
+
+
+@route("POST", "/api/analyst/clear")
+def clear_history(params, q, body):
+    """v7.3 — wipe conversation history. Clears the given session (or all
+    sessions when none is named) so the next question starts a fresh thread."""
+    from ..db.session import write_tx
+    session_id = (body or {}).get("session_id") or q.get("session_id")
+    with write_tx() as conn:
+        if session_id:
+            conn.execute("DELETE FROM analyst_messages WHERE session_id = ?", (session_id,))
+            conn.execute("DELETE FROM analyst_sessions WHERE id = ?", (session_id,))
+        else:
+            conn.execute("DELETE FROM analyst_messages")
+            conn.execute("DELETE FROM analyst_sessions")
+    return 200, {"cleared": True}

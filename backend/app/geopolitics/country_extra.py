@@ -129,6 +129,18 @@ CURRENCIES = {
 # Colors are the parties' conventional political colors so the seat arc reads
 # without a legend. Seat figures are the build-snapshot composition.
 LEGISLATURES = {
+    # v7.3 — Georgia & Armenia parliaments were missing (owner: "why georgia &
+    # Armenia parliaments not showing?").
+    "GEO": {"chamber": "Parliament of Georgia", "total": 150, "note": "2024 election",
+            "parties": [("Georgian Dream", 89, "#1e5aa8"),
+                        ("Coalition for Change", 19, "#e4003b"),
+                        ("Unity–National Movement", 16, "#c8102e"),
+                        ("Strong Georgia", 14, "#f39200"),
+                        ("Gakharia for Georgia", 12, "#00a0a0")]},
+    "ARM": {"chamber": "National Assembly of Armenia", "total": 107, "note": "2021 election",
+            "parties": [("Civil Contract", 71, "#f5a623"),
+                        ("Armenia Alliance", 29, "#c8102e"),
+                        ("I Have Honor Alliance", 7, "#1e5aa8")]},
     "USA": {"chamber": "House of Representatives", "total": 435, "note": "119th Congress",
             "parties": [("Republican", 220, "#d63b3b"), ("Democratic", 213, "#3b6fd6"),
                         ("Vacant", 2, "#888888")],
@@ -493,6 +505,13 @@ COUNTRY_CAMP = {
     "AGO":"nonaligned","TZA":"nonaligned","MOZ":"nonaligned","BOL":"nonaligned",
     "PER":"nonaligned","MNG":"nonaligned","LBN":"nonaligned","AFG":"nonaligned",
     "KGZ":"nonaligned","TJK":"nonaligned","TKM":"nonaligned",
+    # v7.3 — added entities. Palestine leans to the Arab/nonaligned bloc; the
+    # two Russia-backed Caucasus de-facto states sit in the east camp.
+    "PSE":"nonaligned","ABK":"east","OST":"east",
+    # v7.3 — a few more common-sense camp placements the map was missing.
+    "YEM":"nonaligned","LBY":"nonaligned","SOM":"nonaligned","SEN":"nonaligned",
+    "CIV":"nonaligned","CMR":"nonaligned","ZMB":"nonaligned","ZWE":"east",
+    "CYN":"nonaligned","SOL":"nonaligned",
 }
 
 # camp-level cores used to build derived alignments
@@ -522,28 +541,49 @@ def _camp_members(camp, exclude=None):
 # other"). Symmetric: listing A→B also makes B→A. RIVALRIES force each other
 # into 'rival' (and out of strong/partner); FRIENDSHIPS force 'strong' (and out
 # of rival). Applied to the hand-authored powers too.
+# v7.3 — comprehensive, corrected rivalry table (owner: "go over and in detail,
+# correct all relations in alignments for every country"). Symmetric.
+# Saudi–Iran restored diplomatic ties in the 2023 China-brokered détente but
+# remain strategic rivals (Yemen, regional influence), so the rivalry stays;
+# new de-facto states point at Georgia; Palestine at Israel; GERD drives the
+# Egypt–Ethiopia and Nile-basin rivalry.
 RIVALRIES = {
+    # South & Central Asia
     "IND": ["PAK", "CHN"], "PAK": ["IND", "AFG"], "AFG": ["PAK"],
-    "ARM": ["AZE", "TUR"], "AZE": ["ARM"],
-    "ISR": ["IRN", "SYR", "LBN"], "IRN": ["ISR", "SAU", "USA"],
-    "SAU": ["IRN"], "PRK": ["KOR", "USA", "JPN"], "KOR": ["PRK"],
-    "JPN": ["PRK", "CHN"], "CHN": ["TWN", "IND", "JPN", "PHL", "USA"],
-    "TWN": ["CHN"], "PHL": ["CHN"], "GRC": ["TUR"], "TUR": ["GRC", "ARM"],
-    "UKR": ["RUS"], "RUS": ["UKR", "USA"], "USA": ["RUS", "CHN", "IRN", "PRK"],
-    "ETH": ["ERI"], "ERI": ["ETH"], "SRB": ["XKX"], "XKX": ["SRB"],
-    "DZA": ["MAR"], "MAR": ["DZA"], "VEN": ["USA"], "CUB": ["USA"],
-    "SDN": ["SSD"], "SSD": ["SDN"], "GBR": ["ARG"], "ARG": ["GBR"],
-    # v6.6.6 — al-Sharaa's Syria is hostile to Assad's backers Russia & Iran.
-    "SYR": ["IRN", "RUS"],
+    # Caucasus
+    "ARM": ["AZE", "TUR"], "AZE": ["ARM"], "GEO": ["RUS", "ABK", "OST"],
+    "ABK": ["GEO"], "OST": ["GEO"],
+    # Middle East
+    "ISR": ["IRN", "SYR", "LBN", "PSE", "YEM"], "IRN": ["ISR", "USA", "SAU"],
+    "PSE": ["ISR"], "SAU": ["YEM"], "YEM": ["SAU", "ISR"], "SYR": ["ISR"],
+    "QAT": [], "ARE": ["YEM"],
+    # East Asia
+    "PRK": ["KOR", "USA", "JPN"], "KOR": ["PRK"], "JPN": ["PRK", "CHN"],
+    "CHN": ["TWN", "IND", "JPN", "PHL", "USA"], "TWN": ["CHN"], "PHL": ["CHN"],
+    # Europe / Eurasia
+    "GRC": ["TUR"], "TUR": ["GRC", "ARM"], "UKR": ["RUS"],
+    "RUS": ["UKR", "USA", "GEO"], "USA": ["RUS", "CHN", "IRN", "PRK"],
+    "SRB": ["XKX"], "XKX": ["SRB"], "GBR": ["ARG"], "ARG": ["GBR"],
+    # Africa
+    "ETH": ["ERI", "EGY"], "ERI": ["ETH"], "EGY": ["ETH"],
+    "DZA": ["MAR"], "MAR": ["DZA"], "SDN": ["SSD"], "SSD": ["SDN"],
+    # Americas
+    "VEN": ["USA", "GUY"], "GUY": ["VEN"], "CUB": ["USA"], "NIC": ["USA"],
 }
+# v7.3 — comprehensive friendship / strong-ally table. Symmetric.
 FRIENDSHIPS = {
-    "IND": ["ARM", "RUS", "ISR"], "ARM": ["IND", "IRN", "FRA", "USA"],
-    # v6.6.6 — owner: add Pakistan as a US ally (tentative but explicit).
-    "USA": ["ISR", "GBR", "ARM", "PAK"], "ISR": ["USA", "IND"],
-    "PAK": ["CHN", "TUR", "SAU", "USA"], "AZE": ["TUR", "ISR"], "TUR": ["AZE", "PAK"],
-    "GRC": ["CYP"], "CYP": ["GRC"], "RUS": ["BLR", "IND"],
-    # v6.6.6 — new Syria's backers: Türkiye and Qatar (and Saudi outreach).
-    "SYR": ["TUR", "QAT"],
+    "IND": ["ARM", "RUS", "ISR", "FRA"], "ARM": ["IND", "IRN", "FRA", "USA"],
+    "USA": ["ISR", "GBR", "PAK", "AUS", "JPN", "KOR", "PHL"],
+    "ISR": ["USA", "IND"], "PAK": ["CHN", "TUR", "SAU", "USA"],
+    "AZE": ["TUR", "ISR", "PAK"], "TUR": ["AZE", "PAK", "QAT"],
+    "GRC": ["CYP"], "CYP": ["GRC"], "RUS": ["BLR", "IND", "ABK", "OST", "IRN"],
+    "SYR": ["TUR", "QAT"], "ABK": ["RUS"], "OST": ["RUS"],
+    # Palestine's backers: the Arab world, plus Iran/Turkey/Qatar diplomatically.
+    "PSE": ["JOR", "EGY", "QAT", "TUR", "IRN", "DZA", "SAU"],
+    # Gulf reconciliation (2021 Al-Ula) — Qatar back in the GCC fold.
+    "SAU": ["ARE", "BHR", "QAT", "EGY", "PAK"], "QAT": ["TUR", "SAU"],
+    "PRK": ["RUS", "CHN"], "KOR": ["USA", "JPN"],
+    "ETH": ["CHN"], "EGY": ["SAU", "ARE"],
 }
 
 

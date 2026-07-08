@@ -128,6 +128,8 @@ export const api = {
          { timeout: 60000, signal }),   // v6 §29 — screen-aware context
   analystHistory: (sessionId) =>
     get(`/api/analyst/history${sessionId ? "?session_id=" + sessionId : ""}`),
+  analystClear: (sessionId) =>
+    post("/api/analyst/clear", { session_id: sessionId || null }),
   // --- v4 ---
   cities: (minPop, limit) =>
     get(`/api/cities?min_population=${minPop || 500000}&limit=${limit || 4000}`),

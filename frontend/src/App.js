@@ -211,7 +211,7 @@ for (const id of ["marked-toggle", "sat-toggle", "sensors-toggle", "blocs-btn", 
                   "quality-select", "sound-toggle", "volume-slider", "preset-select",
                   "heatmap-toggle", "borders-toggle", "disputes-toggle", "actors-toggle",
                   "names-toggle", "spin-toggle", "tz-header",
-                  "palette-btn", "briefing-btn", "graph-btn", "watchlist-btn", "whatif-btn", "scorecard-btn", "audio-briefing-btn",
+                  "palette-btn", "briefing-btn", "graph-btn", "watchlist-btn", "whatif-btn", "audio-briefing-btn",
                   "bookmarks-btn", "stories-btn", "settings-btn", "snapshot-btn", "help-btn",
                   "watchlist-panel", "conn-badge", "map-filters", "graph-overlay",
                   "briefing-overlay", "status-drawer", "status-toggle",
@@ -286,14 +286,24 @@ const pane = new SlidePane(els.slidePane, {
     if (!entry || entry.targetType !== "country") {
       if (state.alignmentIso) { applyAlignmentOverlay(null); state.alignmentIso = null; }
     }
-    if (!entry) { setFocus(null); state.renderer?.setHighlight?.(null); return; }
+    if (!entry) {
+      // v7.4 — fully closing the war-mode pane exits war mode (owner: "War
+      // mode should exit when the associated war panel is closed fully").
+      if (state.warMode) exitWarMode();
+      setFocus(null); state.renderer?.setHighlight?.(null); return;
+    }
     if (entry.focus) setFocus(entry.focus.type, entry.focus.name);
   },
 });
 
 const ctx = {
   openStory: (id) => openStory(id),
-  openConflict: (id) => { pane.close(); selectConflict(id, { forceOn: true }); },
+  // v7.4 — open a conflict by ENTERING WAR MODE (fetches it by id), so a
+  // conflict chip on an NSA / country / bloc panel always opens even when the
+  // conflict isn't in the pre-loaded state.conflicts list (owner: "Conflicts
+  // dont link properly from certain pages such as NSA panels"). selectConflict
+  // silently no-op'd on an unloaded id.
+  openConflict: (id) => { pane.close(); enterWarMode(id); },
   openEntity: (type, id, opts) => openEntity(type, id, opts),
   openCompare: (a, b) => pane.push({
     key: `cmp:${a}:${b}`, title: "compare",
@@ -1685,11 +1695,17 @@ const analyst = new AnalystPanel({
       const loc = state.markedLocations.find((l) => l.id === nav.id);
       if (loc) state.renderer?.flyTo?.(loc.lat, loc.lon);
     } else if (nav.type === "alliance") {
-      // v6.1.1 — add to the active multi-bloc set + tick its checkbox
+      // v7.4 — asking the analyst about NATO now OPENS NATO's panel (owner:
+      // "if i ask about NATO, the Analyst doesnt open NATO"), and also lights
+      // its members on the map.
+      openEntity("alliance", nav.id);
       activeBlocs.add(nav.id);
       const cb = els.blocPanel.querySelector(`input[value="${nav.id}"]`);
       if (cb) cb.checked = true;
       applyBlocOverlay();
+    } else if (nav.type === "non_state_actor" || nav.type === "party"
+               || nav.type === "person" || nav.type === "organization") {
+      openEntity(nav.type, nav.id);   // v7.4 — generic entity open
     }
   },
 });
@@ -1783,42 +1799,8 @@ if (morning.briefingAvailable() && morning.shouldOfferToday()) {
 }
 
 // v7 §4 — the public forecast-accuracy dashboard
-els.scorecardBtn.addEventListener("click", () => {
-  pane.push({ key: "scorecard", title: "forecast accuracy",
-    render: async (el) => {
-      el.innerHTML = `<h1>🎯 How right were we?</h1>
-        <p class="cp-meta">Per-category Brier scores from replaying GlobeGrid's
-        own fact chain. A category only surfaces live forecasts once it clears
-        the calibration bar — failures are shown too; the honesty is the point.</p>
-        <p class="cp-meta sc-status">loading scorecards…</p><div class="sc-host"></div>
-        <button class="ap-chip sc-run">↻ re-run the backtest now</button>`;
-      const paint = (d) => {
-        const host = el.querySelector(".sc-host");
-        const st = el.querySelector(".sc-status");
-        st.textContent = d.last_run
-          ? `last backtest ${String(d.last_run).slice(0, 16).replace("T", " ")} · bar: Brier ≤ ${d.bar.brier_ceiling} over ≥ ${d.bar.min_graded} graded`
-          : "no backtest run yet — press re-run below.";
-        host.innerHTML = (d.categories || []).length
-          ? `<table class="sc-table"><tr><th>category</th><th>graded</th>
-               <th>hit rate</th><th>Brier ↓</th><th>forecasts</th></tr>` +
-            d.categories.map((c) => `<tr>
-              <td>${c.category}</td><td>${c.graded}</td>
-              <td>${c.graded ? Math.round(100 * c.confirmed / c.graded) + "%" : "—"}</td>
-              <td>${c.brier}</td>
-              <td>${c.passed ? "✅ earned" : "🔒 not yet earned"}</td></tr>`).join("")
-            + `</table>`
-          : `<p class="cp-meta">No graded history yet — the scorecard fills as
-             the fact chain accumulates resolved horizons. That's the design:
-             forecasts are earned, never assumed.</p>`;
-      };
-      paint(await api.forecastScorecard().catch(() => ({ categories: [], bar: { brier_ceiling: "?", min_graded: "?" } })));
-      el.querySelector(".sc-run").addEventListener("click", async () => {
-        el.querySelector(".sc-status").textContent = "replaying the chain…";
-        await api.runBacktest().catch(() => {});
-        paint(await api.forecastScorecard().catch(() => ({ categories: [], bar: {} })));
-      });
-    } });
-});
+// v7.3 — forecast-accuracy scorecard removed (owner: "delete the forecast
+// accuracy part … its dumb").
 els.whatifBtn.addEventListener("click", () => {
   pane.push({ key: "whatif", title: "what-if",
               render: (el) => renderWhatIf(el, ctx) });
@@ -1913,6 +1895,76 @@ els.conflictsBtn.addEventListener("click", () => {
   });
 });
 
+// v7.3 — detailed spoken briefing of the CURRENT conflict, driven by the
+// browser's speech synthesis (no key). Narrates status, overview, the sides
+// and who backs them, the live tracked developments, and — when a provider is
+// up — the AI order-of-battle. Toggling again stops it.
+const conflictBriefing = {
+  speaking: false,
+  _clean(t) {
+    return String(t || "").replace(/https?:\S+/g, "").replace(/[*_#`|>]/g, "")
+      .replace(/\s+/g, " ").trim();
+  },
+  async _segments(data) {
+    const c = data.conflict || {};
+    const sn = data.side_names || {};
+    const segs = [`Conflict briefing: ${c.name}.`];
+    const days = c.started_at
+      ? Math.floor((Date.now() - new Date(c.started_at).getTime()) / 86400000) : null;
+    segs.push(`Status: ${c.status || "ongoing"}${c.region ? ", in " + c.region : ""}`
+      + `${days != null ? `, now in its ${days.toLocaleString()}th day` : ""}.`);
+    if (c.summary) segs.push(this._clean(c.summary));
+    // sides + who is on them
+    for (const k of ["a", "b"]) {
+      const side = (data.parties || []).filter((p) => (p.side || "") === k);
+      if (!side.length) continue;
+      const belligs = side.filter((p) => p.role === "belligerent")
+        .map((p) => p.country_name || p.actor_name).filter(Boolean);
+      const backers = side.filter((p) => p.role === "backer")
+        .map((p) => p.country_name || p.actor_name).filter(Boolean);
+      let line = `${sn[k] || "One side"}: ${belligs.join(", ") || "the belligerents"}`;
+      if (backers.length) line += `, backed by ${backers.join(", ")}`;
+      segs.push(line + ".");
+    }
+    // recent tracked developments from the war feed
+    const recent = (feed.snapshot() || []).slice(0, 5)
+      .map((s) => this._clean(s.headline)).filter(Boolean);
+    if (recent.length) {
+      segs.push("Recent tracked developments:");
+      recent.forEach((h, i) => segs.push(`${i + 1}. ${h}.`));
+    }
+    // AI order of battle for real depth (degrades cleanly with no provider)
+    try {
+      const ob = await api.orderOfBattle(c.id);
+      for (const key of ["order_of_battle", "offensives", "tactics_evolution",
+                         "global_ramifications"]) {
+        const v = ob && ob[key];
+        if (v) segs.push(this._clean(Array.isArray(v) ? v.join(". ") : v));
+      }
+    } catch { /* no provider / offline — the briefing still covers the basics */ }
+    segs.push("That concludes the conflict briefing.");
+    return segs;
+  },
+  async toggle(data) {
+    if (!("speechSynthesis" in window)) return;
+    if (this.speaking) { this.stop(); return; }
+    this.speaking = true;
+    const segs = await this._segments(data);
+    if (!this.speaking) return;   // stopped while fetching
+    let i = 0;
+    const next = () => {
+      if (!this.speaking || i >= segs.length) { this.speaking = false; return; }
+      const u = new SpeechSynthesisUtterance(segs[i++]);
+      u.rate = 1.02;
+      u.onend = () => setTimeout(next, 220);
+      u.onerror = () => next();
+      window.speechSynthesis.speak(u);
+    };
+    next();
+  },
+  stop() { this.speaking = false; try { window.speechSynthesis.cancel(); } catch {} },
+};
+
 async function enterWarMode(conflictId) {
   // v6.6 — snapshot the accumulated general feed so exiting war mode
   // restores it instantly instead of erasing what was collected.
@@ -1965,10 +2017,19 @@ async function enterWarMode(conflictId) {
   state.renderer?.setActorZones?.([
     ...(state.actorsOn ? state.actorZones : []), ...warZones]);
 
-  // left panel: wiki-infobox conflict overview on the shared pane shell (§8)
+  // left panel: wiki-infobox conflict overview on the shared pane shell (§8).
+  // v7.3 — two small icon actions next to the fullscreen toggle: the Situation
+  // Room (four-analyst debate) and a detailed spoken conflict briefing.
   pane.push({
     key: `war:${conflictId}`, title: "war mode",
     focus: { type: "conflict", name: data.conflict.name },
+    actions: [
+      { icon: "🎙", title: "Situation Room — four AI analysts argue this conflict",
+        onClick: () => pane.push({ key: `sitroom:${conflictId}`, title: "situation room",
+          render: (el) => renderSituationRoom(el, conflictId, ctx) }) },
+      { icon: "🎧", title: "Audio briefing — a detailed spoken rundown of this conflict",
+        onClick: () => conflictBriefing.toggle(data) },
+    ],
     render: (el) => Wiki.renderWarMode(el, data, ctx),
   });
 
@@ -1978,6 +2039,7 @@ async function enterWarMode(conflictId) {
 }
 
 function exitWarMode() {
+  conflictBriefing.stop();   // v7.3 — silence any running conflict briefing
   document.body.classList.remove("war-active");   // v6.6.6 — clear edge glow
   // v6.6.2 — restore the exact pre-war feed snapshot (full story objects)
   if (state.preWarStories && state.preWarStories.length) {
@@ -2017,18 +2079,6 @@ function renderWarTabs() {
     });
     els.conflictTabs.appendChild(tab);
   }
-  // v7 §3 — the four-analyst Situation Room, one click from any war
-  const sit = document.createElement("button");
-  sit.className = "conflict-tab";
-  sit.textContent = "🎙 situation room";
-  sit.title = "Four AI analysts — Realist, Economist, Humanitarian, Military "
-    + "Strategist — argue this conflict from the same source chain";
-  sit.addEventListener("click", () => {
-    const cid = state.warMode.conflict.id;
-    pane.push({ key: `sitroom:${cid}`, title: "situation room",
-                render: (el) => renderSituationRoom(el, cid, ctx) });
-  });
-  els.conflictTabs.appendChild(sit);
   const exit = document.createElement("button");
   exit.className = "conflict-tab war-exit";
   exit.textContent = "✕ exit war mode";

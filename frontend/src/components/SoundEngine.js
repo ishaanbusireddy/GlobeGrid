@@ -638,15 +638,17 @@ export class SoundEngine {
       this._kick(t, 0.12, false);
       return;
     }
-    // v6.6.2 — softer, cooler "alert" chime (owner: the mass-update screech was
-    // too harsh). Was a single very-high sine (root+36, ~2-4kHz) that stacked
-    // into a screech when many stories arrived at once. Now a gentle rising
-    // perfect-fifth two-tone at a comfortable octave, soft attack + low-pass so
-    // rapid repeats blend into a pleasant notification instead of a screech.
-    const chime = { attack: 0.02, decay: 0.12, sustain: 0.35, release: 0.4,
-                    cutoff: 2400, resonance: 0.6 };
-    this._note(midiHz(scale.root + 12), t, 0.5, 0.055, "triangle", 0, chime);
-    this._note(midiHz(scale.root + 19), t + 0.11, 0.6, 0.05, "sine", 0, chime);
+    // v7.4 — a crisp, obvious "ping" (owner: "make the noise that plays when
+    // events stream in more obvious and pingy"). The 700ms rate-limit above
+    // still prevents the old buzz, so each individual arrival can be a clear
+    // bell-like notification: a bright two-tone with a fast bell attack, a
+    // short ringing decay and a little more presence than the soft v6.6.2 chime.
+    const ping = { attack: 0.004, decay: 0.09, sustain: 0.12, release: 0.28,
+                   cutoff: 5200, resonance: 1.1 };
+    // bright fundamental + an octave shimmer = a recognizable "ding-ping"
+    this._note(midiHz(scale.root + 24), t, 0.32, 0.095, "sine", 0, ping);
+    this._note(midiHz(scale.root + 31), t + 0.055, 0.28, 0.07, "triangle", 0, ping);
+    this._note(midiHz(scale.root + 36), t + 0.11, 0.22, 0.045, "sine", 0, ping);
   }
 
   noteSeverity(sev) { this.lastSeverity = Math.max(this.lastSeverity, sev || 1); }

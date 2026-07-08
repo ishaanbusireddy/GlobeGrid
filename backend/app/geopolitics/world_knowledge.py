@@ -83,6 +83,19 @@ REGION_BRIEFS = {
         "Australia and New Zealand — AUKUS submarines, Five Eyes intelligence, China "
         "trade dependence — plus Pacific island microstates courted by Beijing and "
         "Washington for security pacts and facing existential sea-level rise."),
+    # v7.3 — Central Asia was wrongly mapped to the Eastern Europe brief (owner:
+    # "Kazakhstan is in Central Asia not eastern europe … wth").
+    "Central Asia": (
+        "The five post-Soviet 'stans' — Kazakhstan, Uzbekistan, Turkmenistan, "
+        "Kyrgyzstan and Tajikistan — sit between Russia, China and the wider "
+        "Islamic world. Rich in oil, gas, uranium and rare metals, they 'multi-"
+        "vector': keeping old security ties to Moscow (CSTO, the Russian language, "
+        "labour migration) while China's Belt and Road builds the pipelines, roads "
+        "and rail that break their landlocked isolation, and the West and Türkiye "
+        "court them for energy and as a sanctions-era transit corridor. Mostly "
+        "secular, authoritarian, Turkic-speaking (Tajikistan is Persian-speaking); "
+        "watch water disputes over the Amu Darya and Syr Darya, the Afghan border, "
+        "and succession politics after decades of strongman rule."),
 }
 
 # ── conflict explainers — written for someone who has never heard of them ───
@@ -719,7 +732,6 @@ def _regions_for(iso3, m49_subregion):
         "Northern Europe": "Western Europe / EU core",
         "Southern Europe": "Western Europe / EU core",
         "Western Europe": "Western Europe / EU core",
-        "Central Asia": "Eastern Europe",
         "Middle Africa": "Sub-Saharan Africa", "Western Africa": "Sub-Saharan Africa",
         "Eastern Africa": "Sub-Saharan Africa", "Southern Africa": "Sub-Saharan Africa",
         "South America": "Latin America and the Caribbean",
