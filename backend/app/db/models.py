@@ -38,7 +38,7 @@ from datetime import datetime, timezone
 
 from .session import get_conn, write_tx
 
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 8
 
 # 'gdelt'/'gdelt_events' stay valid CHECK values only so any leftover row on
 # an un-migrated DB can still be read long enough for purge_gdelt() to delete
@@ -114,10 +114,43 @@ CREATE TABLE IF NOT EXISTS events (
   conflict_id TEXT,
   geocode_confidence REAL,
   global_relevance_score REAL,
-  development_type TEXT CHECK (development_type IN ('conflict','military'))
+  development_type TEXT CHECK (development_type IN ('conflict','military')),
+  admin_uid INTEGER  -- v8 §4: the ADM1 unit this event lands in (admin_atlas)
 );
 CREATE INDEX IF NOT EXISTS idx_events_occurred ON events(occurred_at);
 CREATE INDEX IF NOT EXISTS idx_events_category ON events(category);
+CREATE INDEX IF NOT EXISTS idx_events_admin_uid ON events(admin_uid);
+
+-- 6.3b v8 §4 — the Administrative Atlas: a variable-depth hierarchy of
+-- administrative units (ADM1 provinces/states now; districts/precincts as the
+-- deeper-tier data lands). Boundaries themselves are vendored + rendered from
+-- geopolitics/admin_atlas.py; THIS table is the queryable registry (ancestry,
+-- children, temporal validity, event linkage). adm_level is the depth (1 = the
+-- province tier), parent_uid the tree edge (NULL at ADM1, will point at a
+-- country/ADM0 node once deeper tiers exist), path a materialized "USA/CA/…"
+-- ancestry string for cheap prefix queries. effective_from/effective_to give
+-- every unit temporal validity (Q3): a unit real only 1991→present carries
+-- effective_from='1991-…'; the time-capsule (as_of) reads the epoch valid at a
+-- date. NULL effective_to = still current.
+CREATE TABLE IF NOT EXISTS administrative_units (
+  admin_uid INTEGER PRIMARY KEY,
+  country_id TEXT,            -- iso3 (adm0_a3) the unit belongs to
+  adm_level INTEGER NOT NULL DEFAULT 1,
+  parent_uid INTEGER,        -- tree edge to the enclosing unit (NULL at top)
+  path TEXT,                 -- materialized ancestry, e.g. 'USA/California'
+  name TEXT NOT NULL,
+  name_local TEXT,           -- endonym / local-script name when known
+  unit_type TEXT,            -- 'State','Province','Region',… (source type_en)
+  centroid_lat REAL,
+  centroid_lon REAL,
+  bbox_json TEXT,            -- [minLon,minLat,maxLon,maxLat] for pan/zoom
+  source TEXT,               -- provenance: 'naturalearth-10m','geoboundaries',…
+  effective_from TEXT,       -- ISO date the unit became valid (NULL = always)
+  effective_to TEXT          -- ISO date it ceased (NULL = still current)
+);
+CREATE INDEX IF NOT EXISTS idx_admin_parent ON administrative_units(parent_uid);
+CREATE INDEX IF NOT EXISTS idx_admin_country_level
+  ON administrative_units(country_id, adm_level);
 
 -- 6.4 extracted_facts (the fact chain — never deleted, never expired)
 -- v2: canonical_entity_ids, duplicate_of_fact_id, sentiment
@@ -965,6 +998,37 @@ def _upgrade_v5_to_v6() -> None:
         conn.close()
 
 
+def _upgrade_v6_to_v8() -> None:
+    """Additive v8 upgrade (V8 §4 — the Administrative Atlas). The
+    administrative_units table itself is created by the idempotent DDL
+    executescript in migrate(); the only in-place change an existing DB needs is
+    the nullable events.admin_uid column (the ADM1 unit an event lands in,
+    populated at ingestion). PRAGMA-checked so re-running is a no-op. (No v7
+    schema step existed — v7.x were data/feature releases on the v6 schema, so
+    v6→v8 is one hop.)"""
+    import sqlite3
+    from ..config import sqlite_path
+    conn = sqlite3.connect(str(sqlite_path()), timeout=30)
+    conn.row_factory = sqlite3.Row
+    conn.isolation_level = None
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        additions = {
+            "events": [("admin_uid", "INTEGER")],
+        }
+        for table, cols in additions.items():
+            have = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
+            for col, decl in cols:
+                if col not in have:
+                    conn.execute(f"ALTER TABLE {table} ADD COLUMN {col} {decl}")
+        conn.execute("COMMIT")
+    except Exception:
+        conn.execute("ROLLBACK")
+        raise
+    finally:
+        conn.close()
+
+
 def _backfill_fts(conn) -> None:
     if conn.execute("SELECT COUNT(*) AS n FROM fts_stories").fetchone()["n"] == 0:
         conn.execute("INSERT INTO fts_stories (id, headline, summary)"
@@ -996,12 +1060,27 @@ def migrate() -> None:
     # it on an already-v6 DB heals any column added late in the v6 cycle
     if 1 <= prior_version <= 6:
         _upgrade_v5_to_v6()
+    # <= 7: the v8 upgrade is idempotent (PRAGMA-checked ALTER) — re-running on
+    # an already-v8 DB is a no-op; v7 shipped no schema change so v6→v8 is one hop
+    if 1 <= prior_version <= 7:
+        _upgrade_v6_to_v8()
     with write_tx() as conn:
         conn.executescript(DDL)
         if prior_version < SCHEMA_VERSION:
             conn.execute(
                 "INSERT OR IGNORE INTO schema_migrations (version, applied_at) VALUES (?, ?)",
                 (SCHEMA_VERSION, now_iso()))
+    # v8 — a genuinely FRESH DB (prior_version == 0) skipped every version-gated
+    # upgrade above, but several columns the seeds/routes rely on (the v6.1
+    # currency_* columns, events.admin_uid, …) are ALTER-only — they live in the
+    # upgrade functions, not the base DDL. Re-run the additive v6/v8 upgrades now
+    # that the DDL has created the base tables; both are idempotent
+    # (PRAGMA-checked ALTERs) and their table-rebuild branches are guarded (a
+    # fresh DDL already carries the newest CHECK values), so this is a no-op on
+    # any already-migrated DB and makes a clean `python run.py` clone work.
+    if prior_version == 0:
+        _upgrade_v5_to_v6()
+        _upgrade_v6_to_v8()
     if fts_available():
         with write_tx() as conn:
             conn.executescript(FTS_DDL)

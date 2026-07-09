@@ -404,16 +404,27 @@ def process_pending(limit: int = 200) -> list[dict]:
                 "who": item["who"], "what": item["what"], "where": item["location_name"],
                 "when_occurred": item["occurred_at"], "created_at": created_at})
             relevance = global_relevance(item, row["src_type"], row["src_kind"])
+            # v8 §4 — resolve the event to the ADM1 unit it lands in (province/
+            # state), so its coverage surfaces on that unit's page and the
+            # same-unit correlation boost can fire. Best-effort: a geocode with
+            # no lat/lon, or a resolution hiccup, simply leaves admin_uid NULL.
+            admin_uid = None
+            if item["lat"] is not None and item["lon"] is not None:
+                try:
+                    from ..geopolitics.admin_atlas import unit_at as _unit_at
+                    admin_uid = _unit_at(item["lat"], item["lon"])
+                except Exception:  # noqa: BLE001 — never block ingestion on this
+                    admin_uid = None
             with write_tx() as conn:
                 conn.execute(
                     "INSERT INTO events (id, raw_item_id, title, description, location_lat,"
                     " location_lon, location_name, category, severity, occurred_at, embedding,"
-                    " geocode_confidence, global_relevance_score, development_type)"
-                    " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    " geocode_confidence, global_relevance_score, development_type, admin_uid)"
+                    " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     (event_id, row["id"], item["title"], item["description"], item["lat"],
                      item["lon"], item["location_name"], item["category"], item["severity"],
                      item["occurred_at"], emb, item["geocode_confidence"], relevance,
-                     item["development_type"]))
+                     item["development_type"], admin_uid))
                 conn.execute(
                     'INSERT INTO extracted_facts (id, event_id, source_id, who, what, "where",'
                     " when_occurred, embedding, created_at, canonical_entity_ids,"

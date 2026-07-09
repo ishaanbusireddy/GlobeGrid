@@ -181,6 +181,12 @@ export const api = {
   recognition: (subject) => get(`/api/recognition/${encodeURIComponent(subject)}`),
   autonomousZones: () => get("/api/autonomous-zones"),                   // v7.4.1 autonomous regions
   autonomousZone: (zid) => get(`/api/autonomous-zones/${encodeURIComponent(zid)}`),
+  // v8 §4/§5 — the Administrative Atlas (ADM1 provinces, deeper tiers later)
+  adminUnit: (uid, asOf) => get(`/api/admin/${encodeURIComponent(uid)}${asOf ? "?as_of=" + encodeURIComponent(asOf) : ""}`),
+  adminByCountry: (iso3, asOf) => get(`/api/admin/country/${encodeURIComponent(iso3)}${asOf ? "?as_of=" + encodeURIComponent(asOf) : ""}`),
+  adminAt: (lat, lon) => get(`/api/admin/at?lat=${lat}&lon=${lon}`),
+  adminSearch: (q) => get(`/api/admin/search?q=${encodeURIComponent(q)}`),
+  adminHistory: (country, asOf) => get(`/api/admin/history?${country ? "country=" + encodeURIComponent(country) : ""}${asOf ? "&as_of=" + encodeURIComponent(asOf) : ""}`),
   partyDossier: (name, country) => get(`/api/party-dossier?name=${encodeURIComponent(name)}${country ? "&country=" + encodeURIComponent(country) : ""}`),  // v7.4.2
   leaderProfile: (name) =>                                              // v6.6 / v6.6.6 non-blocking
     get(`/api/leader-profile?name=${encodeURIComponent(name)}`, { timeout: 20000 }),

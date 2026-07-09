@@ -30,6 +30,7 @@ import * as Wiki from "./components/panes/WikiPages.js";
 import { Alerts } from "./components/Alerts.js";
 import { exportSnapshot } from "./components/Snapshot.js";
 import { BOUNDARIES_50M_ENC } from "./data/boundaries50m.js";
+import { ADMIN1_ENC } from "./data/adminBoundaries.js";   // v8 §3 — real ADM1 provinces
 import { decodeBoundaries, countryAtPoint } from "./data/boundaryCodec.js";
 import { LANGUAGE_INFO, RELIGION_INFO, familyColor } from "./data/families.js";
 import { TIMEZONES, getTimeZone, setTimeZone, formatDateTime } from "./data/timefmt.js";  // v6.2 header tz
@@ -173,6 +174,36 @@ function applyThemeToRenderer() {
 const BOUNDARIES_50M = decodeBoundaries(BOUNDARIES_50M_ENC);
 function countryAt(lat, lon) { return countryAtPoint(BOUNDARIES_50M, lat, lon); }
 
+// v8 §3 — the Administrative Atlas: real ADM1 (province/state) boundaries,
+// decoded LAZILY on first use so boot stays fast (4,500+ units of encoded
+// rings). Reused for both rendering (flat rings → the renderers' admin buffer)
+// and click resolution (point-in-polygon → the smallest containing unit, whose
+// `i` is the admin_uid for /api/admin/{uid}).
+let ADMIN1_DECODED = null;
+let ADMIN1_FLAT = null;
+function ensureAdminDecoded() {
+  if (!ADMIN1_DECODED) ADMIN1_DECODED = decodeBoundaries(ADMIN1_ENC);
+  return ADMIN1_DECODED;
+}
+function adminAt(lat, lon) { return countryAtPoint(ensureAdminDecoded(), lat, lon); }
+function adminFlatRings() {
+  if (!ADMIN1_FLAT) {
+    ADMIN1_FLAT = [];
+    for (const u of ensureAdminDecoded()) for (const r of u.r) ADMIN1_FLAT.push(r);
+  }
+  return ADMIN1_FLAT;
+}
+// The admin layer is "active for clicks" only when it's toggled on AND the
+// camera is zoomed in far enough that provinces are actually drawn — so a
+// click matches what the user sees (province when visible, country otherwise).
+function adminLayerActive() {
+  if (!state.adminOn || !state.renderer) return false;
+  const r = state.renderer;
+  if (typeof r.dist === "number") return r.dist < 3.0;   // globe
+  if (typeof r.zoom === "number") return r.zoom >= 2.5;   // 2D map
+  return false;
+}
+
 // v6.1.1 — dynamic country label anchors, computed once from the largest ring
 // of each country (rings are flat [lon,lat,...]). The label sits at that
 // ring's bbox centre and carries its span in degrees; the renderer reveals it
@@ -211,7 +242,7 @@ for (const id of ["marked-toggle", "sat-toggle", "sensors-toggle", "blocs-btn", 
                   "lineage-overlay", "map-host", "feed-list", "tier-select",
                   "quality-select", "sound-toggle", "volume-slider", "preset-select",
                   "heatmap-toggle", "borders-toggle", "disputes-toggle", "actors-toggle",
-                  "names-toggle", "spin-toggle", "az-toggle", "tz-header",
+                  "names-toggle", "spin-toggle", "az-toggle", "admin-toggle", "tz-header",
                   "palette-btn", "briefing-btn", "graph-btn", "watchlist-btn", "whatif-btn", "audio-briefing-btn",
                   "bookmarks-btn", "stories-btn", "settings-btn", "snapshot-btn", "help-btn",
                   "watchlist-panel", "conn-badge", "map-filters", "graph-overlay",
@@ -232,6 +263,7 @@ const state = {
   syntheticMode: false,
   syntheticData: null,
   autonomousZones: [],   // v7.6 — always-on dotted autonomous-region borders
+  adminOn: localStorage.getItem("tdl_admin_layer") === "1",   // v8 §3 — ADM1 province layer
   mapData: { events: [], links: [] },
   clientConfig: {
     graphics: { quality_tier: "high", idle_tour_seconds: 0, ambient_sound_default: false },
@@ -447,6 +479,25 @@ const ctx = {
     key: "antarctica", title: "Antarctica",
     render: (el) => Wiki.renderAntarctica(el, ctx),
   }),
+  // v8 §5 — an administrative unit (province/state) as a first-class page,
+  // the way a country or territory is. Opened by clicking a province on the
+  // map (admin layer active) or a province chip on the parent country page.
+  openAdminUnit: (uid) => pane.push({
+    key: "admin:" + uid, title: "administrative unit",
+    render: (el) => Wiki.renderAdminUnit(el, uid, ctx),
+  }),
+  // v8 §3 — fly the map to an admin unit's bbox/centroid (from its page)
+  flyToBounds: (bbox, clat, clon) => {
+    if (clat != null && clon != null) {
+      const span = bbox ? Math.max(bbox[2] - bbox[0], bbox[3] - bbox[1]) : 6;
+      const dist = Math.max(1.6, Math.min(2.6, 1.5 + span / 30));  // globe
+      state.renderer?.flyTo?.(clat, clon, dist);
+      if (state.renderer && typeof state.renderer.zoom === "number") {  // 2D
+        state.renderer.zoom = Math.max(3, state.renderer.zoom);
+        state.renderer.flyTo?.(clat, clon);
+      }
+    }
+  },
 };
 pane.openEntity = (type, id, opts) => openEntity(type, id, opts);
 
@@ -791,6 +842,13 @@ function mountRenderer(tier) {
     onSelectCluster: (cluster) => openClusterList(cluster),   // v5 §9
     onSelectDisputed: (z) => ctx.openDisputedZone(z.id),      // v6.6.4 disputed marker
     onCountryClick: (lat, lon) => {
+      // v8 §3 — when the province layer is on and zoomed in, a click resolves
+      // to the smallest ADM1 unit (a real, openable entity) before falling
+      // back to the country, so provinces are as clickable as Greenland.
+      if (adminLayerActive()) {
+        const u = adminAt(lat, lon);
+        if (u && u.i) { ctx.openAdminUnit(u.i); return; }
+      }
       let c = countryAt(lat, lon);
       // v6.2 — small island nations (Mauritius, Comoros, Malta, Seychelles…)
       // have tiny polygons that a click almost never lands exactly on, so they
@@ -844,6 +902,11 @@ function mountRenderer(tier) {
   // v7.6 — autonomous-region dotted borders, on by default (togglable)
   if (state.autonomousZones && state.autonomousZones.length)
     state.renderer.setAutonomousZones?.(state.azOn !== false ? state.autonomousZones : []);
+  // v8 §3 — re-apply the ADM1 province layer on (re)mount if the user has it on
+  if (state.adminOn) {
+    state.renderer.setAdminBoundaries?.(adminFlatRings());
+    state.renderer.setAdminVisible?.(true);
+  }
   state.renderer.setCountryLabels?.(COUNTRY_LABELS);   // v6.1.1 dynamic labels
   if (state.renderer && state.renderer.onSelectRegion !== undefined)
     state.renderer.onSelectRegion = (region) => ctx.openRegion(region);  // v6.6
@@ -1541,6 +1604,29 @@ if (els.azToggle) {
     localStorage.setItem("tdl_az", state.azOn ? "1" : "0");
     els.azToggle.classList.toggle("active", state.azOn);
     state.renderer?.setAutonomousZones?.(state.azOn ? state.autonomousZones : []);
+  });
+}
+// v8 §3 — the Administrative Atlas layer: real ADM1 (province/state) borders,
+// zoom-gated. Off by default (the whole-globe view stays clean); toggling it on
+// decodes the vendored rings once, pushes them to the active renderer, and
+// makes clicks resolve to provinces when zoomed in. Persisted.
+if (els.adminToggle) {
+  els.adminToggle.classList.toggle("active", state.adminOn);
+  if (state.adminOn) {           // restore a persisted-on layer at boot
+    state.renderer?.setAdminBoundaries?.(adminFlatRings());
+    state.renderer?.setAdminVisible?.(true);
+  }
+  els.adminToggle.addEventListener("click", () => {
+    state.adminOn = !state.adminOn;
+    localStorage.setItem("tdl_admin_layer", state.adminOn ? "1" : "0");
+    els.adminToggle.classList.toggle("active", state.adminOn);
+    if (state.adminOn) {
+      state.renderer?.setAdminBoundaries?.(adminFlatRings());
+      state.renderer?.setAdminVisible?.(true);
+      alerts.toast?.("Provinces on — zoom into a country to see its states/provinces, then click one.");
+    } else {
+      state.renderer?.setAdminVisible?.(false);
+    }
   });
 }
 

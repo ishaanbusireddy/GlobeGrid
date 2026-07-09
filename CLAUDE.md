@@ -18,6 +18,79 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v8.0.0)
+
+**v8.0.0 (2026-07-09, V8 — the Administrative Atlas: the map becomes a global
+administrative hierarchy):** the owner's big V8 build ("rework the whole map into
+1000s of detailed units … treat each like a country or a territory, like how you
+did Greenland"). Design was locked over a multi-turn collaboration + an 18-page
+neon manifesto; this ships **Phase V8.0** — real ADM1 (province/state) coverage
+worldwide on the proven vector renderer, with the schema/temporal machinery for
+the deeper tiers and full history already live. Build decisions honored: variable
+-depth admin tree (Q1), **everything vendored in-repo** (Q2 — geoBoundaries/OSM
+deeper tiers are the follow-on data pass; ADM1 is Natural Earth 10m, public
+domain), **history first-class** (Q3), province-level demographics deferred (Q4).
+
+- **Real ADM1 data, vendored + rendered.** `scripts/build_admin_atlas.py`
+  (pure-stdlib: Douglas-Peucker + a polyline encoder matching `boundaryCodec.js`)
+  turns Natural Earth 10m admin-1 into **4,522 real provinces/states worldwide**,
+  emitting two committed artifacts: `frontend/src/data/adminBoundaries.js`
+  (`ADMIN1_ENC`, encoded rings for the renderers) and
+  `backend/app/geopolitics/admin_atlas.py` (the gzip+base64 unit registry + a
+  pure-python point-in-polygon `unit_at(lat,lon)` — no shapely). English-primary
+  names (`name_en` → "Bavaria" not "Bayern"), endonym kept as `name_local`.
+- **Schema v8** (SCHEMA_VERSION 6→8; v7.x shipped no schema change so v6→v8 is
+  one additive hop). New `administrative_units` table (variable-depth `adm_level`,
+  `parent_uid`/`path` tree, **temporal `effective_from`/`effective_to`** per Q3,
+  centroid/bbox/source). `events.admin_uid` (nullable, populated at ingestion).
+  `_upgrade_v6_to_v8()` is PRAGMA-checked idempotent; `_seed_administrative_units`
+  bulk-loads the atlas (INSERT OR IGNORE on stable uids). **Also fixed a latent
+  fresh-install bug:** the v6.1 currency_* columns are ALTER-only (never in the
+  DDL), so a truly fresh clone's first `python run.py` failed at seed — migrate()
+  now re-runs the additive v6/v8 upgrades AFTER the DDL for `prior_version==0`, so
+  a clean clone boots (needed for the owner's open-source plan).
+- **Provinces are real clickable entities on the map** (globe + 2D). Both
+  renderers gained `setAdminBoundaries`/`setAdminVisible`: a **zoom-gated** solid
+  soft-teal province layer (globe fades in dist<3.0; 2D at zoom≥2.5) so it never
+  crowds the whole-globe view and costs nothing when off. A header **"◇ provinces"
+  toggle** decodes the vendored rings once and pushes them to the active renderer;
+  while active + zoomed in, a map click resolves to the smallest containing ADM1
+  unit (point-in-polygon) and opens its page — exactly like clicking Greenland.
+- **The admin-unit page** (`Wiki.renderAdminUnit`, `/api/admin/{uid}`): full
+  country-grade layout — name + endonym + type, an ancestry breadcrumb (country ›
+  unit), key facts, the parent country's **inherited** stats (clearly labelled —
+  Q4 province demographics are a later pass), a ⌖ pan-to-area button, sibling
+  units + any sub-units as chips, temporal-validity note, and recent tracked
+  coverage. Every country page now also carries a **"◇ Provinces & states"**
+  drill-down (`/api/admin/country/{iso3}`) — clickable chips into each unit.
+- **API:** `/api/admin/at`, `/api/admin/country/{iso3}`, `/api/admin/search`,
+  `/api/admin/{uid}`, `/api/admin/history` — all time-capsule aware (`?as_of=`).
+- **History is first-class (Q3, back to 1950).** `geopolitics/admin_history.py`
+  is a curated knowledge-based timeline of **27 major sovereignty/border changes
+  since 1950** (Year of Africa, USSR & Yugoslavia dissolution, German/Yemen
+  reunification, Czechoslovakia split, Hong Kong/Macau handovers, South Sudan,
+  Crimea/oblasts, Nagorno-Karabakh 2023, …), honestly marked "estimated" where no
+  boundary dataset backs it, per the owner ("estimate from historical maps/
+  knowledge/treaties … switch to real data the second it's available"). Surfaced
+  on the country page as **🕰 Border & sovereignty history** and via
+  `/api/admin/history` (filter `?country=`/`?as_of=`). The temporal columns make
+  the `as_of` capsule select the epoch valid at a date; deeper real historical
+  geometry drops in as pure data with no code change.
+- **Events resolve to their unit at ingestion** (`extract.py`): a geocoded event
+  now records `admin_uid = admin_atlas.unit_at(lat,lon)` (best-effort, never
+  blocks the pipeline), so a unit's page shows the coverage that landed inside it.
+
+Version badge → v8.0.0. Verified: fresh DB boots clean (216 countries + 4,522
+admin units, both new columns present); v6→v8 upgrade path adds admin_uid +
+administrative_units idempotently; all 5 `/api/admin/*` endpoints return correct
+shapes over real HTTP; a Berlin event resolves to admin_uid → "Berlin" State/DEU
+through the real pipeline; UKR history returns SU-dissolution/Crimea/oblasts;
+headless Chromium — provinces toggle activates, the admin-unit detail path
+resolves Paris/France, FRA lists 101 units — **0 non-network console errors**.
+The deeper tiers (geoBoundaries/OSM ADM2 districts on the raster/SDF GPU spine,
+which needs numpy/PIL + deep data), province-level demographics, and full
+historical geometry back to 1950 are the named follow-on data passes.
+
 ## Status (v7.6.0)
 
 **v7.6.0 (2026-07-08, autonomous zones as full country panels + emblems

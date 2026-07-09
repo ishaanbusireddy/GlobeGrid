@@ -29,6 +29,7 @@ def seed_all() -> dict:
     counts["nsa_zones"] = _seed_nsa_zones()               # v5 §11
     counts["subfactions"] = _seed_subfactions()           # v6 §8
     counts["subnational_areas"] = _seed_subnational()     # v6 §16
+    counts["administrative_units"] = _seed_administrative_units()  # v8 §4
     added = {k: v for k, v in counts.items() if v}
     if added:
         log.info("geo_seeded", extra={"data": added})
@@ -471,6 +472,54 @@ def _seed_subnational() -> int:
                 " VALUES (?,?,?,?,?,?,?)",
                 (new_id(), iso3, name, geojson, religion, lang, pop))
             added += 1
+    return added
+
+
+def _seed_administrative_units() -> int:
+    """v8 §4 — populate administrative_units from the vendored Administrative
+    Atlas (admin_atlas.units(), built by scripts/build_admin_atlas.py from
+    Natural Earth 10m ADM1, public domain). The registry rows carry stable
+    admin_uids (the PRIMARY KEY), so INSERT OR IGNORE makes this idempotent — a
+    re-seed is a no-op and never re-numbers a unit an event already references.
+
+    ADM1 is present-day (Natural Earth is current), so effective_from/effective_to
+    stay NULL (= always/currently valid); the temporal machinery (as_of epoch
+    selection, curated historical units back to 1950) reads those columns and
+    layers estimated-vs-real epochs on top in a later data pass — the scaffold
+    is here now so nothing needs a schema change to add history."""
+    import json as _json
+    try:
+        from .admin_atlas import units as _atlas_units
+    except Exception:
+        log.warning("admin_atlas_unavailable")
+        return 0
+    rows = _atlas_units()
+    added = 0
+    with write_tx() as conn:
+        existing = conn.execute(
+            "SELECT COUNT(*) AS n FROM administrative_units").fetchone()["n"]
+        if existing >= len(rows):
+            return 0  # already fully seeded — skip the batch entirely
+        params = []
+        for u in rows:
+            country = u.get("country") or None
+            name = u["name"]
+            params.append((
+                u["uid"], country, u.get("level", 1), None,
+                (f"{country}/{name}" if country else name),
+                name, u.get("name_local"), (u.get("type") or None),
+                u.get("clat"), u.get("clon"),
+                _json.dumps(u["bbox"]) if u.get("bbox") else None,
+                "naturalearth-10m", None, None,
+            ))
+        conn.executemany(
+            "INSERT OR IGNORE INTO administrative_units"
+            " (admin_uid, country_id, adm_level, parent_uid, path, name,"
+            "  name_local, unit_type, centroid_lat, centroid_lon, bbox_json,"
+            "  source, effective_from, effective_to)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", params)
+        added = conn.execute(
+            "SELECT COUNT(*) AS n FROM administrative_units").fetchone()["n"] - existing
     return added
 
 

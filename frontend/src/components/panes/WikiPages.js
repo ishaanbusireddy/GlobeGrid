@@ -370,7 +370,49 @@ export async function renderCountry(el, iso3, ctx) {
     ${(p.autonomous_zones || []).length ? `<section><h4>🏛 Autonomous regions</h4>
       ${p.autonomous_zones.map((z) =>
         `<button class="ap-chip az-open" data-id="${esc(z.id)}">🏛 ${esc(z.name)}</button>`).join(" ")}</section>` : ""}
+    <section id="admin-units-section"><h4>◇ Provinces &amp; states <span class="cp-meta">(V8 · click one to open)</span></h4>
+      <div class="admin-units-host"><p class="cp-meta">loading administrative units…</p></div></section>
+    <section id="admin-history-section" style="display:none"><h4>🕰 Border &amp; sovereignty history <span class="cp-meta">(since 1950)</span></h4>
+      <div class="admin-history-host"></div></section>
     <section><h4>Recent tracked coverage ${thinBadge(p.coverage)}</h4>${storyChips(p.recent_stories)}</section>`;
+
+  // v8 §3 — the country's ADM1 units (provinces/states), each a clickable chip
+  // that opens its own page. Lazy-loaded so the country panel paints instantly.
+  (async () => {
+    const host = el.querySelector(".admin-units-host");
+    if (!host) return;
+    try {
+      const d = await api.adminByCountry(iso3);
+      const units = d.units || [];
+      if (!units.length) {
+        host.innerHTML = '<p class="cp-meta">No sub-national units on file yet for this country.</p>';
+        return;
+      }
+      host.innerHTML = units.map((u) =>
+        `<button class="ap-chip admin-open" data-uid="${esc(u.admin_uid)}" title="${esc(u.unit_type || "administrative unit")}">${esc(u.name)}</button>`).join(" ");
+      host.querySelectorAll(".admin-open").forEach((b) =>
+        b.addEventListener("click", () => ctx.openAdminUnit && ctx.openAdminUnit(b.dataset.uid)));
+    } catch {
+      host.innerHTML = '<p class="cp-meta">Administrative units are unavailable right now.</p>';
+    }
+  })();
+  // v8 §Q3 — the country's border & sovereignty lineage since 1950 (curated
+  // timeline). Shown only when there's something to show for this country.
+  (async () => {
+    const sect = el.querySelector("#admin-history-section");
+    const host = el.querySelector(".admin-history-host");
+    if (!sect || !host) return;
+    try {
+      const d = await api.adminHistory(iso3);
+      const entries = d.entries || [];
+      if (!entries.length) return;   // stays hidden
+      host.innerHTML = entries.map((e) =>
+        `<div class="src-row"><span class="chip">${esc(String(e.year))}</span>
+          <b>${esc(e.title)}</b>
+          <span class="cp-meta" style="flex-basis:100%;margin-top:2px">${esc(e.detail)}</span></div>`).join("");
+      sect.style.display = "";
+    } catch { /* leave hidden */ }
+  })();
 
   wireStoryChips(el, ctx);
   // v7.4.1 — autonomous-region chips open the region page
@@ -1297,6 +1339,99 @@ export async function renderAutonomousZone(el, zid, ctx) {
     b.addEventListener("click", () => ctx.openLeader && ctx.openLeader(b.dataset.leader)));
   el.querySelectorAll(".party-dossier-open[data-party]").forEach((b) =>
     b.addEventListener("click", () => ctx.openPartyDossier && ctx.openPartyDossier(b.dataset.party, null)));
+  wireStoryChips(el, ctx);
+}
+
+// v8 §5 — an administrative unit (province/state) as a first-class page, the
+// way a country or territory is (owner: "treat it like a country or like a
+// territory, like how you did Greenland"). Shows the unit's facts, its place in
+// the administrative hierarchy (ancestry + siblings + any children), the parent
+// country's stats it INHERITS until province-level demographics are vendored
+// (clearly labelled — Q4 deferred), a temporal-validity note (Q3), and the
+// tracked coverage that landed inside it. Every parent/sibling/child is a chip.
+export async function renderAdminUnit(el, uid, ctx) {
+  el.innerHTML = `<p class="cp-meta">loading administrative unit…</p>`;
+  const d = await api.adminUnit(uid).catch(() => null);
+  if (!d || !d.unit) { el.innerHTML = "<p>administrative unit not found</p>"; return; }
+  const u = d.unit;
+  const c = d.country || null;
+  const cell = (label, val) => val
+    ? `<div class="stat-cell"><span class="cp-meta">${esc(label)}</span><b>${esc(val)}</b></div>` : "";
+  const fmtB = (v) => v == null ? "" : v >= 1e12 ? "$" + (v / 1e12).toFixed(2) + "T"
+    : v >= 1e9 ? "$" + (v / 1e9).toFixed(1) + "B" : "$" + (v / 1e6).toFixed(0) + "M";
+
+  // breadcrumb: country › (ancestry…) › this unit
+  const crumbs = [];
+  if (c) crumbs.push(`<button class="ap-chip country-link" data-id="${esc(c.id)}">${flagInline(c)} ${esc(c.name)}</button>`);
+  for (const a of (d.ancestry || [])) crumbs.push(`<button class="ap-chip admin-open" data-uid="${esc(a.admin_uid)}">${esc(a.name)}</button>`);
+  crumbs.push(`<b>${esc(u.name)}</b>`);
+
+  // temporal validity (Q3) — present-day unit reads "current"; a historical
+  // epoch (when the data pass lands) shows its effective window honestly.
+  const tvalid = u.effective_from || u.effective_to
+    ? `${u.effective_from ? "from " + esc(u.effective_from.slice(0, 10)) : "always"}`
+      + `${u.effective_to ? " to " + esc(u.effective_to.slice(0, 10)) : " · current"}`
+    : "current (present-day boundaries)";
+
+  // inherited country stats — labelled so a country figure is never mistaken
+  // for the province's own (province-level demographics are a later data pass).
+  const inh = c ? [
+    ["Population", c.population != null ? (c.population / 1e6).toFixed(2) + "M" : ""],
+    ["GDP (nominal)", fmtB(c.gdp_usd)],
+    ["GDP per capita", c.gdp_per_capita_usd != null ? "$" + Math.round(c.gdp_per_capita_usd).toLocaleString() : ""],
+    ["HDI", c.hdi != null ? Number(c.hdi).toFixed(3) : ""],
+    ["Area", c.area_km2 != null ? Math.round(c.area_km2).toLocaleString() + " km²" : ""],
+    ["Dominant language", c.dominant_language],
+    ["Dominant religion", c.dominant_religion],
+  ].filter(([, v]) => v).map(([k, v]) =>
+    `<div class="stat-cell"><span class="stat-k">${esc(k)}</span><span class="stat-v">${esc(String(v))}</span></div>`).join("") : "";
+
+  const siblings = (d.siblings || []).map((s) =>
+    `<button class="ap-chip admin-open" data-uid="${esc(s.admin_uid)}">${esc(s.name)}</button>`).join(" ")
+    || '<span class="cp-meta">none on file</span>';
+  const children = (d.children || []).map((s) =>
+    `<button class="ap-chip admin-open" data-uid="${esc(s.admin_uid)}">${esc(s.name)}</button>`).join(" ");
+
+  let html = `
+    <div class="wiki-header">
+      <div class="wiki-flag">${c ? flagImg(c) : "◇"}</div>
+      <div class="wiki-head-meta">
+        <h1>${esc(u.name)} <span class="cp-meta">${esc(u.unit_type || "administrative unit")}</span></h1>
+        ${u.name_local && u.name_local !== u.name ? `<p class="official-name">${esc(u.name_local)}</p>` : ""}
+        <p class="cp-meta">${crumbs.join(' <span class="cp-meta">›</span> ')}</p>
+        <p class="cp-meta">ADM level ${esc(String(u.adm_level))} · ${esc(tvalid)}</p>
+      </div>
+    </div>
+    <section><h4>Key facts</h4>
+      <div class="stat-grid">
+        ${cell("Country", c ? c.name : u.country_id)}
+        ${cell("Type", u.unit_type)}
+        ${cell("Center", (u.centroid_lat != null && u.centroid_lon != null) ? `${u.centroid_lat.toFixed(2)}, ${u.centroid_lon.toFixed(2)}` : "")}
+        ${cell("Tracked events here", d.event_count != null ? String(d.event_count) : "")}
+        ${cell("Boundary source", u.source)}
+      </div>
+      <button class="ap-chip admin-fly" title="fly the map to this unit">⌖ Pan to this area</button>
+    </section>`;
+
+  if (inh) {
+    html += `<section><h4>Country context <span class="cp-meta">— inherited from ${esc(c ? c.name : "")}</span></h4>
+      <p class="cp-meta">Province-level demographics aren't vendored yet — these are the
+        national figures for context, not this unit's own numbers.</p>
+      <div class="stat-grid">${inh}</div></section>`;
+  }
+  html += `<section><h4>Other units in ${esc(c ? c.name : "this country")}</h4>${siblings}</section>`;
+  if (children) html += `<section><h4>Sub-units</h4>${children}</section>`;
+  html += `<section><h4>Recent tracked coverage</h4>${storyChips(d.coverage, ctx)}</section>`;
+  el.innerHTML = html;
+
+  // wiring
+  el.querySelectorAll(".country-link").forEach((b) =>
+    b.addEventListener("click", () => ctx.openEntity("country", b.dataset.id)));
+  el.querySelectorAll(".admin-open").forEach((b) =>
+    b.addEventListener("click", () => ctx.openAdminUnit && ctx.openAdminUnit(b.dataset.uid)));
+  const fly = el.querySelector(".admin-fly");
+  if (fly) fly.addEventListener("click", () =>
+    ctx.flyToBounds && ctx.flyToBounds(u.bbox, u.centroid_lat, u.centroid_lon));
   wireStoryChips(el, ctx);
 }
 

@@ -239,3 +239,6 @@ Thumbs.db
 *.db-shm
 *.db-wal
 backups/
+
+# V8 admin-atlas build cache (fetched by scripts/build_admin_atlas.py; do not commit — 40MB)
+scripts/_ne_admin1.geojson

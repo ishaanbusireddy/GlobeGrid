@@ -60,6 +60,8 @@ export class Tier2Map {
     this.actors = [];
     this.actorZones = [];   // v5 §11
     this.autonomousZones = [];   // v7.6 — always-on dotted borders (like territories)
+    this.adminRings = [];        // v8 §3 — ADM1 province borders (flat rings, zoom-gated)
+    this.showAdmin = false;
     this.satellites = [];
     this.cities = [];
     this.allianceRings = null;
@@ -127,6 +129,10 @@ export class Tier2Map {
       .map((z) => ({ name: z.name, ring: z.outline.flatMap(([lon, lat]) => [lon, lat]) }));
     this.draw();
   }
+  // v8 §3 — real ADM1 (province) borders: a flat list of [lon,lat,…] rings,
+  // drawn only when the layer is toggled on AND zoomed in (gate in draw()).
+  setAdminBoundaries(rings) { this.adminRings = rings || []; this.draw(); }
+  setAdminVisible(on) { this.showAdmin = !!on; this.draw(); }
   setSatellites(sats) { this.satellites = sats || []; this.draw(); }
   setCities(cities) { this.cities = cities || []; this.draw(); }
   // v6.1.1 — dynamic country labels, revealed by apparent on-screen size
@@ -511,6 +517,12 @@ export class Tier2Map {
         for (const d of this.disputed) {
           this._drawRings(d.r, off, "rgba(255,184,77,0.9)", 1.4, true);
         }
+      }
+      // v8 §3 — ADM1 province borders: solid soft-teal, only when toggled on
+      // and zoomed in (a national outline still dominates at low zoom). Canvas
+      // clips off-screen segments cheaply, so the whole set is drawn on demand.
+      if (this.showAdmin && this.zoom >= 2.5 && this.adminRings.length) {
+        this._drawRings(this.adminRings, off, "rgba(107,184,184,0.5)", 0.7);
       }
       // v7.6 — autonomous regions: always-on DOTTED borders (like territories)
       for (const z of this.autonomousZones) {

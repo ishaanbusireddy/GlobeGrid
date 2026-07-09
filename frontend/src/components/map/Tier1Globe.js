@@ -688,6 +688,28 @@ export class Tier1Globe {
     this.autonomousCount = verts.length / 3;
   }
 
+  // v8 §3 — the Administrative Atlas: real ADM1 (province/state) borders as a
+  // continuous solid line layer, built ONCE from the vendored + decoded rings
+  // and drawn only when the layer is toggled on AND the camera is zoomed in
+  // (a hard gate in the draw), so ~4,500 provinces never clutter the far view
+  // and never cost anything when off. `rings` is a flat list of
+  // [lon,lat,lon,lat,…] arrays (boundaryCodec output).
+  setAdminBoundaries(rings) {
+    const gl = this.gl;
+    const verts = [];
+    for (const ring of (rings || [])) {
+      for (let i = 0; i + 3 < ring.length; i += 2) {
+        verts.push(...latLonToVec3(ring[i + 1], ring[i], 1.0011),
+                   ...latLonToVec3(ring[i + 3], ring[i + 2], 1.0011));
+      }
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.adminBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+    this.adminCount = verts.length / 3;
+  }
+
+  setAdminVisible(on) { this.showAdmin = !!on; }
+
   setCities(cities) { this.cities = cities || []; }
   // v6.1.1 — dynamic country labels: {name, lat, lon, span} where span is the
   // country's bbox size in degrees. Visibility is gated on APPARENT on-screen
@@ -854,6 +876,9 @@ export class Tier1Globe {
     this.disputeCount = 0;
     this.autonomousBuf = gl.createBuffer();   // v7.6 — always-on dotted autonomous borders
     this.autonomousCount = 0;
+    this.adminBuf = gl.createBuffer();        // v8 §3 — ADM1 province borders (zoom-gated)
+    this.adminCount = 0;
+    this.showAdmin = false;
     this.actorBuf = gl.createBuffer();
     this.actorCount = 0;
     this._ensureBoundaryLod("50m");
@@ -1838,6 +1863,20 @@ export class Tier1Globe {
       gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
       gl.uniform4f(colLoc, 0.47, 0.78, 1.0, 0.8);
       gl.drawArrays(gl.LINES, 0, this.autonomousCount);
+    }
+
+    // v8 §3 — ADM1 province borders: only when the layer is on AND the camera
+    // is zoomed in (dist < 3.0), fading in from 3.0→2.2 so provinces reveal as
+    // you approach and never crowd the whole-globe view. A soft teal, dimmer
+    // than the country border so the national outline still dominates.
+    if (this.showAdmin && this.adminCount && this.dist < 3.0) {
+      const a = Math.min(0.55, Math.max(0, (3.0 - this.dist) / 0.8) * 0.55);
+      if (a > 0.02) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.adminBuf);
+        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+        gl.uniform4f(colLoc, 0.42, 0.72, 0.72, a);
+        gl.drawArrays(gl.LINES, 0, this.adminCount);
+      }
     }
 
     // v3 §14 / v6 §7 §8 — colored boundary-ring overlays: any number of
