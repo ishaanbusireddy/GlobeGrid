@@ -61,6 +61,8 @@ export class Tier2Map {
     this.actorZones = [];   // v5 §11
     this.autonomousZones = [];   // v7.6 — always-on dotted borders (like territories)
     this.adminRings = [];        // v8 §3 — ADM1 province borders (flat rings, zoom-gated)
+    this.admin2Rings = [];       // v8.1 — ADM2 district/county borders (deeper gate)
+    this.admin3Rings = [];       // v8.2 — ADM3 sub-district borders (deepest gate)
     this.showAdmin = false;
     this.satellites = [];
     this.cities = [];
@@ -132,6 +134,11 @@ export class Tier2Map {
   // v8 §3 — real ADM1 (province) borders: a flat list of [lon,lat,…] rings,
   // drawn only when the layer is toggled on AND zoomed in (gate in draw()).
   setAdminBoundaries(rings) { this.adminRings = rings || []; this.draw(); }
+  setAdmin2Boundaries(rings) { this.admin2Rings = rings || []; this.draw(); }   // v8.1
+  setAdmin3Boundaries(rings) { this.admin3Rings = rings || []; this.draw(); }   // v8.2
+  // v8.4 — real historical world borders overlaid for a past as_of epoch:
+  // a flat list of [lon,lat,…] rings, drawn (ungated) in amber when set.
+  setHistoricalBoundaries(rings) { this.histRings = rings || null; this.draw(); }   // v8.4
   setAdminVisible(on) { this.showAdmin = !!on; this.draw(); }
   setSatellites(sats) { this.satellites = sats || []; this.draw(); }
   setCities(cities) { this.cities = cities || []; this.draw(); }
@@ -180,6 +187,8 @@ export class Tier2Map {
 
   // v6 §16 — thematic choropleth fill ({iso3: cssColor} or null)
   setChoropleth(colorsByIso3) { this.choropleth = colorsByIso3 || null; this.draw(); }
+  // v8.3 — Hotspots heat: fill only active admin units. cells=[{rings,color}]
+  setAdminHeat(cells) { this.adminHeat = cells || null; this.draw(); }
 
   setCityLights() {}   // no night-side lights on the flat map — API parity no-op
   setTerrain() {}
@@ -493,6 +502,29 @@ export class Tier2Map {
         }
         this.ctx.restore();
       }
+      // v8.3 — Hotspots heat fill (active admin units only), under the lines.
+      // Uses the same lon/lat affine transform as the choropleth.
+      if (this.adminHeat && this.adminHeat.length) {
+        const dpr = window.devicePixelRatio || 1;
+        this.ctx.save();
+        this.ctx.setTransform(scale * dpr, 0, 0, -scale * dpr,
+                              (w / 2 + this.panX + off) * dpr,
+                              (h / 2 + this.panY) * dpr);
+        for (const cell of this.adminHeat) {
+          this.ctx.fillStyle = cell.color;
+          for (const ring of cell.rings) {
+            if (ring.length < 6) continue;
+            this.ctx.beginPath();
+            for (let i = 0; i < ring.length; i += 2) {
+              if (i) this.ctx.lineTo(ring[i], ring[i + 1]);
+              else this.ctx.moveTo(ring[i], ring[i + 1]);
+            }
+            this.ctx.closePath();
+            this.ctx.fill();
+          }
+        }
+        this.ctx.restore();
+      }
       // country borders — v6 §18 tile-based rendering (see _strokeBoundaryTiles)
       if (this.showBorders) {
         this._strokeBoundaryTiles(boundaries, lodKey, off,
@@ -523,6 +555,19 @@ export class Tier2Map {
       // clips off-screen segments cheaply, so the whole set is drawn on demand.
       if (this.showAdmin && this.zoom >= 2.5 && this.adminRings.length) {
         this._drawRings(this.adminRings, off, "rgba(107,184,184,0.5)", 0.7);
+      }
+      // v8.1 — ADM2 (county/district) borders: fainter, only when zoomed deeper
+      if (this.showAdmin && this.zoom >= 4.5 && this.admin2Rings.length) {
+        this._drawRings(this.admin2Rings, off, "rgba(140,168,152,0.42)", 0.5);
+      }
+      // v8.2 — ADM3 (sub-district) borders: faintest, only at the tightest zoom
+      if (this.showAdmin && this.zoom >= 7 && this.admin3Rings.length) {
+        this._drawRings(this.admin3Rings, off, "rgba(158,152,174,0.4)", 0.45);
+      }
+      // v8.4 — historical world borders for a past as_of epoch: amber, ungated
+      // (they replace the modern outline conceptually), drawn over the base map.
+      if (this.histRings && this.histRings.length) {
+        this._drawRings(this.histRings, off, "rgba(242,178,82,0.92)", 1.2);
       }
       // v7.6 — autonomous regions: always-on DOTTED borders (like territories)
       for (const z of this.autonomousZones) {

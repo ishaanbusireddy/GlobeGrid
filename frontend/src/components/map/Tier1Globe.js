@@ -708,7 +708,57 @@ export class Tier1Globe {
     this.adminCount = verts.length / 3;
   }
 
+  // v8.1 — ADM2 (district/county) borders, a second line layer built the same
+  // way but revealed only at a DEEPER zoom than the provinces, so the two tiers
+  // don't overplot.
+  setAdmin2Boundaries(rings) {
+    const gl = this.gl;
+    const verts = [];
+    for (const ring of (rings || [])) {
+      for (let i = 0; i + 3 < ring.length; i += 2) {
+        verts.push(...latLonToVec3(ring[i + 1], ring[i], 1.0010),
+                   ...latLonToVec3(ring[i + 3], ring[i + 2], 1.0010));
+      }
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.admin2Buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+    this.admin2Count = verts.length / 3;
+  }
+
+  // v8.2 — ADM3 (sub-district) borders, the deepest line layer, revealed only at
+  // the tightest zoom.
+  setAdmin3Boundaries(rings) {
+    const gl = this.gl;
+    const verts = [];
+    for (const ring of (rings || [])) {
+      for (let i = 0; i + 3 < ring.length; i += 2) {
+        verts.push(...latLonToVec3(ring[i + 1], ring[i], 1.0009),
+                   ...latLonToVec3(ring[i + 3], ring[i + 2], 1.0009));
+      }
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.admin3Buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+    this.admin3Count = verts.length / 3;
+  }
+
   setAdminVisible(on) { this.showAdmin = !!on; }
+
+  // v8.4 — the time capsule's historical borders: an amber overlay of the
+  // world's boundaries as they were in the selected epoch (USSR/Yugoslavia
+  // whole, colonial Africa…). rings = flat [lon,lat,…]; null clears it.
+  setHistoricalBoundaries(rings) {
+    const gl = this.gl;
+    const verts = [];
+    for (const ring of (rings || [])) {
+      for (let i = 0; i + 3 < ring.length; i += 2) {
+        verts.push(...latLonToVec3(ring[i + 1], ring[i], 1.0018),
+                   ...latLonToVec3(ring[i + 3], ring[i + 2], 1.0018));
+      }
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.histBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+    this.histCount = verts.length / 3;
+  }
 
   setCities(cities) { this.cities = cities || []; }
   // v6.1.1 — dynamic country labels: {name, lat, lon, span} where span is the
@@ -878,7 +928,13 @@ export class Tier1Globe {
     this.autonomousCount = 0;
     this.adminBuf = gl.createBuffer();        // v8 §3 — ADM1 province borders (zoom-gated)
     this.adminCount = 0;
+    this.admin2Buf = gl.createBuffer();       // v8.1 — ADM2 district/county borders (deeper gate)
+    this.admin2Count = 0;
+    this.admin3Buf = gl.createBuffer();       // v8.2 — ADM3 sub-district borders (deepest gate)
+    this.admin3Count = 0;
     this.showAdmin = false;
+    this.histBuf = gl.createBuffer();         // v8.4 — historical epoch borders overlay
+    this.histCount = 0;
     this.actorBuf = gl.createBuffer();
     this.actorCount = 0;
     this._ensureBoundaryLod("50m");
@@ -1006,6 +1062,12 @@ export class Tier1Globe {
       this._b50mData = decodeBoundaries(BOUNDARIES_50M_ENC);
     }
   }
+
+  // v8.3 — the Hotspots heat layer: fill ONLY the administrative units that
+  // have recent activity, each with its pressure colour. cells = [{rings, color}]
+  // (rings are flat [lon,lat,…]). Only active units are passed, so it's cheap
+  // and reads as hotspots glowing on the map. null clears it.
+  setAdminHeat(cells) { this.adminHeat = cells || null; }
 
   setCityLights(on) { this.cityLightsOn = !!on; }   // v6 §24
 
@@ -1411,7 +1473,7 @@ export class Tier1Globe {
     });
     el.addEventListener("wheel", (ev) => {
       ev.preventDefault();
-      this.dist = Math.max(1.45, Math.min(5.5, this.dist + ev.deltaY * 0.0018));
+      this.dist = Math.max(1.15, Math.min(5.5, this.dist + ev.deltaY * 0.0018));
       this._touch(); this.tween = null;
     }, { passive: false });
 
@@ -1446,7 +1508,7 @@ export class Tier1Globe {
     if (this.keys.q || this.keys["-"]) {
       this.dist = Math.min(5.5, this.dist + zoomStep); moved = true; }
     if (this.keys.e || this.keys["+"] || this.keys["="]) {
-      this.dist = Math.max(1.45, this.dist - zoomStep); moved = true; }
+      this.dist = Math.max(1.15, this.dist - zoomStep); moved = true; }
     if (moved) this.lastInteraction = performance.now();
     return moved;
   }
@@ -1878,6 +1940,37 @@ export class Tier1Globe {
         gl.drawArrays(gl.LINES, 0, this.adminCount);
       }
     }
+    // v8.1 — ADM2 (county/district) borders: a fainter, thinner line revealed
+    // only when zoomed in deeper (dist<1.9), fading 1.9→1.55.
+    if (this.showAdmin && this.admin2Count && this.dist < 1.9) {
+      const a = Math.min(0.4, Math.max(0, (1.9 - this.dist) / 0.35) * 0.4);
+      if (a > 0.02) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.admin2Buf);
+        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+        gl.uniform4f(colLoc, 0.55, 0.66, 0.6, a);
+        gl.drawArrays(gl.LINES, 0, this.admin2Count);
+      }
+    }
+    // v8.2 — ADM3 (sub-district) borders: the deepest, faintest line, only at
+    // the tightest zoom (dist<1.55, fading 1.55→1.25).
+    if (this.showAdmin && this.admin3Count && this.dist < 1.55) {
+      const a = Math.min(0.34, Math.max(0, (1.55 - this.dist) / 0.3) * 0.34);
+      if (a > 0.02) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.admin3Buf);
+        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+        gl.uniform4f(colLoc, 0.62, 0.6, 0.68, a);
+        gl.drawArrays(gl.LINES, 0, this.admin3Count);
+      }
+    }
+
+    // v8.4 — historical epoch borders: a bold sepia/amber overlay, drawn on top
+    // of the (dimmed by the capsule) present borders so the era reads clearly.
+    if (this.histCount) {
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.histBuf);
+      gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+      gl.uniform4f(colLoc, 0.95, 0.7, 0.32, 0.92);
+      gl.drawArrays(gl.LINES, 0, this.histCount);
+    }
 
     // v3 §14 / v6 §7 §8 — colored boundary-ring overlays: any number of
     // groups at once (multi-select blocs, War Mode side coloring)
@@ -2189,6 +2282,23 @@ export class Tier1Globe {
         for (const ring of c.r) {
           if (ring.length < 8) continue;
           const pts = this._projectRing(ring, model, mvp, 1.002, false);
+          if (!pts) continue;
+          ctx.beginPath();
+          pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])));
+          ctx.closePath();
+          ctx.fill();
+        }
+      }
+    }
+
+    // v8.3 — Hotspots heat: fill each ACTIVE admin unit with its pressure colour
+    // (only active units are in adminHeat, so this is a handful of polygons).
+    if (this.adminHeat) {
+      for (const cell of this.adminHeat) {
+        ctx.fillStyle = cell.color;
+        for (const ring of cell.rings) {
+          if (ring.length < 6) continue;
+          const pts = this._projectRing(ring, model, mvp, 1.0016, false);
           if (!pts) continue;
           ctx.beginPath();
           pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])));

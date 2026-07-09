@@ -337,3 +337,11 @@ backfill:
   days_per_tick: 6           # archive days ingested per tick (budget-aware)
   max_events_per_day: 20     # top-coverage events kept per archive day
   tick_interval_seconds: 120
+
+# v8.3 — administrative activity (Hotspots): per-admin-unit live event pressure.
+# The heat choropleth + hotspots ranking score each unit by its recent tracked
+# coverage. Window is the rolling recency; max_units caps the ranked/painted set.
+admin_activity:
+  window_days: 30            # rolling window for "recent" activity
+  max_units: 300             # top-N active units returned / painted as heat
+  score_severity_weight: 2.0 # severity's pull vs raw volume in the 0-100 score

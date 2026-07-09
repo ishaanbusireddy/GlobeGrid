@@ -30,6 +30,38 @@ export function flagInline(country) {
     loading="lazy" onerror="this.style.display='none'">`;
 }
 
+// v8.1 — a deterministic generated SEAL for an administrative unit, drawn when
+// no real flag exists (or a flag image 404s). A monogram crest whose colours
+// derive from the unit name, so every province/county has a stable, distinct
+// emblem — "flags or seals (if no flag) for every province".
+export function provinceSeal(name, size = 40) {
+  const s = String(name || "?");
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) & 0xffffff;
+  const hue = h % 360, hue2 = (hue + 42) % 360;
+  const initials = (s.split(/\s+/).filter(Boolean).slice(0, 2)
+    .map((w) => w[0]).join("") || "?").toUpperCase();
+  const fs = initials.length > 1 ? 15 : 20;
+  return `<svg viewBox="0 0 40 40" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="ps${h}" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="hsl(${hue},52%,42%)"/>
+      <stop offset="1" stop-color="hsl(${hue2},48%,26%)"/></linearGradient></defs>
+    <circle cx="20" cy="20" r="18.5" fill="url(#ps${h})" stroke="hsl(${hue},60%,74%)" stroke-width="1.6"/>
+    <circle cx="20" cy="20" r="14.5" fill="none" stroke="hsla(${hue},60%,88%,.4)" stroke-width=".8"/>
+    <text x="20" y="20" dy=".35em" text-anchor="middle" font-family="Georgia,serif"
+      font-size="${fs}" font-weight="700" fill="#fff">${esc(initials)}</text></svg>`;
+}
+
+// A crest = the real flag layered over the generated seal; the seal shows
+// through if the flag image 404s (so coverage is 100% with no wrong flags).
+export function adminCrest(unit, size = 40, cls = "") {
+  const seal = provinceSeal(unit.name, size);
+  const style = `width:${size}px;height:${size}px`;
+  if (!unit.flag_url) return `<span class="prov-crest ${cls}" style="${style}">${seal}</span>`;
+  return `<span class="prov-crest ${cls}" style="${style}">${seal}<img src="${esc(unit.flag_url)}"`
+    + ` alt="${esc(unit.name)} flag" loading="lazy" onerror="this.remove()"></span>`;
+}
+
 const STATUS_LABEL = {
   un_member: "UN member", observer_state: "UN observer state",
   de_facto: "de facto state (limited recognition)",
@@ -382,14 +414,14 @@ export async function renderCountry(el, iso3, ctx) {
     const host = el.querySelector(".admin-units-host");
     if (!host) return;
     try {
-      const d = await api.adminByCountry(iso3);
+      const d = await api.adminByCountry(iso3, 1);   // top-level provinces/states only
       const units = d.units || [];
       if (!units.length) {
         host.innerHTML = '<p class="cp-meta">No sub-national units on file yet for this country.</p>';
         return;
       }
       host.innerHTML = units.map((u) =>
-        `<button class="ap-chip admin-open" data-uid="${esc(u.admin_uid)}" title="${esc(u.unit_type || "administrative unit")}">${esc(u.name)}</button>`).join(" ");
+        `<button class="ap-chip admin-open" data-uid="${esc(u.admin_uid)}" title="${esc(u.unit_type || "administrative unit")}">${adminCrest(u, 18)}${esc(u.name)}</button>`).join(" ");
       host.querySelectorAll(".admin-open").forEach((b) =>
         b.addEventListener("click", () => ctx.openAdminUnit && ctx.openAdminUnit(b.dataset.uid)));
     } catch {
@@ -1387,14 +1419,14 @@ export async function renderAdminUnit(el, uid, ctx) {
     `<div class="stat-cell"><span class="stat-k">${esc(k)}</span><span class="stat-v">${esc(String(v))}</span></div>`).join("") : "";
 
   const siblings = (d.siblings || []).map((s) =>
-    `<button class="ap-chip admin-open" data-uid="${esc(s.admin_uid)}">${esc(s.name)}</button>`).join(" ")
+    `<button class="ap-chip admin-open" data-uid="${esc(s.admin_uid)}">${adminCrest(s, 18)}${esc(s.name)}</button>`).join(" ")
     || '<span class="cp-meta">none on file</span>';
   const children = (d.children || []).map((s) =>
-    `<button class="ap-chip admin-open" data-uid="${esc(s.admin_uid)}">${esc(s.name)}</button>`).join(" ");
+    `<button class="ap-chip admin-open" data-uid="${esc(s.admin_uid)}">${adminCrest(s, 18)}${esc(s.name)}</button>`).join(" ");
 
   let html = `
     <div class="wiki-header">
-      <div class="wiki-flag">${c ? flagImg(c) : "◇"}</div>
+      <div class="wiki-flag">${adminCrest(u, 72, "prov-crest-lg")}</div>
       <div class="wiki-head-meta">
         <h1>${esc(u.name)} <span class="cp-meta">${esc(u.unit_type || "administrative unit")}</span></h1>
         ${u.name_local && u.name_local !== u.name ? `<p class="official-name">${esc(u.name_local)}</p>` : ""}
@@ -1413,10 +1445,49 @@ export async function renderAdminUnit(el, uid, ctx) {
       <button class="ap-chip admin-fly" title="fly the map to this unit">⌖ Pan to this area</button>
     </section>`;
 
+  // v8.5 — the unit's OWN figures: real polygon area for every unit, plus
+  // curated population/GDP/density for the world's major first-level units.
+  const st = u.stats || {};
+  const own = [];
+  // area is skipped when it rounds to 0 — a handful of tiny units (small
+  // municipios, the City of London) collapse under simplification, and "0 km²"
+  // would mislead. Everything ≥1 km² shows its real measured area.
+  if (st.area_km2) own.push(["Area", Math.round(st.area_km2).toLocaleString() + " km²"]);
+  if (st.own_population) {
+    own.push(["Population", (st.population / 1e6).toFixed(2) + "M" + (st.year ? ` (${st.year})` : "")]);
+    if (st.density_km2 != null) own.push(["Density", Math.round(st.density_km2).toLocaleString() + " /km²"]);
+    if (st.gdp_usd) own.push(["GDP (nominal)", fmtB(st.gdp_usd)]);
+  }
+  if (own.length) {
+    const src = st.own_population && st.source ? ` <span class="cp-meta">— ${esc(st.source)}</span>` : "";
+    html += `<section><h4>This unit's own figures${src}</h4>
+      <div class="stat-grid">${own.map(([k, v]) =>
+        `<div class="stat-cell"><span class="stat-k">${esc(k)}</span><span class="stat-v">${esc(String(v))}</span></div>`).join("")}</div>
+      <p class="cp-meta" style="margin-top:6px">Area is measured from this unit's own boundary polygon (approximate, from the simplified geometry).${
+        st.own_population ? "" : " Its own population/GDP aren't in the curated set yet — see the country context below."}</p></section>`;
+  }
+
+  // v8.3 — local activity readout (recent tracked coverage in this unit)
+  const act = d.activity;
+  if (act) {
+    const cats = (act.top_categories || []).map((c) =>
+      `<span class="chip">${esc(c.category)} · ${esc(String(c.count))}</span>`).join(" ")
+      || '<span class="cp-meta">—</span>';
+    html += `<section><h4>◉ Local activity <span class="cp-meta">(last ${esc(String(act.window_days))} days)</span></h4>
+      <div class="stat-grid">
+        ${cell("Recent events here", String(act.recent_events))}
+        ${cell("Severity load", String(act.severity_sum))}
+        ${cell("All-time tracked", String(d.event_count || 0))}
+      </div>
+      <p class="cp-meta" style="margin-top:6px">Category mix: ${cats}</p></section>`;
+  }
+
   if (inh) {
+    const inhNote = st.own_population
+      ? "The figures above are this unit's own; these are the national totals for context."
+      : "These are the national figures for context, not this unit's own numbers.";
     html += `<section><h4>Country context <span class="cp-meta">— inherited from ${esc(c ? c.name : "")}</span></h4>
-      <p class="cp-meta">Province-level demographics aren't vendored yet — these are the
-        national figures for context, not this unit's own numbers.</p>
+      <p class="cp-meta">${inhNote}</p>
       <div class="stat-grid">${inh}</div></section>`;
   }
   html += `<section><h4>Other units in ${esc(c ? c.name : "this country")}</h4>${siblings}</section>`;
@@ -1433,6 +1504,48 @@ export async function renderAdminUnit(el, uid, ctx) {
   if (fly) fly.addEventListener("click", () =>
     ctx.flyToBounds && ctx.flyToBounds(u.bbox, u.centroid_lat, u.centroid_lon));
   wireStoryChips(el, ctx);
+}
+
+// v8.3 — the Hotspots ranking: the administrative units with the most tracked
+// activity right now, each a heat-scored, clickable row into its unit page.
+export async function renderHotspots(el, ctx) {
+  el.innerHTML = `<h1>◉ Hotspots</h1>
+    <p class="cp-meta">The administrative units with the most tracked coverage
+      right now — down to the province, county and district. The map lights each
+      one by its activity while this is open.</p>
+    <div class="hotspots-list"><p class="cp-meta">loading…</p></div>`;
+  const host = el.querySelector(".hotspots-list");
+  let d;
+  try { d = await api.adminActivity(); }
+  catch { host.innerHTML = '<p class="cp-meta">Activity is unavailable right now.</p>'; return; }
+  const units = d.units || [];
+  if (!units.length) {
+    host.innerHTML = `<p class="cp-meta">No tracked activity in the last ${esc(String(d.window_days || 30))} days.
+      Hotspots light up as live coverage resolves to administrative units.</p>`;
+    return;
+  }
+  const LVL = { 1: "province", 2: "district", 3: "sub-district" };
+  host.innerHTML = units.map((u, i) => {
+    const t = Math.max(0, Math.min(1, (u.score || 0) / 100));
+    const r = Math.round(232 + 23 * t), g = Math.round(184 - 140 * t), b = Math.round(70 - 45 * t);
+    const bar = `rgb(${r},${g},${b})`;
+    return `<div class="src-row hotspot-row" data-uid="${esc(u.admin_uid)}"
+        data-lat="${esc(u.centroid_lat)}" data-lon="${esc(u.centroid_lon)}" style="cursor:pointer;align-items:center">
+      <span class="cp-meta" style="width:22px;text-align:right">${i + 1}</span>
+      <b style="min-width:120px">${esc(u.name)}</b>
+      <span class="hs-bar" style="flex:1;height:8px;background:var(--bg-card);border-radius:4px;overflow:hidden;margin:0 8px">
+        <span style="display:block;height:100%;width:${Math.max(4, t * 100).toFixed(0)}%;background:${bar}"></span></span>
+      <span class="cp-meta">${esc(u.dominant_category || "")} · ${esc(String(u.events))} ev</span>
+      <span class="cp-meta" style="flex-basis:100%;margin:2px 0 0 22px">${esc(u.path || u.country_id || "")} · ${LVL[u.adm_level] || "unit"}</span>
+    </div>`;
+  }).join("");
+  host.querySelectorAll(".hotspot-row").forEach((row) => {
+    row.addEventListener("click", () => {
+      const lat = parseFloat(row.dataset.lat), lon = parseFloat(row.dataset.lon);
+      if (ctx.flyToBounds && !Number.isNaN(lat)) ctx.flyToBounds(null, lat, lon);
+      ctx.openAdminUnit && ctx.openAdminUnit(row.dataset.uid);
+    });
+  });
 }
 
 // v7.4.2 — a full professional PARTY DOSSIER page, reachable from every

@@ -30,8 +30,9 @@ import * as Wiki from "./components/panes/WikiPages.js";
 import { Alerts } from "./components/Alerts.js";
 import { exportSnapshot } from "./components/Snapshot.js";
 import { BOUNDARIES_50M_ENC } from "./data/boundaries50m.js";
-import { ADMIN1_ENC } from "./data/adminBoundaries.js";   // v8 §3 — real ADM1 provinces
-import { decodeBoundaries, countryAtPoint } from "./data/boundaryCodec.js";
+import { ADMIN1_ENC, ADMIN2_ENC, ADMIN3_ENC } from "./data/adminBoundaries.js";   // v8 ADM1 + v8.1 ADM2 + v8.2 ADM3
+import { HISTORICAL_EPOCHS } from "./data/historicalBoundaries.js";   // v8.4 — real historical borders
+import { decodeBoundaries, countryAtPoint, decodeRing } from "./data/boundaryCodec.js";
 import { LANGUAGE_INFO, RELIGION_INFO, familyColor } from "./data/families.js";
 import { TIMEZONES, getTimeZone, setTimeZone, formatDateTime } from "./data/timefmt.js";  // v6.2 header tz
 import { LANGUAGES, applyLanguage } from "./i18n.js";   // v5 §2
@@ -179,29 +180,115 @@ function countryAt(lat, lon) { return countryAtPoint(BOUNDARIES_50M, lat, lon); 
 // rings). Reused for both rendering (flat rings → the renderers' admin buffer)
 // and click resolution (point-in-polygon → the smallest containing unit, whose
 // `i` is the admin_uid for /api/admin/{uid}).
-let ADMIN1_DECODED = null;
-let ADMIN1_FLAT = null;
-function ensureAdminDecoded() {
-  if (!ADMIN1_DECODED) ADMIN1_DECODED = decodeBoundaries(ADMIN1_ENC);
-  return ADMIN1_DECODED;
+// v8/v8.1/v8.2 — the three admin tiers, each decoded lazily on first use.
+const ADMIN_ENC = [ADMIN1_ENC, ADMIN2_ENC, ADMIN3_ENC];   // index = level-1
+const ADMIN_DECODED = [null, null, null];
+const ADMIN_FLAT = [null, null, null];
+const ADMIN_COMBINED = [null, null, null];   // combined[i] = levels 1..(i+1) concatenated
+function ensureAdminLevel(level) {   // level is 1-based
+  const i = level - 1;
+  if (!ADMIN_DECODED[i]) ADMIN_DECODED[i] = decodeBoundaries(ADMIN_ENC[i] || []);
+  return ADMIN_DECODED[i];
 }
-function adminAt(lat, lon) { return countryAtPoint(ensureAdminDecoded(), lat, lon); }
-function adminFlatRings() {
-  if (!ADMIN1_FLAT) {
-    ADMIN1_FLAT = [];
-    for (const u of ensureAdminDecoded()) for (const r of u.r) ADMIN1_FLAT.push(r);
+// Resolve a point against ALL tiers up to `level`, so the SMALLEST containing
+// unit wins (county over state, Kreis over Regierungsbezirk) — click matches
+// the deepest tier currently visible.
+function adminAt(lat, lon, level) {
+  const i = Math.max(1, level) - 1;
+  if (!ADMIN_COMBINED[i]) {
+    let combined = [];
+    for (let l = 1; l <= level; l++) combined = combined.concat(ensureAdminLevel(l));
+    ADMIN_COMBINED[i] = combined;
   }
-  return ADMIN1_FLAT;
+  return countryAtPoint(ADMIN_COMBINED[i], lat, lon);
 }
-// The admin layer is "active for clicks" only when it's toggled on AND the
-// camera is zoomed in far enough that provinces are actually drawn — so a
-// click matches what the user sees (province when visible, country otherwise).
-function adminLayerActive() {
-  if (!state.adminOn || !state.renderer) return false;
+function adminFlatRings(level) {   // flat ring list for one tier's render buffer
+  const i = level - 1;
+  if (!ADMIN_FLAT[i]) {
+    const flat = [];
+    for (const u of ensureAdminLevel(level)) for (const r of u.r) flat.push(r);
+    ADMIN_FLAT[i] = flat;
+  }
+  return ADMIN_FLAT[i];
+}
+// Which admin tier is actually drawn (and thus clickable) given toggle + zoom:
+// 0 = off, 1 = provinces, 2 = + districts/counties, 3 = + sub-districts. Clicks
+// then match what the user sees; deeper zoom resolves to the deepest unit.
+function adminActiveLevel() {
+  if (!state.adminOn || !state.renderer) return 0;
   const r = state.renderer;
-  if (typeof r.dist === "number") return r.dist < 3.0;   // globe
-  if (typeof r.zoom === "number") return r.zoom >= 2.5;   // 2D map
-  return false;
+  if (typeof r.dist === "number")   // globe
+    return r.dist < 1.45 ? 3 : (r.dist < 1.9 ? 2 : (r.dist < 3.0 ? 1 : 0));
+  if (typeof r.zoom === "number")   // 2D map
+    return r.zoom >= 7 ? 3 : (r.zoom >= 4.5 ? 2 : (r.zoom >= 2.5 ? 1 : 0));
+  return 0;
+}
+// v8.3 — index every decoded admin unit by uid (all tiers), so the Hotspots
+// heat can look up an active unit's rings. Decodes all tiers once, lazily.
+let ADMIN_UID_INDEX = null;
+function adminUnitByUid(uid) {
+  if (!ADMIN_UID_INDEX) {
+    ADMIN_UID_INDEX = new Map();
+    for (let l = 1; l <= 3; l++)
+      for (const u of ensureAdminLevel(l)) ADMIN_UID_INDEX.set(u.i, u);
+  }
+  return ADMIN_UID_INDEX.get(uid);
+}
+// pressure 0-100 → heat colour ramp: dim amber → hot red-orange, alpha rising.
+function heatColor(score) {
+  const t = Math.max(0, Math.min(1, (score || 0) / 100));
+  const r = Math.round(232 + 23 * t), g = Math.round(184 - 140 * t);
+  const b = Math.round(70 - 45 * t), a = (0.28 + 0.44 * t).toFixed(2);
+  return `rgba(${r},${g},${b},${a})`;
+}
+// v8.3 — fetch the ranked active units and paint the heat choropleth (only the
+// active units are filled). Also stashes the ranking for the Hotspots panel.
+async function applyActivityHeat() {
+  if (!state.activityOn) { state.renderer?.setAdminHeat?.(null); return; }
+  try {
+    const d = await api.adminActivity();
+    state.activityUnits = d.units || [];
+    const cells = [];
+    for (const u of state.activityUnits) {
+      const dec = adminUnitByUid(u.admin_uid);
+      if (dec && dec.r && dec.r.length) cells.push({ rings: dec.r, color: heatColor(u.score) });
+    }
+    state.renderer?.setAdminHeat?.(cells);
+  } catch { state.renderer?.setAdminHeat?.(null); }
+}
+
+// v8.4 — real historical world borders: decode each epoch's rings once (lazy).
+let HIST_DECODED = null;
+function ensureHistDecoded() {
+  if (!HIST_DECODED) {
+    HIST_DECODED = HISTORICAL_EPOCHS.map((ep) => {
+      const flat = [];
+      for (const c of ep.countries) for (const enc of c.r) flat.push(decodeRing(enc));
+      return { year: ep.year, flat };
+    });
+  }
+  return HIST_DECODED;
+}
+// When the time capsule (as_of) points into the past, overlay the borders of
+// the nearest historical epoch (USSR as one polity pre-1991, unified Yugoslavia,
+// colonial-era Africa…). Cleared when as_of is off or effectively present-day.
+function applyHistoricalBoundaries(asOf) {
+  const r = state.renderer;
+  if (!r || !r.setHistoricalBoundaries) return;
+  const eps = HISTORICAL_EPOCHS.length ? ensureHistDecoded() : [];
+  const yr = asOf ? parseInt(String(asOf).slice(0, 4), 10) : NaN;
+  if (!asOf || Number.isNaN(yr) || yr > 2015 || !eps.length) {
+    r.setHistoricalBoundaries(null);
+    state.histEpoch = null;
+    return;
+  }
+  let pick = eps[0];
+  for (const e of eps) if (e.year <= yr) pick = e;   // largest epoch <= as_of year
+  r.setHistoricalBoundaries(pick.flat);
+  if (state.histEpoch !== pick.year) {
+    state.histEpoch = pick.year;
+    alerts.toast?.(`⏳ Borders shown as of ${pick.year} (nearest historical epoch)`);
+  }
 }
 
 // v6.1.1 — dynamic country label anchors, computed once from the largest ring
@@ -242,7 +329,7 @@ for (const id of ["marked-toggle", "sat-toggle", "sensors-toggle", "blocs-btn", 
                   "lineage-overlay", "map-host", "feed-list", "tier-select",
                   "quality-select", "sound-toggle", "volume-slider", "preset-select",
                   "heatmap-toggle", "borders-toggle", "disputes-toggle", "actors-toggle",
-                  "names-toggle", "spin-toggle", "az-toggle", "admin-toggle", "tz-header",
+                  "names-toggle", "spin-toggle", "az-toggle", "admin-toggle", "activity-toggle", "tz-header",
                   "palette-btn", "briefing-btn", "graph-btn", "watchlist-btn", "whatif-btn", "audio-briefing-btn",
                   "bookmarks-btn", "stories-btn", "settings-btn", "snapshot-btn", "help-btn",
                   "watchlist-panel", "conn-badge", "map-filters", "graph-overlay",
@@ -264,6 +351,9 @@ const state = {
   syntheticData: null,
   autonomousZones: [],   // v7.6 — always-on dotted autonomous-region borders
   adminOn: localStorage.getItem("tdl_admin_layer") === "1",   // v8 §3 — ADM1 province layer
+  activityOn: false,          // v8.3 — Hotspots activity heat
+  activityUnits: [],
+  histEpoch: null,            // v8.4 — currently-shown historical border epoch
   mapData: { events: [], links: [] },
   clientConfig: {
     graphics: { quality_tier: "high", idle_tour_seconds: 0, ambient_sound_default: false },
@@ -486,6 +576,11 @@ const ctx = {
     key: "admin:" + uid, title: "administrative unit",
     render: (el) => Wiki.renderAdminUnit(el, uid, ctx),
   }),
+  // v8.3 — the Hotspots ranking (most active administrative units right now).
+  openHotspots: () => pane.push({
+    key: "hotspots", title: "Hotspots",
+    render: (el) => Wiki.renderHotspots(el, ctx),
+  }, { replace: pane.top() && pane.top().key === "hotspots" }),
   // v8 §3 — fly the map to an admin unit's bbox/centroid (from its page)
   flyToBounds: (bbox, clat, clon) => {
     if (clat != null && clon != null) {
@@ -842,11 +937,12 @@ function mountRenderer(tier) {
     onSelectCluster: (cluster) => openClusterList(cluster),   // v5 §9
     onSelectDisputed: (z) => ctx.openDisputedZone(z.id),      // v6.6.4 disputed marker
     onCountryClick: (lat, lon) => {
-      // v8 §3 — when the province layer is on and zoomed in, a click resolves
-      // to the smallest ADM1 unit (a real, openable entity) before falling
-      // back to the country, so provinces are as clickable as Greenland.
-      if (adminLayerActive()) {
-        const u = adminAt(lat, lon);
+      // v8/v8.1 — when the admin layer is on and zoomed in, a click resolves to
+      // the smallest visible unit (province at medium zoom, county at deep zoom)
+      // before falling back to the country — as clickable as Greenland.
+      const _lvl = adminActiveLevel();
+      if (_lvl >= 1) {
+        const u = adminAt(lat, lon, _lvl);
         if (u && u.i) { ctx.openAdminUnit(u.i); return; }
       }
       let c = countryAt(lat, lon);
@@ -902,11 +998,15 @@ function mountRenderer(tier) {
   // v7.6 — autonomous-region dotted borders, on by default (togglable)
   if (state.autonomousZones && state.autonomousZones.length)
     state.renderer.setAutonomousZones?.(state.azOn !== false ? state.autonomousZones : []);
-  // v8 §3 — re-apply the ADM1 province layer on (re)mount if the user has it on
+  // v8/v8.1/v8.2 — re-apply all admin tiers on (re)mount
   if (state.adminOn) {
-    state.renderer.setAdminBoundaries?.(adminFlatRings());
+    state.renderer.setAdminBoundaries?.(adminFlatRings(1));
+    state.renderer.setAdmin2Boundaries?.(adminFlatRings(2));
+    state.renderer.setAdmin3Boundaries?.(adminFlatRings(3));
     state.renderer.setAdminVisible?.(true);
   }
+  if (state.activityOn) applyActivityHeat();   // v8.3 — re-apply Hotspots heat
+  if (state.asOf) applyHistoricalBoundaries(state.asOf);   // v8.4 — re-apply era borders
   state.renderer.setCountryLabels?.(COUNTRY_LABELS);   // v6.1.1 dynamic labels
   if (state.renderer && state.renderer.onSelectRegion !== undefined)
     state.renderer.onSelectRegion = (region) => ctx.openRegion(region);  // v6.6
@@ -1088,6 +1188,7 @@ const scrubber = new TimeScrubber(els.scrubberHost, {
     state.asOf = asOf;
     liveSuspended = asOf !== null;
     setConn(asOf ? "capsule" : "live");
+    applyHistoricalBoundaries(asOf);   // v8.4 — time-travel the map's borders
     Promise.all([refreshStories(), refreshMap(), refreshInstability()]).catch(() => {});
   },
 });
@@ -1612,22 +1713,41 @@ if (els.azToggle) {
 // makes clicks resolve to provinces when zoomed in. Persisted.
 if (els.adminToggle) {
   els.adminToggle.classList.toggle("active", state.adminOn);
-  if (state.adminOn) {           // restore a persisted-on layer at boot
-    state.renderer?.setAdminBoundaries?.(adminFlatRings());
+  const _pushAdminLayers = () => {
+    state.renderer?.setAdminBoundaries?.(adminFlatRings(1));
+    state.renderer?.setAdmin2Boundaries?.(adminFlatRings(2));
+    state.renderer?.setAdmin3Boundaries?.(adminFlatRings(3));
     state.renderer?.setAdminVisible?.(true);
-  }
+  };
+  if (state.adminOn) _pushAdminLayers();   // restore a persisted-on layer at boot
   els.adminToggle.addEventListener("click", () => {
     state.adminOn = !state.adminOn;
     localStorage.setItem("tdl_admin_layer", state.adminOn ? "1" : "0");
     els.adminToggle.classList.toggle("active", state.adminOn);
     if (state.adminOn) {
-      state.renderer?.setAdminBoundaries?.(adminFlatRings());
-      state.renderer?.setAdminVisible?.(true);
-      alerts.toast?.("Provinces on — zoom into a country to see its states/provinces, then click one.");
+      _pushAdminLayers();
+      alerts.toast?.("Provinces on — zoom in for states/provinces, deeper for counties/districts, deepest for sub-districts. Click any unit.");
     } else {
       state.renderer?.setAdminVisible?.(false);
     }
   });
+}
+// v8.3 — the Hotspots activity heat: light up the admin units with the most
+// tracked coverage right now, and open the ranking panel. Toggling off clears
+// the heat. A refresh loop keeps it live while active.
+if (els.activityToggle) {
+  els.activityToggle.addEventListener("click", () => {
+    state.activityOn = !state.activityOn;
+    els.activityToggle.classList.toggle("active", state.activityOn);
+    if (state.activityOn) {
+      applyActivityHeat();
+      ctx.openHotspots();
+    } else {
+      state.renderer?.setAdminHeat?.(null);
+    }
+  });
+  // keep the heat current while it's on (live ingestion moves the hotspots)
+  setInterval(() => { if (state.activityOn) applyActivityHeat(); }, 30000);
 }
 
 // v6.6.6 — explicit auto-spin toggle (the globe no longer spins on its own when
@@ -2505,6 +2625,7 @@ function exitWarMode() {
 }
 window.__gg.exitWarMode = exitWarMode;
 window.__gg.enterWarMode = enterWarMode;   // v6.6.6 — exposed for scripting/tests
+window.__gg.applyHistoricalBoundaries = applyHistoricalBoundaries;   // v8.4 — test/scripting hook
 
 // §8 — right-panel sub-filters: Military / Civilian / Diplomatic / Economic
 function renderWarTabs() {

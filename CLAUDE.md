@@ -18,6 +18,293 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v8.6.0)
+
+**v8.6.0 (2026-07-09, V8.6 — close the gaps: three excluded countries, a
+world-wide demographics floor, and a deep historical epoch set):** a batch that
+knocks out the named leftovers from the V8.x roadmap in one pass.
+
+- **China / France / Spain — the three earlier exclusions, resolved.** The
+  deeper-tier builder's `TASKS` gained `("CHN",2)`, `("FRA",3)`, `("ESP",3)`.
+  China gets a SINGLE tier (provinces → **2,390 counties**) — the v8.4 duplication
+  worry was only between gB CHN ADM2 and ADM3, so one tier nests cleanly (flatter,
+  no prefecture layer — variable depth, Q1). France/Spain's NE ADM1 IS the 2nd
+  level (departments / provincias), so the clean DEEPER tier is gB ADM3 — **320
+  French arrondissements** and **8,093 Spanish municipios** — centroid-linked
+  straight to those NE units. (Italy stays out: its gB ADM3 is only 107 = its
+  provinces again, which would duplicate not nest.) Atlas is now **36,650 units**
+  (4,522 ADM1 + 20,819 ADM2 + 11,309 ADM3); `adminBoundaries.js` ~5.6 MB. All
+  pre-existing uids stay byte-stable (0 US counties moved).
+- **The demographics floor goes world-wide — 237 curated figures** (up from 115).
+  `admin_demographics.py` gained the majors of the UK-adjacent world: Russia,
+  Germany's full 16 Länder, France/Spain/Italy/Poland/Turkey provinces, Pakistan,
+  Iran, Iraq, Saudi Arabia, more of China/India/Brazil/Mexico/Nigeria/Indonesia,
+  Vietnam/Thailand/Philippines/South Korea, Kenya/Ethiopia/DR Congo/Colombia,
+  Ukraine, and more Canada/Australia/Japan/Argentina/South Africa/Egypt. Each is a
+  real census/estimate with year + source; all **235 keys validated against the
+  atlas names (0 misses)**.
+- **Duplicate-name disambiguation (the Russia fix).** Natural Earth has two ADM1
+  units both named **"Moscow"** (federal city + oblast) and two named **"Kyiv"**
+  (city + oblast) — a by-name lookup couldn't tell them apart (Russia was dropped
+  entirely in v8.5 for this). `lookup()` now accepts the unit's `area` and a value
+  may be a LIST of candidates each with an `area_hint`; the closest-area candidate
+  wins, so Moscow-city gets 13.0M and Moscow-oblast 8.5M, Kyiv-city 2.95M and
+  Kyiv-oblast 1.78M — each correct. `_unit_stats` passes the unit's own area in.
+- **A far deeper historical epoch set — 11 epochs (up from 5).** `EPOCHS` gained
+  **1880, 1900, 1914, 1920, 1930, 1938** beside the postwar→present years, so the
+  time scrubber now redraws colonial-peak Africa, Austria-Hungary and the Ottoman
+  Empire (pre-1914), and the post-WWI settlement (1920) — not just the Cold-War
+  map. `historicalBoundaries.js` → 11 epochs (144–202 polities each), ~770 KB.
+- **Honesty guards.** The GB atlas ADM1 is the local-authority level (its
+  "London" unit is the tiny City of London, not Greater London), so the UK is
+  omitted from the floor rather than mislabeled. ~1,350 very small units (mostly
+  Spanish municipios) collapse to ~0 area under simplification, so the unit page
+  **hides the area row when it rounds to 0** instead of showing "0 km²".
+
+Version badge → v8.6.0. Verified over HTTP + headless: fresh DB seeds all 36,650
+units; China counties (Beijing/Shanghai), French arrondissements and Spanish
+municipios (Madrid → 614 km², real ~604) resolve; US uids byte-stable; the
+demographics floor returns own pop+density for the new units (Bavaria 13.37M /
+191, Guangdong 126M / 716) with Moscow & Kyiv each disambiguated by area; the
+time scrubber to 1912 selects the 1900 epoch (25,930 globe verts) and 1935 the
+1930 epoch; ADM2 unit pages render their crest (seal) — **0 non-network console
+errors**. Still deferred (needs a vendored sub-national historical dataset): a
+historical PROVINCE layer (e.g. Soviet republics as sub-units) — the epochs are
+country-level only.
+
+## Status (v8.5.0)
+
+**v8.5.0 (2026-07-09, V8.5 — the atlas gets its own numbers + four more
+continents of districts):** the admin units stop borrowing the country's figures
+and start carrying their own, plus a second global broadening pass.
+
+- **Broader ADM2 coverage — pure data on the generalized builder.**
+  `build_admin_atlas_deeper.py` `TASKS` grew from 11 to 18: **Brazil
+  municipalities, Mexico municipios, Nigeria LGAs, Indonesia regencies, Argentina
+  departments, South Africa districts, and Egypt markaz** now join the US/Germany/
+  Ukraine/India/Japan/Poland/Turkey/Canada/Australia tiers. Each is a clean nest
+  (the country's Natural Earth ADM1 IS its top subdivision, so gB ADM2 slots one
+  level below; France/Italy/Spain stay OUT — their NE ADM1 is already the 2nd
+  level). Atlas is now **25,847 units** (4,522 ADM1 + 18,429 ADM2 + 2,896 ADM3);
+  `adminBoundaries.js` ~4.3 MB, `admin_atlas.py` ~4.8 MB. **All pre-existing
+  ADM2/ADM3 uids stay byte-stable** (new countries appended at the end; verified 0
+  moved across US counties + DEU/IND/JPN/POL/AUS). Seed + `/api/admin/*` needed
+  **no changes** — level-agnostic data.
+- **Real per-unit AREA — on every one of the 25,847 units.** The builder now
+  computes each unit's surface area (km²) from its OWN polygon via the
+  spherical-excess line integral (`_area_km2`), stored on the unit record for
+  both the ADM1 tier (decoded from the encoded rings) and every deeper tier.
+  Honest approximations from the SIMPLIFIED geometry — within a few % (California
+  409,101 vs real ~423,970; Fresno County 15,479 vs ~15,440; São Paulo city
+  1,485 vs ~1,521). `/api/admin/{uid}` carries `area_km2` on every unit row via
+  `_area_of` (cached uid→area map).
+- **Curated per-unit DEMOGRAPHICS (the V8.0 Q4 deferral, delivered).** New
+  `geopolitics/admin_demographics.py` is a curated knowledge floor of **115 real,
+  recent population figures** (+ GDP for the top US economies) for the world's
+  major first-level units — every US state, all Canadian/Australian/German big
+  units, India/China/Brazil/Mexico/Nigeria/Japan/Indonesia/Argentina/South
+  Africa/Egypt majors — keyed by (iso3, atlas English name), each with its census
+  `year` + `src`. `_unit_stats` returns the unit's OWN area (always) + curated
+  population/GDP + **density DERIVED from that population ÷ this unit's polygon
+  area** (so it matches the geometry shown); `own_population=False` → the page
+  still shows the clearly-labelled inherited country figure (unchanged). Russia is
+  deliberately omitted (NE has two ADM1 units both named "Moscow", so a by-name
+  lookup can't disambiguate). The admin-unit page gained a **"This unit's own
+  figures"** section (area, population+year, density, GDP, source) above the
+  reworded "Country context — inherited" block.
+
+Version badge → v8.5.0. Verified over HTTP + headless: fresh DB seeds all 25,847
+units; new-country resolutions confirmed (São Paulo→município, Mexico City→
+Cuauhtémoc, Jakarta→Kota Jakarta Pusat, Johannesburg→City of Johannesburg,
+Cairo→governorate) and pre-existing uids byte-stable; `/api/admin/{uid}` returns
+own area for every unit and full demographics for curated ADM1s (California pop
+38.97M / density 95.2 / GDP $3.9T, Tokyo 14.05M / 6750, Bavaria 13.37M / 191,
+Lagos 9.11M / 2564); the unit page renders the "This unit's own figures" section
+— **0 non-network console errors**. All 115 curated keys match the atlas
+(`0 misses`). Next data passes: more ADM2/ADM3 countries (one-line `TASKS` adds)
+and deeper per-unit demographics (extend `admin_demographics.UNITS`).
+
+## Status (v8.4.0)
+
+**v8.4.0 (2026-07-09, V8.4 — the district tier goes global + the map time-travels
+its borders):** two of the owner's named roadmap bullets, together.
+
+- **Broader ADM2/ADM3 coverage (bullet 1) — pure data on the generalized
+  builder.** `build_admin_atlas_deeper.py` `TASKS` grew from 3 to 11 entries:
+  US counties + Germany's Land→Regierungsbezirk→Kreis chain now sit beside
+  **Ukraine raions, India districts, Japan municipalities, Turkey districts,
+  Canada census divisions, Australia LGAs, and Poland's full
+  voivodeship→powiat→gmina 3-level chain** (a second clean 3-tier showcase). The
+  builder was made **fetch-resilient** (a missing/blocked country is skipped, not
+  fatal) and gained `TYPE_OVERRIDE` for locally-correct unit-type labels
+  (Raion/Powiat/Gmina/LGA/…). China was deliberately EXCLUDED: geoBoundaries' CHN
+  ADM2 and ADM3 are BOTH county-level with different romanizations, so they'd
+  duplicate rather than nest. Atlas is now **15,607 units** (4,522 ADM1 + 8,189
+  ADM2 + 2,896 ADM3); `adminBoundaries.js` ~2.9 MB. **US county uids stay
+  byte-stable** (existing TASKS kept their position; new tiers appended at the
+  end), so events + seeded rows already referencing them don't move. Seed +
+  `/api/admin/*` needed **no changes** — the tier is level-agnostic data.
+- **Real historical border geometry (bullet 3) — the time capsule redraws the
+  world.** New `scripts/build_historical_boundaries.py` vendors ACTUAL historical
+  country polygons (not estimates) from the community `historical-basemaps`
+  project (aourednik, CC-BY-SA) for five epochs — **1945, 1960, 1994, 2000,
+  2010** — simplifies + polyline-encodes them exactly like the live borders, and
+  emits one committed artifact `frontend/src/data/historicalBoundaries.js`
+  (`HISTORICAL_EPOCHS`, ascending). When the **time scrubber** points at a past
+  date, the map now **overlays the borders of that era** — the USSR as one polity
+  pre-1991, unified Yugoslavia, colonial-era Africa — in amber, on BOTH renderers
+  (`setHistoricalBoundaries` on the globe as a dedicated GL line buffer + on the
+  2D canvas as amber rings); a toast names the nearest epoch shown. `App`'s
+  `applyHistoricalBoundaries(asOf)` picks the newest epoch ≤ the as_of year (or
+  clears the layer for a present-day/undated view) and is re-applied on renderer
+  mount so it survives a globe↔map switch. `boundaryCodec.decodeRing` is now
+  exported for the App-side decode. This is the honest realization of the V8 Q3
+  promise: the curated 27-change timeline (text) stays, and now real per-epoch
+  geometry rides alongside it — deeper years drop in as pure data (extend
+  `EPOCHS`) with no code change.
+
+Version badge → v8.4.0. Verified over HTTP + headless Chromium: fresh DB boots
+clean and seeds all 15,607 admin units; resolutions confirmed across the new
+countries — Kyiv→raion (L2), Mumbai Suburban→district (L2), Osaka→municipality
+(L2), rural Poland→gmina (L3, full 3-level), Böblingen→Kreis (L3), LA→county
+(L2) — and US uids unchanged; `historicalBoundaries.js` loads 5 epochs
+(160–195 polities each) and `decodeRing` round-trips; driving the scrubber to
+1988 selects the **1960** epoch and buffers **29,380** historical border
+vertices onto the globe, then a present-day date clears it — **0 non-network
+console errors**. Live feeds stay proxy-blocked in the sandbox and degrade
+cleanly. Next data passes: more ADM2/ADM3 countries (one-line `TASKS` adds) and
+more historical epochs (extend `EPOCHS`).
+
+## Status (v8.3.0)
+
+**v8.3.0 (2026-07-09, V8.3 — Administrative Hotspots: the atlas lit by the live
+news):** the admin atlas stops being static geometry and becomes data-driven.
+Every event already resolves to its ADM unit at ingestion (v8 §4); V8.3 turns
+that into a live sub-national activity layer — where is the world's news
+happening, down to the province / county / district.
+
+- **Backfill (`seed._backfill_event_admin_uids`):** on boot, resolves
+  `events.admin_uid` for already-geocoded events that predate v8 ingestion (the
+  curated 1945→present history packs + anything older) via `admin_atlas.unit_at`.
+  Bounded per boot (8k) so a backlog never blocks startup; once filled it's a
+  cheap no-op. Lights the layer up with the history already in the chain.
+- **Aggregation (`/api/admin/activity`):** ranks admin units by recent tracked
+  coverage over a rolling window (`config admin_activity.window_days`, 30) into a
+  **0-100 relative pressure score** (volume + a severity pull, hottest unit =
+  100) with each unit's dominant category + centroid. Attribution is the unit the
+  event resolved to at ingestion, so a US point scores the county, a German point
+  the Kreis. Powers BOTH the heat map and the ranking.
+- **The heat choropleth:** a header **"◉ hotspots" toggle** paints ONLY the
+  active units — each filled with its pressure colour (dim amber → hot
+  red-orange) on the globe's overlay canvas + the 2D canvas (`setAdminHeat(cells)`
+  on both renderers, reusing the v6 §16 choropleth fill path). Because only the
+  handful of *active* units are filled, it's cheap and reads as hotspots glowing
+  on the map. A 30s refresh loop keeps it live; toggling off clears it.
+- **The Hotspots panel (`Wiki.renderHotspots`):** opens with the toggle — a
+  ranked list of the most active units worldwide, each a heat-bar row that flies
+  the map to the unit and opens its page. The admin-unit page gained a **"◉ Local
+  activity"** section (recent events in-window, severity load, all-time tracked,
+  category mix).
+
+Version badge → v8.3.0. `admin_activity` config block added (window_days,
+max_units, score_severity_weight). Verified over HTTP + headless: boot backfills
+168 historical events' admin_uid; `/api/admin/activity` ranks injected events
+(Paris/LA 100, Fresno/Berlin lower) with dominant categories; the ◉ hotspots
+toggle activates, renders the ranked panel (4 rows) AND applies 4 heat cells to
+the renderer; the unit page shows its local-activity readout; **0 non-network
+console errors**. Live ingestion moves the hotspots in production; the sandbox
+(proxy-blocked feeds) shows the backfilled history + any injected events.
+
+## Status (v8.2.0)
+
+**v8.2.0 (2026-07-09, V8.2 — the third tier: ADM3 sub-districts):** the next
+depth level in the administrative hierarchy, on a generalized pipeline.
+
+- **`scripts/build_admin_atlas_deeper.py`** (supersedes the ADM2-only builder):
+  a generalized multi-level builder driven by a `TASKS = [(iso3, level), …]`
+  list. It reads the vendored ADM1 base, then for each task fetches
+  geoBoundaries ADM{level} and parent-links every unit to the **smallest
+  existing unit** containing its centroid — via a growing point-in-polygon
+  resolver that's extended after each task, so ADM3 links to the ADM2 loaded
+  earlier in the same run (and to ADM1 where no ADM2 exists — variable depth,
+  Q1). Uids stay STABLE because existing tasks keep their position (append new
+  tiers at the end); US county uids are byte-identical to v8.1.
+- **Germany is the 3-level showcase:** Land (16, Natural Earth ADM1) →
+  Regierungsbezirk (38, geoBoundaries ADM2) → **Kreis (418, geoBoundaries
+  ADM3)** — a genuine province → district → sub-district chain that NE's ADM1
+  (Länder) aligns to cleanly. Atlas is now **8,210 units** (4,522 ADM1 + 3,270
+  ADM2 + 418 ADM3); `unit_at` still returns the smallest (a click near Stuttgart
+  resolves to the Kreis Böblingen, ancestry Baden-Württemberg › Stuttgart ›
+  Böblingen). `adminBoundaries.js` gained `ADMIN3_ENC`.
+- **Rendered as a third, deepest-gated line layer.** The frontend admin plumbing
+  was generalized to N tiers (`ADMIN_ENC[]`, `adminFlatRings(level)`,
+  `adminActiveLevel()` 0-3, an N-level combined click resolver). Both renderers
+  gained `setAdmin3Boundaries`: ADM1 fades in at globe dist<3.0 / 2D zoom≥2.5,
+  ADM2 at dist<1.9 / zoom≥4.5, **ADM3 at dist<1.55 / zoom≥7**. The globe's
+  min-zoom clamp was lowered (1.45→1.15) so there's room to reach the ADM3 tier.
+  A click resolves to whichever tier is visible; the toast explains the three
+  depth stops.
+- Seed + `/api/admin/*` needed **no changes** — the v8.1 schema (`adm_level`,
+  `parent_uid`, `path`) and endpoints are level-agnostic; the seed reads the
+  build's `level`/`parent`/`path` per unit, so ADM3 (source `geoboundaries-adm2`
+  bucket, type "District/Kreis") drops in as data. Drill-down works end to end:
+  Germany country page → Länder → a Land's Regierungsbezirke (children) → a
+  Regierungsbezirk's Kreise → the Kreis page. Flags/seals apply to every tier.
+
+Version badge → v8.2.0. Verified over HTTP + headless: v8.1→v8.2 seeds +456 DEU
+units (8,210 total); Böblingen resolves at level 3 with full 3-level ancestry;
+Baden-Württemberg lists its 4 Regierungsbezirke as children; US county uids
+unchanged; **0 non-network console errors**. The generalized builder makes the
+next tier / next country a one-line `TASKS` addition.
+
+## Status (v8.1.0)
+
+**v8.1.0 (2026-07-09, V8.1 — the deeper tier + provincial flags):** the next
+step in the V8 architecture progression, plus crests for every province.
+
+- **ADM2 (district/county) — the tier below provinces.** New
+  `scripts/build_admin_atlas_adm2.py` reads the ALREADY-VENDORED ADM1 atlas (so
+  ADM1 uids stay byte-stable — events + seeded rows already reference them),
+  fetches **geoBoundaries** ADM2 (gbOpen, CC-BY, via the git-LFS media host),
+  simplifies + polyline-encodes each unit, links it to its parent ADM1 state by
+  point-in-polygon of its centroid, and re-emits both atlas artifacts with ADM1
+  verbatim + the new layer. First country pass: **3,232 US counties** (3,221
+  parent-linked); `COUNTRIES=[...]` in the script widens coverage as pure data.
+  `frontend/src/data/adminBoundaries.js` gained `ADMIN2_ENC`; the combined
+  backend `admin_atlas.py` (7,754 units) makes **`unit_at` return the SMALLEST
+  containing unit** — a US click now resolves to the county, elsewhere to the
+  province. Seed carries `adm_level=2` + `parent_uid` + full `path`
+  ("USA/California/Los Angeles") + `source='geoboundaries-adm2'`.
+- **Rendered as a second, deeper-gated layer.** Both renderers gained
+  `setAdmin2Boundaries`: ADM1 provinces fade in at globe dist<3.0 / 2D zoom≥2.5,
+  ADM2 counties only deeper (dist<1.9 / zoom≥4.5), so the tiers don't overplot.
+  A click resolves to whichever tier is visible (province at medium zoom, county
+  at deep zoom — `adminActiveLevel()` + a combined point-in-polygon). The full
+  drill-down works: country page → **states** (level-1 filtered) → a state page
+  lists its **counties** as children → the county page, breadcrumb
+  country › state › county.
+- **Provincial flags OR seals — for every province (owner request).** Wikidata
+  is proxy-blocked in-sandbox, so — exactly like the country flags — we
+  CONSTRUCT a Wikimedia Commons `Special:FilePath/Flag of {name}.svg` URL and let
+  the browser load it (`geopolitics/province_flags.py`), with a collision guard
+  (subdivision names that equal a sovereign — Georgia, Luxembourg … — are
+  curated to the correct file or suppressed so a US Georgia never shows the
+  country's flag). When a flag image 404s, the frontend swaps in a **deterministic
+  generated SEAL** (`provinceSeal` — a monogram crest coloured from the unit
+  name), so **100% of units have an emblem: a real flag where one exists, a seal
+  otherwise**. The crest (`adminCrest` — flag layered over the seal) renders on
+  the admin-unit page header (72px) and inline on every province/county/sibling
+  chip (18px). `flag_url` rides on every `/api/admin/*` unit row.
+
+Version badge → v8.1.0. Verified over real HTTP + headless Chromium: v6→v8→v8.1
+boots clean; US ADM2 seeds to 7,754 total units; LA resolves to "Los Angeles"
+county (level 2, parent California); `/api/admin/country/USA?level=1` returns 51
+states while the county children hang off each state; province flag URLs resolve
+correctly incl. the Georgia collision → curated US-state file; **0 non-network
+console errors**. Follow-on data passes: more ADM2 countries (extend
+`COUNTRIES`), and the raster/SDF GPU spine when unit counts reach ADM2-worldwide
+scale.
+
 ## Status (v8.0.0)
 
 **v8.0.0 (2026-07-09, V8 — the Administrative Atlas: the map becomes a global

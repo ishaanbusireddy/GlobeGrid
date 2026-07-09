@@ -3,7 +3,7 @@
 import logging
 
 from ..db.models import new_id, now_iso
-from ..db.session import query_one, write_tx
+from ..db.session import query, query_one, write_tx
 from ..processing.entities import resolve_entity
 from . import seed_data
 from .m49 import M49_SUBREGION
@@ -30,6 +30,7 @@ def seed_all() -> dict:
     counts["subfactions"] = _seed_subfactions()           # v6 §8
     counts["subnational_areas"] = _seed_subnational()     # v6 §16
     counts["administrative_units"] = _seed_administrative_units()  # v8 §4
+    counts["events_admin_backfilled"] = _backfill_event_admin_uids()  # v8.3
     added = {k: v for k, v in counts.items() if v}
     if added:
         log.info("geo_seeded", extra={"data": added})
@@ -504,13 +505,18 @@ def _seed_administrative_units() -> int:
         for u in rows:
             country = u.get("country") or None
             name = u["name"]
+            level = u.get("level", 1)
+            # v8.1 — ADM2 units carry a parent_uid (their ADM1 state) + a full
+            # path ("USA/California/Los Angeles") + their own source tag.
+            parent_uid = u.get("parent")
+            path = u.get("path") or (f"{country}/{name}" if country else name)
+            source = "geoboundaries-adm2" if level == 2 else "naturalearth-10m"
             params.append((
-                u["uid"], country, u.get("level", 1), None,
-                (f"{country}/{name}" if country else name),
+                u["uid"], country, level, parent_uid, path,
                 name, u.get("name_local"), (u.get("type") or None),
                 u.get("clat"), u.get("clon"),
                 _json.dumps(u["bbox"]) if u.get("bbox") else None,
-                "naturalearth-10m", None, None,
+                source, None, None,
             ))
         conn.executemany(
             "INSERT OR IGNORE INTO administrative_units"
@@ -521,6 +527,34 @@ def _seed_administrative_units() -> int:
         added = conn.execute(
             "SELECT COUNT(*) AS n FROM administrative_units").fetchone()["n"] - existing
     return added
+
+
+def _backfill_event_admin_uids(batch: int = 8000) -> int:
+    """v8.3 — resolve events.admin_uid for already-geocoded events that predate
+    the v8 ingestion resolution (the curated historical packs + anything ingested
+    before v8). Only touches rows with a lat/lon and a NULL admin_uid, so once
+    backfilled a later boot finds nothing and this is a cheap no-op. Bounded per
+    boot so a huge backlog never blocks startup — the remainder fills next boot.
+    Lights up the Hotspots activity layer with the history already in the chain."""
+    from .admin_atlas import unit_at
+    rows = query(
+        "SELECT id, location_lat, location_lon FROM events"
+        " WHERE admin_uid IS NULL AND location_lat IS NOT NULL"
+        " AND location_lon IS NOT NULL LIMIT ?", (batch,))
+    if not rows:
+        return 0
+    updates = []
+    for r in rows:
+        try:
+            uid = unit_at(r["location_lat"], r["location_lon"])
+        except Exception:  # noqa: BLE001 — never let one bad row block the batch
+            uid = None
+        if uid is not None:
+            updates.append((uid, r["id"]))
+    if updates:
+        with write_tx() as conn:
+            conn.executemany("UPDATE events SET admin_uid = ? WHERE id = ?", updates)
+    return len(updates)
 
 
 def _seed_subfactions() -> int:

@@ -4,7 +4,7 @@
 // per-country bbox `b` [minLon,minLat,maxLon,maxLat] for fast
 // point-in-polygon prefiltering.
 
-function decodeRing(str, quant = 1000) {
+export function decodeRing(str, quant = 1000) {
   const out = [];
   let lon = 0, lat = 0, i = 0;
   const n = str.length;

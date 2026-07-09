@@ -183,10 +183,16 @@ export const api = {
   autonomousZone: (zid) => get(`/api/autonomous-zones/${encodeURIComponent(zid)}`),
   // v8 §4/§5 — the Administrative Atlas (ADM1 provinces, deeper tiers later)
   adminUnit: (uid, asOf) => get(`/api/admin/${encodeURIComponent(uid)}${asOf ? "?as_of=" + encodeURIComponent(asOf) : ""}`),
-  adminByCountry: (iso3, asOf) => get(`/api/admin/country/${encodeURIComponent(iso3)}${asOf ? "?as_of=" + encodeURIComponent(asOf) : ""}`),
+  adminByCountry: (iso3, level, asOf) => {
+    const qs = [];
+    if (level) qs.push("level=" + encodeURIComponent(level));
+    if (asOf) qs.push("as_of=" + encodeURIComponent(asOf));
+    return get(`/api/admin/country/${encodeURIComponent(iso3)}${qs.length ? "?" + qs.join("&") : ""}`);
+  },
   adminAt: (lat, lon) => get(`/api/admin/at?lat=${lat}&lon=${lon}`),
   adminSearch: (q) => get(`/api/admin/search?q=${encodeURIComponent(q)}`),
   adminHistory: (country, asOf) => get(`/api/admin/history?${country ? "country=" + encodeURIComponent(country) : ""}${asOf ? "&as_of=" + encodeURIComponent(asOf) : ""}`),
+  adminActivity: (days, limit) => get(`/api/admin/activity?${days ? "days=" + days : ""}${limit ? "&limit=" + limit : ""}`),   // v8.3 hotspots
   partyDossier: (name, country) => get(`/api/party-dossier?name=${encodeURIComponent(name)}${country ? "&country=" + encodeURIComponent(country) : ""}`),  // v7.4.2
   leaderProfile: (name) =>                                              // v6.6 / v6.6.6 non-blocking
     get(`/api/leader-profile?name=${encodeURIComponent(name)}`, { timeout: 20000 }),
