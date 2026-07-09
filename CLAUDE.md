@@ -18,6 +18,114 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v8.12.0)
+
+**v8.12.0 (2026-07-09, V8.12 — consistent tiers: Spain/Italy/France's second
+level becomes div2, eight more NA/EU/ME/Central-Asia countries, and target-region
+map data):** the owner noticed Spain/Italy had a div3 but no div2, and asked to
+relabel + extend coverage across North America, Europe, the Middle East and
+Central Asia.
+
+- **ESP / ITA / FRA relabeled level 3 → level 2.** Their Natural-Earth ADM1 IS
+  already the province (provincia / provincia / département), so their single
+  deeper tier (8,093 municipios / 7,807 comuni / 320 arrondissements) is
+  conceptually a SECOND tier, not a third. It now stores as level 2 so it shows
+  under **div2** like every other country — no more "div3 but no div2" gap. The
+  builder keeps fetching the correct geoBoundaries level via `GB_LEVEL`
+  (`("ESP",2):3`, `("FRA",2):3`, `("ITA",2):4`). **Level 3 is now ONLY the three
+  genuine 3-tier countries** (Germany Kreise, Poland gminy, Tanzania wards =
+  6,256 units). A **one-time seed reconcile** (gated by an `app_meta` marker)
+  updates `adm_level` on an already-seeded DB, since `INSERT OR IGNORE` can't
+  change an existing uid's level.
+- **Eight more countries → 71,959 units** (4,522 ADM1 + 61,181 ADM2 + 6,256
+  ADM3): Luxembourg cantons, Iceland, Turkmenistan, Qatar, Kuwait, Belize,
+  Jamaica, Bahamas. The nesting guard auto-skipped the non-nesters (Kosovo /
+  Montenegro / UAE / Bahrain / Trinidad / Barbados had no gB ADM2). US LA County
+  = uid 5708 unchanged (byte-stable).
+- **Map data for every NA/EU/ME/Central-Asia country.** COUNTRY_SECT and
+  COUNTRY_DIALECT now cover **all** of them (every one has a sect + a dialect
+  value — dialect L1 distinct values jumped to 202). Added sub-national
+  heterogeneity: Turkey's Kurdish (Kurmanji) south-east + Alevi Tunceli,
+  Ukraine's Russophone east/south, Finland's Swedish Ostrobothnia, Kazakhstan's
+  Russophone north. Validator still reports **0 key mismatches**.
+
+**Known limitation (honest):** the ADM2 district *boundaries* come from
+geoBoundaries gbOpen, whose India release predates the 2022 district
+reorganisation — so Andhra Pradesh still shows its pre-2022 districts (the live
+gbOpen data is identical to the cache; the fix needs a newer India source, which
+would renumber India's ADM2 uids). District-level currency in general tracks the
+upstream geoBoundaries vintage.
+
+Version badge → v8.12.0. Verified: fresh + existing DB both end with ESP/ITA/FRA
+at level 2 (reconcile marker set); atlas 71,959 units; US uids byte-stable; every
+target-region country has sect + dialect; 0 curated-key mismatches.
+
+## Status (v8.11.0)
+
+**v8.11.0 (2026-07-09, V8.11 — depth over breadth: the map-mode data actually
+lights up, and a real bug found):** instead of more countries, this pass fills
+the curated per-unit data behind the tier-aware map modes — and fixes a class of
+**silently-dead overrides**.
+
+- **The bug:** `admin_thematic.SUBNATIONAL` overrides are keyed by
+  `(iso3, lowercased atlas ADM1 name)`, but many keys never matched the atlas's
+  actual Natural-Earth names, so they silently did nothing — the unit fell back
+  to the country value with no error. Found and fixed **16 dead overrides**:
+  Russia (the whole North-Caucasus/Volga set was keyed "chechnya"/"dagestan"/…
+  but the atlas calls them "Chechen Republic"/"Republic of Dagestan"/…), Nigeria
+  ("kano"→"Kano State"), Iraq ("al-anbar"→"Al Anbar", "ninawa"→"Nineveh"),
+  Lebanon ("south lebanon"→"South"), Spain (NE ADM1 is **provinces**, so the
+  Catalan/Basque/Galician overrides now key Barcelona/Girona/Biscay/A Coruña/…),
+  Belgium (provinces, not Flanders/Wallonia), Tanzania (Zanzibar = Mjini
+  Magharibi/Unguja/Pemba), Bosnia (RS regions + Federation cantons), Canada
+  (dropped the dead "québec" dupe). **A validator now confirms 0 mismatches** in
+  both curated tables.
+- **Much fuller sub-national heterogeneity.** Nigeria expanded to **all 36 states
+  + FCT** (Muslim Sunni/Hausa north, Christian Catholic-Igbo south-east,
+  Protestant Niger-Delta south-south, Yoruba south-west); Russia's Muslim
+  republics (+ Kabardino-Balkaria, Karachay-Cherkessia, Adygea, North Ossetia
+  Orthodox) and its Turkic/Uralic-speaking republics (Chuvash, Sakha, Mari,
+  Udmurt, Komi, Altai, Khakassia) now carry their real language; Iraq's Shia
+  south (9 governorates) vs Sunni west vs Kurdish north all resolve.
+- **Russia demographics: +30 federal subjects** (2021 Rosstat census) — the
+  population / population-density modes now light up across Russia at div1
+  (units with own population 273 → **303**), not just the two capitals.
+
+Version badge → v8.11.0. Verified: 0 key mismatches in SUBNATIONAL + demographics;
+previously-dead overrides now resolve (Kano State → Sunni, Chechen Republic →
+Sunni, Basra → Twelver Shia, Barcelona → Catalan, Antwerp → Flemish, Banja Luka →
+Orthodox); religion L1 shows 7 traditions incl. Sikhism, sect L1 31 distinct
+sects; fresh DB still seeds all 70,898 units. No atlas rebuild (pure data over the
+existing geometry), so all uids stay byte-stable.
+
+## Status (v8.10.0)
+
+**v8.10.0 (2026-07-09, V8.10 — Russia's raions + a seventh country pass; plainer
+admin flags):** a data-broadening pass on the proven builder plus the flag fix.
+
+- **Admin-unit flags are shown PLAINLY (v8.9.1).** The old "flag layered over a
+  generated seal, clipped to a circle" crest is gone — `adminCrest` renders the
+  unit's REAL flag as a plain flag image (the Bavarian flag looks like the
+  Bavarian flag). `provinceSeal` deleted entirely: **no fake artificial seals**.
+  When a unit has no flag (or its constructed flag 404s — e.g. Indian states have
+  no flag), it falls back to the **NATIONAL flag** (Kerala → the Indian flag).
+  `/api/admin/*` rows now carry `country_flag_url` (cached iso3 lookup) for that
+  fallback; CSS `.prov-crest` circle → plain `.admin-flag`.
+- **A seventh country-broadening pass → 70,898 units** (4,522 ADM1 + 43,900 ADM2
+  + 22,476 ADM3), up from 67,086. **Russia is the headline: 2,327 raions** under
+  its 85 federal subjects (Moscow resolves to its raion). Plus Somalia, PRK
+  counties, Liberia, CAR, Burundi, PNG, Bhutan gewogs, Mauritania, Congo,
+  Albania, Haiti, Suriname, Guyana, Timor-Leste, Sierra Leone, Eritrea, Eswatini,
+  Equatorial Guinea, Djibouti, Fiji, Vanuatu. The **nesting guard** auto-skipped
+  the non-nesters this pass (Algeria/Philippines/Burkina Faso/Guinea/Belgium/
+  Greece/Bosnia — their geoBoundaries ADM2 ≤ their Natural Earth ADM1 count) and
+  Libya/Moldova (no gB ADM2). `adminBoundaries.js` ~10.2 MB, `admin_atlas.py`
+  ~11.2 MB. **All pre-existing uids stay byte-stable** (US LA County = uid 5708).
+
+Version badge → v8.10.0. Verified: fresh DB seeds all 70,898 units; Russia's
+raions resolve (Moscow → uid 4105); US uids byte-stable; the admin-unit page
+shows a plain flag (no circle, no seal) with the national-flag fallback.
+
 ## Status (v8.9.0)
 
 **v8.9.0 (2026-07-09, V8.9 — one admin-division dropdown, tier-aware map modes,

@@ -98,8 +98,12 @@ TASKS = [
     # so the clean DEEPER tier is gB ADM3 (arrondissements / municipios), which
     # centroid-links straight to those NE units. (Italy stays OUT — its gB ADM3 is
     # only ~107 = its provinces again, which would duplicate NE, not nest.)
-    ("FRA", 3),   # French arrondissements (parent: department)
-    ("ESP", 3),   # Spanish municipios     (parent: province)
+    # v8.12 — France/Spain: their NE ADM1 IS already the province (department /
+    # provincia), so their ONE deeper tier (arrondissements / municipios) is
+    # conceptually a SECOND tier, not a third. Store it as level 2 so div2 shows
+    # it and the dropdown is consistent with every other country (was level 3).
+    ("FRA", 2),   # French arrondissements (parent: department)
+    ("ESP", 2),   # Spanish municipios     (parent: province)
     # v8.7 — a big global broadening pass: every entry below was verified to have
     # geoBoundaries ADM2 count > its Natural Earth ADM1 count (so it nests, never
     # duplicates). Skipped where gB ADM2 == NE ADM1 (Algeria, Greece, Belgium,
@@ -125,11 +129,12 @@ TASKS = [
     ("NLD", 2),   # Dutch gemeenten        (parent: province)
     ("CZE", 2),   # Czech districts        (parent: region)
     ("ROU", 2),   # Romanian communes      (parent: county)
-    # Italy: its NE ADM1 IS the provinces, and gB ADM3 duplicates them — but gB
-    # ADM4 (7,901 comuni) is a genuine deeper tier. Fetch ADM4, STORE as level 3
-    # (the comune is the same conceptual depth as a Spanish municipio), via the
-    # GB_LEVEL override below, so it renders on the existing ADM3 line layer.
-    ("ITA", 3),   # Italian comuni         (parent: province) — fetched from gB ADM4
+    # Italy: its NE ADM1 IS the provinces; gB ADM3 duplicates them, but gB ADM4
+    # (~7,900 comuni) is the genuine deeper tier. Fetch ADM4 (GB_LEVEL) and — v8.12
+    # — STORE as level 2 (a comune is the same conceptual depth as a Spanish
+    # municipio / French arrondissement), so div2 shows it, consistent with the
+    # rest of the world (was level 3).
+    ("ITA", 2),   # Italian comuni         (parent: province) — fetched from gB ADM4
     # v8.8 — a fifth broadening pass: ~40 more countries, every one pre-verified
     # (gB ADM2 > NE ADM1, so a genuine deeper tier). Africa, MENA, Latin America,
     # the Balkans, the Alpine/Nordic states, and more of Asia.
@@ -152,11 +157,31 @@ TASKS = [
     ("MNG", 2), ("KOR", 2), ("LKA", 2), ("LAO", 2),
     ("LTU", 2), ("EST", 2), ("HUN", 2), ("BLR", 2),
     ("ARM", 2), ("KGZ", 2), ("TJK", 2), ("ISR", 2),
+    # v8.10 — a seventh broadening pass. Russia is the headline (85 federal
+    # subjects → thousands of raions). The rest span the remaining large gaps;
+    # every one is guarded at build time, so non-nesters (where gB ADM2 ≤ the NE
+    # ADM1 count) auto-skip.
+    ("RUS", 2), ("DZA", 2), ("PHL", 2), ("BFA", 2), ("GIN", 2), ("BEL", 2),
+    ("GRC", 2), ("BIH", 2), ("SOM", 2), ("MRT", 2), ("COG", 2), ("ALB", 2),
+    ("PRK", 2), ("HTI", 2), ("SUR", 2), ("GUY", 2), ("LBR", 2), ("CAF", 2),
+    ("BDI", 2), ("PNG", 2), ("BTN", 2), ("MDA", 2), ("TLS", 2), ("SLE", 2),
+    ("ERI", 2), ("SWZ", 2), ("GNQ", 2), ("DJI", 2), ("FJI", 2), ("VUT", 2),
+    # v8.12 — eighth pass: fill the remaining tier gaps in North America, Europe,
+    # the Middle East and Central Asia. Guarded (non-nesters auto-skip), so the
+    # small Gulf/Caribbean states that don't split below their ADM1 drop out.
+    ("LUX", 2), ("KOS", 2), ("MNE", 2), ("ISL", 2),          # Europe gaps
+    ("TKM", 2),                                              # Central Asia gap
+    ("ARE", 2), ("QAT", 2), ("KWT", 2), ("BHR", 2),          # Gulf (guard-filtered)
+    ("BLZ", 2), ("JAM", 2), ("BHS", 2), ("TTO", 2), ("BRB", 2),  # Caribbean
 ]
 LEVEL_TYPE = {2: "District", 3: "Sub-district"}
 # fetch a DIFFERENT geoBoundaries level than the stored level. Italy's comuni are
 # gB ADM4 but conceptually a level-3 unit (municipality under province).
-GB_LEVEL = {("ITA", 3): 4}
+# v8.12 — France/Spain/Italy's NE ADM1 IS the province, so their genuine deeper
+# tier is a geoBoundaries level BELOW gB ADM2 (which just duplicates the province):
+# fetch gB ADM3 (FR arrondissements / ES municipios) or gB ADM4 (IT comuni), but
+# STORE the result as level 2 (a second tier, consistent with the rest of the map).
+GB_LEVEL = {("ITA", 2): 4, ("ESP", 2): 3, ("FRA", 2): 3}
 # nicer, locally-correct unit-type labels per (iso3, level); falls back to LEVEL_TYPE
 TYPE_OVERRIDE = {
     ("USA", 2): "County", ("DEU", 2): "Regierungsbezirk", ("DEU", 3): "Kreis",
@@ -167,7 +192,7 @@ TYPE_OVERRIDE = {
     ("BRA", 2): "Município", ("MEX", 2): "Municipio", ("NGA", 2): "LGA",
     ("IDN", 2): "Regency", ("ARG", 2): "Department", ("ZAF", 2): "District",
     ("EGY", 2): "Markaz",
-    ("CHN", 2): "County", ("FRA", 3): "Arrondissement", ("ESP", 3): "Municipio",
+    ("CHN", 2): "County", ("FRA", 2): "Arrondissement", ("ESP", 2): "Municipio",
     ("COL", 2): "Municipio", ("VEN", 2): "Municipio", ("PER", 2): "Province",
     ("CHL", 2): "Province", ("IRN", 2): "County", ("IRQ", 2): "District",
     ("SAU", 2): "Governorate", ("PAK", 2): "District", ("BGD", 2): "District",
@@ -175,7 +200,7 @@ TYPE_OVERRIDE = {
     ("THA", 2): "District", ("ETH", 2): "Zone", ("MAR", 2): "Province",
     ("SWE", 2): "Municipality", ("NOR", 2): "Municipality", ("PRT", 2): "Municipio",
     ("NLD", 2): "Gemeente", ("CZE", 2): "District", ("ROU", 2): "Commune",
-    ("ITA", 3): "Comune",
+    ("ITA", 2): "Comune",
     # v8.8 — locally-correct labels for the fifth pass
     ("AGO", 2): "Municipality", ("MOZ", 2): "District", ("TZA", 2): "District",
     ("UGA", 2): "County", ("GHA", 2): "District", ("SDN", 2): "District",
@@ -203,6 +228,23 @@ TYPE_OVERRIDE = {
     ("LAO", 2): "District", ("LTU", 2): "Municipality", ("EST", 2): "Municipality",
     ("HUN", 2): "District", ("BLR", 2): "District", ("ARM", 2): "Community",
     ("KGZ", 2): "District", ("TJK", 2): "District", ("ISR", 2): "Subdistrict",
+    # v8.12 — eighth pass labels
+    ("LUX", 2): "Canton", ("KOS", 2): "Municipality", ("MNE", 2): "Municipality",
+    ("ISL", 2): "Municipality", ("TKM", 2): "District", ("ARE", 2): "Municipality",
+    ("QAT", 2): "Municipality", ("KWT", 2): "Area", ("BHR", 2): "Municipality",
+    ("BLZ", 2): "Constituency", ("JAM", 2): "Parish", ("BHS", 2): "District",
+    ("TTO", 2): "Region", ("BRB", 2): "Parish",
+    # v8.10 — seventh pass labels
+    ("RUS", 2): "Raion", ("DZA", 2): "Daïra", ("PHL", 2): "Municipality",
+    ("BFA", 2): "Department", ("GIN", 2): "Prefecture", ("BEL", 2): "Arrondissement",
+    ("GRC", 2): "Regional Unit", ("BIH", 2): "Municipality", ("SOM", 2): "District",
+    ("MRT", 2): "Department", ("COG", 2): "District", ("ALB", 2): "Municipality",
+    ("PRK", 2): "County", ("HTI", 2): "Arrondissement", ("SUR", 2): "District",
+    ("GUY", 2): "Region", ("LBR", 2): "District", ("CAF", 2): "Sub-prefecture",
+    ("BDI", 2): "Commune", ("PNG", 2): "District", ("BTN", 2): "Gewog",
+    ("MDA", 2): "District", ("TLS", 2): "Municipality", ("SLE", 2): "District",
+    ("ERI", 2): "Sub-region", ("SWZ", 2): "Tinkhundla", ("GNQ", 2): "District",
+    ("DJI", 2): "District", ("FJI", 2): "Province", ("VUT", 2): "Area Council",
 }
 
 

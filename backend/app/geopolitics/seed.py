@@ -497,6 +497,23 @@ def _seed_administrative_units() -> int:
     rows = _atlas_units()
     added = 0
     with write_tx() as conn:
+        # v8.12 — relabel reconcile. A unit's adm_level can CHANGE between builds
+        # (the ESP/ITA/FRA municipios moved from level 3 → level 2). INSERT OR
+        # IGNORE can't update an existing uid, so an already-seeded DB would keep
+        # the stale level. Reconcile adm_level + source from the atlas ONCE, gated
+        # by an app_meta marker so it never runs on every boot. Only rows whose
+        # level actually differs are touched (indexed by the admin_uid PK).
+        marker = conn.execute(
+            "SELECT value FROM app_meta WHERE key='admin_level_reconcile'").fetchone()
+        if not marker or marker["value"] != "v8.12":
+            relabel = [(u.get("level", 1),
+                        "geoboundaries-adm2" if u.get("level", 1) == 2 else "naturalearth-10m",
+                        u["uid"], u.get("level", 1)) for u in rows]
+            conn.executemany(
+                "UPDATE administrative_units SET adm_level=?, source=?"
+                " WHERE admin_uid=? AND adm_level<>?", relabel)
+            conn.execute("INSERT OR REPLACE INTO app_meta(key, value)"
+                         " VALUES('admin_level_reconcile', 'v8.12')")
         existing = conn.execute(
             "SELECT COUNT(*) AS n FROM administrative_units").fetchone()["n"]
         if existing >= len(rows):
