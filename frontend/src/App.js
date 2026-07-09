@@ -30,10 +30,12 @@ import * as Wiki from "./components/panes/WikiPages.js";
 import { Alerts } from "./components/Alerts.js";
 import { exportSnapshot } from "./components/Snapshot.js";
 import { BOUNDARIES_50M_ENC } from "./data/boundaries50m.js";
-import { ADMIN1_ENC, ADMIN2_ENC, ADMIN3_ENC } from "./data/adminBoundaries.js";   // v8 ADM1 + v8.1 ADM2 + v8.2 ADM3
+// v8.7 — adminBoundaries.js (the multi-MB encoded admin atlas) is LAZY-loaded via
+// a dynamic import (ensureAdminData) the first time the provinces/hotspots layer
+// is used, so its payload never gates initial boot.
 import { HISTORICAL_EPOCHS } from "./data/historicalBoundaries.js";   // v8.4 — real historical borders
 import { decodeBoundaries, countryAtPoint, decodeRing } from "./data/boundaryCodec.js";
-import { LANGUAGE_INFO, RELIGION_INFO, familyColor } from "./data/families.js";
+import { LANGUAGE_INFO, RELIGION_INFO, familyColor, sectInfo, dialectInfo } from "./data/families.js";
 import { TIMEZONES, getTimeZone, setTimeZone, formatDateTime } from "./data/timefmt.js";  // v6.2 header tz
 import { LANGUAGES, applyLanguage } from "./i18n.js";   // v5 §2
 import { renderWhatIf } from "./components/panes/WhatIf.js";   // v7 §2
@@ -181,12 +183,25 @@ function countryAt(lat, lon) { return countryAtPoint(BOUNDARIES_50M, lat, lon); 
 // and click resolution (point-in-polygon → the smallest containing unit, whose
 // `i` is the admin_uid for /api/admin/{uid}).
 // v8/v8.1/v8.2 — the three admin tiers, each decoded lazily on first use.
-const ADMIN_ENC = [ADMIN1_ENC, ADMIN2_ENC, ADMIN3_ENC];   // index = level-1
+// v8.7 — the encoded rings themselves arrive via a dynamic import (ensureAdminData),
+// kept off the boot path; ADMIN_ENC is null until that resolves.
+let ADMIN_ENC = null;          // [ADMIN1_ENC, ADMIN2_ENC, ADMIN3_ENC] once loaded
+let _adminDataPromise = null;
+function ensureAdminData() {    // defers the multi-MB admin payload off initial boot
+  if (!_adminDataPromise) {
+    _adminDataPromise = import("./data/adminBoundaries.js").then((m) => {
+      ADMIN_ENC = [m.ADMIN1_ENC || [], m.ADMIN2_ENC || [], m.ADMIN3_ENC || []];
+      return ADMIN_ENC;
+    });
+  }
+  return _adminDataPromise;
+}
 const ADMIN_DECODED = [null, null, null];
 const ADMIN_FLAT = [null, null, null];
 const ADMIN_COMBINED = [null, null, null];   // combined[i] = levels 1..(i+1) concatenated
-function ensureAdminLevel(level) {   // level is 1-based
+function ensureAdminLevel(level) {   // level is 1-based; [] until ensureAdminData resolved
   const i = level - 1;
+  if (!ADMIN_ENC) return [];
   if (!ADMIN_DECODED[i]) ADMIN_DECODED[i] = decodeBoundaries(ADMIN_ENC[i] || []);
   return ADMIN_DECODED[i];
 }
@@ -214,14 +229,40 @@ function adminFlatRings(level) {   // flat ring list for one tier's render buffe
 // Which admin tier is actually drawn (and thus clickable) given toggle + zoom:
 // 0 = off, 1 = provinces, 2 = + districts/counties, 3 = + sub-districts. Clicks
 // then match what the user sees; deeper zoom resolves to the deepest unit.
+// v8.8 — a click resolves to the DEEPEST tier that is both toggled ON (div1/
+// div2/div3 are independent) and zoomed in far enough to be drawn.
 function adminActiveLevel() {
-  if (!state.adminOn || !state.renderer) return 0;
   const r = state.renderer;
-  if (typeof r.dist === "number")   // globe
-    return r.dist < 1.45 ? 3 : (r.dist < 1.9 ? 2 : (r.dist < 3.0 ? 1 : 0));
-  if (typeof r.zoom === "number")   // 2D map
-    return r.zoom >= 7 ? 3 : (r.zoom >= 4.5 ? 2 : (r.zoom >= 2.5 ? 1 : 0));
-  return 0;
+  if (!r) return 0;
+  const tier = state.adminTier || 0;
+  if (!tier) return 0;
+  const dist = typeof r.dist === "number" ? r.dist : null;
+  const zoom = typeof r.zoom === "number" ? r.zoom : null;
+  const shown = dist != null
+    ? dist < [3.0, 1.9, 1.55][tier - 1]
+    : (zoom != null && zoom >= [2.5, 4.5, 7][tier - 1]);
+  return shown ? tier : 0;
+}
+// v8.9 — push the single ACTIVE admin-division tier's rings + per-tier
+// visibility to the current renderer, loading the encoded atlas lazily on first
+// use. Showing exactly one tier keeps borders from overplotting. Shared by the
+// unified dropdown and the renderer-mount re-apply.
+async function applyAdminLayers() {
+  const r = state.renderer;
+  if (!r) return;
+  const tier = state.adminTier || 0;
+  // Always sync per-tier visibility so switching tiers clears the previous one.
+  const sync = () => {
+    r.setAdminLayerVisible?.(1, tier === 1);
+    r.setAdminLayerVisible?.(2, tier === 2);
+    r.setAdminLayerVisible?.(3, tier === 3);
+  };
+  if (!tier) { r.setAdminVisible?.(false); sync(); return; }
+  await ensureAdminData();
+  if (tier === 1) r.setAdminBoundaries?.(adminFlatRings(1));
+  if (tier === 2) r.setAdmin2Boundaries?.(adminFlatRings(2));
+  if (tier === 3) r.setAdmin3Boundaries?.(adminFlatRings(3));
+  sync();
 }
 // v8.3 — index every decoded admin unit by uid (all tiers), so the Hotspots
 // heat can look up an active unit's rings. Decodes all tiers once, lazily.
@@ -246,6 +287,7 @@ function heatColor(score) {
 async function applyActivityHeat() {
   if (!state.activityOn) { state.renderer?.setAdminHeat?.(null); return; }
   try {
+    await ensureAdminData();   // v8.7 — need the decoded rings to fill heat cells
     const d = await api.adminActivity();
     state.activityUnits = d.units || [];
     const cells = [];
@@ -329,7 +371,7 @@ for (const id of ["marked-toggle", "sat-toggle", "sensors-toggle", "blocs-btn", 
                   "lineage-overlay", "map-host", "feed-list", "tier-select",
                   "quality-select", "sound-toggle", "volume-slider", "preset-select",
                   "heatmap-toggle", "borders-toggle", "disputes-toggle", "actors-toggle",
-                  "names-toggle", "spin-toggle", "az-toggle", "admin-toggle", "activity-toggle", "tz-header",
+                  "names-toggle", "spin-toggle", "az-toggle", "admin-div-select", "activity-toggle", "tz-header",
                   "palette-btn", "briefing-btn", "graph-btn", "watchlist-btn", "whatif-btn", "audio-briefing-btn",
                   "bookmarks-btn", "stories-btn", "settings-btn", "snapshot-btn", "help-btn",
                   "watchlist-panel", "conn-badge", "map-filters", "graph-overlay",
@@ -350,7 +392,18 @@ const state = {
   syntheticMode: false,
   syntheticData: null,
   autonomousZones: [],   // v7.6 — always-on dotted autonomous-region borders
-  adminOn: localStorage.getItem("tdl_admin_layer") === "1",   // v8 §3 — ADM1 province layer
+  // v8.9 — one active admin-division tier at a time (0=off, 1=div1, 2=div2,
+  // 3=div3), chosen from the unified dropdown. Showing a single tier means the
+  // levels never overplot into criss-crossed double/triple borders. Migrates
+  // from the v8.8 per-tier flags (deepest one that was on wins), persisted.
+  adminTier: (() => {
+    const t = localStorage.getItem("tdl_admin_tier");
+    if (t != null) return Math.max(0, Math.min(3, parseInt(t, 10) || 0));
+    for (const lvl of [3, 2, 1]) if (localStorage.getItem("tdl_admin_" + lvl) === "1") return lvl;
+    return 0;
+  })(),
+  // v8.9 — mouse-wheel / scroll zoom sensitivity (0.2–4×), persisted.
+  zoomSensitivity: Math.max(0.2, Math.min(4, parseFloat(localStorage.getItem("tdl_zoom_sensitivity") || "1") || 1)),
   activityOn: false,          // v8.3 — Hotspots activity heat
   activityUnits: [],
   histEpoch: null,            // v8.4 — currently-shown historical border epoch
@@ -464,6 +517,14 @@ const ctx = {
     state.renderer?.setCityLights?.(on);
   },
   cityLights: () => state.cityLights,
+  // v8.9 — mouse-wheel / scroll zoom sensitivity, applied live to whichever renderer is mounted
+  setZoomSensitivity: (v) => {
+    const s = Math.max(0.2, Math.min(4, parseFloat(v) || 1));
+    state.zoomSensitivity = s;
+    localStorage.setItem("tdl_zoom_sensitivity", String(s));
+    state.renderer?.setZoomSensitivity?.(s);
+  },
+  zoomSensitivity: () => state.zoomSensitivity,
   setAlertsEnabled: (on) => {                         // v6.6.2 breaking-alert toggle
     alerts.enabled = !!on;
     localStorage.setItem("tdl_alerts_enabled", on ? "1" : "0");
@@ -575,6 +636,11 @@ const ctx = {
   openAdminUnit: (uid) => pane.push({
     key: "admin:" + uid, title: "administrative unit",
     render: (el) => Wiki.renderAdminUnit(el, uid, ctx),
+  }),
+  // v8.8 — a city's own panel (population, country, the admin unit it sits in).
+  openCity: (id) => pane.push({
+    key: "city:" + id, title: "city",
+    render: (el) => Wiki.renderCity(el, id, ctx),
   }),
   // v8.3 — the Hotspots ranking (most active administrative units right now).
   openHotspots: () => pane.push({
@@ -936,6 +1002,8 @@ function mountRenderer(tier) {
     },
     onSelectCluster: (cluster) => openClusterList(cluster),   // v5 §9
     onSelectDisputed: (z) => ctx.openDisputedZone(z.id),      // v6.6.4 disputed marker
+    onSelectCity: (id) => ctx.openCity(id),                   // v8.8 — city chip click
+
     onCountryClick: (lat, lon) => {
       // v8/v8.1 — when the admin layer is on and zoomed in, a click resolves to
       // the smallest visible unit (province at medium zoom, county at deep zoom)
@@ -985,6 +1053,7 @@ function mountRenderer(tier) {
   }
   state.renderer.setHeatmap?.(els.heatmapToggle.classList.contains("active"));
   state.renderer.setBorders?.(state.bordersOn);
+  state.renderer.setZoomSensitivity?.(state.zoomSensitivity);   // v8.9 — persisted wheel sensitivity
   if (state.spinOn) state.renderer.setAutoSpin?.(true);   // v6.6.6 re-apply auto-spin
   state.renderer.setDisputes?.(state.disputesOn);
   if (state.disputesOn && state.disputedZones)   // v6.6.4 re-apply clickable markers
@@ -998,14 +1067,11 @@ function mountRenderer(tier) {
   // v7.6 — autonomous-region dotted borders, on by default (togglable)
   if (state.autonomousZones && state.autonomousZones.length)
     state.renderer.setAutonomousZones?.(state.azOn !== false ? state.autonomousZones : []);
-  // v8/v8.1/v8.2 — re-apply all admin tiers on (re)mount
-  if (state.adminOn) {
-    state.renderer.setAdminBoundaries?.(adminFlatRings(1));
-    state.renderer.setAdmin2Boundaries?.(adminFlatRings(2));
-    state.renderer.setAdmin3Boundaries?.(adminFlatRings(3));
-    state.renderer.setAdminVisible?.(true);
-  }
-  if (state.activityOn) applyActivityHeat();   // v8.3 — re-apply Hotspots heat
+  // v8/v8.1/v8.2 — re-apply the active admin tier on (re)mount (v8.7 lazy load;
+  // v8.9 single-tier unified dropdown).
+  if (state.adminTier) applyAdminLayers();
+  if (state.mapMode) applyMapMode(state.mapMode);   // v8.9 — re-apply choropleth + per-tier heat
+  else if (state.activityOn) applyActivityHeat();   // v8.3 — re-apply Hotspots heat
   if (state.asOf) applyHistoricalBoundaries(state.asOf);   // v8.4 — re-apply era borders
   state.renderer.setCountryLabels?.(COUNTRY_LABELS);   // v6.1.1 dynamic labels
   if (state.renderer && state.renderer.onSelectRegion !== undefined)
@@ -1708,30 +1774,31 @@ if (els.azToggle) {
   });
 }
 // v8 §3 — the Administrative Atlas layer: real ADM1 (province/state) borders,
-// zoom-gated. Off by default (the whole-globe view stays clean); toggling it on
-// decodes the vendored rings once, pushes them to the active renderer, and
-// makes clicks resolve to provinces when zoomed in. Persisted.
-if (els.adminToggle) {
-  els.adminToggle.classList.toggle("active", state.adminOn);
-  const _pushAdminLayers = () => {
-    state.renderer?.setAdminBoundaries?.(adminFlatRings(1));
-    state.renderer?.setAdmin2Boundaries?.(adminFlatRings(2));
-    state.renderer?.setAdmin3Boundaries?.(adminFlatRings(3));
-    state.renderer?.setAdminVisible?.(true);
-  };
-  if (state.adminOn) _pushAdminLayers();   // restore a persisted-on layer at boot
-  els.adminToggle.addEventListener("click", () => {
-    state.adminOn = !state.adminOn;
-    localStorage.setItem("tdl_admin_layer", state.adminOn ? "1" : "0");
-    els.adminToggle.classList.toggle("active", state.adminOn);
-    if (state.adminOn) {
-      _pushAdminLayers();
-      alerts.toast?.("Provinces on — zoom in for states/provinces, deeper for counties/districts, deepest for sub-districts. Click any unit.");
-    } else {
-      state.renderer?.setAdminVisible?.(false);
-    }
+// zoom-gated. Off by default (the whole-globe view stays clean); picking a tier
+// decodes the vendored rings once, pushes them to the active renderer, and makes
+// clicks resolve to that tier's units when zoomed in. Persisted.
+// v8.9 — ONE unified dropdown (like Map/Globe/List): a single active tier at a
+// time — div1 (states/provinces), div2 (counties/districts), div3 (sub-districts
+// /communes), or off. Showing exactly one tier means the levels never overplot
+// into criss-crossed double/triple borders. Persisted as tdl_admin_tier.
+const _ADMIN_TIER_MSG = {
+  1: "Admin division 1 (states / provinces) on — zoom in to see it.",
+  2: "Admin division 2 (counties / districts) on — zoom in deeper to see it.",
+  3: "Admin division 3 (sub-districts / communes) on — zoom in deepest to see it.",
+};
+if (els.adminDivSelect) {
+  els.adminDivSelect.value = String(state.adminTier || 0);
+  els.adminDivSelect.addEventListener("change", () => {
+    state.adminTier = Math.max(0, Math.min(3, parseInt(els.adminDivSelect.value, 10) || 0));
+    localStorage.setItem("tdl_admin_tier", String(state.adminTier));
+    applyAdminLayers();
+    // v8.9 — a mode already showing? recompute it per the new tier (or back to
+    // country-level when the tier is turned off).
+    if (state.mapMode) applyMapMode(state.mapMode);
+    if (state.adminTier) alerts.toast?.(_ADMIN_TIER_MSG[state.adminTier]);
   });
 }
+if (state.adminTier) applyAdminLayers();
 // v8.3 — the Hotspots activity heat: light up the admin units with the most
 // tracked coverage right now, and open the ranking panel. Toggling off clears
 // the heat. A refresh loop keeps it live while active.
@@ -2974,6 +3041,19 @@ function _rampColor(t) {
   return `rgba(${r},${g},${b},0.72)`;
 }
 
+// v8.9 — the info-lookup a categorical mode uses for FAMILY colouring:
+//   religion       → broad tradition (RELIGION_INFO, sect fallback for Sikhism…)
+//   religious_sect → the specific sect (sectInfo: same-religion sects share a hue)
+//   language       → broad language (LANGUAGE_INFO, dialect fallback)
+//   dialect        → the specific dialect (dialectInfo: parent-language hue + shade)
+function _modeInfoFor(mode) {
+  if (mode === "religion") return (v) => RELIGION_INFO[v] || sectInfo(v);
+  if (mode === "religious_sect") return (v) => sectInfo(v);
+  if (mode === "language") return (v) => LANGUAGE_INFO[v] || dialectInfo(v);
+  if (mode === "dialect") return (v) => dialectInfo(v);
+  return null;   // any future palette-only categorical mode
+}
+
 async function applyMapMode(mode) {
   state.mapMode = mode;
   els.modesBar.querySelectorAll(".mode-chip").forEach((c) =>
@@ -2982,62 +3062,52 @@ async function applyMapMode(mode) {
     state.renderer?.setChoropleth?.(null);
     els.modeLegend.classList.add("hidden");
     state.modeValues = null;   // v6.1.1 — stop the hover tooltip
+    // v8.9 — hand the admin-unit overlay back to Hotspots (or clear it)
+    if (state.activityOn) applyActivityHeat(); else state.renderer?.setAdminHeat?.(null);
     return;
   }
   const d = await api.mapMode(mode).catch(() => null);
   if (!d) return;
   const colors = {};
   let legendHtml = `<b>${d.label}</b>`;
+  // numeric ramp value → colour (shared by country + per-unit paths)
+  const numColor = (v, lo, hi) => {
+    const x = d.log_scale ? Math.log10(Math.max(1e-9, v)) : v;
+    return _rampColor(Math.max(0, Math.min(1, (x - lo) / (hi - lo || 1))));
+  };
+  const infoFor = _modeInfoFor(mode);
+  const catColor = {};
+  (d.categories || []).forEach((c, i) => {
+    catColor[c] = MODE_CAT_PALETTE[i % MODE_CAT_PALETTE.length];
+  });
+  // categorical value → colour (family-aware for relig/sect/lang/dialect)
+  const catColorFor = (v) => infoFor ? familyColor(infoFor(v), 0.72)
+                                     : ((catColor[v] || "#8892a6") + "b0");
   if (d.kind === "numeric") {
     const lo = d.log_scale ? Math.log10(Math.max(1e-9, d.min)) : d.min;
     const hi = d.log_scale ? Math.log10(Math.max(1e-9, d.max)) : d.max;
-    for (const [iso3, v] of Object.entries(d.values)) {
-      const x = d.log_scale ? Math.log10(Math.max(1e-9, v)) : v;
-      colors[iso3] = _rampColor(Math.max(0, Math.min(1, (x - lo) / (hi - lo || 1))));
-    }
+    for (const [iso3, v] of Object.entries(d.values)) colors[iso3] = numColor(v, lo, hi);
     legendHtml += ` <span class="ramp"></span>
       <span>${Number(d.min).toLocaleString()} – ${Number(d.max).toLocaleString()}</span>`;
   } else {
-    // v6.1.1 — language/religion modes colour by FAMILY (related families sit
-    // near each other on the hue wheel) so the map groups at a glance; other
-    // categorical modes keep the arbitrary distinct palette.
-    const isLang = /lang/i.test(mode), isRel = /relig/i.test(mode);
-    const infoFor = isLang ? (v) => LANGUAGE_INFO[v]
-      : isRel ? (v) => RELIGION_INFO[v] : null;
-    const catColor = {};
-    (d.categories || []).forEach((c, i) => {
-      catColor[c] = MODE_CAT_PALETTE[i % MODE_CAT_PALETTE.length];
-    });
-    const colorFor = (v) => infoFor
-      ? familyColor(infoFor(v), 0.72) : (catColor[v] + "b0");
-    for (const [iso3, v] of Object.entries(d.values)) colors[iso3] = colorFor(v);
+    for (const [iso3, v] of Object.entries(d.values)) colors[iso3] = catColorFor(v);
     if (infoFor) {
       // legend groups by FAMILY (no per-value key needed — hover names it)
       const fam = {};
       for (const c of (d.categories || [])) {
         const inf = infoFor(c);
         const f = inf ? inf.family : "other";
-        (fam[f] = fam[f] || { color: colorFor(c), items: [] }).items.push(c);
+        (fam[f] = fam[f] || { color: catColorFor(c) }).color = catColorFor(c);
       }
       legendHtml += " " + Object.entries(fam).map(([f, o]) =>
         `<span class="cat"><i style="background:${o.color}"></i>${f}</span>`).join(" ")
-        + ` <span class="src">hover a country for details</span>`;
+        + ` <span class="src">hover for details</span>`;
     } else {
       legendHtml += " " + (d.categories || []).map((c) =>
         `<span class="cat"><i style="background:${catColor[c]}"></i>${c}</span>`).join(" ");
     }
-    // area-level modes: sub-national polygons override their country fill
-    if (d.areas) {
-      const areaZones = d.areas.filter((a) => a.zone_geojson).map((a) => ({
-        nsa_id: null, nsa_name: `${a.name} — ${a.value}`,
-        confidence: "reported", geojson: a.zone_geojson,
-        _color: catColor[a.value],
-      }));
-      state.renderer?.setActorZones?.([
-        ...(state.actorsOn ? state.actorZones : []), ...areaZones]);
-    }
   }
-  if (!/relig|lang/i.test(mode))
+  if (!infoFor)
     legendHtml += ` <span class="src" title="data source">${d.source}</span>`;
   // v6.1.1 — remember the per-country value + a human label for the hover tooltip
   state.modeValues = d.values || null;
@@ -3047,6 +3117,47 @@ async function applyMapMode(mode) {
   state.renderer?.setChoropleth?.(colors);
   els.modeLegend.innerHTML = legendHtml;
   els.modeLegend.classList.remove("hidden");
+  // v8.9 — when an administrative-division tier is active, redraw the SAME mode
+  // per admin unit on top of the country choropleth, so it adapts to the tier
+  // (e.g. religion resolves Kerala's mix, north-India Hindi belt, Iraq's Shia
+  // south vs Sunni west). The country fill remains as the base for units with
+  // no finer figure. Numeric modes only fill units with a real own value.
+  await applyModeAdminHeat(mode, d, numColor, catColorFor);
+}
+
+// v8.9 — fetch per-admin-unit values for the active tier and paint them as a
+// filled choropleth over the admin polygons (reuses the v8.3 setAdminHeat path).
+async function applyModeAdminHeat(mode, countryData, numColor, catColorFor) {
+  const tier = state.adminTier || 0;
+  if (!mode || !tier) {
+    if (state.activityOn) applyActivityHeat(); else state.renderer?.setAdminHeat?.(null);
+    return;
+  }
+  const d = await api.mapMode(mode, { level: tier }).catch(() => null);
+  const uvals = d && d.unit_values;
+  if (!uvals || !Object.keys(uvals).length) {
+    if (state.activityOn) applyActivityHeat(); else state.renderer?.setAdminHeat?.(null);
+    return;
+  }
+  await ensureAdminData();
+  const cells = [];
+  if (d.kind === "numeric") {
+    const min = d.unit_min, max = d.unit_max;
+    const lo = countryData.log_scale ? Math.log10(Math.max(1e-9, min)) : min;
+    const hi = countryData.log_scale ? Math.log10(Math.max(1e-9, max)) : max;
+    for (const [uid, v] of Object.entries(uvals)) {
+      const u = adminUnitByUid(+uid);
+      if (u && u.r) cells.push({ rings: u.r, color: numColor(v, lo, hi) });
+    }
+  } else {
+    for (const [uid, v] of Object.entries(uvals)) {
+      const u = adminUnitByUid(+uid);
+      if (u && u.r) cells.push({ rings: u.r, color: catColorFor(v) });
+    }
+  }
+  state.renderer?.setAdminHeat?.(cells);
+  // keep the per-unit value available for the hover tooltip at deep zoom
+  state.modeUnitValues = uvals;
 }
 
 // v6.1.1 — hover tooltip for map modes: name the country + its value

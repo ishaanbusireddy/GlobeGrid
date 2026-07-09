@@ -173,7 +173,10 @@ export const api = {
   orderOfBattle: (cid) =>                                                 // v6.1.1
     get(`/api/conflicts/${cid}/order_of_battle`, { timeout: 55000 }),
   mapModes: () => get("/api/mapmodes"),                                  // §16
-  mapMode: (mode) => get(`/api/mapmodes/${encodeURIComponent(mode)}`),   // §16
+  // v8.9 — optional {level:N} returns per-admin-unit values (keyed by uid) so a
+  // map mode adapts to the active administrative-division tier.
+  mapMode: (mode, opts) => get(`/api/mapmodes/${encodeURIComponent(mode)}`
+    + (opts && opts.level ? `?level=${encodeURIComponent(opts.level)}` : "")),   // §16
   threadDetail: (id) => get(`/api/threads/${id}`),                       // §27
   un: () => get("/api/un"),                                              // v6.1 UN panel
   unFeed: () => get("/api/un/feed"),                                     // v7.4.1 UN news feed
@@ -193,6 +196,10 @@ export const api = {
   adminSearch: (q) => get(`/api/admin/search?q=${encodeURIComponent(q)}`),
   adminHistory: (country, asOf) => get(`/api/admin/history?${country ? "country=" + encodeURIComponent(country) : ""}${asOf ? "&as_of=" + encodeURIComponent(asOf) : ""}`),
   adminActivity: (days, limit) => get(`/api/admin/activity?${days ? "days=" + days : ""}${limit ? "&limit=" + limit : ""}`),   // v8.3 hotspots
+  // v8.8 — cities
+  cityDetail: (id) => get(`/api/cities/${encodeURIComponent(id)}`),
+  citiesInCountry: (iso3, limit) => get(`/api/cities/country/${encodeURIComponent(iso3)}${limit ? "?limit=" + limit : ""}`),
+  citiesInAdmin: (uid, limit) => get(`/api/cities/admin/${encodeURIComponent(uid)}${limit ? "?limit=" + limit : ""}`),
   partyDossier: (name, country) => get(`/api/party-dossier?name=${encodeURIComponent(name)}${country ? "&country=" + encodeURIComponent(country) : ""}`),  // v7.4.2
   leaderProfile: (name) =>                                              // v6.6 / v6.6.6 non-blocking
     get(`/api/leader-profile?name=${encodeURIComponent(name)}`, { timeout: 20000 }),

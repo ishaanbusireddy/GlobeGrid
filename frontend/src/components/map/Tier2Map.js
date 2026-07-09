@@ -29,13 +29,16 @@ const MARKED_COLORS = {
 
 export class Tier2Map {
   constructor(host, { onSelectEvent, onSelectLocation, onCountryClick, onSelectActor,
-                      wraparound = true, minConfidenceSolid = 0.6,
+                      onSelectCity, wraparound = true, minConfidenceSolid = 0.6,
                       countryAt = null } = {}) {
     this.host = host;
     this.onSelectEvent = onSelectEvent || (() => {});
     this.onSelectLocation = onSelectLocation || (() => {});
     this.onCountryClick = onCountryClick || (() => {});
     this.onSelectActor = onSelectActor || (() => {});
+    this.onSelectCity = onSelectCity || (() => {});   // v8.8 — city chip click
+    this._cityScreens = [];                            // v8.8 — drawn city hit-boxes
+    this.zoomSensitivity = 1;                          // v8.9 — mouse-wheel zoom sensitivity
     this.countryAt = countryAt;
     this.wraparound = wraparound;
     this.minConfSolid = minConfidenceSolid;
@@ -64,6 +67,7 @@ export class Tier2Map {
     this.admin2Rings = [];       // v8.1 — ADM2 district/county borders (deeper gate)
     this.admin3Rings = [];       // v8.2 — ADM3 sub-district borders (deepest gate)
     this.showAdmin = false;
+    this.adminVis = [false, false, false];   // v8.8 — per-tier (div1/div2/div3) visibility
     this.satellites = [];
     this.cities = [];
     this.allianceRings = null;
@@ -139,8 +143,14 @@ export class Tier2Map {
   // v8.4 — real historical world borders overlaid for a past as_of epoch:
   // a flat list of [lon,lat,…] rings, drawn (ungated) in amber when set.
   setHistoricalBoundaries(rings) { this.histRings = rings || null; this.draw(); }   // v8.4
-  setAdminVisible(on) { this.showAdmin = !!on; this.draw(); }
+  setAdminVisible(on) { this.showAdmin = !!on; this.adminVis = [!!on, !!on, !!on]; this.draw(); }
+  // v8.8 — per-tier visibility so div1/div2/div3 toggle independently.
+  setAdminLayerVisible(level, on) {
+    if (!this.adminVis) this.adminVis = [false, false, false];
+    this.adminVis[level - 1] = !!on; this.draw();
+  }
   setSatellites(sats) { this.satellites = sats || []; this.draw(); }
+  setZoomSensitivity(s) { this.zoomSensitivity = Math.max(0.2, Math.min(4, +s || 1)); }   // v8.9
   setCities(cities) { this.cities = cities || []; this.draw(); }
   // v6.1.1 — dynamic country labels, revealed by apparent on-screen size
   setCountryLabels(labels) { this.countryLabels = labels || []; this.draw(); }
@@ -526,9 +536,16 @@ export class Tier2Map {
         this.ctx.restore();
       }
       // country borders — v6 §18 tile-based rendering (see _strokeBoundaryTiles)
+      // v8.9 — when an admin-division tier is actively drawn (zoomed in), fade
+      // the national border so the differently-simplified admin outer ring
+      // doesn't criss-cross it into an ugly double line.
       if (this.showBorders) {
-        this._strokeBoundaryTiles(boundaries, lodKey, off,
-                                  this.landStroke || "rgba(122,146,190,0.5)", 1);
+        const adminOn = (this.adminVis[0] && this.zoom >= 2.5 && this.adminRings.length)
+                     || (this.adminVis[1] && this.zoom >= 4.5 && this.admin2Rings.length)
+                     || (this.adminVis[2] && this.zoom >= 7 && this.admin3Rings.length);
+        const stroke = adminOn ? "rgba(122,146,190,0.16)"
+                               : (this.landStroke || "rgba(122,146,190,0.5)");
+        this._strokeBoundaryTiles(boundaries, lodKey, off, stroke, 1);
       }
       // alliance tint (§4.1 parity with the globe's bloc overlay)
       if (this.allianceRings) {
@@ -553,15 +570,15 @@ export class Tier2Map {
       // v8 §3 — ADM1 province borders: solid soft-teal, only when toggled on
       // and zoomed in (a national outline still dominates at low zoom). Canvas
       // clips off-screen segments cheaply, so the whole set is drawn on demand.
-      if (this.showAdmin && this.zoom >= 2.5 && this.adminRings.length) {
+      if (this.adminVis[0] && this.zoom >= 2.5 && this.adminRings.length) {
         this._drawRings(this.adminRings, off, "rgba(107,184,184,0.5)", 0.7);
       }
       // v8.1 — ADM2 (county/district) borders: fainter, only when zoomed deeper
-      if (this.showAdmin && this.zoom >= 4.5 && this.admin2Rings.length) {
+      if (this.adminVis[1] && this.zoom >= 4.5 && this.admin2Rings.length) {
         this._drawRings(this.admin2Rings, off, "rgba(140,168,152,0.42)", 0.5);
       }
       // v8.2 — ADM3 (sub-district) borders: faintest, only at the tightest zoom
-      if (this.showAdmin && this.zoom >= 7 && this.admin3Rings.length) {
+      if (this.adminVis[2] && this.zoom >= 7 && this.admin3Rings.length) {
         this._drawRings(this.admin3Rings, off, "rgba(158,152,174,0.4)", 0.45);
       }
       // v8.4 — historical world borders for a past as_of epoch: amber, ungated
@@ -673,7 +690,9 @@ export class Tier2Map {
       }
     }
 
-    // §4.3 city labels: population tier by zoom, density screen-bounded
+    // §4.3 city labels: population tier by zoom, density screen-bounded.
+    // v8.8 — drawn as lightly-outlined clickable chips; screen boxes recorded.
+    this._cityScreens = [];
     if (this.cities.length && this.zoom >= 1.2) {
       const minPop = this.zoom < 2.4 ? 5000000 : this.zoom < 4 ? 500000 : 50000;
       const placed = [];
@@ -696,11 +715,20 @@ export class Tier2Map {
           }
           if (collide) continue;
           placed.push([xx, y]);
-          ctx.fillStyle = "rgba(219,228,245,0.3)";
-          ctx.beginPath(); ctx.arc(xx, y, 1.5, 0, 7); ctx.fill();
-          ctx.fillStyle = c.population >= 5000000
-            ? "rgba(219,228,245,0.75)" : "rgba(160,178,208,0.55)";
-          ctx.fillText(c.name, xx + 4, y);
+          const big = c.population >= 5000000;
+          const tw = ctx.measureText(c.name).width;
+          const bx = xx + 3, bw = tw + 8, bh = 14;
+          // lightly-outlined chip behind the label
+          ctx.fillStyle = "rgba(18,26,42,0.4)";
+          ctx.strokeStyle = big ? "rgba(150,175,215,0.5)" : "rgba(140,160,195,0.32)";
+          ctx.lineWidth = 0.8;
+          if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(bx, y - bh / 2, bw, bh, 4); ctx.fill(); ctx.stroke(); }
+          else { ctx.fillRect(bx, y - bh / 2, bw, bh); ctx.strokeRect(bx, y - bh / 2, bw, bh); }
+          ctx.fillStyle = "rgba(219,228,245,0.85)";
+          ctx.beginPath(); ctx.arc(xx, y, 1.6, 0, 7); ctx.fill();
+          ctx.fillStyle = big ? "rgba(233,240,252,0.92)" : "rgba(190,205,230,0.8)";
+          ctx.fillText(c.name, bx + 4, y);
+          if (c.id != null) this._cityScreens.push({ id: c.id, x: bx, y, w: bw, h: bh });
         }
       }
     }
@@ -851,13 +879,20 @@ export class Tier2Map {
             return;
           }
         }
+        // v8.8 — a click on a city chip opens the city's page
+        for (const s of this._cityScreens) {
+          if (ev.offsetX >= s.x - 3 && ev.offsetX <= s.x + s.w + 3
+              && Math.abs(ev.offsetY - s.y) <= s.h / 2 + 3) {
+            this.onSelectCity(s.id); return;
+          }
+        }
         // §4.1 parity — empty click resolves to a country profile
         const geo = this._unproject(ev.offsetX, ev.offsetY);
         if (Math.abs(geo.lat) <= 90) this.onCountryClick(geo.lat, geo.lon);
         return;
       }
       if (hit.cluster) { // clicking a cluster expands it (Section 5.2)
-        this.zoom = Math.min(8, this.zoom * 2);
+        this.zoom = Math.min(40, this.zoom * 2);
         const [cx, cy] = [this.host.clientWidth / 2, this.host.clientHeight / 2];
         this.panX += (cx - hit.px) * 1.6; this.panY += (cy - hit.py) * 1.6;
         this._snapPan();
@@ -868,8 +903,10 @@ export class Tier2Map {
     });
     el.addEventListener("wheel", (ev) => {
       ev.preventDefault();
-      const factor = ev.deltaY < 0 ? 1.2 : 1 / 1.2;
-      this.zoom = Math.max(0.8, Math.min(10, this.zoom * factor));
+      // v8.9 — step scales with user sensitivity; max zoom 40 for very close view
+      const step = 0.2 * this.zoomSensitivity;
+      const factor = ev.deltaY < 0 ? 1 + step : 1 / (1 + step);
+      this.zoom = Math.max(0.8, Math.min(40, this.zoom * factor));
       this._snapPan();
       this.draw();
     }, { passive: false });
@@ -887,7 +924,7 @@ export class Tier2Map {
       if (k.d) { this.panX -= step; moved = true; }
       if (k.w) { this.panY += step; moved = true; }
       if (k.s) { this.panY -= step; moved = true; }
-      if (k.e || k["+"] || k["="]) { this.zoom = Math.min(10, this.zoom * 1.03); moved = true; }
+      if (k.e || k["+"] || k["="]) { this.zoom = Math.min(40, this.zoom * 1.03); moved = true; }
       if (k.q || k["-"]) { this.zoom = Math.max(0.8, this.zoom / 1.03); moved = true; }
       if (moved) { this._snapPan(); this.draw(); }
       if (Object.values(this._keys).some(Boolean)) {

@@ -419,6 +419,11 @@ def region_summary(params, q, body):
 NUCLEAR_WARHEADS = {"RUS": 5580, "USA": 5044, "CHN": 600, "FRA": 290,
                     "GBR": 225, "IND": 172, "PAK": 170, "ISR": 90, "PRK": 50}
 
+# v8.9 — exactly the owner's ten modes. The two broad categoricals (religion /
+# language) gained finer siblings (religious_sect / dialect); the old
+# *_subnational area modes are gone (superseded by the tier-aware ?level=N path,
+# which redraws ANY mode per administrative unit). `field` names the
+# admin_thematic field a categorical mode resolves per unit.
 MAP_MODES = {
     "hdi": {"label": "HDI", "kind": "numeric", "column": "hdi",
             "source": "UNDP Human Development Report", "icon": "◔"},
@@ -438,27 +443,69 @@ MAP_MODES = {
                            "column": None,  # derived population / area_km2
                            "source": "World Bank / UN (derived)", "icon": "▦",
                            "log_scale": True},
-    "religion": {"label": "Dominant religion", "kind": "categorical",
-                 "column": "dominant_religion",
+    "religion": {"label": "Religion", "kind": "categorical",
+                 "column": "dominant_religion", "field": "religion",
                  "source": "Pew Research Global Religious Landscape", "icon": "☯"},
-    "language": {"label": "Dominant language", "kind": "categorical",
-                 "column": "dominant_language",
+    "religious_sect": {"label": "Religious sect", "kind": "categorical",
+                       "column": "dominant_religion", "field": "sect",
+                       "source": "Curated (Pew / national censuses)", "icon": "☪"},
+    "language": {"label": "Language", "kind": "categorical",
+                 "column": "dominant_language", "field": "language",
                  "source": "Ethnologue / national censuses", "icon": "文"},
-    "religion_subnational": {"label": "Religion (by area)", "kind": "categorical",
-                             "column": "dominant_religion", "subnational": True,
-                             "source": "Pew Research / national censuses", "icon": "☯²"},
-    "language_subnational": {"label": "Language (by area)", "kind": "categorical",
-                             "column": "dominant_language", "subnational": True,
-                             "source": "Ethnologue / national censuses", "icon": "文²"},
+    "dialect": {"label": "Dialect", "kind": "categorical",
+                "column": "dominant_language", "field": "dialect",
+                "source": "Curated (Ethnologue / glottolog)", "icon": "语"},
 }
 
 
 @route("GET", "/api/mapmodes")
 def mapmodes_list(params, q, body):
     return 200, {"modes": [{"id": k, "label": v["label"], "kind": v["kind"],
-                            "icon": v["icon"], "source": v["source"],
-                            "subnational": bool(v.get("subnational"))}
+                            "icon": v["icon"], "source": v["source"]}
                            for k, v in MAP_MODES.items()]}
+
+
+def _unit_level_values(mode_id, mode, level):
+    """v8.9 — compute the mode's value for every administrative unit at `level`,
+    keyed by uid. Numeric modes read the curated per-unit demographics (units
+    without their own figure are omitted, so they fall through to the country
+    choropleth underneath). Categorical modes resolve religion/sect/language/
+    dialect per unit via the curated sub-national layer over the country value.
+    """
+    from ..geopolitics import admin_atlas, admin_demographics, admin_thematic
+    units = [u for u in admin_atlas.units() if u.get("level") == level]
+    cc = {r["id"]: dict(r) for r in
+          query("SELECT id, dominant_religion, dominant_language FROM countries")}
+    values = {}
+    if mode["kind"] == "categorical":
+        field = mode["field"]
+        for u in units:
+            iso3 = u.get("country")
+            base = cc.get(iso3, {})
+            v = admin_thematic.unit_value(
+                iso3, u.get("name"), field,
+                base.get("dominant_religion"), base.get("dominant_language"))
+            if v:
+                values[u["uid"]] = v
+        return values, sorted({v for v in values.values()})
+    # numeric — only where a curated own figure exists for the unit
+    for u in units:
+        iso3, name = u.get("country"), u.get("name")
+        area = u.get("area_km2") or 0
+        dem = admin_demographics.lookup(iso3, name, area) if level == 1 else None
+        pop = dem.get("pop") if dem else None
+        gdp = dem.get("gdp") if dem else None
+        if mode_id == "population" and pop:
+            values[u["uid"]] = pop
+        elif mode_id == "population_density" and pop and area > 0:
+            values[u["uid"]] = round(pop / area, 2)
+        elif mode_id == "gdp" and gdp:
+            values[u["uid"]] = gdp
+        elif mode_id == "gdp_per_capita" and gdp and pop:
+            values[u["uid"]] = round(gdp / pop, 2)
+        # hdi / nuclear_arsenal have no per-unit figure → left to the country base
+    nums = sorted(values.values())
+    return values, (nums[0] if nums else None, nums[-1] if nums else None)
 
 
 @route("GET", "/api/mapmodes/{mode}")
@@ -475,7 +522,20 @@ def mapmode_values(params, q, body):
     else:
         rows = query(f"SELECT id, {mode['column']} AS v FROM countries"
                      f" WHERE {mode['column']} IS NOT NULL")
-        values = {r["id"]: r["v"] for r in rows}
+        # v8.9 — sect/dialect country-base come from the curated overlay, not a
+        # column (the DB only carries broad religion/language).
+        if mode.get("field") == "sect":
+            from ..geopolitics import admin_thematic
+            values = {}
+            for r in rows:
+                values[r["id"]] = admin_thematic.country_sect(r["id"]) or r["v"]
+        elif mode.get("field") == "dialect":
+            from ..geopolitics import admin_thematic
+            values = {}
+            for r in rows:
+                values[r["id"]] = admin_thematic.country_dialect(r["id"]) or r["v"]
+        else:
+            values = {r["id"]: r["v"] for r in rows}
     out = {"mode": params["mode"], "kind": mode["kind"], "label": mode["label"],
            "source": mode["source"], "values": values,
            "log_scale": bool(mode.get("log_scale"))}
@@ -484,22 +544,20 @@ def mapmode_values(params, q, body):
         out["min"] = nums[0] if nums else None
         out["max"] = nums[-1] if nums else None
     else:
-        cats = sorted({v for v in values.values()})
-        out["categories"] = cats
-    if mode.get("subnational"):
-        areas = []
-        for a in query("SELECT country_id, name, zone_geojson, dominant_religion,"
-                       " dominant_language, population FROM subnational_areas"):
-            d = dict(a)
-            try:
-                d["zone_geojson"] = json.loads(d["zone_geojson"])
-            except (json.JSONDecodeError, TypeError):
-                continue
-            d["value"] = d[mode["column"]]
-            areas.append(d)
-        out["areas"] = areas
-        out["categories"] = sorted(set(out.get("categories", []))
-                                   | {a["value"] for a in areas if a["value"]})
+        out["categories"] = sorted({v for v in values.values()})
+    # v8.9 — tier-aware per-admin-unit values (keyed by uid) when ?level=N is set
+    try:
+        level = int(q.get("level") or 0)
+    except (TypeError, ValueError):
+        level = 0
+    if level in (1, 2, 3):
+        uvals, meta = _unit_level_values(params["mode"], mode, level)
+        out["level"] = level
+        out["unit_values"] = uvals
+        if mode["kind"] == "numeric":
+            out["unit_min"], out["unit_max"] = meta
+        else:
+            out["categories"] = sorted(set(out.get("categories", [])) | set(meta))
     return 200, out
 
 

@@ -468,7 +468,7 @@ function compile(gl, vsSrc, fsSrc) {
 
 export class Tier1Globe {
   constructor(host, { onSelectEvent, onSelectLocation, onCountryClick, onSelectActor,
-                      onSelectCluster, onSelectDisputed,
+                      onSelectCluster, onSelectDisputed, onSelectCity,
                       quality = "high", idleTourSeconds = 45,
                       clusterScreenDistancePx = 40,       // v4 §2.2
                       facingOcclusion = true,             // v4 §2.1
@@ -479,6 +479,9 @@ export class Tier1Globe {
     this.onSelectLocation = onSelectLocation || (() => {});   // v3 §17 markers
     this.onCountryClick = onCountryClick || (() => {});       // v3 §13.3
     this.onSelectActor = onSelectActor || (() => {});         // v4 §5.4 NSA layer
+    this.onSelectCity = onSelectCity || (() => {});           // v8.8 — city chip click
+    this._cityScreens = [];                                    // v8.8 — drawn city hit-boxes
+    this.zoomSensitivity = 1;                                  // v8.9 — mouse-wheel zoom sensitivity
     this.onSelectCluster = onSelectCluster || (() => {});     // v5 §9 dense-cluster list
     this.onSelectDisputed = onSelectDisputed || (() => {});   // v6.6.4 disputed marker
     this.quality = quality;                    // standard | high | ultra
@@ -741,7 +744,13 @@ export class Tier1Globe {
     this.admin3Count = verts.length / 3;
   }
 
-  setAdminVisible(on) { this.showAdmin = !!on; }
+  setZoomSensitivity(s) { this.zoomSensitivity = Math.max(0.2, Math.min(4, +s || 1)); }   // v8.9
+  setAdminVisible(on) { this.showAdmin = !!on; this.adminVis = [!!on, !!on, !!on]; }
+  // v8.8 — per-tier visibility so div1/div2/div3 toggle independently.
+  setAdminLayerVisible(level, on) {
+    if (!this.adminVis) this.adminVis = [false, false, false];
+    this.adminVis[level - 1] = !!on;
+  }
 
   // v8.4 — the time capsule's historical borders: an amber overlay of the
   // world's boundaries as they were in the selected epoch (USSR/Yugoslavia
@@ -933,6 +942,7 @@ export class Tier1Globe {
     this.admin3Buf = gl.createBuffer();       // v8.2 — ADM3 sub-district borders (deepest gate)
     this.admin3Count = 0;
     this.showAdmin = false;
+    this.adminVis = [false, false, false];    // v8.8 — per-tier (div1/div2/div3) visibility
     this.histBuf = gl.createBuffer();         // v8.4 — historical epoch borders overlay
     this.histCount = 0;
     this.actorBuf = gl.createBuffer();
@@ -1473,7 +1483,10 @@ export class Tier1Globe {
     });
     el.addEventListener("wheel", (ev) => {
       ev.preventDefault();
-      this.dist = Math.max(1.15, Math.min(5.5, this.dist + ev.deltaY * 0.0018));
+      // v8.9 — dist scales the step so zoom is granular when close and fast when
+      // far; user zoomSensitivity multiplies it. Min 1.008 = right at the surface.
+      const step = ev.deltaY * 0.0016 * this.zoomSensitivity * Math.max(0.25, this.dist - 0.98);
+      this.dist = Math.max(1.008, Math.min(5.5, this.dist + step));
       this._touch(); this.tween = null;
     }, { passive: false });
 
@@ -1508,7 +1521,7 @@ export class Tier1Globe {
     if (this.keys.q || this.keys["-"]) {
       this.dist = Math.min(5.5, this.dist + zoomStep); moved = true; }
     if (this.keys.e || this.keys["+"] || this.keys["="]) {
-      this.dist = Math.max(1.15, this.dist - zoomStep); moved = true; }
+      this.dist = Math.max(1.008, this.dist - zoomStep); moved = true; }
     if (moved) this.lastInteraction = performance.now();
     return moved;
   }
@@ -1651,6 +1664,16 @@ export class Tier1Globe {
     // v6 §21 — clicking inside an NSA zone opens that actor's overview page
     const zone = this._hitTestZones(clientX, clientY);
     if (zone) { this.onSelectActor({ id: zone.nsa_id, name: zone.nsa_name }); return; }
+    // v8.8 — a click on a city chip opens the city's page
+    if (this._cityScreens.length) {
+      const rect = this.canvas.getBoundingClientRect();
+      const lx = clientX - rect.left, ly = clientY - rect.top;
+      for (const s of this._cityScreens) {
+        if (lx >= s.x - 3 && lx <= s.x + s.w + 3 && Math.abs(ly - s.y) <= s.h / 2 + 3) {
+          this.onSelectCity(s.id); return;
+        }
+      }
+    }
     // v3 §13.3 — empty globe click resolves to a country (point-in-polygon
     // happens App-side against the vendored boundaries)
     const geo = this.screenToLatLon(clientX, clientY);
@@ -1902,11 +1925,19 @@ export class Tier1Globe {
     }
 
     // v4 §2.3/§5.4 — country borders (Natural Earth 50m/10m LOD), visible
-    // by default with an explicit settings toggle to turn them off
+    // by default with an explicit settings toggle to turn them off.
+    // v8.9 — when an admin-division tier is actively being drawn (zoomed in),
+    // fade the national border down so the (differently-simplified) admin outer
+    // ring doesn't criss-cross it into an ugly double line. The admin layer's
+    // own outline carries the country edge at that zoom.
     if (this.showBorders && this.borderCount) {
+      const adminOn = (this.adminVis[0] && this.adminCount && this.dist < 3.0)
+                   || (this.adminVis[1] && this.admin2Count && this.dist < 1.9)
+                   || (this.adminVis[2] && this.admin3Count && this.dist < 1.55);
+      const ba = adminOn ? 0.12 : 0.34;
       gl.bindBuffer(gl.ARRAY_BUFFER, this.borderBuf);
       gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-      gl.uniform4f(colLoc, 0.5, 0.6, 0.78, 0.34);
+      gl.uniform4f(colLoc, 0.5, 0.6, 0.78, ba);
       gl.drawArrays(gl.LINES, 0, this.borderCount);
     }
 
@@ -1931,7 +1962,7 @@ export class Tier1Globe {
     // is zoomed in (dist < 3.0), fading in from 3.0→2.2 so provinces reveal as
     // you approach and never crowd the whole-globe view. A soft teal, dimmer
     // than the country border so the national outline still dominates.
-    if (this.showAdmin && this.adminCount && this.dist < 3.0) {
+    if (this.adminVis[0] && this.adminCount && this.dist < 3.0) {
       const a = Math.min(0.55, Math.max(0, (3.0 - this.dist) / 0.8) * 0.55);
       if (a > 0.02) {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.adminBuf);
@@ -1942,7 +1973,7 @@ export class Tier1Globe {
     }
     // v8.1 — ADM2 (county/district) borders: a fainter, thinner line revealed
     // only when zoomed in deeper (dist<1.9), fading 1.9→1.55.
-    if (this.showAdmin && this.admin2Count && this.dist < 1.9) {
+    if (this.adminVis[1] && this.admin2Count && this.dist < 1.9) {
       const a = Math.min(0.4, Math.max(0, (1.9 - this.dist) / 0.35) * 0.4);
       if (a > 0.02) {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.admin2Buf);
@@ -1953,7 +1984,7 @@ export class Tier1Globe {
     }
     // v8.2 — ADM3 (sub-district) borders: the deepest, faintest line, only at
     // the tightest zoom (dist<1.55, fading 1.55→1.25).
-    if (this.showAdmin && this.admin3Count && this.dist < 1.55) {
+    if (this.adminVis[2] && this.admin3Count && this.dist < 1.55) {
       const a = Math.min(0.34, Math.max(0, (1.55 - this.dist) / 0.3) * 0.34);
       if (a > 0.02) {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.admin3Buf);
@@ -2445,6 +2476,7 @@ export class Tier1Globe {
       }
     }
 
+    this._cityScreens = [];   // v8.8 — drawn city hit-boxes (CSS px) for clicking
     if (this.cities.length && this.dist < 3.4) {
       // §4.3 — population tier widens as the camera closes in, and label
       // density is screen-space bounded so dense regions don't flood
@@ -2470,13 +2502,22 @@ export class Tier1Globe {
         }
         if (collide) continue;
         placed.push(p);
-        ctx.fillStyle = "rgba(219,228,245,0.28)";
+        const big = c.population >= 5000000;
+        const tw = ctx.measureText(c.name).width;
+        const bx = p[0] + 3 * dpr, bw = tw + 8 * dpr, bh = 14 * dpr;
+        // v8.8 — lightly-outlined clickable chip behind the label
+        ctx.fillStyle = "rgba(18,26,42,0.4)";
+        ctx.strokeStyle = big ? "rgba(150,175,215,0.5)" : "rgba(140,160,195,0.32)";
+        ctx.lineWidth = 0.8 * dpr;
+        if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(bx, p[1] - bh / 2, bw, bh, 4 * dpr); ctx.fill(); ctx.stroke(); }
+        else { ctx.fillRect(bx, p[1] - bh / 2, bw, bh); ctx.strokeRect(bx, p[1] - bh / 2, bw, bh); }
+        ctx.fillStyle = "rgba(219,228,245,0.85)";
         ctx.beginPath();
         ctx.arc(p[0], p[1], 1.6 * dpr, 0, 7);
         ctx.fill();
-        ctx.fillStyle = c.population >= 5000000
-          ? "rgba(219,228,245,0.75)" : "rgba(160,178,208,0.6)";
-        ctx.fillText(c.name, p[0] + 4 * dpr, p[1]);
+        ctx.fillStyle = big ? "rgba(233,240,252,0.92)" : "rgba(190,205,230,0.8)";
+        ctx.fillText(c.name, bx + 4 * dpr, p[1]);
+        if (c.id != null) this._cityScreens.push({ id: c.id, x: bx / dpr, y: p[1] / dpr, w: bw / dpr, h: bh / dpr });
       }
     }
   }

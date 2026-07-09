@@ -55,6 +55,114 @@ export const RELIGION_INFO = {
   "Unaffiliated": { hue: 0, family: "Unaffiliated", light: 60, sat: 0 },
 };
 
+// v8.9 — RELIGIOUS SECT colouring. The rule (owner): sects of the SAME religion
+// share a base hue, and more-similar sects sit at nearer shades. So Islam is a
+// green family — Sunni a deep dark green, the Shia branches lighter yellowish
+// greens (Twelver/Ismaili/Zaydi/Alawite as neighbouring shades), Ibadi a
+// distinct teal-green; Christianity a blue family — Catholic deep blue,
+// Protestant a lighter cyan-blue, Orthodox an indigo-blue; and so on. Explicit
+// entries for the curated vocabulary + a keyword fallback so any new sect still
+// lands in the right family.
+export const SECT_INFO = {
+  // Islam — green (base hue ~140)
+  "Sunni": { hue: 142, sat: 66, light: 30, family: "Sunni Islam" },
+  "Sunni (Hui)": { hue: 148, sat: 60, light: 38, family: "Sunni Islam" },
+  "Twelver Shia": { hue: 104, sat: 60, light: 52, family: "Shia Islam" },
+  "Twelver/Ismaili Shia": { hue: 100, sat: 58, light: 56, family: "Shia Islam" },
+  "Ismaili Shia": { hue: 112, sat: 58, light: 60, family: "Shia Islam" },
+  "Zaydi Shia": { hue: 94, sat: 58, light: 58, family: "Shia Islam" },
+  "Alawite Shia": { hue: 118, sat: 52, light: 64, family: "Shia Islam" },
+  "Ibadi": { hue: 166, sat: 60, light: 40, family: "Ibadi Islam" },
+  "Ahmadiyya": { hue: 128, sat: 50, light: 68, family: "Islam (other)" },
+  // Christianity — blue (base hue ~212)
+  "Catholic": { hue: 214, sat: 64, light: 40, family: "Catholic" },
+  "Maronite Catholic": { hue: 220, sat: 60, light: 46, family: "Catholic" },
+  "Protestant": { hue: 199, sat: 62, light: 60, family: "Protestant" },
+  "Protestant (Baptist)": { hue: 195, sat: 60, light: 62, family: "Protestant" },
+  "Protestant (Presbyterian)": { hue: 202, sat: 60, light: 58, family: "Protestant" },
+  "Protestant / Donyi-Polo": { hue: 205, sat: 52, light: 64, family: "Protestant" },
+  "Anglican": { hue: 206, sat: 58, light: 54, family: "Protestant" },
+  "Evangelical": { hue: 191, sat: 60, light: 66, family: "Protestant" },
+  "Latter-day Saint (LDS)": { hue: 186, sat: 55, light: 60, family: "Christianity (other)" },
+  "Orthodox": { hue: 228, sat: 58, light: 48, family: "Orthodox" },
+  "Oriental Orthodox": { hue: 234, sat: 56, light: 44, family: "Orthodox" },
+  "Coptic Orthodox": { hue: 238, sat: 56, light: 42, family: "Orthodox" },
+  // Hinduism — orange (base hue ~28)
+  "Hindu (Shaivite/Vaishnavite)": { hue: 28, sat: 64, light: 50, family: "Hinduism" },
+  "Hindu (mixed, ~45% non-Hindu)": { hue: 34, sat: 58, light: 60, family: "Hinduism" },
+  "Hindu / Catholic mix": { hue: 40, sat: 52, light: 58, family: "Hinduism" },
+  "Hindu / Christian mix": { hue: 38, sat: 52, light: 62, family: "Hinduism" },
+  // Buddhism — amber-gold (base hue ~45)
+  "Theravada Buddhist": { hue: 45, sat: 66, light: 50, family: "Buddhism" },
+  "Mahayana Buddhist": { hue: 52, sat: 62, light: 58, family: "Buddhism" },
+  "Vajrayana Buddhist": { hue: 38, sat: 66, light: 46, family: "Buddhism" },
+  // Judaism / Sikhism / folk / none
+  "Judaism (Rabbinic)": { hue: 258, sat: 58, light: 56, family: "Judaism" },
+  "Sikh (Khalsa)": { hue: 16, sat: 70, light: 44, family: "Sikhism" },
+  "Chinese folk / Buddhist": { hue: 56, sat: 40, light: 56, family: "Folk / syncretic" },
+  "Irreligious": { hue: 0, sat: 0, light: 60, family: "Unaffiliated" },
+  // broad religion names (when a unit only has country-level religion, no sect)
+  "Islam": { hue: 140, sat: 55, light: 45, family: "Islam" },
+  "Christianity": { hue: 212, sat: 55, light: 55, family: "Christianity" },
+  "Hinduism": { hue: 28, sat: 60, light: 55, family: "Hinduism" },
+  "Buddhism": { hue: 45, sat: 60, light: 55, family: "Buddhism" },
+  "Judaism": { hue: 258, sat: 55, light: 58, family: "Judaism" },
+  "Sikhism": { hue: 16, sat: 65, light: 50, family: "Sikhism" },
+  "Unaffiliated": { hue: 0, sat: 0, light: 60, family: "Unaffiliated" },
+};
+
+// keyword fallback so a curated value we didn't enumerate still lands in-family
+export function sectInfo(v) {
+  if (!v) return null;
+  if (SECT_INFO[v]) return SECT_INFO[v];
+  const s = v.toLowerCase();
+  if (s.includes("ibadi")) return SECT_INFO["Ibadi"];
+  if (s.includes("shia") || s.includes("shi'a")) return SECT_INFO["Twelver Shia"];
+  if (s.includes("sunni") || s.includes("islam")) return SECT_INFO["Sunni"];
+  if (s.includes("orthodox")) return SECT_INFO["Orthodox"];
+  if (s.includes("catholic")) return SECT_INFO["Catholic"];
+  if (s.includes("protestant") || s.includes("evangel") || s.includes("anglic")
+      || s.includes("baptist")) return SECT_INFO["Protestant"];
+  if (s.includes("christian")) return SECT_INFO["Christianity"];
+  if (s.includes("buddh")) return SECT_INFO["Theravada Buddhist"];
+  if (s.includes("hindu")) return SECT_INFO["Hindu (Shaivite/Vaishnavite)"];
+  if (s.includes("sikh")) return SECT_INFO["Sikh (Khalsa)"];
+  if (s.includes("jud") || s.includes("jewish")) return SECT_INFO["Judaism"];
+  return { hue: 220, sat: 12, light: 60, family: "other" };
+}
+
+// v8.9 — DIALECT colouring: a dialect inherits its parent LANGUAGE's family hue
+// (so all Arabic dialects are warm Semitic tones, all English dialects Germanic
+// blues…), with a deterministic per-dialect lightness step so sibling dialects
+// read as near-but-distinct shades. Keyword-matched to the language family.
+const _DIALECT_LANG_KEYWORDS = [
+  ["arabic", "Arabic"], ["english", "English"], ["spanish", "Spanish"],
+  ["french", "French"], ["portuguese", "Portuguese"], ["german", "German"],
+  ["persian", "Persian"], ["farsi", "Persian"], ["dari", "Dari"],
+  ["mandarin", "Mandarin Chinese"], ["putonghua", "Mandarin Chinese"],
+  ["cantonese", "Cantonese"], ["yue", "Cantonese"], ["hindi", "Hindi"],
+  ["bengali", "Bengali"], ["punjabi", "Punjabi"], ["tamil", "Tamil"],
+  ["telugu", "Telugu"], ["kurdish", "Kurdish"], ["dutch", "Dutch"],
+  ["flemish", "Dutch"], ["italian", "Italian"], ["russian", "Russian"],
+  ["urdu", "Urdu"], ["swahili", "Swahili"], ["malay", "Malay"],
+  ["catalan", "Catalan"], ["basque", "Basque"], ["galician", "Galician"],
+];
+function _strHash(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
+export function dialectInfo(v, langInfoLookup) {
+  if (!v) return null;
+  const s = v.toLowerCase();
+  let base = null;
+  for (const [kw, lang] of _DIALECT_LANG_KEYWORDS) {
+    if (s.includes(kw)) { base = langInfoLookup ? langInfoLookup(lang) : LANGUAGE_INFO[lang]; break; }
+  }
+  // direct language name (no dialect qualifier) → its own language info
+  if (!base) base = (langInfoLookup ? langInfoLookup(v) : LANGUAGE_INFO[v]) || null;
+  const hue = base ? base.hue : (_strHash(s) % 360);
+  const light = 42 + (_strHash(s) % 5) * 8;   // 42,50,58,66,74 — sibling shades
+  const family = base ? base.family : "other";
+  return { hue, sat: base ? 60 : 45, light, family };
+}
+
 // HSL -> rgba() css string
 export function familyColor(info, alpha = 0.72) {
   if (!info) return `rgba(140,150,170,${alpha})`;

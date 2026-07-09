@@ -35,7 +35,12 @@
     <button id="borders-toggle" class="active" title="country borders (Natural Earth 10m/50m) — on by default">borders</button>
     <button id="disputes-toggle" title="disputed boundaries — dashed, distinct from settled borders (v4 §5.3)">disputed</button>
     <button id="az-toggle" class="active" title="autonomous regions — dotted borders on the map (on by default)">⌁ zones</button>
-    <button id="admin-toggle" title="V8 — provinces &amp; states: real ADM1 admin borders. Zoom in to see them; click a province to open it (v8 §3)">◇ provinces</button>
+    <select id="admin-div-select" title="V8.9 — Administrative divisions. Pick a tier; zoom in and click a unit to open it. One tier shows at a time so borders never overplot.">
+      <option value="0">◇ divisions: off</option>
+      <option value="1">◇ div 1 · states / provinces</option>
+      <option value="2">◇ div 2 · counties / districts</option>
+      <option value="3">◇ div 3 · sub-districts / communes</option>
+    </select>
     <button id="activity-toggle" title="V8.3 Hotspots — light up the administrative units with the most tracked activity right now (heat map + ranking)">◉ hotspots</button>
     <!-- v6.2 — terrain removed entirely (owner). v6.2 — country-name toggle -->
     <button id="names-toggle" class="active" title="country name labels on the map — toggle on/off">names</button>

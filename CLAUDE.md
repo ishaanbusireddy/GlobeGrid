@@ -18,6 +18,175 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v8.9.0)
+
+**v8.9.0 (2026-07-09, V8.9 — one admin-division dropdown, tier-aware map modes,
+two new categorical modes, closer/smoother zoom, 27 more countries):** the
+owner's batch that makes the whole map-mode system aware of the administrative
+tiers, plus navigation polish and more atlas coverage.
+
+- **Scroll-sensitivity setting + far closer, granular zoom.** A new Settings →
+  Display slider (`tdl_zoom_sensitivity`, 0.2–4×, `ctx.setZoomSensitivity`) scales
+  the mouse-wheel step on BOTH renderers live. The globe's wheel step is now
+  distance-scaled (`deltaY·0.0016·sens·max(0.25, dist-0.98)`) so it eases in as
+  you approach and can reach the surface (min dist 1.15→**1.008**); the 2D map's
+  max zoom went 10→**40**. Both renderers gained `setZoomSensitivity(s)`, applied
+  on renderer mount so it survives a globe↔map switch.
+- **The three div1/div2/div3 buttons became ONE dropdown** (`#admin-div-select`,
+  like Map/Globe/List): a single active tier at a time (off / div1 / div2 /
+  div3, persisted as `tdl_admin_tier`, migrating from the v8.8 per-tier flags).
+  Showing exactly one tier means the levels **never overplot into criss-crossed
+  double/triple borders** — the owner's overlap complaint. On top of that, when a
+  tier IS drawn the base national border fades (globe α 0.34→0.12, 2D
+  0.5→0.16) so the admin layer's differently-simplified outer ring doesn't
+  criss-cross the country line either.
+- **Every map mode now adapts to the active admin tier.** `/api/mapmodes/{mode}`
+  gained `?level=N`, returning per-admin-unit `unit_values` keyed by uid. The
+  frontend paints them over the country choropleth via the v8.3 `setAdminHeat`
+  path, so — with a tier on — religion resolves Kerala's mixed south, the Hindi
+  belt, Iraq's Shia south vs Sunni west, Nigeria's Muslim north vs Christian
+  south, etc. Numeric modes fill only the units that carry a real own figure
+  (curated demographics), leaving the rest to the country base. Verified: religion
+  L1 = 4,394 units, sect L1 = 4,424 cells painted, dialect L1 = 4,394,
+  population_density L1 = 273 units with own density.
+- **The mode list is now EXACTLY the owner's ten:** HDI · Nuclear arsenals · GDP
+  (nominal) · GDP per capita · Population · Population density · Religion ·
+  **Religious sect (NEW)** · Language · **Dialect (NEW)**. The old `*_subnational`
+  area modes are gone (superseded by the tier path).
+- **Religious sect** (new categorical mode) differentiates Sunni / Twelver Shia /
+  Ismaili Shia / Zaydi Shia / Alawite Shia / Ibadi / Catholic / Protestant /
+  Orthodox / Oriental Orthodox / Theravada–Mahayana–Vajrayana Buddhist / Sikh /
+  etc. `geopolitics/admin_thematic.py` carries `COUNTRY_SECT` + a curated
+  `SUBNATIONAL` override table (India states, Iraq, Nigeria, Lebanon, Syria,
+  Pakistan, China, Russia's Muslim/Buddhist republics, …). Colour rule (owner):
+  same religion → same base hue, more-similar sects → nearer shades — Islam is a
+  green family (Sunni deep dark green, the Shia branches lighter yellowish greens,
+  Ibadi a teal-green), Christianity a blue family (Catholic deep, Protestant
+  lighter cyan-blue, Orthodox indigo), via new `SECT_INFO`/`sectInfo` in
+  `data/families.js`.
+- **Dialect** (new categorical mode): `COUNTRY_DIALECT` (American/British/Indian
+  English, Egyptian/Gulf/Levantine/Maghrebi Arabic, Rioplatense/Mexican Spanish,
+  Quebec French, …) + `SUBNATIONAL` (Malayalam, Sorani/Kurmanji Kurdish, Cantonese,
+  Catalan/Basque/Galician, Flemish, …). `dialectInfo` colours each dialect from
+  its parent language's family hue with a per-dialect lightness step, so sibling
+  dialects read as near-but-distinct shades.
+- **27 more countries in the atlas → 67,086 units** (4,522 ADM1 + 40,088 ADM2 +
+  22,476 ADM3), up from 60,047. The deeper-tier builder gained a **nesting guard**
+  (auto-skips any country whose geoBoundaries level ≤ its Natural Earth ADM1 count
+  — a duplicate, not a deeper tier), so the TASKS list can be generous; it
+  auto-skipped Malawi & Sri Lanka (equal counts) and Libya (no gB ADM2) this pass.
+  Added: Kenya, Tanzania wards (a genuine ADM3 tier), Rwanda, Benin, Togo, Gabon,
+  DR Congo, Namibia, Botswana, Chad, Niger, Tunisia, Lesotho, South Sudan; all of
+  Central America (Honduras/Nicaragua/Costa Rica/Panama/El Salvador); Mongolia,
+  South Korea, Laos; Lithuania, Estonia, Hungary, Belarus; Armenia, Kyrgyzstan,
+  Tajikistan; Israel. `adminBoundaries.js` ~9.4 MB, `admin_atlas.py` ~10.3 MB.
+  **All pre-existing uids stay byte-stable** (new tasks appended; US LA County =
+  uid 5708 unchanged).
+
+Version badge → v8.9.0. Verified over HTTP + headless: fresh DB seeds all 67,086
+units; the unified dropdown shows one tier at a time (adminVis `[true,false,
+false]` for div1); modes list is exactly the ten; religious_sect + div1 paints
+4,424 per-unit cells and dialect + div1 4,394 (0 non-network console errors);
+Kenya's Nairobi and the new countries resolve; the zoom-sensitivity slider drives
+both renderers. Still honest about depth: the per-unit categorical data
+(religion/sect/language/dialect) is a curated heterogeneity layer over the country
+value — there is no vendorable per-unit source for all 67k units, so uncovered
+units inherit their country's value (correct at the broad level); the curated
+`SUBNATIONAL`/`COUNTRY_SECT`/`COUNTRY_DIALECT` tables extend as pure data.
+
+## Status (v8.8.0)
+
+**v8.8.0 (2026-07-09, V8.8 — 40 more countries, three independent admin-division
+toggles, and clickable CITIES as a first-class entity):** a big feature batch.
+
+- **~40 more countries in the district tier — 60,047 units.** `TASKS` grew from
+  47 to ~87: Angola, Mozambique, Tanzania, Uganda, Ghana, Sudan, Zimbabwe,
+  Zambia, Cameroon, Côte d'Ivoire, Senegal, Mali, Madagascar, Uzbekistan,
+  Afghanistan, Georgia, Syria, Jordan, Lebanon, Yemen, Oman, Ecuador, Bolivia,
+  Paraguay, Uruguay, Guatemala, Cuba, Dominican Rep., Bulgaria, Serbia, Croatia,
+  Austria, Switzerland, Finland, Denmark, Ireland, Slovakia, Nepal, Myanmar,
+  Cambodia, New Zealand — each pre-verified (gB ADM2 > NE ADM1, a real deeper
+  tier). Atlas is now **60,047 units** (4,522 ADM1 + 36,409 ADM2 + 19,116 ADM3);
+  `adminBoundaries.js` ~8.5 MB (lazy-loaded, so boot is unaffected). All
+  pre-existing uids stay byte-stable.
+- **The single provinces toggle became THREE independent admin-division toggles.**
+  Header `◇ div1 / ◇ div2 / ◇ div3` each switch their own tier on/off — states/
+  provinces, counties/districts, sub-districts/communes — persisted per tier. The
+  renderers gained per-tier visibility (`adminVis[0..2]` + `setAdminLayerVisible`)
+  replacing the single `showAdmin` flag; a click resolves to the deepest tier
+  that is both toggled on AND zoomed in enough (`adminActiveLevel`). `applyAdminLayers()`
+  pushes only the active tiers, still lazy-loading the atlas on first use.
+- **CITIES are now a first-class, clickable entity.** The vendored GeoNames
+  gazetteer (~32k places with population) becomes clickable everywhere:
+  - **On the map** every city label is a **lightly-outlined chip** (both
+    renderers), and clicking one opens the city's panel — the renderers record
+    each drawn chip's screen box (`_cityScreens`) and hit-test it before the
+    country/admin click, calling `onSelectCity` → `ctx.openCity`.
+  - **A city panel** (`Wiki.renderCity`, `/api/cities/{id}`): population, the
+    country (clickable) and the smallest admin unit it sits inside (clickable,
+    with ancestry breadcrumb), national rank by population, coordinates, and a
+    pan-to button — the same first-class treatment countries/admin units get.
+  - **City lists** on every admin-unit panel (`/api/cities/admin/{uid}` —
+    point-in-polygon inside the unit's own geometry) AND every country panel
+    (`/api/cities/country/{iso3}`), each **ordered largest population first**, as
+    clickable chips. New `backend/app/api/routes_cities.py`; ISO2↔ISO3 via the
+    `countries.iso2` column; `/api/cities` gained `id` so map chips are clickable.
+
+Version badge → v8.8.0. Verified over HTTP + headless: fresh DB seeds all 60,047
+units; new-country resolutions confirmed (Luanda/Kampala/Quito→ADM2); the three
+div toggles flip independently (div2 on → renderer `adminVis` `[F,T,F]`); the
+city panel renders (New York City → pop 8.80M, admin New York County, national
+rank #1, coordinates); the country panel lists 40 city chips and California's
+unit page lists LA/San Jose/SF/Fresno… pop-ordered; the renderer loads 4,000
+cities with ids and records clickable chip hit-boxes — **0 non-network console
+errors**. Next data passes: more ADM2/ADM3 countries and deeper city coverage.
+
+## Status (v8.7.0)
+
+**v8.7.0 (2026-07-09, V8.7 — the atlas goes truly global + the payload comes off
+the boot path):** the biggest breadth pass yet, plus the structural fix that lets
+it scale.
+
+- **22 more countries in the district tier — every one verified to nest.** The
+  deeper-tier builder's `TASKS` grew from 25 to 47: **Colombia, Venezuela, Peru,
+  Chile, Iran, Iraq, Saudi Arabia, Pakistan, Bangladesh, Kazakhstan, Malaysia,
+  Vietnam, Thailand, Ethiopia, Morocco, Sweden, Norway, Portugal, Netherlands,
+  Czechia, Romania** (all gB ADM2) **plus Italy** — each was pre-checked so its
+  geoBoundaries ADM2 count > its Natural Earth ADM1 count (a genuine deeper tier,
+  never a duplicate; Algeria/Greece/Belgium/Philippines were SKIPPED because
+  theirs are equal). **Italy is finally solved:** its NE ADM1 IS the provinces and
+  gB ADM3 duplicates them, but gB **ADM4 = 7,807 comuni** is a real deeper tier —
+  a new `GB_LEVEL` override fetches ADM4 and stores it as level 3 (same depth as a
+  Spanish municipio), so it rides the existing ADM3 render layer. Atlas is now
+  **53,817 units** (4,522 ADM1 + 30,179 ADM2 + 19,116 ADM3); all pre-existing uids
+  stay byte-stable (0 US counties moved).
+- **`adminBoundaries.js` is now LAZY-loaded (the structural fix).** At 7.6 MB the
+  encoded ring set had grown too big to keep parsing on every boot. It's no longer
+  a static import — `App` fetches it via a **dynamic `import()` (`ensureAdminData`)
+  the first time the provinces or hotspots layer is actually used**, so initial
+  boot never pays for it. Verified headless: **0 requests for `adminBoundaries.js`
+  at boot, 1 after the first province/unit interaction.** Every admin code path
+  (`_pushAdminLayers`, the renderer-mount re-apply, `applyActivityHeat`) now awaits
+  the loader; `ensureAdminLevel` returns `[]` until it resolves, so nothing races.
+- **Demographics: UK filled + GDP for the big economies + more provinces (269
+  figures).** The UK is back — curated at the level the GB atlas actually has (the
+  biggest single **local authorities**: Birmingham, Leeds, Glasgow, Cornwall,
+  Sheffield…). A new **`_GDP_USD` overlay** attaches nominal GDP to ~27 of the
+  world's largest sub-national economies (California, Guangdong $1.96T, Ontario
+  $860B, Tokyo $1.0T, Bavaria, São Paulo, NSW, Maharashtra, Milan, Community of
+  Madrid…) — a one-line add per unit, merged over the population rows. Plus more
+  Chinese provinces, Indian states and new-country capitals. **All 267 keys
+  validated against the atlas (0 misses).**
+
+Version badge → v8.7.0. Verified over HTTP + headless: fresh DB seeds all 53,817
+units; new-country resolutions confirmed (Bogotá→municipio, Rome→**comune**,
+Tehran→county, Stockholm→municipality) and US uids byte-stable; the demographics
+floor returns own figures incl. GDP (Birmingham 1.14M/4163, Guangdong 126M/$1.96T,
+Ontario $860B, Milan 3.21M/$200B); the admin payload is **not** fetched at boot and
+loads only on first use — **0 non-network console errors**. Still deferred (data,
+not code): a historical sub-national layer, and full per-province demographics
+beyond the curated floor.
+
 ## Status (v8.6.0)
 
 **v8.6.0 (2026-07-09, V8.6 — close the gaps: three excluded countries, a

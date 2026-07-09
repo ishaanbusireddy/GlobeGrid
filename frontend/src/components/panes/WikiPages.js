@@ -404,6 +404,8 @@ export async function renderCountry(el, iso3, ctx) {
         `<button class="ap-chip az-open" data-id="${esc(z.id)}">🏛 ${esc(z.name)}</button>`).join(" ")}</section>` : ""}
     <section id="admin-units-section"><h4>◇ Provinces &amp; states <span class="cp-meta">(V8 · click one to open)</span></h4>
       <div class="admin-units-host"><p class="cp-meta">loading administrative units…</p></div></section>
+    <section id="country-cities-section"><h4>◍ Cities <span class="cp-meta">(largest first · click to open)</span></h4>
+      <div class="country-cities-host"><p class="cp-meta">loading cities…</p></div></section>
     <section id="admin-history-section" style="display:none"><h4>🕰 Border &amp; sovereignty history <span class="cp-meta">(since 1950)</span></h4>
       <div class="admin-history-host"></div></section>
     <section><h4>Recent tracked coverage ${thinBadge(p.coverage)}</h4>${storyChips(p.recent_stories)}</section>`;
@@ -428,6 +430,9 @@ export async function renderCountry(el, iso3, ctx) {
       host.innerHTML = '<p class="cp-meta">Administrative units are unavailable right now.</p>';
     }
   })();
+  // v8.8 — the country's biggest cities, largest population first, each a
+  // clickable chip that opens the city's own page.
+  fillCitiesSection(el.querySelector(".country-cities-host"), api.citiesInCountry(iso3, 40), ctx);
   // v8 §Q3 — the country's border & sovereignty lineage since 1950 (curated
   // timeline). Shown only when there's something to show for this country.
   (async () => {
@@ -1490,6 +1495,9 @@ export async function renderAdminUnit(el, uid, ctx) {
       <p class="cp-meta">${inhNote}</p>
       <div class="stat-grid">${inh}</div></section>`;
   }
+  // v8.8 — cities inside this unit, largest population first (filled async).
+  html += `<section><h4>Cities <span class="cp-meta">— largest first</span></h4>
+    <div class="unit-cities"><p class="cp-meta">loading…</p></div></section>`;
   html += `<section><h4>Other units in ${esc(c ? c.name : "this country")}</h4>${siblings}</section>`;
   if (children) html += `<section><h4>Sub-units</h4>${children}</section>`;
   html += `<section><h4>Recent tracked coverage</h4>${storyChips(d.coverage, ctx)}</section>`;
@@ -1504,6 +1512,84 @@ export async function renderAdminUnit(el, uid, ctx) {
   if (fly) fly.addEventListener("click", () =>
     ctx.flyToBounds && ctx.flyToBounds(u.bbox, u.centroid_lat, u.centroid_lon));
   wireStoryChips(el, ctx);
+  fillCitiesSection(el.querySelector(".unit-cities"), api.citiesInAdmin(uid, 30), ctx);
+}
+
+// v8.8 — render a list of city chips (name + population), each opening the city
+// panel, into `host`. Shared by the admin-unit and country panels.
+export function cityChips(cities, ctx) {
+  if (!cities || !cities.length) return '<span class="cp-meta">none on file</span>';
+  const fmtP = (p) => p == null ? "" : p >= 1e6 ? (p / 1e6).toFixed(1) + "M"
+    : p >= 1e3 ? Math.round(p / 1e3) + "k" : String(p);
+  return cities.map((c) =>
+    `<button class="ap-chip city-open" data-id="${esc(c.id)}" data-lat="${esc(c.lat)}" data-lon="${esc(c.lon)}">`
+    + `◍ ${esc(c.name)}${c.population ? ` <span class="cp-meta">${fmtP(c.population)}</span>` : ""}</button>`).join(" ");
+}
+async function fillCitiesSection(host, promise, ctx) {
+  if (!host) return;
+  let d;
+  try { d = await promise; } catch { host.innerHTML = '<span class="cp-meta">unavailable</span>'; return; }
+  host.innerHTML = cityChips(d.cities, ctx);
+  host.querySelectorAll(".city-open").forEach((b) => b.addEventListener("click", () => {
+    const lat = parseFloat(b.dataset.lat), lon = parseFloat(b.dataset.lon);
+    if (ctx.flyToBounds && !Number.isNaN(lat)) ctx.flyToBounds(null, lat, lon);
+    ctx.openCity && ctx.openCity(b.dataset.id);
+  }));
+}
+
+// v8.8 — a city's own panel: population, the country and the admin unit it sits
+// inside (both clickable), national rank, coordinates, and a pan-to button — the
+// same first-class treatment the admin units and countries get.
+export async function renderCity(el, id, ctx) {
+  el.innerHTML = `<p class="cp-meta">loading city…</p>`;
+  const d = await api.cityDetail(id).catch(() => null);
+  if (!d || !d.city) { el.innerHTML = "<p>city not found</p>"; return; }
+  const city = d.city, c = d.country, a = d.admin;
+  const fmtP = (p) => p == null ? "—" : p >= 1e6 ? (p / 1e6).toFixed(2) + "M"
+    : p >= 1e3 ? Math.round(p).toLocaleString() : String(p);
+  const cell = (label, val) => val
+    ? `<div class="stat-cell"><span class="stat-k">${esc(label)}</span><span class="stat-v">${val}</span></div>` : "";
+
+  // breadcrumb: country › (admin ancestry…) › admin unit › city
+  const crumbs = [];
+  if (c) crumbs.push(`<button class="ap-chip country-link" data-id="${esc(c.id)}">${flagInline(c)} ${esc(c.name)}</button>`);
+  for (const an of (d.ancestry || [])) crumbs.push(`<button class="ap-chip admin-open" data-uid="${esc(an.admin_uid)}">${esc(an.name)}</button>`);
+  if (a) crumbs.push(`<button class="ap-chip admin-open" data-uid="${esc(a.admin_uid)}">${esc(a.name)}</button>`);
+  crumbs.push(`<b>${esc(city.name)}</b>`);
+
+  const rankStr = d.national_rank
+    ? `#${d.national_rank}${c ? " in " + esc(c.name) : ""}` : "";
+  el.innerHTML = `
+    <div class="wiki-header">
+      <div class="wiki-flag">${c ? flagInline(c, 64) : "◍"}</div>
+      <div class="wiki-head-meta">
+        <h1>◍ ${esc(city.name)}</h1>
+        ${city.ascii_name && city.ascii_name !== city.name ? `<p class="official-name">${esc(city.ascii_name)}</p>` : ""}
+        <p class="cp-meta">${crumbs.join(' <span class="cp-meta">›</span> ')}</p>
+        <p class="cp-meta">city / populated place</p>
+      </div>
+    </div>
+    <section><h4>Key facts</h4>
+      <div class="stat-grid">
+        ${cell("Population", fmtP(city.population))}
+        ${cell("Country", c ? `<button class="lnk country-link" data-id="${esc(c.id)}">${esc(c.name)}</button>` : esc(city.country_code))}
+        ${cell("Admin unit", a ? `<button class="lnk admin-open" data-uid="${esc(a.admin_uid)}">${esc(a.name)}</button> <span class="cp-meta">${esc(a.unit_type || "")}</span>` : "")}
+        ${cell("National rank", rankStr ? esc(rankStr) : "")}
+        ${cell("Coordinates", `${city.lat.toFixed(3)}, ${city.lon.toFixed(3)}`)}
+      </div>
+      <button class="ap-chip city-fly" title="fly the map to this city">⌖ Pan to this city</button>
+    </section>
+    ${c ? `<section><h4>About</h4><p class="cp-meta">${esc(city.name)} is a city in
+      ${a ? esc(a.name) + ", " : ""}${esc(c.name)}${city.population ? `, with a population of about ${fmtP(city.population)}` : ""}.
+      Open its ${a ? "administrative unit or " : ""}country for the wider picture.</p></section>` : ""}`;
+
+  el.querySelectorAll(".country-link").forEach((b) =>
+    b.addEventListener("click", () => ctx.openEntity("country", b.dataset.id)));
+  el.querySelectorAll(".admin-open").forEach((b) =>
+    b.addEventListener("click", () => ctx.openAdminUnit && ctx.openAdminUnit(b.dataset.uid)));
+  const fly = el.querySelector(".city-fly");
+  if (fly) fly.addEventListener("click", () =>
+    ctx.flyToBounds && ctx.flyToBounds(null, city.lat, city.lon));
 }
 
 // v8.3 — the Hotspots ranking: the administrative units with the most tracked
@@ -1854,6 +1940,11 @@ export async function renderSettings(el, ctx) {
           <option value="us">Jul 6, 2026 2:30 PM (US)</option>
           <option value="eu">6 Jul 2026 14:30 (EU)</option>
         </select></label>
+      <label class="settings-row">Map / globe zoom sensitivity
+        <span style="display:flex;align-items:center;gap:8px">
+          <input type="range" id="zoomsens-slider" min="0.2" max="4" step="0.1" style="width:130px">
+          <span id="zoomsens-val" class="cp-meta" style="min-width:2.6em;text-align:right"></span>
+        </span></label>
     </section>`;
   // v6.6 — move the Display section into its tab, wire the tab switcher
   const dispHost = el.querySelector(".settings-tab-display");
@@ -1922,6 +2013,18 @@ export async function renderSettings(el, ctx) {
     setDateFormat(dfSel.value);
     if (ctx.onTimeSettingsChanged) ctx.onTimeSettingsChanged();
   });
+  // v8.9 — mouse-wheel / scroll zoom sensitivity slider (persisted, applied live to the active renderer)
+  const zs = el.querySelector("#zoomsens-slider");
+  const zv = el.querySelector("#zoomsens-val");
+  if (zs && zv) {
+    const cur = ctx.zoomSensitivity ? ctx.zoomSensitivity() : 1;
+    zs.value = String(cur);
+    zv.textContent = (+cur).toFixed(1) + "×";
+    zs.addEventListener("input", () => {
+      zv.textContent = (+zs.value).toFixed(1) + "×";
+      if (ctx.setZoomSensitivity) ctx.setZoomSensitivity(parseFloat(zs.value));
+    });
+  }
   for (const k of data.keys || []) {
     const row = document.createElement("section");
     row.className = "key-row";

@@ -100,8 +100,63 @@ TASKS = [
     # only ~107 = its provinces again, which would duplicate NE, not nest.)
     ("FRA", 3),   # French arrondissements (parent: department)
     ("ESP", 3),   # Spanish municipios     (parent: province)
+    # v8.7 — a big global broadening pass: every entry below was verified to have
+    # geoBoundaries ADM2 count > its Natural Earth ADM1 count (so it nests, never
+    # duplicates). Skipped where gB ADM2 == NE ADM1 (Algeria, Greece, Belgium,
+    # Philippines — those would duplicate).
+    ("COL", 2),   # Colombian municipios   (parent: department)
+    ("VEN", 2),   # Venezuelan municipios  (parent: state)
+    ("PER", 2),   # Peruvian provinces     (parent: region)
+    ("CHL", 2),   # Chilean provinces      (parent: region)
+    ("IRN", 2),   # Iranian counties       (parent: province)
+    ("IRQ", 2),   # Iraqi districts        (parent: governorate)
+    ("SAU", 2),   # Saudi governorates     (parent: region)
+    ("PAK", 2),   # Pakistani districts    (parent: province)
+    ("BGD", 2),   # Bangladeshi districts  (parent: division)
+    ("KAZ", 2),   # Kazakh districts       (parent: region)
+    ("MYS", 2),   # Malaysian districts    (parent: state)
+    ("VNM", 2),   # Vietnamese districts   (parent: province)
+    ("THA", 2),   # Thai districts (amphoe)(parent: province)
+    ("ETH", 2),   # Ethiopian zones        (parent: region)
+    ("MAR", 2),   # Moroccan provinces     (parent: region)
+    ("SWE", 2),   # Swedish municipalities (parent: county)
+    ("NOR", 2),   # Norwegian municipalities(parent: county)
+    ("PRT", 2),   # Portuguese municipios  (parent: district)
+    ("NLD", 2),   # Dutch gemeenten        (parent: province)
+    ("CZE", 2),   # Czech districts        (parent: region)
+    ("ROU", 2),   # Romanian communes      (parent: county)
+    # Italy: its NE ADM1 IS the provinces, and gB ADM3 duplicates them — but gB
+    # ADM4 (7,901 comuni) is a genuine deeper tier. Fetch ADM4, STORE as level 3
+    # (the comune is the same conceptual depth as a Spanish municipio), via the
+    # GB_LEVEL override below, so it renders on the existing ADM3 line layer.
+    ("ITA", 3),   # Italian comuni         (parent: province) — fetched from gB ADM4
+    # v8.8 — a fifth broadening pass: ~40 more countries, every one pre-verified
+    # (gB ADM2 > NE ADM1, so a genuine deeper tier). Africa, MENA, Latin America,
+    # the Balkans, the Alpine/Nordic states, and more of Asia.
+    ("AGO", 2), ("MOZ", 2), ("TZA", 2), ("UGA", 2), ("GHA", 2), ("SDN", 2),
+    ("ZWE", 2), ("ZMB", 2), ("CMR", 2), ("CIV", 2), ("SEN", 2), ("MLI", 2),
+    ("MDG", 2), ("UZB", 2), ("AFG", 2), ("GEO", 2), ("SYR", 2),
+    ("JOR", 2), ("LBN", 2), ("YEM", 2), ("OMN", 2), ("ECU", 2), ("BOL", 2),
+    ("PRY", 2), ("URY", 2), ("GTM", 2), ("CUB", 2), ("DOM", 2), ("BGR", 2),
+    ("SRB", 2), ("HRV", 2), ("AUT", 2), ("CHE", 2), ("FIN", 2), ("DNK", 2),
+    ("IRL", 2), ("SVK", 2), ("NPL", 2), ("MMR", 2), ("KHM", 2), ("NZL", 2),
+    # v8.9 — a sixth broadening pass. Each is guarded at build time by the new
+    # nesting check (auto-skips any that geoBoundaries doesn't actually split
+    # below the province layer), so the list can be generous. East/Central/South
+    # Africa, the Maghreb, Central America, the Caucasus/Central Asia, the
+    # Baltics, and more of East Asia + the Middle East.
+    ("KEN", 2), ("TZA", 3), ("MWI", 2), ("RWA", 2), ("BEN", 2), ("TGO", 2),
+    ("GAB", 2), ("COD", 2), ("NAM", 2), ("BWA", 2), ("TCD", 2), ("NER", 2),
+    ("TUN", 2), ("LBY", 2), ("LSO", 2), ("SSD", 2),
+    ("HND", 2), ("NIC", 2), ("CRI", 2), ("PAN", 2), ("SLV", 2),
+    ("MNG", 2), ("KOR", 2), ("LKA", 2), ("LAO", 2),
+    ("LTU", 2), ("EST", 2), ("HUN", 2), ("BLR", 2),
+    ("ARM", 2), ("KGZ", 2), ("TJK", 2), ("ISR", 2),
 ]
 LEVEL_TYPE = {2: "District", 3: "Sub-district"}
+# fetch a DIFFERENT geoBoundaries level than the stored level. Italy's comuni are
+# gB ADM4 but conceptually a level-3 unit (municipality under province).
+GB_LEVEL = {("ITA", 3): 4}
 # nicer, locally-correct unit-type labels per (iso3, level); falls back to LEVEL_TYPE
 TYPE_OVERRIDE = {
     ("USA", 2): "County", ("DEU", 2): "Regierungsbezirk", ("DEU", 3): "Kreis",
@@ -113,6 +168,41 @@ TYPE_OVERRIDE = {
     ("IDN", 2): "Regency", ("ARG", 2): "Department", ("ZAF", 2): "District",
     ("EGY", 2): "Markaz",
     ("CHN", 2): "County", ("FRA", 3): "Arrondissement", ("ESP", 3): "Municipio",
+    ("COL", 2): "Municipio", ("VEN", 2): "Municipio", ("PER", 2): "Province",
+    ("CHL", 2): "Province", ("IRN", 2): "County", ("IRQ", 2): "District",
+    ("SAU", 2): "Governorate", ("PAK", 2): "District", ("BGD", 2): "District",
+    ("KAZ", 2): "District", ("MYS", 2): "District", ("VNM", 2): "District",
+    ("THA", 2): "District", ("ETH", 2): "Zone", ("MAR", 2): "Province",
+    ("SWE", 2): "Municipality", ("NOR", 2): "Municipality", ("PRT", 2): "Municipio",
+    ("NLD", 2): "Gemeente", ("CZE", 2): "District", ("ROU", 2): "Commune",
+    ("ITA", 3): "Comune",
+    # v8.8 — locally-correct labels for the fifth pass
+    ("AGO", 2): "Municipality", ("MOZ", 2): "District", ("TZA", 2): "District",
+    ("UGA", 2): "County", ("GHA", 2): "District", ("SDN", 2): "District",
+    ("ZWE", 2): "District", ("ZMB", 2): "District", ("CMR", 2): "Department",
+    ("CIV", 2): "Department", ("SEN", 2): "Department", ("MLI", 2): "Cercle",
+    ("MDG", 2): "District", ("UZB", 2): "District", ("AFG", 2): "District",
+    ("GEO", 2): "Municipality", ("SYR", 2): "District", ("JOR", 2): "District",
+    ("LBN", 2): "District", ("YEM", 2): "District", ("OMN", 2): "Wilayat",
+    ("ECU", 2): "Canton", ("BOL", 2): "Province", ("PRY", 2): "District",
+    ("URY", 2): "Municipality", ("GTM", 2): "Municipio", ("CUB", 2): "Municipio",
+    ("DOM", 2): "Municipio", ("BGR", 2): "Municipality", ("SRB", 2): "Municipality",
+    ("HRV", 2): "Municipality", ("AUT", 2): "District", ("CHE", 2): "District",
+    ("FIN", 2): "Municipality", ("DNK", 2): "Municipality", ("IRL", 2): "County",
+    ("SVK", 2): "District", ("NPL", 2): "District", ("MMR", 2): "District",
+    ("KHM", 2): "District", ("NZL", 2): "District",
+    # v8.9 — sixth pass labels
+    ("KEN", 2): "Sub-county", ("TZA", 3): "Ward", ("MWI", 2): "District",
+    ("RWA", 2): "District", ("BEN", 2): "Commune", ("TGO", 2): "Prefecture",
+    ("GAB", 2): "Department", ("COD", 2): "Territory", ("NAM", 2): "Constituency",
+    ("BWA", 2): "District", ("TCD", 2): "Department", ("NER", 2): "Department",
+    ("TUN", 2): "Delegation", ("LBY", 2): "District", ("LSO", 2): "Community Council",
+    ("SSD", 2): "County", ("HND", 2): "Municipio", ("NIC", 2): "Municipio",
+    ("CRI", 2): "Canton", ("PAN", 2): "District", ("SLV", 2): "Municipio",
+    ("MNG", 2): "Sum", ("KOR", 2): "Municipality", ("LKA", 2): "DS Division",
+    ("LAO", 2): "District", ("LTU", 2): "Municipality", ("EST", 2): "Municipality",
+    ("HUN", 2): "District", ("BLR", 2): "District", ("ARM", 2): "Community",
+    ("KGZ", 2): "District", ("TJK", 2): "District", ("ISR", 2): "Subdistrict",
 }
 
 
@@ -175,13 +265,32 @@ def main():
     next_id = max(adm1_uids) + 1
     deeper_units, deeper_enc = [], []
 
+    # v8.9 — how many ADM1 (province/state) units each country already has, so a
+    # new task can be auto-rejected when geoBoundaries doesn't actually go deeper.
+    adm1_count_by_iso = {}
+    for u in adm1_units:
+        adm1_count_by_iso[u["country"]] = adm1_count_by_iso.get(u["country"], 0) + 1
+
     for iso3, lvl in TASKS:
+        fetch_lvl = GB_LEVEL.get((iso3, lvl), lvl)   # v8.7 — Italy: fetch ADM4, store as 3
         try:
-            gj = fetch(iso3, lvl)
+            gj = fetch(iso3, fetch_lvl)
         except Exception as e:  # noqa: BLE001 — a missing country must not abort the build
             print(f"{iso3} ADM{lvl}: SKIPPED ({type(e).__name__}: {e})", file=sys.stderr)
             continue
         feats = gj["features"]
+        # v8.9 — nesting guard: a genuine DEEPER tier has more units than the
+        # country's ADM1 layer. If geoBoundaries returns no more than the NE ADM1
+        # count, it's the SAME level (a duplicate that would double-plot the
+        # province borders, not nest) — skip it. Catches the Algeria/Greece/
+        # Belgium/Philippines class and any newly-added country that doesn't nest.
+        _named = sum(1 for f in feats
+                     if (f.get("properties", {}).get("shapeName") or "").strip())
+        _base = adm1_count_by_iso.get(iso3, 0)
+        if _base and _named <= _base:
+            print(f"{iso3} ADM{lvl}: SKIPPED ({_named} units ≤ {_base} ADM1 — "
+                  f"not a deeper tier)", file=sys.stderr)
+            continue
         added, linked, new_res = 0, 0, []
         for f in feats:
             p = f.get("properties", {})
