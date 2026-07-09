@@ -18,6 +18,81 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v8.13.0)
+
+**v8.13.0 (2026-07-09, V8.13 part A+B — quick-fix batch + the categorization
+engine overhaul):** the first two installments of the owner's ~35-item V8.13
+list. Part A is a set of contained UI/UX fixes; part B is the redone event
+categorization engine (the owner: "no news ever classifies as technology";
+"random Indian news takes me to the Naxalite–Maoist insurgency"; "add a domestic
+category; suggest new types").
+
+- **Part A — quick fixes.**
+  - **Laos** shows as *Laos*, not "Lao PDR", on the map label + the seed row.
+  - **Spacebar → open/close the Analyst**; **P → toggle the provinces (div1)
+    layer** — both wired into the global keydown handler (ignored while typing).
+  - **X+Y pan sensitivity slider** (Settings → Display, `tdl_pan_sensitivity`,
+    0.2–4×, `ctx.setPanSensitivity`) mirroring the v8.9 zoom slider: scales the
+    drag-rotate AND WASD step on BOTH renderers live (`setPanSensitivity` on the
+    globe + 2D map), re-applied on renderer mount.
+  - **Analyst open/close buzz killed.** The cue stacked three overlapping filtered
+    tones with release tails and had no retrigger guard, so a quick open→close
+    piled them into a sustained buzz. Now a single short clean bell with a hard
+    450 ms debounce that also refuses to schedule onto a suspended (music-off)
+    context (which would queue notes that all fired at once on resume).
+  - **Every country chip shows its national flag, slightly larger** (26×18). A
+    chip built from a partial object (id+name, no `flag_image_url`) now constructs
+    the Wikimedia `Special:FilePath/Flag of {name}.svg` URL (with a small
+    "United States"/"Netherlands"/… override table); a 404 falls back to the ▧
+    glyph, never a broken image.
+  - **What-If → "✕ clear history"** button (`POST /api/counterfactual/clear` →
+    `cfx.clear_recent()`) resets the recent-scenario list.
+  - **Conflicts directory orders by activity** (stories + events, highest first;
+    `activity_count` on each `/api/conflicts` row) — the frontend tabs still
+    filter by status, so within each tab the busiest conflict leads.
+  - **"conflict" no longer listed twice** in the cluster/event pane: the
+    `development_type` chip is hidden when it just repeats the category.
+
+- **Part B — the categorization overhaul (with a real schema migration).**
+  - **Root cause of "nothing classifies as technology" found + fixed.** The
+    `events.category` CHECK only admitted five values
+    (`geopolitics/finance/disaster/conflict/other`) — but the classifier + UI have
+    emitted `technology` since v6.6, so every tech event *violated the CHECK and
+    the pipeline rolled back*, leaving tech news to fall into finance/geopolitics/
+    other. The CHECK is now widened to add **`technology`, `domestic`, `health`**
+    via a rebuild migration (`_upgrade_events_category_check`, same
+    foreign_keys=OFF + legacy_alter_table pattern as the countries/sources
+    rebuilds; idempotent, preserves rows + the extracted_facts FK). Verified: a
+    pre-v8.13 DB rejects a technology insert, post-migration accepts it, rows +
+    facts preserved, re-run is a no-op; a fresh boot's history pack now stores 5
+    real technology events (moon landing / Baikonur / iPhone / LHC / deep
+    learning) that used to collapse to "other".
+  - **Rebalanced classifier.** Technology now sits ABOVE finance in the tie-break
+    priority (a "Nvidia earnings jump on AI demand" story ties finance vs tech and
+    tech wins), `ai` is a safe word-boundary keyword, and two new keyword sets
+    land: **domestic** (internal politics/crime/civil life that isn't international
+    geopolitics) and **health** (disease/pandemic/public-health). Verified 9/9 on a
+    labelled test set. New chip colours + map `CATEGORY_COLORS`/`HEX` entries on
+    both renderers + the feed filter list.
+  - **Stop over-tagging insurgencies (the Naxalite bug).** An insurgency has its
+    host country as a party, so ANY story about that country shared one entity and,
+    with any conflict/military cue, got auto-tagged into the insurgency.
+    `_conflict_party_entities` now separates **distinctive** (non-state-actor)
+    entities from the generic host country and flags insurgencies; an
+    insurgency/intra-state conflict is matched ONLY when its actual insurgent group
+    is named, never the host country alone. A boot-time repair
+    (`untag_wrong_insurgency_stories`) clears the pre-v8.13 bad tags.
+
+Version badge → v8.13.0. Verified: fresh DB boots clean (216 countries, 71,959
+admin units); the events CHECK carries technology/domestic/health; the classifier
+is 9/9 on the label set and tech events store live; all changed JS/PY parse; key
+endpoints (config, map/events, conflicts ordered-by-activity, counterfactual/clear,
+mapmodes=10) return 200. **Still to come in V8.13 (parts C/D/E):** div2/div3 map
+modes + granular tooltips + climate/altitude modes + the stray dot-mesh artifact;
+the analyst opening any panel/entity/setting + chips everywhere; war-mode
+stories=threads, smooth feed, history-archive de-dup, shift-drag rectangle,
+source-health timeout, leaders refreshed to June 2026.
+
 ## Status (v8.12.0)
 
 **v8.12.0 (2026-07-09, V8.12 — consistent tiers: Spain/Italy/France's second

@@ -98,6 +98,7 @@ export const api = {
   counterfactual: (perturbation, force) =>
     post("/api/counterfactual", { perturbation, force }, { timeout: 90000 }),
   counterfactualRecent: () => get("/api/counterfactual/recent"),
+  counterfactualClear: () => post("/api/counterfactual/clear", {}),
   counterfactualExpand: (perturbation, branch) =>
     post("/api/counterfactual/expand", { perturbation, branch }, { timeout: 90000 }),
   sensors: () => get("/api/sensors"),

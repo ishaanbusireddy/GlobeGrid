@@ -654,11 +654,23 @@ def conflicts_list(params, q, body):
             " WHERE cp.conflict_id = ?", (r["id"],))]
         d["story_count"] = query_one(
             "SELECT COUNT(*) AS n FROM stories WHERE conflict_id = ?", (r["id"],))["n"]
+        d["event_count"] = query_one(
+            "SELECT COUNT(*) AS n FROM events WHERE conflict_id = ?", (r["id"],))["n"]
+        # v8.13 — combined activity drives the directory order (owner: "order by
+        # the highest number of stories/events to lowest").
+        d["activity_count"] = (d["story_count"] or 0) + (d["event_count"] or 0)
         out.append(d)
     from ..geopolitics.seed_data import INSURGENCY_NAMES
     for _c in out:   # v6.6.5 — flag insurgencies for their own tab
         _c["is_insurgency"] = (_c.get("name") in INSURGENCY_NAMES
                                or "insurgency" in (_c.get("name") or "").lower())
+    # v8.13 — most-active conflict first (the frontend tabs still filter by
+    # status, so within each tab the busiest conflict leads). Active status is
+    # only a tiebreak so a 0-activity ongoing conflict still beats a 0-activity
+    # resolved one.
+    out.sort(key=lambda c: (c["activity_count"],
+                            0 if c.get("status") == "active" else -1,
+                            c.get("started_at") or ""), reverse=True)
     return 200, {"conflicts": out}
 
 

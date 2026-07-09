@@ -219,6 +219,14 @@ def recent_scenarios():
         return []
 
 
+def clear_recent():
+    """v8.13 — owner's "clear history" button. Drops the recent-scenarios index
+    (the cached scenario bodies themselves expire naturally / are keyed by
+    perturbation, so only the visible history list is reset)."""
+    meta_set("cfx:recent", "[]")
+    return {"cleared": True}
+
+
 _EXPAND_PROMPT = """You are GlobeGrid's counterfactual engine. Within an
 existing what-if scenario, the user wants to drill into ONE branch and see what
 follows from IT specifically. Given the original perturbation and the branch to

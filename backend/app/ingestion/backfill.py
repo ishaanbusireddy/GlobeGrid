@@ -175,11 +175,12 @@ def seed_curated_history():
     return n
 
 
-# the pack uses a rich editorial taxonomy, but events.category is constrained
-# to the five stored values — map the extras onto their closest base category
-# (the finer label survives in the title/summary text for retrieval).
-_CAT_TO_BASE = {"military": "conflict", "diplomacy": "geopolitics",
-                "technology": "other"}
+# the pack uses a rich editorial taxonomy; events.category admits the v8.13
+# stored set — map the remaining extras onto their closest base category (the
+# finer label survives in the title/summary text for retrieval). v8.13:
+# 'technology' is now a real stored category, so it no longer collapses to
+# 'other'; only 'military'/'diplomacy' still fold down.
+_CAT_TO_BASE = {"military": "conflict", "diplomacy": "geopolitics"}
 
 
 def seed_deep_history():

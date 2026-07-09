@@ -121,6 +121,8 @@ select:hover, button:hover { border-color: var(--accent); }
 .chip.cat-geopolitics { color: var(--geopolitics); } .chip.cat-finance { color: var(--finance); }
 .chip.cat-disaster { color: var(--disaster); } .chip.cat-conflict { color: var(--conflict); }
 .chip.cat-other { color: var(--other); } .chip.cat-technology { color: var(--technology); }
+/* v8.13 — new categories */
+.chip.cat-domestic { color: var(--domestic); } .chip.cat-health { color: var(--health); }
 /* v6.6.2 — clickable conflict chip on conflict-tagged feed cards */
 .chip.chip-conflict { color: var(--conflict); border: 1px solid var(--conflict);
   border-radius: 10px; padding: 0 6px; cursor: pointer; }
@@ -445,20 +447,22 @@ button.active { border-color: var(--accent); color: var(--accent); }
 .wiki-flag-img { width: auto; height: 52px; max-width: 90px; object-fit: contain; border-radius: 3px;
   border: 1px solid var(--line); display: block; box-shadow: 0 1px 4px rgba(0,0,0,.4); }
 .wiki-flag-img.flag-broken { display: none; }
-/* v8.1 — provincial crest: a real flag layered over a generated seal, so the
-   seal shows through when the flag image 404s (flags-or-seals coverage). */
-.prov-crest { position: relative; display: inline-block; vertical-align: middle;
-  border-radius: 50%; overflow: hidden; flex: none; }
-.prov-crest > svg { display: block; width: 100%; height: 100%; }
-.prov-crest > img { position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: cover; border-radius: 50%; }
-.prov-crest-lg { box-shadow: 0 1px 6px rgba(0,0,0,.45); border: 1px solid var(--line); }
-.ap-chip .prov-crest { margin-right: 5px; }
+/* v8.9.1 — an admin unit's flag is a PLAIN flag image (no circle, no seal):
+   the unit's own flag, or the national flag as a fallback. */
+.admin-flag { display: inline-block; vertical-align: middle; flex: none;
+  width: auto; max-width: 2.4em; object-fit: contain; border-radius: 2px;
+  border: 1px solid var(--line); background: rgba(255,255,255,.04); }
+.prov-crest-lg.admin-flag { max-width: none; border-radius: 3px;
+  box-shadow: 0 1px 6px rgba(0,0,0,.45); }
+.admin-flag-empty { display: inline-block; vertical-align: middle;
+  color: var(--text-dim); font-size: 15px; }
+.ap-chip .admin-flag, .ap-chip .admin-flag-empty { margin-right: 5px; }
 .wiki-flag-empty { width: 60px; height: 40px; display: flex; align-items: center;
   justify-content: center; color: var(--text-dim); border: 1px solid var(--line);
   border-radius: 3px; font-size: 22px; }
-.flag-inline { width: 20px; height: 14px; object-fit: cover; border-radius: 2px;
-  vertical-align: middle; border: 1px solid var(--line); }
+/* v8.13 — slightly larger national-flag chips (owner request) */
+.flag-inline { width: 26px; height: 18px; object-fit: cover; border-radius: 2px;
+  vertical-align: middle; border: 1px solid var(--line); margin-right: 3px; }
 .leader-photo {
   width: 74px; height: 92px; object-fit: cover; border-radius: 8px;
   border: 1px solid var(--line); flex: 0 0 auto; background: var(--bg-card);
@@ -933,6 +937,10 @@ body.theme-ember { --bg: #0b0a09; --bg-panel: #16130f; --bg-card: #1f1a13;
   --geopolitics: #ffb03a; --finance: #e8c05a; --disaster: #ff4a2a;
   --conflict: #ff6a2a; --other: #9a8d7c; --down: #ff4a2a; }
 :root { --technology: #b26bff; }
+/* v8.13 — new category signal colours: domestic = warm amber-brown (internal
+   affairs), health = clean green (public health) */
+:root { --domestic: #e6935c; --health: #35c88a; }
+body.colorblind, body.theme-colorblind_safe { --domestic: #d55e00; --health: #009e73; }
 body.colorblind, body.theme-colorblind_safe { --technology: #cc79a7; }
 #feed-close { background: none; border: none; color: var(--text-dim); cursor: pointer;
   font-size: 14px; margin-left: 8px; }

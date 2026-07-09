@@ -106,7 +106,12 @@ CREATE TABLE IF NOT EXISTS events (
   location_lat REAL,
   location_lon REAL,
   location_name TEXT,
-  category TEXT NOT NULL CHECK (category IN ('geopolitics','finance','disaster','conflict','other')),
+  -- v8.13 — widened taxonomy (owner: "redo the categorization engine … come up
+  -- with new types"). 'technology' finally storable (it was in the classifier +
+  -- UI since v6.6 but the CHECK rejected it, so tech news fell into finance/
+  -- geopolitics/other); 'domestic' = internal politics/crime/civil unrest that
+  -- isn't international geopolitics; 'health' = disease/pandemic/public-health.
+  category TEXT NOT NULL CHECK (category IN ('geopolitics','finance','disaster','conflict','technology','domestic','health','other')),
   severity INTEGER NOT NULL CHECK (severity BETWEEN 1 AND 5),
   occurred_at TEXT NOT NULL,
   embedding BLOB,
@@ -1029,6 +1034,50 @@ def _upgrade_v6_to_v8() -> None:
         conn.close()
 
 
+def _upgrade_events_category_check() -> None:
+    """v8.13 — widen events.category from the original 5 values to the v8.13
+    taxonomy (adds 'technology','domestic','health'). SQLite can't ALTER a CHECK,
+    so rebuild the events table from the current DDL when its CHECK predates
+    'technology'. Same foreign_keys=OFF + legacy_alter_table=ON pattern as the
+    countries/sources rebuilds so extracted_facts' FK to events survives the
+    rename. Idempotent: a table whose CHECK already lists 'technology' is skipped.
+    (This is why 'technology' events — classified since v6.6 — never actually
+    stored: the insert violated the old CHECK and the pipeline rolled back.)"""
+    import sqlite3
+    from ..config import sqlite_path
+    conn = sqlite3.connect(str(sqlite_path()), timeout=30)
+    conn.row_factory = sqlite3.Row
+    conn.isolation_level = None
+    try:
+        row = conn.execute("SELECT sql FROM sqlite_master WHERE type='table'"
+                           " AND name='events'").fetchone()
+        if not row or "'technology'" in (row["sql"] or ""):
+            return   # fresh DDL or already-widened — nothing to do
+        conn.execute("PRAGMA foreign_keys=OFF")
+        conn.execute("PRAGMA legacy_alter_table=ON")
+        conn.execute("BEGIN IMMEDIATE")
+        create_events_sql = DDL[
+            DDL.index("CREATE TABLE IF NOT EXISTS events"):
+            DDL.index("CREATE INDEX IF NOT EXISTS idx_events_occurred")
+        ].strip().rstrip(";") + ";"
+        conn.execute("ALTER TABLE events RENAME TO events_v8")
+        conn.execute(create_events_sql)
+        new_cols = [r["name"] for r in conn.execute("PRAGMA table_info(events)")]
+        old_cols = {r["name"] for r in conn.execute("PRAGMA table_info(events_v8)")}
+        copy = ", ".join(c for c in new_cols if c in old_cols)
+        conn.execute(f"INSERT INTO events ({copy}) SELECT {copy} FROM events_v8")
+        conn.execute("DROP TABLE events_v8")
+        conn.execute("COMMIT")
+    except Exception:
+        try:
+            conn.execute("ROLLBACK")
+        except Exception:  # noqa: BLE001
+            pass
+        raise
+    finally:
+        conn.close()
+
+
 def _backfill_fts(conn) -> None:
     if conn.execute("SELECT COUNT(*) AS n FROM fts_stories").fetchone()["n"] == 0:
         conn.execute("INSERT INTO fts_stories (id, headline, summary)"
@@ -1064,6 +1113,12 @@ def migrate() -> None:
     # an already-v8 DB is a no-op; v7 shipped no schema change so v6→v8 is one hop
     if 1 <= prior_version <= 7:
         _upgrade_v6_to_v8()
+    # v8.13 — widen events.category (adds technology/domestic/health). Runs on any
+    # existing DB regardless of version; idempotent (skips an already-widened
+    # table). MUST run before the DDL executescript so the rename→recreate isn't
+    # confused by a fresh `CREATE TABLE IF NOT EXISTS events` re-adding indexes.
+    if prior_version >= 1:
+        _upgrade_events_category_check()
     with write_tx() as conn:
         conn.executescript(DDL)
         if prior_version < SCHEMA_VERSION:

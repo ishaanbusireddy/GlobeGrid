@@ -768,24 +768,32 @@ export class SoundEngine {
   _uiTone(freq, t, dur, gain, type, opts) {
     this._note(freq, t, dur, gain, type, 0, opts);
   }
-  analystOpen() {
-    const ctx = this._ensureCtx(); if (!ctx) return;
-    const t = ctx.currentTime;
-    const chime = { attack: 0.01, decay: 0.1, sustain: 0.4, release: 0.35, cutoff: 3200, resonance: 0.7 };
-    // rising perfect-fourth+octave shimmer
-    this._uiTone(523, t, 0.28, 0.05, "triangle", chime);
-    this._uiTone(698, t + 0.06, 0.30, 0.045, "sine", chime);
-    this._uiTone(1046, t + 0.13, 0.34, 0.04, "sine", chime);
+  // v8.13 — the open/close cues used to stack three overlapping filtered tones
+  // (each ~0.6s with its release tail) and had NO retrigger guard, so a quick
+  // open→close→open (or a double-tap) piled the tails on top of each other into
+  // a sustained "buzz" (owner: "still makes a buzzing sound … time limit the
+  // effect"). Now each cue is a single short clean bell with a hard debounce so
+  // it can never overlap itself, and it deliberately does NOT resume a suspended
+  // ambient bed (a bare _ensureCtx would un-suspend a stopped music drone — its
+  // own source of the buzz), only lazily creating the context when truly absent.
+  _uiCue(freq, freq2) {
+    if (!this.ctx) { const c = this._ensureCtx(); if (!c) return; }
+    // Don't schedule onto a suspended (music-off) context: the notes would
+    // queue and all fire at once the next time the bed resumes = a buzz. A
+    // freshly-created context is "running"; a stopped one is "suspended".
+    if (this.ctx.state === "suspended") return;
+    const nowMs = this.ctx.currentTime * 1000;
+    if (this._lastCueMs && nowMs - this._lastCueMs < 450) return;   // debounce
+    this._lastCueMs = nowMs;
+    const t = this.ctx.currentTime;
+    // short pluck: fast attack, quick decay, almost no sustain, brief release —
+    // a clean "tick-bell", not a pad. One tone (+ optional soft octave) only.
+    const bell = { attack: 0.003, decay: 0.07, sustain: 0.05, release: 0.1, cutoff: 3000, resonance: 0.4 };
+    this._uiTone(freq, t, 0.14, 0.05, "sine", bell);
+    if (freq2) this._uiTone(freq2, t + 0.05, 0.14, 0.03, "sine", bell);
   }
-  analystClose() {
-    const ctx = this._ensureCtx(); if (!ctx) return;
-    const t = ctx.currentTime;
-    const soft = { attack: 0.008, decay: 0.14, sustain: 0.3, release: 0.4, cutoff: 1800, resonance: 0.5 };
-    // descending settle
-    this._uiTone(784, t, 0.26, 0.045, "sine", soft);
-    this._uiTone(523, t + 0.07, 0.30, 0.04, "triangle", soft);
-    this._uiTone(392, t + 0.14, 0.36, 0.038, "sine", soft);
-  }
+  analystOpen() { this._uiCue(659, 988); }    // rising: E5 → B5
+  analystClose() { this._uiCue(659, 494); }   // falling: E5 → B4
 
   // §12.3 data sonification: one granular blip per live event_created —
   // pitch by severity, pan by longitude, texture by category

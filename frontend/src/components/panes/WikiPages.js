@@ -23,43 +23,72 @@ export function flagImg(country, cls = "wiki-flag-img") {
     loading="lazy" onerror="this.classList.add('flag-broken')">`;
 }
 
+// v8.13 — a couple of country English names don't map to "Flag of {name}.svg"
+// on Wikimedia (they need "the", or a different file). Small override table so a
+// chip built from a partial object (no flag_image_url) still shows the right
+// national flag instead of a bare glyph. Everything else uses "Flag of {name}".
+const FLAG_FILE_OVERRIDE = {
+  "United States": "Flag of the United States.svg",
+  "United States of America": "Flag of the United States.svg",
+  "United Kingdom": "Flag of the United Kingdom.svg",
+  "Netherlands": "Flag of the Netherlands.svg",
+  "Philippines": "Flag of the Philippines.svg",
+  "Czechia": "Flag of the Czech Republic.svg",
+  "Czech Republic": "Flag of the Czech Republic.svg",
+  "United Arab Emirates": "Flag of the United Arab Emirates.svg",
+  "Democratic Republic of the Congo": "Flag of the Democratic Republic of the Congo.svg",
+  "Republic of the Congo": "Flag of the Republic of the Congo.svg",
+  "Bahamas": "Flag of the Bahamas.svg",
+  "Gambia": "Flag of The Gambia.svg",
+  "Dominican Republic": "Flag of the Dominican Republic.svg",
+  "Central African Republic": "Flag of the Central African Republic.svg",
+  "Ivory Coast": "Flag of Côte d'Ivoire.svg",
+  "Cote d'Ivoire": "Flag of Côte d'Ivoire.svg",
+  "South Korea": "Flag of South Korea.svg",
+  "North Korea": "Flag of North Korea.svg",
+  "Myanmar": "Flag of Myanmar.svg",
+  "Eswatini": "Flag of Eswatini.svg",
+};
+
+// v8.13 — every country chip now shows its NATIONAL flag, slightly larger
+// (owner request). Prefers an explicit flag_image_url; otherwise constructs the
+// Wikimedia Special:FilePath URL from the country's English name so a chip built
+// from a partial object (only id+name) still gets a flag. A 404 falls back to
+// the ▧ glyph via onerror, so a wrong guess never leaves a broken image.
 export function flagInline(country) {
-  const url = country && country.flag_image_url;
+  if (!country) return "▧";
+  let url = country.flag_image_url;
+  if (!url && country.name) {
+    const file = FLAG_FILE_OVERRIDE[country.name] || `Flag of ${country.name}.svg`;
+    url = `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=48`;
+  }
   if (!url) return "▧";
   return `<img class="flag-inline" src="${esc(url)}" alt=""
-    loading="lazy" onerror="this.style.display='none'">`;
+    loading="lazy" onerror="this.outerHTML='▧'">`;
 }
 
-// v8.1 — a deterministic generated SEAL for an administrative unit, drawn when
-// no real flag exists (or a flag image 404s). A monogram crest whose colours
-// derive from the unit name, so every province/county has a stable, distinct
-// emblem — "flags or seals (if no flag) for every province".
-export function provinceSeal(name, size = 40) {
-  const s = String(name || "?");
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) & 0xffffff;
-  const hue = h % 360, hue2 = (hue + 42) % 360;
-  const initials = (s.split(/\s+/).filter(Boolean).slice(0, 2)
-    .map((w) => w[0]).join("") || "?").toUpperCase();
-  const fs = initials.length > 1 ? 15 : 20;
-  return `<svg viewBox="0 0 40 40" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
-    <defs><linearGradient id="ps${h}" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="hsl(${hue},52%,42%)"/>
-      <stop offset="1" stop-color="hsl(${hue2},48%,26%)"/></linearGradient></defs>
-    <circle cx="20" cy="20" r="18.5" fill="url(#ps${h})" stroke="hsl(${hue},60%,74%)" stroke-width="1.6"/>
-    <circle cx="20" cy="20" r="14.5" fill="none" stroke="hsla(${hue},60%,88%,.4)" stroke-width=".8"/>
-    <text x="20" y="20" dy=".35em" text-anchor="middle" font-family="Georgia,serif"
-      font-size="${fs}" font-weight="700" fill="#fff">${esc(initials)}</text></svg>`;
-}
-
-// A crest = the real flag layered over the generated seal; the seal shows
-// through if the flag image 404s (so coverage is 100% with no wrong flags).
+// v8.9.1 — an administrative unit's flag, shown as a PLAIN flag image (no
+// circle, no generated seal — owner: "I want to see the Bavarian flag", "no
+// fake artificial seals"). Order: the unit's own flag → the NATIONAL flag when
+// the unit has none or its guessed flag 404s (e.g. Indian states have no flags,
+// so show the Indian flag) → a small placeholder glyph only if nothing exists.
 export function adminCrest(unit, size = 40, cls = "") {
-  const seal = provinceSeal(unit.name, size);
-  const style = `width:${size}px;height:${size}px`;
-  if (!unit.flag_url) return `<span class="prov-crest ${cls}" style="${style}">${seal}</span>`;
-  return `<span class="prov-crest ${cls}" style="${style}">${seal}<img src="${esc(unit.flag_url)}"`
-    + ` alt="${esc(unit.name)} flag" loading="lazy" onerror="this.remove()"></span>`;
+  const own = unit.flag_url ? esc(unit.flag_url) : "";
+  const nat = unit.country_flag_url ? esc(unit.country_flag_url) : "";
+  const alt = esc((unit.name || "") + " flag");
+  const style = `height:${Math.round(size * 0.66)}px`;
+  if (own) {
+    // real (constructed) province flag; on 404 fall back to the national flag,
+    // then to nothing — never a fake seal.
+    const err = nat
+      ? `onerror="if(this.dataset.n){this.remove()}else{this.dataset.n=1;this.src='${nat}';this.classList.add('is-national')}"`
+      : `onerror="this.remove()"`;
+    return `<img class="admin-flag ${cls}" src="${own}" alt="${alt}" style="${style}" loading="lazy" ${err}>`;
+  }
+  if (nat) {
+    return `<img class="admin-flag is-national ${cls}" src="${nat}" alt="${alt}" style="${style}" loading="lazy" onerror="this.remove()">`;
+  }
+  return `<span class="admin-flag-empty ${cls}" title="flag pending">▧</span>`;
 }
 
 const STATUS_LABEL = {
@@ -1945,6 +1974,11 @@ export async function renderSettings(el, ctx) {
           <input type="range" id="zoomsens-slider" min="0.2" max="4" step="0.1" style="width:130px">
           <span id="zoomsens-val" class="cp-meta" style="min-width:2.6em;text-align:right"></span>
         </span></label>
+      <label class="settings-row">Map / globe pan sensitivity (x + y)
+        <span style="display:flex;align-items:center;gap:8px">
+          <input type="range" id="pansens-slider" min="0.2" max="4" step="0.1" style="width:130px">
+          <span id="pansens-val" class="cp-meta" style="min-width:2.6em;text-align:right"></span>
+        </span></label>
     </section>`;
   // v6.6 — move the Display section into its tab, wire the tab switcher
   const dispHost = el.querySelector(".settings-tab-display");
@@ -2023,6 +2057,18 @@ export async function renderSettings(el, ctx) {
     zs.addEventListener("input", () => {
       zv.textContent = (+zs.value).toFixed(1) + "×";
       if (ctx.setZoomSensitivity) ctx.setZoomSensitivity(parseFloat(zs.value));
+    });
+  }
+  // v8.13 — pan (x+y) sensitivity slider (persisted, applied live to the active renderer)
+  const psl = el.querySelector("#pansens-slider");
+  const pvl = el.querySelector("#pansens-val");
+  if (psl && pvl) {
+    const cur = ctx.panSensitivity ? ctx.panSensitivity() : 1;
+    psl.value = String(cur);
+    pvl.textContent = (+cur).toFixed(1) + "×";
+    psl.addEventListener("input", () => {
+      pvl.textContent = (+psl.value).toFixed(1) + "×";
+      if (ctx.setPanSensitivity) ctx.setPanSensitivity(parseFloat(psl.value));
     });
   }
   for (const k of data.keys || []) {

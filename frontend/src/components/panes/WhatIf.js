@@ -146,10 +146,16 @@ export async function renderWhatIf(el, ctx) {
     const rec = el.querySelector(".cfx-recent");
     rec.innerHTML = (r.scenarios || []).length
       ? `<p class="cp-meta">recent: ${r.scenarios.slice(0, 5).map((s) =>
-          `<button class="ap-chip cfx-re">${esc(s.perturbation.slice(0, 48))}</button>`).join(" ")}</p>`
+          `<button class="ap-chip cfx-re">${esc(s.perturbation.slice(0, 48))}</button>`).join(" ")}
+          <button class="ap-chip cfx-clear" title="Clear the what-if history">✕ clear history</button></p>`
       : "";
     rec.querySelectorAll(".cfx-re").forEach((b, i) =>
       b.addEventListener("click", () => run(r.scenarios[i].perturbation)));
+    const clr = rec.querySelector(".cfx-clear");   // v8.13 — clear-history button
+    if (clr) clr.addEventListener("click", async () => {
+      await api.counterfactualClear().catch(() => {});
+      loadRecent();
+    });
   };
   loadRecent();
 }

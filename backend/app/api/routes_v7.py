@@ -21,6 +21,13 @@ def counterfactual_recent(params, q, body):
     return 200, {"scenarios": cfx.recent_scenarios()}
 
 
+@route("POST", "/api/counterfactual/clear")
+def counterfactual_clear(params, q, body):
+    """v8.13 — clear the what-if recent-scenario history (owner request)."""
+    from ..processing import counterfactual as cfx
+    return 200, cfx.clear_recent()
+
+
 @route("POST", "/api/counterfactual/expand")
 def counterfactual_expand(params, q, body):
     """v7.1 §2 — deepen one branch of a scenario into child consequences.

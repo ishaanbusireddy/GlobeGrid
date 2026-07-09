@@ -246,6 +246,45 @@ def correlate_event(event_id: str) -> dict:
     return {"story_id": story_id, "created": created, "updated": updated}
 
 
+def untag_wrong_insurgency_stories(limit: int = 5000) -> int:
+    """v8.13 — repair existing mis-tags: clear conflict_id from any story tagged
+    into an insurgency (or intra-state conflict) whose facts DON'T name that
+    conflict's distinctive (non-state-actor) entity. This undoes the owner's
+    reported "random Indian news → Naxalite–Maoist insurgency" bad tags left in
+    the DB by the pre-v8.13 rule (a lone host-country match sufficed). One-time,
+    idempotent: a story correctly tagged (its NSA IS named) is left untouched."""
+    detail = _conflict_party_entities()
+    # only insurgency/intra-state conflicts that actually carry a distinctive party
+    suspect = {cid: rec for cid, rec in detail.items()
+               if rec["is_insurgency"] and rec["distinctive"]}
+    if not suspect:
+        return 0
+    cleared = 0
+    for r in query(
+            "SELECT id, conflict_id FROM stories WHERE conflict_id IN ({})".format(
+                ",".join("?" * len(suspect))), tuple(suspect.keys())):
+        rec = suspect.get(r["conflict_id"])
+        if not rec:
+            continue
+        story_ents: set = set()
+        for f in query(
+                "SELECT f.canonical_entity_ids FROM story_members m"
+                " JOIN extracted_facts f ON (f.id = m.fact_id OR f.event_id = m.event_id)"
+                " WHERE m.story_id = ? AND f.canonical_entity_ids IS NOT NULL", (r["id"],)):
+            try:
+                story_ents.update(json.loads(f["canonical_entity_ids"]))
+            except (ValueError, TypeError):
+                pass
+        if not (story_ents & rec["distinctive"]):   # the insurgent group isn't named
+            with write_tx() as conn:
+                conn.execute("UPDATE stories SET conflict_id = NULL,"
+                             " suggested_conflict_id = NULL WHERE id = ?", (r["id"],))
+            cleared += 1
+            if cleared >= limit:
+                break
+    return cleared
+
+
 def reclassify_untagged_conflicts(limit: int = 2000) -> int:
     """v7.4 — run the conflict auto-classifier over stories that have no firm
     conflict_id yet, so existing/backfilled coverage funnels into War Mode and
@@ -271,23 +310,38 @@ def _conflict_party_entities() -> dict:
     into old conflicts, separate old conflicts from ongoing conflicts"). Only
     ongoing (active/ceasefire) and frozen conflicts accept fresh coverage; a
     resolved war (Gulf Wars, Afghanistan 2001-21, …) never absorbs a new story
-    off a shared belligerent name."""
+    off a shared belligerent name.
+
+    v8.13 — each conflict now also records its DISTINCTIVE entities (the
+    non-state-actor party ids) and whether it's an insurgency, separately from
+    the generic host-country entities. `_suggest_conflict_tag` uses this to stop
+    tagging every story about a big country into that country's own insurgency
+    (owner: "random Indian news takes me to the Naxalite–Maoist insurgency" —
+    India is a party to its own insurgency, so a lone India match wrongly qualified
+    it). Returns {cid: {"all": set, "distinctive": set, "is_insurgency": bool}}."""
     from .entities import resolve_entity
+    from ..geopolitics.seed_data import INSURGENCY_NAMES
     out: dict = {}
     for row in query(
             "SELECT cp.conflict_id, cp.country_id, n.canonical_entity_id,"
-            " c.name AS country_name FROM conflict_parties cp"
+            " c.name AS country_name, cf.name AS conflict_name FROM conflict_parties cp"
             " JOIN conflicts cf ON cf.id = cp.conflict_id"
             " LEFT JOIN non_state_actors n ON n.id = cp.non_state_actor_id"
             " LEFT JOIN countries c ON c.id = cp.country_id"
             " WHERE cf.status NOT IN ('resolved', 'ended')"):
-        ents = out.setdefault(row["conflict_id"], set())
+        rec = out.setdefault(row["conflict_id"], {
+            "all": set(), "distinctive": set(),
+            "is_insurgency": (row["conflict_name"] in INSURGENCY_NAMES
+                              or "insurgency" in (row["conflict_name"] or "").lower())})
         if row["canonical_entity_id"]:
-            ents.add(row["canonical_entity_id"])
+            # a non-state actor (Naxalites, PKK, Houthis…) — the DISTINCTIVE
+            # signal for a conflict, especially an intra-state one.
+            rec["all"].add(row["canonical_entity_id"])
+            rec["distinctive"].add(row["canonical_entity_id"])
         elif row["country_name"]:
             cent = resolve_entity(row["country_name"])
             if cent:
-                ents.add(cent)
+                rec["all"].add(cent)
     return out
 
 
@@ -327,16 +381,33 @@ def _suggest_conflict_tag(story_id: str) -> None:
         "SELECT 1 FROM story_members m JOIN events e ON e.id = m.event_id"
         " WHERE m.story_id = ? AND (e.development_type IN ('conflict','military')"
         " OR e.category IN ('conflict','military')) LIMIT 1", (story_id,))
-    best_cid, best_matches = None, 0
-    for cid, ents in _conflict_party_entities().items():
-        matches = len(story_ents & ents)
+    # v8.13 — pick the best conflict, but track HOW it matched: total party
+    # matches AND distinctive (non-state-actor) matches. An insurgency/intra-state
+    # conflict must be matched by a DISTINCTIVE entity (the actual insurgent
+    # group), never by the host country alone — otherwise every story about a big
+    # country funnels into that country's own insurgency (the owner's Naxalite
+    # bug: India is a party to the Naxalite–Maoist insurgency, so an India match
+    # wrongly qualified).
+    best_cid, best_matches, best_distinct, best_insurgency = None, 0, 0, False
+    for cid, rec in _conflict_party_entities().items():
+        matches = len(story_ents & rec["all"])
+        distinct = len(story_ents & rec["distinctive"])
+        # an insurgency with NO distinctive (NSA) match doesn't count at all
+        if rec["is_insurgency"] and distinct == 0:
+            continue
         if matches > best_matches:
-            best_cid, best_matches = cid, matches
+            best_cid, best_matches, best_distinct = cid, matches, distinct
+            best_insurgency = rec["is_insurgency"]
     if not best_cid:
         return
     # strong = ≥2 belligerent entities named (e.g. BOTH Israel & Hamas, or both
     # Russia & Ukraine), OR ≥1 party + an actual conflict/military development.
+    # For an insurgency the qualifying match MUST include the insurgent group
+    # itself (best_distinct >= 1, already guaranteed above), so "India + a random
+    # clash keyword" no longer tags into the Naxalite insurgency.
     strong = best_matches >= 2 or (best_matches >= 1 and has_conflict_dev)
+    if best_insurgency:
+        strong = strong and best_distinct >= 1
     with write_tx() as conn:
         if strong:
             conn.execute("UPDATE stories SET conflict_id = ?,"

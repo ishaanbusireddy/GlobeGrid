@@ -391,9 +391,14 @@ def _backfill_loop() -> None:
     # v7.4 — one-time pass: auto-classify already-ingested untagged stories into
     # their conflicts so War Mode / conflict tabs fill immediately.
     try:
-        from ..processing.correlate import reclassify_untagged_conflicts
+        # v8.13 — first repair any pre-v8.13 mis-tags (random national news wrongly
+        # funnelled into that country's own insurgency), THEN (re)classify the rest.
+        from ..processing.correlate import (reclassify_untagged_conflicts,
+                                            untag_wrong_insurgency_stories)
+        c = untag_wrong_insurgency_stories()
         n = reclassify_untagged_conflicts()
-        log.info("conflict_reclassify_backfill", extra={"data": {"stories": n}})
+        log.info("conflict_reclassify_backfill",
+                 extra={"data": {"stories": n, "insurgency_untagged": c}})
     except Exception:  # noqa: BLE001
         log.exception("conflict_reclassify_failed")
 

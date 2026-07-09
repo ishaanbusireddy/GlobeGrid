@@ -15,6 +15,7 @@ import { decodeBoundaries } from "../../data/boundaryCodec.js";
 const CATEGORY_COLORS = {
   geopolitics: "#4da3ff", finance: "#ffd166", technology: "#b26bff",   // v6.6.2 tech
   disaster: "#ff6b6b", conflict: "#ff8c42", military: "#4acc73", other: "#93a1b8",
+  domestic: "#e6935c", health: "#35c88a",                              // v8.13
 };
 const MARKED_COLORS = {
   capital: "#8d9cbf", strategic_chokepoint: "#59e6f2", contested_territory: "#ff9e59",
@@ -39,6 +40,7 @@ export class Tier2Map {
     this.onSelectCity = onSelectCity || (() => {});   // v8.8 — city chip click
     this._cityScreens = [];                            // v8.8 — drawn city hit-boxes
     this.zoomSensitivity = 1;                          // v8.9 — mouse-wheel zoom sensitivity
+    this.panSensitivity = 1;                           // v8.13 — drag/WASD pan (x+y together) sensitivity
     this.countryAt = countryAt;
     this.wraparound = wraparound;
     this.minConfSolid = minConfidenceSolid;
@@ -151,6 +153,7 @@ export class Tier2Map {
   }
   setSatellites(sats) { this.satellites = sats || []; this.draw(); }
   setZoomSensitivity(s) { this.zoomSensitivity = Math.max(0.2, Math.min(4, +s || 1)); }   // v8.9
+  setPanSensitivity(s) { this.panSensitivity = Math.max(0.2, Math.min(4, +s || 1)); }     // v8.13
   setCities(cities) { this.cities = cities || []; this.draw(); }
   // v6.1.1 — dynamic country labels, revealed by apparent on-screen size
   setCountryLabels(labels) { this.countryLabels = labels || []; this.draw(); }
@@ -834,7 +837,8 @@ export class Tier2Map {
     });
     el.addEventListener("pointermove", (ev) => {
       if (dragging) {
-        this.panX += ev.offsetX - lastX; this.panY += ev.offsetY - lastY;
+        const ps = this.panSensitivity || 1;                   // v8.13 — x+y pan sensitivity
+        this.panX += (ev.offsetX - lastX) * ps; this.panY += (ev.offsetY - lastY) * ps;
         moved += Math.abs(ev.offsetX - lastX) + Math.abs(ev.offsetY - lastY);
         lastX = ev.offsetX; lastY = ev.offsetY;
         this._snapPan();   // §4.2 — the user never perceives the seam
@@ -917,7 +921,7 @@ export class Tier2Map {
     const typing = (t) => t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA"
       || t.tagName === "SELECT" || t.isContentEditable);
     const loop = () => {
-      const k = this._keys, step = 14 * (1 / Math.max(0.6, this.zoom * 0.5));
+      const k = this._keys, step = 14 * (1 / Math.max(0.6, this.zoom * 0.5)) * (this.panSensitivity || 1);
       let moved = false;
       // v6.6 — A/D horizontal direction inverted again for the 2D map only
       if (k.a) { this.panX += step; moved = true; }

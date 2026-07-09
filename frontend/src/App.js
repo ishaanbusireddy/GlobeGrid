@@ -85,8 +85,24 @@ document.addEventListener("keydown", (ev) => {
   else if (k === "c") { openLastOrRandomCountry(); }
   else if (k === "g") { switchToTier(1); }
   else if (k === "m") { switchToTier(2); }
+  else if (k === "p") { toggleProvincesShortcut(); }   // v8.13 — P: provinces on/off
+  else if (ev.key === " " || ev.code === "Space") {     // v8.13 — Space: analyst
+    ev.preventDefault();
+    try { analyst.toggle(); } catch { /* not mounted yet */ }
+  }
   else if (ev.key === "?") { showHelp(); }   // v7.4.1 — open the full guide
 });
+
+// v8.13 — "P" toggles the province (div1) layer on/off through the same path as
+// the header dropdown, so state + persistence + the map stay in sync.
+function toggleProvincesShortcut() {
+  state.adminTier = state.adminTier ? 0 : 1;
+  localStorage.setItem("tdl_admin_tier", String(state.adminTier));
+  if (els.adminDivSelect) els.adminDivSelect.value = String(state.adminTier);
+  applyAdminLayers();
+  if (state.mapMode) applyMapMode(state.mapMode);
+  if (state.adminTier) alerts.toast?.("Provinces (div1) on — zoom in to see them.");
+}
 
 function cycleLanguage() {   // v6.6.2 — advance to the next interface language
   const cur = localStorage.getItem("tdl_lang") || "en";
@@ -356,7 +372,7 @@ const COUNTRY_LABELS = BOUNDARIES_50M.map((c) => {
 const ISO3_NAME = {};
 for (const c of BOUNDARIES_50M) ISO3_NAME[c.i] = c.n;
 
-const CATEGORIES = ["", "geopolitics", "finance", "technology", "disaster", "conflict", "military", "other"];
+const CATEGORIES = ["", "geopolitics", "finance", "technology", "domestic", "health", "disaster", "conflict", "military", "other"];
 const CONTINENTS = ["", "Africa", "America", "Asia", "Europe", "Oceania", "Middle East"];
 const MAP_REFRESH_MS = 45000;
 const STORY_REFRESH_MS = 12000;   // v6.3 — feed safety-net poll (always streaming, faster)
@@ -404,6 +420,8 @@ const state = {
   })(),
   // v8.9 — mouse-wheel / scroll zoom sensitivity (0.2–4×), persisted.
   zoomSensitivity: Math.max(0.2, Math.min(4, parseFloat(localStorage.getItem("tdl_zoom_sensitivity") || "1") || 1)),
+  // v8.13 — drag/WASD pan (x+y together) sensitivity (0.2–4×), persisted.
+  panSensitivity: Math.max(0.2, Math.min(4, parseFloat(localStorage.getItem("tdl_pan_sensitivity") || "1") || 1)),
   activityOn: false,          // v8.3 — Hotspots activity heat
   activityUnits: [],
   histEpoch: null,            // v8.4 — currently-shown historical border epoch
@@ -525,6 +543,14 @@ const ctx = {
     state.renderer?.setZoomSensitivity?.(s);
   },
   zoomSensitivity: () => state.zoomSensitivity,
+  // v8.13 — drag/WASD pan sensitivity, applied live to whichever renderer is mounted
+  setPanSensitivity: (v) => {
+    const s = Math.max(0.2, Math.min(4, parseFloat(v) || 1));
+    state.panSensitivity = s;
+    localStorage.setItem("tdl_pan_sensitivity", String(s));
+    state.renderer?.setPanSensitivity?.(s);
+  },
+  panSensitivity: () => state.panSensitivity,
   setAlertsEnabled: (on) => {                         // v6.6.2 breaking-alert toggle
     alerts.enabled = !!on;
     localStorage.setItem("tdl_alerts_enabled", on ? "1" : "0");
@@ -756,10 +782,17 @@ function openClusterList(cluster) {
         const row = document.createElement("div");
         row.className = "story-card cluster-row";
         const cat = ev.category || "other";
+        // v8.13 — don't show the development_type chip when it just repeats the
+        // category (owner: "it lists a category conflict thing twice sometimes"
+        // — a conflict-category event with development_type 'conflict' rendered
+        // two identical chips).
+        const devType = ev.development_type
+          && ev.development_type.toLowerCase() !== cat.toLowerCase()
+          ? ev.development_type : "";
         row.innerHTML = `<div class="card-meta">
             <span class="chip cat-${cat}">${cat}</span>
             <span class="cp-meta">sev ${ev.severity || "?"}</span>
-            ${ev.development_type ? `<span class="chip">${ev.development_type}</span>` : ""}
+            ${devType ? `<span class="chip">${devType}</span>` : ""}
             <span class="cp-meta" style="margin-left:auto">${(ev.occurred_at || "").slice(0, 16).replace("T", " ")}</span>
           </div><h3></h3><p class="cp-meta"></p>
           <button class="ap-chip pan-to-event">⌖ Pan to Event</button>`;
@@ -1054,6 +1087,7 @@ function mountRenderer(tier) {
   state.renderer.setHeatmap?.(els.heatmapToggle.classList.contains("active"));
   state.renderer.setBorders?.(state.bordersOn);
   state.renderer.setZoomSensitivity?.(state.zoomSensitivity);   // v8.9 — persisted wheel sensitivity
+  state.renderer.setPanSensitivity?.(state.panSensitivity);     // v8.13 — persisted pan sensitivity
   if (state.spinOn) state.renderer.setAutoSpin?.(true);   // v6.6.6 re-apply auto-spin
   state.renderer.setDisputes?.(state.disputesOn);
   if (state.disputesOn && state.disputedZones)   // v6.6.4 re-apply clickable markers

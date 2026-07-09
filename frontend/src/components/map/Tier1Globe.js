@@ -47,6 +47,8 @@ const CATEGORY_COLORS = {
   disaster: [1.00, 0.42, 0.42],
   conflict: [1.00, 0.55, 0.26],
   military: [0.29, 0.80, 0.45],   // v6.1 — military developments, green
+  domestic: [0.90, 0.58, 0.36],   // v8.13 — internal affairs, warm amber-brown
+  health: [0.21, 0.78, 0.54],     // v8.13 — public health, clean green
   other: [0.58, 0.63, 0.72],
 };
 
@@ -482,6 +484,7 @@ export class Tier1Globe {
     this.onSelectCity = onSelectCity || (() => {});           // v8.8 — city chip click
     this._cityScreens = [];                                    // v8.8 — drawn city hit-boxes
     this.zoomSensitivity = 1;                                  // v8.9 — mouse-wheel zoom sensitivity
+    this.panSensitivity = 1;                                   // v8.13 — drag/WASD pan (x+y together) sensitivity
     this.onSelectCluster = onSelectCluster || (() => {});     // v5 §9 dense-cluster list
     this.onSelectDisputed = onSelectDisputed || (() => {});   // v6.6.4 disputed marker
     this.quality = quality;                    // standard | high | ultra
@@ -745,6 +748,7 @@ export class Tier1Globe {
   }
 
   setZoomSensitivity(s) { this.zoomSensitivity = Math.max(0.2, Math.min(4, +s || 1)); }   // v8.9
+  setPanSensitivity(s) { this.panSensitivity = Math.max(0.2, Math.min(4, +s || 1)); }     // v8.13
   setAdminVisible(on) { this.showAdmin = !!on; this.adminVis = [!!on, !!on, !!on]; }
   // v8.8 — per-tier visibility so div1/div2/div3 toggle independently.
   setAdminLayerVisible(level, on) {
@@ -1467,7 +1471,8 @@ export class Tier1Globe {
       const dx = ev.clientX - lastX, dy = ev.clientY - lastY;
       moved += Math.abs(dx) + Math.abs(dy);
       lastX = ev.clientX; lastY = ev.clientY;
-      this.velYaw = dx * 0.005; this.velPitch = dy * 0.005;
+      const ps = this.panSensitivity || 1;                       // v8.13 — x+y pan sensitivity
+      this.velYaw = dx * 0.005 * ps; this.velPitch = dy * 0.005 * ps;
       this.yaw += this.velYaw;
       this.pitch = Math.max(-1.35, Math.min(1.35, this.pitch + this.velPitch));
     });
@@ -1511,7 +1516,8 @@ export class Tier1Globe {
   // v6.1 — apply currently-held WASD/QE keys to the camera each frame
   _applyKeys(dt) {
     if (!this.keys) return false;
-    const yawStep = 1.4 * dt, pitchStep = 1.1 * dt, zoomStep = 1.6 * dt;
+    const ps = this.panSensitivity || 1;                          // v8.13 — WASD pan sensitivity
+    const yawStep = 1.4 * dt * ps, pitchStep = 1.1 * dt * ps, zoomStep = 1.6 * dt;
     let moved = false;
     // v6.2 — A/D direction inverted (owner request)
     if (this.keys.a) { this.yaw += yawStep; moved = true; }
@@ -2394,7 +2400,8 @@ export class Tier1Globe {
     }
 
     const HEX = { geopolitics: "#4da3ff", finance: "#ffd166", technology: "#b26bff",
-                  disaster: "#ff6b6b", conflict: "#ff8c42", military: "#4acc73", other: "#93a1b8" };
+                  disaster: "#ff6b6b", conflict: "#ff8c42", military: "#4acc73",
+                  domestic: "#e6935c", health: "#35c88a", other: "#93a1b8" };   // v8.13
     for (const c of this.clusters) {
       const [x, y, z] = latLonToVec3(c.lat, c.lon, 1.006);
       if (this._facing(model, x, y, z) < 0.02) continue;

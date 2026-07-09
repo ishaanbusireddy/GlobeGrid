@@ -700,7 +700,7 @@ COUNTRIES_V4_EXTRA = [
     ('KIR', 'Kiribati', 'Tarawa', 'Micronesia', None, 1.34, 173.02),
     ('KNA', 'Saint Kitts and Nevis', 'Basseterre', 'Caribbean', None, 17.3, -62.72),
     ('KWT', 'Kuwait', 'Kuwait City', 'Western Asia', None, 29.37, 47.98),
-    ('LAO', 'Lao PDR', 'Vientiane', 'South-Eastern Asia', None, 17.97, 102.6),
+    ('LAO', 'Laos', 'Vientiane', 'South-Eastern Asia', None, 17.97, 102.6),
     ('LBR', 'Liberia', 'Monrovia', 'Western Africa', None, 6.31, -10.8),
     ('LCA', 'Saint Lucia', 'Castries', 'Caribbean', None, 14.0, -61.0),
     ('LIE', 'Liechtenstein', 'Vaduz', 'Western Europe', None, 47.13, 9.52),

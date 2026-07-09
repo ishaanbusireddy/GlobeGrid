@@ -62,19 +62,39 @@ CATEGORY_KEYWORDS = {
                 "hedge fund", "private equity", "bankruptcy", "profit", "revenue",
                 "quarterly results", "billion deal", "investors", "bailout",
                 "currency devalu", "bond yield", "credit rating"],
-    # v6.6 — dedicated technology category (owner: pull major global tech news;
-    # too much finance/tech was landing in 'other'). Multi-word/long tokens only:
-    # classify_category substring-matches, so short tokens like 'ai' are unsafe.
-    "technology": ["artificial intelligence", " ai ", "openai", "chatgpt", "semiconductor",
-                   "chipmaker", "nvidia", "software", "startup", "silicon valley",
-                   "cyberattack", "cybersecurity", "data breach", "ransomware", "quantum",
-                   "robotics", "spacex", "satellite launch", "rocket launch", "smartphone",
-                   "data center", "cloud computing", "5g network", "social media platform",
-                   "tech giant", "microchip", "machine learning", "autonomous vehicle",
-                   "electric vehicle", "battery plant", "app store", "antitrust"],
-    "geopolitics": ["election", "president", "minister", "parliament", "treaty", "summit",
+    # v6.6/v8.13 — dedicated technology category. Short-token word-boundary
+    # matching (_kw_hit) lets "ai" be a safe bare keyword now (\bai\b), so it no
+    # longer needs the fragile " ai " space-padding that missed "AI." / "AI,".
+    "technology": ["artificial intelligence", "ai", "a.i.", "openai", "anthropic", "chatgpt",
+                   "semiconductor", "chipmaker", "nvidia", "software", "startup",
+                   "silicon valley", "cyberattack", "cybersecurity", "data breach",
+                   "ransomware", "hacking", "hacker", "quantum", "robotics", "spacex",
+                   "satellite launch", "rocket launch", "smartphone", "data center",
+                   "cloud computing", "5g network", "social media", "tech giant",
+                   "microchip", "chip export", "machine learning", "autonomous vehicle",
+                   "electric vehicle", "battery plant", "app store", "antitrust",
+                   "algorithm", "encryption", "gadget", "operating system", "big tech"],
+    # v8.13 — DOMESTIC: a country's internal politics/crime/civil life that is NOT
+    # international geopolitics (owner: "add a domestic events category"). Deliberately
+    # everyday-governance vocabulary so ordinary national news stops landing in
+    # geopolitics or, worse, being conflict-tagged.
+    "domestic": ["crime", "murder", "homicide", "shooting", "robbery", "arrest", "police",
+                 "court ruling", "supreme court", "verdict", "lawsuit", "corruption",
+                 "scandal", "bribery", "resignation", "cabinet reshuffle", "budget bill",
+                 "immigration", "healthcare bill", "welfare", "pension", "labor strike",
+                 "teachers strike", "railway strike", "school", "university", "housing",
+                 "wildfire evacuation", "local election", "by-election", "governor",
+                 "mayor", "legislation", "referendum on", "civil unrest", "riot",
+                 "demonstration", "curfew", "public sector", "national holiday"],
+    # v8.13 — HEALTH: disease/pandemic/public-health (distinct from acute disaster).
+    "health": ["pandemic", "epidemic", "outbreak", "virus", "covid", "influenza", "flu",
+               "measles", "ebola", "cholera", "malaria", "vaccine", "vaccination",
+               "who declares", "public health", "hospital", "disease", "infection",
+               "quarantine", "mpox", "bird flu", "health emergency", "opioid", "fda approval"],
+    "geopolitics": ["election", "president", "prime minister", "parliament", "treaty", "summit",
                     "diplomat", "embassy", "united nations", "nato", "coalition", "vote",
-                    "referendum", "policy", "talks", "agreement", "border", "protest"],
+                    "referendum", "foreign policy", "talks", "agreement", "border dispute",
+                    "sanctions", "alliance", "bilateral", "ambassador", "state visit"],
 }
 
 # v5 §3 — split the conflict bucket. 'military' = posturing/drills/deals
@@ -120,7 +140,14 @@ def strip_html(text: str) -> str:
 #      unambiguous categories (disaster, conflict) win over the catch-all.
 import re as _re
 
-_CAT_PRIORITY = ["disaster", "conflict", "finance", "technology", "geopolitics"]
+# v8.13 — tie-break priority, most-specific first. Technology now sits ABOVE
+# finance (the owner's "tech keeps classifying as finance/geopolitics" bug: a
+# tech+markets story like "Nvidia earnings jump on AI demand" tied finance vs
+# technology and finance won on both count and priority — now technology wins the
+# tie). health/domestic slot above finance/geopolitics so a disease outbreak or
+# an internal-affairs story isn't swept into the catch-all geopolitics bucket.
+_CAT_PRIORITY = ["disaster", "conflict", "health", "technology", "domestic",
+                 "finance", "geopolitics"]
 # a small compiled word-boundary matcher cache for short single-word keywords
 _WB_CACHE: dict[str, "_re.Pattern"] = {}
 
