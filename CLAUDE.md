@@ -18,6 +18,91 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v8.13.7)
+
+**v8.13.7 (2026-07-10, "solve the deferred + more breaking news + entity glow +
+all EU/NA leaders + div2 map modes"):** a six-item owner batch; explicit
+instruction "don't defer".
+
+- **More breaking-news alerts.** The in-app breaking toast severity floor drops
+  from **4 → 3** (`config.yaml in_app_breaking_alert_severity_floor`, mirrored in
+  the three `App.js` defaults), so moderately-severe developments now raise a
+  toast + the breaking fanfare, not only the top tier.
+- **The AI leader/party profile generation is fixed.** Root cause: `bg_synth.kick`
+  returned `False` while a generation job was already in flight, so the route
+  reported `synth_pending=False` on the frontend's 2nd poll and the page STOPPED
+  polling before a slow (local Ollama) generation finished — the profile never
+  appeared. `kick` now returns `True` whenever a job for that key is IN PROGRESS
+  (new `inflight()` helper), and the pollers were lengthened (leader 5→14 tries,
+  party dossier now loops up to 10× via an `_pdTries` counter) so the page keeps
+  re-fetching until the AI fields actually land.
+- **Selecting ANY entity glows its border like a country** (owner: "when
+  selecting an admin div or any other entity, their borders should highlight and
+  glow just as if you selected a country"). The v6 §26 pulsing `setHighlight`
+  slot was country-only; now `openAdminUnit` glows the admin unit's real decoded
+  rings (`highlightAdminUnit`, awaits the lazy atlas), `openAutonomousZone` glows
+  the zone's exact member-polygon rings, and the pane's `onNavigate` re-applies
+  the right glow (country / admin / zone) whenever an entry becomes the active
+  panel — so the selected entity pulses the whole time its page is open.
+- **All EU + North-American countries now carry BOTH offices** (owner: "seed all
+  leaders of every EU and North American country"). `leaders_world.EU_NA` adds
+  the missing head-of-state (ceremonial president / monarch) or head-of-government
+  for every EU-27 + NA state — King Philippe (BEL), King Willem-Alexander (NLD),
+  Steinmeier (DEU), Mattarella (ITA), Van der Bellen (AUT), King Charles III for
+  the Commonwealth realms (CAN/JAM/BHS/BLZ/ATG/GRD/KNA/LCA/VCT), the Caribbean
+  ceremonial presidents (BRB/TTO/DMA), plus current PMs France's Lecornu, Romania's
+  Bolojan, and updated Lithuania's Ruginienė. **Root fix for the paramount:** 124
+  of 216 countries carried a NULL `government_type`, so `_paramount_role` defaulted
+  a country with both offices to head_of_state — naively adding a ceremonial
+  president would have flipped the "paramount" leader to the figurehead. A new
+  `seed._GOV_TYPE_FILL` sets the correct government_type (parliamentary republic /
+  constitutional monarchy / semi-presidential) for these EU+NA states **where it
+  is still NULL**, so the PM stays paramount in the parliamentary states/realms and
+  the president in the semi-presidential ones. Verified over HTTP: Denmark
+  paramount = PM (both King Frederik X + Frederiksen listed), France = President
+  Macron (PM Lecornu listed), every realm's PM paramount with King Charles III
+  listed as HoS.
+- **All map modes now work at div2, not just div1** (owner: "make sure all map
+  modes work for div 2 … you might have to add lots of new religions, sects, and
+  languages"). The categorical sub-national overrides (`admin_thematic.SUBNATIONAL`)
+  are ADM1-keyed, so at div2 a district's own name never matched and the
+  heterogeneity collapsed to the flat country value. Now `_unit_level_values`
+  resolves each deeper unit's parent ADM1 from its `path` (`_adm1_name`) and
+  `unit_value(..., adm1_name=)` applies the parent's override — so **every div2/div3
+  district inherits its province's religion/sect/language/dialect** (verified: Bali
+  districts → Hinduism, Kerala districts → Malayalam, Iran-Kurdistan districts →
+  Kurdish, Myanmar-Shan districts → Buddhism; sect L2 33 distinct, language L2 149
+  distinct — was flat-per-country before). `gdp_per_capita` (an intensive ratio)
+  is also inherited from the parent ADM1 at div2.
+- **A much wider curated religion/sect/language layer.** `SUBNATIONAL` gained a
+  large v8.13.7 batch introducing whole new traditions on the map — **Hinduism in
+  Bali**, **Theravada Buddhist** belts (Myanmar Shan/Karen/Rakhine/Mon, Thai deep
+  south Malay-Muslim), **Druze** (Syria's As-Suwayda; new `RELIGION_INFO`/`SECT_INFO`
+  colour), Twelver-Shia Hazarajat (Afghanistan), plus a long tail of minority
+  languages (Balinese, Acehnese, Javanese, Sundanese, Batak, Shan, Karen, Kachin,
+  Chin, Rakhine, Mon, Tamil/Sinhala, Welsh, Corsican, Sardinian, South-Tyrolean
+  German, Amharic/Tigrinya/Oromo, Zulu/Xhosa/Afrikaans, Balochi, Khuzestani Arabic,
+  the Indian Hindi-belt dialects, …). `families.js` gained a **Dravidian** family
+  and folded the new SE-/South-Asian/African tongues into their real families so
+  the legend groups them correctly (unknown values still hash to a distinct colour).
+- **Deferred items re-attempted, honestly (China prefectures + Andhra Pradesh).**
+  Per "try to solve the deferred things", both were re-investigated against LIVE
+  data, not from memory: geoBoundaries' CHN ADM2 (2,391) is **confirmed county-level**
+  (names end xian/qi; its shapeIDs are geoBoundaries hashes, not GB/T-2260 codes, so
+  counties can't even be dissolved into prefectures), and its India ADM2 is **still
+  the pre-2022 Andhra Pradesh districts** (Visakhapatnam/Guntur/Krishna/… present,
+  the new 2022 districts absent). The only sources that carry a China prefecture tier
+  or post-2022 AP districts — **GADM and DataV/aliyun — are blocked by the sandbox
+  network policy (HTTP 000)**; seven candidate hosts were probed. So both remain a
+  verified data-availability limit, and no broken/guessed geometry is shipped (the
+  honest-data rule wins). They drop in as pure data the moment a prefecture-level /
+  post-2022 source is reachable.
+
+Version badge → v8.13.7. Verified over HTTP + headless: `/api/config` 8.13.7;
+every EU/NA country returns both offices with the correct paramount; div2 religion/
+sect/language paint 61,181 units with real sub-national heterogeneity; admin/zone
+selection glows the border; all changed JS/PY parse.
+
 ## Status (v8.13.6)
 
 **v8.13.6 (2026-07-10, correctness + map-UX batch):** an eleven-item owner list.

@@ -146,23 +146,22 @@ void main() {
               terrain * facing);
   }
   if (useHeat > 0.5) {
-    // v8.13.5 — a proper high-quality heat GLOW (was a flat orange blob, shifted
-    // 180° by a stray +0.5 in the UV — now matches the terrain/splat origin).
-    // Intensity runs through a smooth thermal ramp (cool blue → cyan → green →
-    // amber → hot red) and is ADDED to the surface so it genuinely glows and is
-    // visible at every zoom; a gentle facing term keeps it off the far limb.
+    // v8.13.4 — a proper high-quality heat field (was a flat orange blob, and
+    // shifted 180° by a stray +0.5 in the UV — matches the terrain/splat origin
+    // now). Intensity runs through a smooth multi-stop ramp (cool blue → cyan →
+    // green → amber → hot red) with a facing gate so it never bleeds through the
+    // limb, reading like a real thermal map instead of an amorphous smear.
     float u = atan(n.z, -n.x) / 6.2831853;
     float v = 1.0 - (asin(clamp(n.y, -1.0, 1.0)) / 3.14159265 + 0.5);
-    float facing = smoothstep(-0.05, 0.22, normalize(vNormal).z);
-    float h = clamp(texture(heatTex, vec2(u, v)).r * 1.6, 0.0, 1.0);
-    vec3 hc = vec3(0.10, 0.32, 0.95);
-    hc = mix(hc, vec3(0.10, 0.88, 0.85), smoothstep(0.16, 0.40, h));
-    hc = mix(hc, vec3(0.58, 0.95, 0.20), smoothstep(0.40, 0.60, h));
-    hc = mix(hc, vec3(1.00, 0.80, 0.15), smoothstep(0.60, 0.80, h));
-    hc = mix(hc, vec3(1.00, 0.30, 0.12), smoothstep(0.80, 1.00, h));
-    float glow = smoothstep(0.03, 0.5, h);
-    col += hc * glow * facing * 1.25;                     // additive glow
-    col = mix(col, hc, glow * facing * 0.35);             // + a little body so hot cores read
+    float facing = smoothstep(0.0, 0.16, normalize(vNormal).z);
+    float h = clamp(texture(heatTex, vec2(u, v)).r * 1.35, 0.0, 1.0);
+    vec3 hc = vec3(0.09, 0.28, 0.85);
+    hc = mix(hc, vec3(0.10, 0.82, 0.80), smoothstep(0.16, 0.40, h));
+    hc = mix(hc, vec3(0.55, 0.90, 0.22), smoothstep(0.40, 0.60, h));
+    hc = mix(hc, vec3(0.98, 0.78, 0.16), smoothstep(0.60, 0.80, h));
+    hc = mix(hc, vec3(1.00, 0.26, 0.12), smoothstep(0.80, 1.00, h));
+    float a = smoothstep(0.05, 0.55, h) * facing;
+    col = mix(col, hc, a * 0.82);
   }
   frag = vec4(col, 1.0);
 }`;
@@ -694,26 +693,21 @@ export class Tier1Globe {
   // like territories by default, but slightly dotted). A finely-broken line so
   // it reads as a dotted boundary distinct from settled country borders.
   setAutonomousZones(zones) {
-    // v8.13.5 — a SOLID territory-style border built from each zone's EXACT real
-    // member polygons (flat [lon,lat,…] rings from the admin atlas), densified
-    // along each edge so it hugs the sphere. The zone is clickable (App-side
-    // outline hit-test → zone panel), so it reads and behaves like a territory.
     const gl = this.gl;
     const verts = [];
     for (const z of (zones || [])) {
-      // accept the new multi-ring shape, or fall back to a legacy single outline
-      const rings = z.rings || (Array.isArray(z.outline)
-        ? [z.outline.flatMap(([lon, lat]) => [lon, lat])] : []);
-      for (const ring of rings) {
-        if (!ring || ring.length < 6) continue;
-        for (let i = 0; i + 3 < ring.length; i += 2) {
-          const lon0 = ring[i], lat0 = ring[i + 1], lon1 = ring[i + 2], lat1 = ring[i + 3];
-          const steps = 6;
-          for (let s = 0; s < steps; s++) {
-            const t0 = s / steps, t1 = (s + 1) / steps;
-            verts.push(...latLonToVec3(lat0 + (lat1 - lat0) * t0, lon0 + (lon1 - lon0) * t0, 1.0013),
-                       ...latLonToVec3(lat0 + (lat1 - lat0) * t1, lon0 + (lon1 - lon0) * t1, 1.0013));
-          }
+      const ring = Array.isArray(z.outline) ? z.outline : null;
+      if (!ring || ring.length < 3) continue;
+      // v8.13.4 — a SOLID territory-style border (was dotted), densified along
+      // each edge so it hugs the sphere; the zone is clickable (App-side outline
+      // hit-test → zone panel), so it reads and behaves like a real territory.
+      for (let i = 0; i + 1 < ring.length; i++) {
+        const [lon0, lat0] = ring[i], [lon1, lat1] = ring[i + 1];
+        const steps = 10;
+        for (let s = 0; s < steps; s++) {
+          const t0 = s / steps, t1 = (s + 1) / steps;
+          verts.push(...latLonToVec3(lat0 + (lat1 - lat0) * t0, lon0 + (lon1 - lon0) * t0, 1.0013),
+                     ...latLonToVec3(lat0 + (lat1 - lat0) * t1, lon0 + (lon1 - lon0) * t1, 1.0013));
         }
       }
     }
@@ -807,7 +801,6 @@ export class Tier1Globe {
   // size, so big countries (Russia/USA) show from far out and small ones
   // (Bhutan/Luxembourg) only reveal as you zoom into them.
   setCountryLabels(labels) { this.countryLabels = labels || []; }
-  setAdminLabels(labels) { this.adminLabels = labels || []; }   // v8.13.6 — on-map admin names
   setCountryLabelsVisible(on) { this.countryLabelsOn = on !== false; }   // v6.2 toggle
 
   // v6.2 — theme-driven globe colouring: the App reads --globe-ocean and
@@ -1513,12 +1506,7 @@ export class Tier1Globe {
       moved += Math.abs(dx) + Math.abs(dy);
       lastX = ev.clientX; lastY = ev.clientY;
       const ps = this.panSensitivity || 1;                       // v8.13 — x+y pan sensitivity
-      // v8.13.6 — scale drag-rotate by how CLOSE the camera is (owner: "when
-      // zoomed in close, a drag pans super fast and yeets me to another
-      // continent"). A fixed angular step moves a huge surface distance when
-      // you're near the surface, so ease it right down as dist→1.
-      const zf = Math.max(0.05, Math.min(1, (this.dist - 1.0) * 0.62));
-      this.velYaw = dx * 0.005 * ps * zf; this.velPitch = dy * 0.005 * ps * zf;
+      this.velYaw = dx * 0.005 * ps; this.velPitch = dy * 0.005 * ps;
       this.yaw += this.velYaw;
       this.pitch = Math.max(-1.35, Math.min(1.35, this.pitch + this.velPitch));
     });
@@ -1563,10 +1551,7 @@ export class Tier1Globe {
   _applyKeys(dt) {
     if (!this.keys) return false;
     const ps = this.panSensitivity || 1;                          // v8.13 — WASD pan sensitivity
-    // v8.13.6 — WASD rotate is distance-scaled too, so it doesn't fling you
-    // across the surface when zoomed in close.
-    const zf = Math.max(0.05, Math.min(1, (this.dist - 1.0) * 0.62));
-    const yawStep = 1.4 * dt * ps * zf, pitchStep = 1.1 * dt * ps * zf, zoomStep = 1.6 * dt;
+    const yawStep = 1.4 * dt * ps, pitchStep = 1.1 * dt * ps, zoomStep = 1.6 * dt;
     let moved = false;
     // v6.2 — A/D direction inverted (owner request)
     if (this.keys.a) { this.yaw += yawStep; moved = true; }
@@ -1989,14 +1974,10 @@ export class Tier1Globe {
       const adminOn = (this.adminVis[0] && this.adminCount && this.dist < 3.0)
                    || (this.adminVis[1] && this.admin2Count && this.dist < 1.9)
                    || (this.adminVis[2] && this.admin3Count && this.dist < 1.55);
+      const ba = adminOn ? 0.12 : 0.34;
       gl.bindBuffer(gl.ARRAY_BUFFER, this.borderBuf);
       gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-      // v8.13.6 — with an admin tier active, draw the national border in a
-      // DISTINCT bright amber (was faded blue-grey to near-nothing) so the
-      // country lines stay visible under the cooler admin lines (owner: "make
-      // the border between countries a different colour so i can see them").
-      if (adminOn) gl.uniform4f(colLoc, 1.0, 0.77, 0.36, 0.85);
-      else gl.uniform4f(colLoc, 0.5, 0.6, 0.78, 0.34);
+      gl.uniform4f(colLoc, 0.5, 0.6, 0.78, ba);
       gl.drawArrays(gl.LINES, 0, this.borderCount);
     }
 
@@ -2543,42 +2524,6 @@ export class Tier1Globe {
         ctx.fillStyle = `rgba(225,232,246,${alpha.toFixed(2)})`;
         ctx.strokeStyle = `rgba(6,10,18,${(alpha * 0.7).toFixed(2)})`;
         ctx.lineWidth = 3 * dpr;
-        ctx.strokeText(l.name, p[0], p[1]);
-        ctx.fillText(l.name, p[0], p[1]);
-      }
-    }
-
-    // v8.13.6 — on-map ADMIN-UNIT names, revealed by apparent size so tiny units
-    // (raions, communes) only show when zoomed in a lot. Gated on the admin
-    // layer being active + near enough that any could be legible.
-    if (this.adminLabels && this.adminLabels.length && this.dist < 1.9
-        && (this.adminVis[0] || this.adminVis[1] || this.adminVis[2])) {
-      const placedA = [];
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      for (const l of this.adminLabels) {
-        const [x, y, z] = latLonToVec3(l.lat, l.lon, 1.002);
-        if (this._facing(model, x, y, z) < 0.2) continue;
-        const p = this._project(mvp, x, y, z);
-        if (!p) continue;
-        const [x2, y2, z2] = latLonToVec3(l.lat, l.lon + (l.span || 1), 1.002);
-        const p2 = this._project(mvp, x2, y2, z2);
-        if (!p2) continue;
-        const apparentPx = Math.hypot(p2[0] - p[0], p2[1] - p[1]);
-        if (apparentPx < 70 * dpr) continue;
-        if (p[0] < 0 || p[0] > this.overlay.width || p[1] < 0 || p[1] > this.overlay.height) continue;
-        let collide = false;
-        for (const q of placedA) {
-          if (Math.abs(q[0] - p[0]) < 52 * dpr && Math.abs(q[1] - p[1]) < 13 * dpr) { collide = true; break; }
-        }
-        if (collide) continue;
-        placedA.push(p);
-        const alpha = Math.min(0.8, 0.15 + (apparentPx - 70 * dpr) / (40 * dpr) * 0.6);
-        const fs = Math.max(9, Math.min(13, apparentPx / 12)) * dpr;
-        ctx.font = `500 ${fs}px system-ui`;
-        ctx.fillStyle = `rgba(196,214,230,${alpha.toFixed(2)})`;
-        ctx.strokeStyle = `rgba(6,10,18,${(alpha * 0.7).toFixed(2)})`;
-        ctx.lineWidth = 2.5 * dpr;
         ctx.strokeText(l.name, p[0], p[1]);
         ctx.fillText(l.name, p[0], p[1]);
       }

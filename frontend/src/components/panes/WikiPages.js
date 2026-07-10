@@ -1737,9 +1737,13 @@ export async function renderPartyDossier(el, name, iso, ctx) {
   }
   el.innerHTML = html;
   wireStoryChips(el, ctx);
-  // v7.4.2 — if the AI profile was pending, re-fetch once to upgrade in place
+  // v8.13.7 — re-render every 5s until the AI dossier lands (was a single
+  // re-fetch, which missed a slow local model). Capped so it can't loop forever.
   if (d.synth_pending) {
-    setTimeout(() => renderPartyDossier(el, name, iso, ctx), 6000);
+    el._pdTries = (el._pdTries || 0) + 1;
+    if (el._pdTries <= 10 && el.isConnected) {
+      setTimeout(() => renderPartyDossier(el, name, iso, ctx), 5000);
+    }
   }
 }
 
@@ -2145,9 +2149,11 @@ export async function renderLeader(el, name, ctx) {
   // v6.6.8 — the profile fills in FIELD BY FIELD in the background; poll a few
   // times to paint each field as it lands (fast per-field generation).
   if (d.synth_pending) {
+    // v8.13.7 — poll longer (a slow local Ollama can take ~30-60s to fill all
+    // five fields); repaint each field as it lands, stop once synthesis is done.
     let tries = 0;
     const poll = async () => {
-      if (!el.isConnected || tries++ >= 5) return;
+      if (!el.isConnected || tries++ >= 14) return;
       const d2 = await api.leaderProfile(name).catch(() => null);
       if (d2 && el.isConnected) paintLeader(el, name, d2, ctx);
       if (d2 && d2.synth_pending) setTimeout(poll, 4000);

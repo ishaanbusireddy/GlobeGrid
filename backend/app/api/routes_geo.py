@@ -488,6 +488,14 @@ def mapmodes_list(params, q, body):
                            for k, v in MAP_MODES.items()]}
 
 
+def _adm1_name(u):
+    """v8.13.7 — the ADM1 (first-level) name in a deeper unit's ancestry, taken
+    from its `path` ('USA/Ohio/Highland' → 'Ohio'). Used so a div2/div3 unit can
+    inherit its parent province's curated sub-national / demographic value."""
+    p = (u.get("path") or "").split("/")
+    return p[1] if len(p) >= 2 else None
+
+
 def _unit_level_values(mode_id, mode, level):
     """v8.9 — compute the mode's value for every administrative unit at `level`,
     keyed by uid. Numeric modes read the curated per-unit demographics (units
@@ -530,13 +538,25 @@ def _unit_level_values(mode_id, mode, level):
         for u in units:
             iso3 = u.get("country")
             base = cc.get(iso3, {})
+            # v8.13.7 — a div2/div3 unit inherits its parent ADM1's sub-national
+            # override (the SUBNATIONAL table is ADM1-keyed), so the religion/
+            # sect/language/dialect heterogeneity carries all the way down the
+            # tiers instead of collapsing to the flat country value at div2.
+            adm1 = _adm1_name(u)
             v = admin_thematic.unit_value(
                 iso3, u.get("name"), field,
-                base.get("dominant_religion"), base.get("dominant_language"))
+                base.get("dominant_religion"), base.get("dominant_language"),
+                adm1_name=adm1)
             if v:
                 values[u["uid"]] = v
         return values, sorted({v for v in values.values()})
-    # numeric — only where a curated own figure exists for the unit
+    # numeric — a curated own figure at div1 (population/density/GDP/per-capita
+    # from the vendored demographics floor). At div2/div3 the extensive figures
+    # (pop/GDP) can't be split across districts and no per-district dataset is
+    # vendored, so those units fall through to the COUNTRY choropleth base
+    # underneath — the numeric map still reads correctly, just at country grain.
+    # gdp_per_capita (an intensive ratio) is inherited from the parent ADM1 so a
+    # deeper-tier unit still carries a per-unit value where one is curated.
     for u in units:
         iso3, name = u.get("country"), u.get("name")
         area = u.get("area_km2") or 0
@@ -549,8 +569,12 @@ def _unit_level_values(mode_id, mode, level):
             values[u["uid"]] = round(pop / area, 2)
         elif mode_id == "gdp" and gdp:
             values[u["uid"]] = gdp
-        elif mode_id == "gdp_per_capita" and gdp and pop:
-            values[u["uid"]] = round(gdp / pop, 2)
+        elif mode_id == "gdp_per_capita":
+            pdem = dem if level == 1 else admin_demographics.lookup(iso3, _adm1_name(u), 0)
+            pp = pdem.get("pop") if pdem else None
+            gg = pdem.get("gdp") if pdem else None
+            if gg and pp:
+                values[u["uid"]] = round(gg / pp, 2)
         # hdi / nuclear_arsenal have no per-unit figure → left to the country base
     nums = sorted(values.values())
     return values, (nums[0] if nums else None, nums[-1] if nums else None)

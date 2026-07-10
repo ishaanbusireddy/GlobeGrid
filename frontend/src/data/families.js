@@ -20,29 +20,34 @@
 // within-family gradient — Hebrew reads clearly distinct from the Arabic sea
 // around it (owner: "make hebrew colour more visible compared to arabic").
 const LANGUAGE_FAMILIES = {
-  "Iranian (Indo-Iranian)": { hue: 4, sat: 70, langs: ["Persian", "Dari", "Tajik", "Pashto"] },
+  "Iranian (Indo-Iranian)": { hue: 4, sat: 70, langs: ["Persian", "Dari", "Tajik", "Pashto", "Balochi", "Kurdish", "Hazaragi"] },
   "Indo-Aryan (Indo-Iranian)": { hue: 18, sat: 68, langs: ["Hindi", "Bengali", "Punjabi", "Nepali", "Sinhala", "Dhivehi"] },
   "Romance (Italic)": { hue: 32, sat: 72, langs: ["French", "Spanish", "Portuguese", "Italian", "Romanian", "Catalan"] },
   "French/Portuguese creole": { hue: 44, sat: 60, langs: ["Haitian Creole", "Mauritian Creole", "Seychellois Creole", "Crioulo", "Papiamento"] },
   "Turkic": { hue: 56, sat: 74, langs: ["Turkish", "Azerbaijani", "Kazakh", "Kyrgyz", "Turkmen", "Uzbek"] },
   "Mongolic": { hue: 68, sat: 60, langs: ["Mongolian"] },
-  "Kra-Dai": { hue: 82, sat: 70, langs: ["Thai", "Lao"] },
+  "Kra-Dai": { hue: 82, sat: 70, langs: ["Thai", "Lao", "Shan", "Zhuang"] },
   "Sinitic (Sino-Tibetan)": { hue: 100, sat: 66, langs: ["Mandarin Chinese", "Cantonese"] },
-  "Tibeto-Burman (Sino-Tibetan)": { hue: 113, sat: 58, langs: ["Burmese", "Dzongkha"] },
+  "Tibeto-Burman (Sino-Tibetan)": { hue: 113, sat: 58, langs: ["Burmese", "Dzongkha", "Tibetan", "Karen", "Rakhine", "Mon", "Kachin (Jingpho)", "Chin", "Karenni", "Yi", "Ladakhi", "Sikkimese", "Mizo"] },
   "Nilo-Saharan": { hue: 128, sat: 50, langs: ["Dinka"] },
-  "Bantu (Niger-Congo)": { hue: 140, sat: 60, langs: ["Swahili", "Zulu", "Shona", "Kinyarwanda", "Kirundi", "Luganda", "Chichewa", "Bemba", "Setswana", "Sesotho", "Swazi", "Oshiwambo", "Comorian"] },
+  "Bantu (Niger-Congo)": { hue: 140, sat: 60, langs: ["Swahili", "Zulu", "Xhosa", "Northern Sotho", "Southern Sotho", "Shona", "Kinyarwanda", "Kirundi", "Luganda", "Chichewa", "Bemba", "Setswana", "Sesotho", "Swazi", "Oshiwambo", "Comorian"] },
   "West African (Niger-Congo)": { hue: 152, sat: 52, langs: ["Wolof", "Fula", "Bambara", "Mandinka", "Ewe", "Sango", "Mooré", "Hausa", "Krio"] },
   "Kartvelian": { hue: 164, sat: 46, langs: ["Georgian"] },
   "Austroasiatic": { hue: 177, sat: 64, langs: ["Vietnamese", "Khmer"] },
-  "Austronesian": { hue: 190, sat: 66, langs: ["Malay", "Indonesian", "Filipino", "Malagasy", "Samoan", "Tongan", "Bislama", "Gilbertese", "Marshallese", "Nauruan", "Palauan", "Tuvaluan", "Tetum", "Tok Pisin", "Pijin"] },
+  "Austronesian": { hue: 190, sat: 66, langs: ["Malay", "Indonesian", "Filipino", "Malagasy", "Samoan", "Tongan", "Bislama", "Gilbertese", "Marshallese", "Nauruan", "Palauan", "Tuvaluan", "Tetum", "Tok Pisin", "Pijin", "Javanese", "Sundanese", "Balinese", "Acehnese", "Minangkabau", "Batak", "Minahasan"] },
   "Eskimo-Aleut": { hue: 202, sat: 40, langs: ["Greenlandic"] },
   "Armenian (Indo-European)": { hue: 214, sat: 54, langs: ["Armenian"] },
-  "Germanic (Indo-European)": { hue: 226, sat: 64, langs: ["English", "German", "Dutch", "Danish", "Norwegian", "Swedish", "Icelandic", "Faroese", "Luxembourgish"] },
+  "Germanic (Indo-European)": { hue: 226, sat: 64, langs: ["English", "German", "Dutch", "Afrikaans", "Danish", "Norwegian", "Swedish", "Icelandic", "Faroese", "Luxembourgish"] },
   "Hellenic (Indo-European)": { hue: 240, sat: 50, langs: ["Greek"] },
   "Japonic": { hue: 254, sat: 60, langs: ["Japanese"] },
   "Koreanic": { hue: 266, sat: 58, langs: ["Korean"] },
-  "Semitic (Afroasiatic)": { hue: 280, sat: 62, langs: ["Arabic", "Amharic", "Tigrinya", "Maltese", "Hebrew"] },
-  "Cushitic (Afroasiatic)": { hue: 292, sat: 52, langs: ["Somali"] },
+  "Semitic (Afroasiatic)": { hue: 280, sat: 62, langs: ["Arabic", "Amharic", "Tigrinya", "Harari", "Maltese", "Hebrew"] },
+  "Cushitic (Afroasiatic)": { hue: 292, sat: 52, langs: ["Somali", "Oromo", "Afar"] },
+  // v8.13.7 — Dravidian (South India + Sri Lanka Tamil) as its own family, and
+  // the SE-Asian minority tongues now surfaced at div2 folded into their real
+  // families (Austronesian for the Indonesian languages, Tibeto-Burman for the
+  // Myanmar highlands, Kra-Dai for Shan, Iranian for Balochi).
+  "Dravidian": { hue: 8, sat: 56, langs: ["Tamil", "Telugu", "Kannada", "Malayalam", "Tulu"] },
   "Uralic": { hue: 306, sat: 56, langs: ["Finnish", "Estonian", "Hungarian"] },
   "Albanian (Indo-European)": { hue: 320, sat: 50, langs: ["Albanian"] },
   "Baltic (Balto-Slavic)": { hue: 334, sat: 58, langs: ["Latvian", "Lithuanian"] },
@@ -75,6 +80,7 @@ export const RELIGION_INFO = {
   "Hinduism": { hue: 28, family: "Hinduism", light: 55 },
   "Buddhism": { hue: 45, family: "Buddhism", light: 55 },
   "Judaism": { hue: 258, family: "Judaism", light: 58 },
+  "Druze": { hue: 168, family: "Druze", light: 42, sat: 40 },   // v8.13.7
   "Unaffiliated": { hue: 0, family: "Unaffiliated", light: 60, sat: 0 },
 };
 
@@ -119,6 +125,10 @@ export const SECT_INFO = {
   "Theravada Buddhist": { hue: 45, sat: 66, light: 50, family: "Buddhism" },
   "Mahayana Buddhist": { hue: 52, sat: 62, light: 58, family: "Buddhism" },
   "Vajrayana Buddhist": { hue: 38, sat: 66, light: 46, family: "Buddhism" },
+  // v8.13.7 — Druze (a distinct Levantine tradition), Balinese Hindu
+  "Druze": { hue: 168, sat: 42, light: 42, family: "Druze" },
+  "Sunni / Druze": { hue: 155, sat: 50, light: 46, family: "Druze" },
+  "Balinese Hindu": { hue: 22, sat: 62, light: 52, family: "Hinduism" },
   // Judaism / Sikhism / folk / none
   "Judaism (Rabbinic)": { hue: 258, sat: 58, light: 56, family: "Judaism" },
   "Sikh (Khalsa)": { hue: 16, sat: 70, light: 44, family: "Sikhism" },
