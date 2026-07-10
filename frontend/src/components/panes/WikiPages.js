@@ -1429,6 +1429,11 @@ export async function renderAdminUnit(el, uid, ctx) {
   // breadcrumb: country › (ancestry…) › this unit
   const crumbs = [];
   if (c) crumbs.push(`<button class="ap-chip country-link" data-id="${esc(c.id)}">${flagInline(c)} ${esc(c.name)}</button>`);
+  // v8.13.4 — dual membership: a unit inside an autonomous zone shows BOTH the
+  // country chip AND the zone chip (owner: "in Erbil, the Iraq chip and Iraqi
+  // Kurdistan chip should both be present").
+  const az = d.autonomous_zone || null;
+  if (az) crumbs.push(`<button class="ap-chip zone-link" data-id="${esc(az.id)}">◇ ${esc(az.name)}</button>`);
   for (const a of (d.ancestry || [])) crumbs.push(`<button class="ap-chip admin-open" data-uid="${esc(a.admin_uid)}">${esc(a.name)}</button>`);
   crumbs.push(`<b>${esc(u.name)}</b>`);
 
@@ -1535,6 +1540,8 @@ export async function renderAdminUnit(el, uid, ctx) {
   // wiring
   el.querySelectorAll(".country-link").forEach((b) =>
     b.addEventListener("click", () => ctx.openEntity("country", b.dataset.id)));
+  el.querySelectorAll(".zone-link").forEach((b) =>
+    b.addEventListener("click", () => ctx.openAutonomousZone && ctx.openAutonomousZone(b.dataset.id)));
   el.querySelectorAll(".admin-open").forEach((b) =>
     b.addEventListener("click", () => ctx.openAdminUnit && ctx.openAdminUnit(b.dataset.uid)));
   const fly = el.querySelector(".admin-fly");
@@ -1843,8 +1850,12 @@ export async function renderStoriesDirectory(el, ctx, activeType) {
   el.innerHTML = `<h1>Stories</h1>
     <p class="cp-meta">The browsing surface for slower-moving story shapes — the live feed stays
       chronological; this is where threads, wars, alliances, patterns and agendas live (§8, v6 §27).</p>
+    <p><button class="ap-chip dir-all-events">📍 Browse ALL events</button></p>
     <div class="dir-threads"></div>
     <div class="dir-tabs">${tabs}</div><div class="dir-list"></div>`;
+  // v8.13.2 — a link into the full all-events browser (owner: every event viewable)
+  const aeBtn = el.querySelector(".dir-all-events");
+  if (aeBtn && ctx.openAllEvents) aeBtn.addEventListener("click", () => ctx.openAllEvents());
   // v6 §27 — Story Threads lead the directory: the macro-trend grouping
   // ABOVE individual stories, each with its member stories still visible
   const threadsHost = el.querySelector(".dir-threads");

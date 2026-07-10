@@ -136,9 +136,16 @@ export class StoryPage {
     if (impacted.length && this.onOpenEntity) {
       const icon = { country: "🏳", territory: "🏝", alliance: "🤝",
                      non_state_actor: "⚑", zone: "⚑" };
+      // v8.13.4 — a country/territory chip leads with its REAL flag image
+      // (owner: "the country chip … should have the ACTUAL FLAG OF THE COUNTRY
+      // and a bit larger than it is now"); a broken flag falls back to the glyph.
+      const lead = (e) => e.flag
+        ? `<img class="chip-flag" src="${e.flag}" alt="" ` +
+          `onerror="this.replaceWith(document.createTextNode('${icon[e.type] || "•"} '))">`
+        : `${icon[e.type] || "•"} `;
       impactedRow.innerHTML = `<span class="impacted-label">Impacts:</span> ` +
         impacted.map((e) =>
-          `<button class="ap-chip impacted-chip" data-type="${e.type}" data-id="${(e.id + "").replace(/"/g, "")}">${icon[e.type] || "•"} ${(e.name || "").replace(/</g, "&lt;")}</button>`).join(" ");
+          `<button class="ap-chip impacted-chip" data-type="${e.type}" data-id="${(e.id + "").replace(/"/g, "")}">${lead(e)}${(e.name || "").replace(/</g, "&lt;")}</button>`).join(" ");
       impactedRow.querySelectorAll(".impacted-chip").forEach((b) =>
         b.addEventListener("click", () => this.onOpenEntity(b.dataset.type, b.dataset.id)));
     } else {

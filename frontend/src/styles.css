@@ -89,10 +89,34 @@ select:hover, button:hover { border-color: var(--accent); }
 .story-card {
   background: var(--bg-card); border: 1px solid var(--line); border-radius: 8px;
   padding: 10px 12px; margin-bottom: 10px; cursor: pointer; transition: border-color .15s;
+  position: relative; overflow: hidden;   /* v8.13.3 — host the stream-in sweep */
 }
 .story-card:hover { border-color: var(--accent); }
-.story-card.flash { animation: flash 1.6s ease-out; }
-@keyframes flash { 0% { border-color: var(--ok); box-shadow: 0 0 12px rgba(61,220,132,.35);} 100% { border-color: var(--line); box-shadow: none; } }
+/* v8.13.3 — a changed card PULSES with a bright accent glow (was a flat green fade) */
+.story-card.flash { animation: flash 1.4s cubic-bezier(.2,.8,.2,1); }
+@keyframes flash {
+  0%   { border-color: var(--accent); box-shadow: 0 0 18px 1px var(--accent), inset 0 0 12px rgba(255,255,255,.06); }
+  45%  { border-color: var(--accent); box-shadow: 0 0 10px 0 var(--accent); }
+  100% { border-color: var(--line); box-shadow: none; }
+}
+/* v8.13.3 — a brand-new card slides + glows in ("stuff filling into the feed");
+   a light-sweep runs across it once. On the first populate every card cascades
+   (a per-card animation-delay is set inline in LiveFeed._render). */
+.story-card.streaming-in { animation: card-streamin .52s cubic-bezier(.22,.9,.3,1) both; }
+@keyframes card-streamin {
+  0%   { opacity: 0; transform: translateY(-20px) scale(.95);
+         border-color: var(--accent); box-shadow: 0 0 24px 2px var(--accent); }
+  55%  { opacity: 1; transform: translateY(1px) scale(1.012);
+         border-color: var(--accent); box-shadow: 0 0 16px 0 var(--accent); }
+  100% { opacity: 1; transform: none; border-color: var(--line); box-shadow: none; }
+}
+.story-card.streaming-in::before {
+  content: ""; position: absolute; inset: -1px; border-radius: 8px; pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.20) 50%, transparent 70%);
+  transform: translateX(-130%);
+  animation: card-sweep .62s ease-out .04s both;
+}
+@keyframes card-sweep { to { transform: translateX(130%); } }
 .story-card h3 { font-size: 13.5px; margin-bottom: 6px; font-weight: 600; }
 .card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 11px; color: var(--text-dim); }
 /* v7.5 — War Mode conflict-only feed (stories tab + events tab) */
@@ -523,6 +547,13 @@ button.active { border-color: var(--accent); color: var(--accent); }
   color: var(--text); padding: 6px 9px; font: inherit; resize: vertical;
 }
 
+/* v8.13.4 — impacted-entity chips: a country/territory chip leads with its
+   real flag, a bit larger than the old glyph. */
+.impacted-chip { display: inline-flex; align-items: center; gap: 6px; }
+.impacted-chip .chip-flag {
+  width: 26px; height: 17px; object-fit: cover; border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.18); flex: 0 0 auto;
+}
 /* §8.2 stories directory */
 .dir-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0 14px; }
 .dir-card h3 { font-size: 13.5px; margin: 6px 0 4px; }
@@ -549,15 +580,48 @@ button.active { border-color: var(--accent); color: var(--accent); }
 
 /* §25 breaking alerts */
 #alerts-host { position: absolute; top: 12px; right: 12px; z-index: 8; display: flex; flex-direction: column; gap: 8px; }
+/* v8.13.3 — a fluid, moderately-flashy breaking-news pop: an overshoot slide-in,
+   a breathing glow, a pulsing left accent bar, a one-shot shimmer sweep, a
+   pulsing badge and a shrinking countdown bar. */
 .breaking-toast {
-  display: flex; gap: 8px; align-items: center; max-width: 380px; cursor: pointer;
-  background: rgba(16,22,37,.95); border: 1px solid var(--disaster); border-radius: 10px;
-  padding: 9px 13px; font-size: 12.5px; box-shadow: 0 6px 24px rgba(0,0,0,.5);
-  animation: pane-in var(--pane-ms) var(--pane-ease);
+  position: relative; display: flex; gap: 8px; align-items: center; max-width: 380px;
+  cursor: pointer; overflow: hidden;
+  background: linear-gradient(135deg, rgba(26,14,20,.96), rgba(16,22,37,.96));
+  border: 1px solid var(--disaster); border-radius: 12px;
+  padding: 10px 14px 12px; font-size: 12.5px;
+  box-shadow: 0 8px 30px rgba(0,0,0,.55), 0 0 18px -6px var(--disaster);
+  animation: toast-in .5s cubic-bezier(.18,.9,.28,1.2), toast-glow 1.8s ease-in-out .5s infinite;
 }
 .breaking-toast:hover { border-color: #fff; }
-.bt-badge { color: var(--disaster); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; flex: 0 0 auto; }
-.bt-out { opacity: 0; transition: opacity .6s; }
+.breaking-toast::before {   /* pulsing left accent bar */
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--disaster); box-shadow: 0 0 10px var(--disaster);
+  animation: bt-bar 1s ease-in-out infinite;
+}
+.breaking-toast::after {   /* one-shot shimmer sweep across the toast */
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.16) 50%, transparent 65%);
+  transform: translateX(-120%); animation: card-sweep .8s ease-out .15s both;
+}
+@keyframes toast-in {
+  0%   { opacity: 0; transform: translateX(40px) scale(.9); }
+  60%  { opacity: 1; transform: translateX(-4px) scale(1.02); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes toast-glow {
+  0%,100% { box-shadow: 0 8px 30px rgba(0,0,0,.55), 0 0 16px -6px var(--disaster); }
+  50%     { box-shadow: 0 8px 30px rgba(0,0,0,.55), 0 0 26px -2px var(--disaster); }
+}
+@keyframes bt-bar { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+.bt-badge { color: var(--disaster); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+  flex: 0 0 auto; text-shadow: 0 0 8px var(--disaster); animation: bt-bar 1s ease-in-out infinite; }
+.bt-timer {   /* shrinking countdown to the 9s auto-dismiss */
+  position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; transform-origin: left;
+  background: linear-gradient(90deg, var(--disaster), rgba(255,255,255,.65));
+  animation: bt-countdown 9s linear both;
+}
+@keyframes bt-countdown { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+.bt-out { opacity: 0; transform: translateX(30px) scale(.95); transition: opacity .5s, transform .5s; }
 
 /* §14 API key settings */
 .key-row { background: var(--bg-card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
@@ -747,8 +811,28 @@ body.theme-amber_terminal {
 }
 .pane-action:hover { border-color: var(--accent, #59e6f2); filter: brightness(1.15); }
 
-/* §6 — drag-to-select rectangle (always screen-axis-aligned) */
-#rect-select { position: absolute; z-index: 40; border: 1.5px dashed var(--accent, #59e6f2); background: rgba(89,230,242,0.08); pointer-events: none; }
+/* §6 — drag-to-select rectangle (screen-axis-aligned). v8.13.2: position:fixed
+   on document.body (survives renderer remounts, which wipe #map-host), brighter
+   accent border + corner glow so the selection is clearly visible while dragging. */
+#rect-select { position: fixed; z-index: 60; border: 2px dashed var(--accent, #59e6f2);
+  background: rgba(89,230,242,0.12); pointer-events: none; border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 0 14px rgba(89,230,242,0.35) inset; }
+/* v8.13.2 — selection-result rows render as clickable chips */
+.rect-evt { display: flex; align-items: center; gap: 7px; width: 100%; text-align: left;
+  margin: 3px 0; padding: 5px 8px; cursor: pointer; }
+.rect-evt .rect-evt-t { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* v8.13.2 — War Mode "threads" tab: a titled narrative group + its stories */
+.war-thread { margin: 8px 0; border: 1px solid var(--line, rgba(120,150,200,0.25));
+  border-radius: 8px; padding: 8px 10px; background: rgba(255,90,60,0.05); }
+.war-thread-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.war-thread-name { font-weight: 700; font-size: 13px; color: var(--text, #dbe4f5); }
+.war-thread-n { font-size: 11px; color: var(--text-dim, #93a1b8); border: 1px solid var(--line);
+  border-radius: 10px; padding: 0 7px; }
+.war-thread-desc { margin: 4px 0 6px; }
+.war-thread-stories { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.war-thread-story { display: flex; align-items: center; gap: 7px; width: 100%; text-align: left;
+  padding: 4px 7px; cursor: pointer; }
+.war-thread-story .wts-t { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* §16 — thematic mode icon bar + legend */
 /* v6.1 — modes bar docked to the BOTTOM centre (EU5-style) */
@@ -891,7 +975,10 @@ body.theme-light .badge-src, body.theme-light .cp-meta { color: var(--text-dim);
 .slide-pane, #slide-pane, .story-page { animation: gg-fade-slide 0.26s cubic-bezier(.22,.61,.36,1) both; }
 .story-card { animation: gg-fade-up 0.22s ease both; }
 @media (prefers-reduced-motion: reduce) {
-  #feed-panel, .slide-pane, #slide-pane, .story-page, .story-card { animation: none; }
+  #feed-panel, .slide-pane, #slide-pane, .story-page, .story-card,
+  .story-card.streaming-in, .story-card.flash, .story-card.streaming-in::before,
+  .breaking-toast, .breaking-toast::before, .breaking-toast::after,
+  .bt-badge, .bt-timer { animation: none; }
 }
 /* analyst: orb bursts into the panel on open, reforms on close */
 @keyframes orb-burst { 0% { transform: scale(1); opacity: 1; }

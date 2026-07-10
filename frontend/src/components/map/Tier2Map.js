@@ -31,8 +31,9 @@ const MARKED_COLORS = {
 export class Tier2Map {
   constructor(host, { onSelectEvent, onSelectLocation, onCountryClick, onSelectActor,
                       onSelectCity, wraparound = true, minConfidenceSolid = 0.6,
-                      countryAt = null } = {}) {
+                      countryAt = null, quality = "high" } = {}) {
     this.host = host;
+    this.quality = quality;   // v8.13.2 — "ultra" gets a translucent cool wash
     this.onSelectEvent = onSelectEvent || (() => {});
     this.onSelectLocation = onSelectLocation || (() => {});
     this.onCountryClick = onCountryClick || (() => {});
@@ -84,16 +85,20 @@ export class Tier2Map {
       for (let lat = -88; lat <= -63; lat += 1.2) ring.push(lon, lat);
       this.disputed.push({ a: "", b: "", n: "Antarctic sector", r: [ring] });
     }
-    // v6.6.9 — Zaporizhzhia/Kherson front-line approximations + a Falklands
-    // outline ring (owner: "add line borders for zaporizhzhia, kherson, and
-    // falklands"), same data as the globe renderer.
+    // v8.13.2 — Zaporizhzhia/Kherson trace the actual OBLAST (div1) outline now
+    // (owner: "use the first-tier div lines"), a closed ring around the whole
+    // oblast instead of the old front-line squiggle; same data as the globe.
     const extraDisputed = [
-      [34.8, 47.55, 35.6, 47.35, 36.4, 47.4, 37.2, 47.5, 37.9, 47.7],
-      [31.7, 46.4, 32.6, 46.55, 32.6, 46.65, 33.37, 46.75, 34.0, 46.85, 34.4, 47.0],
+      [34.35, 47.98, 35.2, 48.05, 36.1, 48.02, 36.9, 47.9, 37.25, 47.7, 37.3, 47.2,
+       36.9, 46.75, 36.3, 46.55, 35.6, 46.45, 35.0, 46.42, 34.75, 46.7, 34.6, 47.2,
+       34.45, 47.65, 34.35, 47.98],
+      [31.5, 47.32, 32.4, 47.4, 33.3, 47.38, 34.1, 47.25, 34.75, 46.8, 34.8, 46.35,
+       34.5, 46.05, 33.6, 46.1, 32.7, 46.2, 31.9, 46.35, 31.45, 46.7, 31.4, 47.05,
+       31.5, 47.32],
       [-61.3, -51.05, -59.3, -50.95, -57.6, -51.25, -58.0, -52.35,
        -59.8, -52.15, -61.0, -51.75, -61.3, -51.05],
     ];
-    const extraNames = ["Zaporizhzhia front line", "Kherson front line", "Falkland Islands"];
+    const extraNames = ["Zaporizhzhia Oblast", "Kherson Oblast", "Falkland Islands"];
     extraDisputed.forEach((ring, i) =>
       this.disputed.push({ a: "", b: "", n: extraNames[i], r: [ring] }));
 
@@ -475,6 +480,21 @@ export class Tier2Map {
     const ctx = this.ctx;
     const w = this.host.clientWidth, h = this.host.clientHeight;
     ctx.clearRect(0, 0, w, h);
+    // v8.13.2 — ULTRA tier: a translucent cool ocean wash (glassy blue-teal
+    // vertical gradient) like the ultra globe (owner: "the ultra tier should be a
+    // more translucent, cool map — keep high the same"). HIGH renders unchanged.
+    if (this.quality === "ultra") {
+      const dpr = window.devicePixelRatio || 1;
+      ctx.save();
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);   // CSS-px user space
+      const g = ctx.createLinearGradient(0, 0, 0, h);
+      g.addColorStop(0, "rgba(28,60,92,0.16)");
+      g.addColorStop(0.5, "rgba(20,44,72,0.10)");
+      g.addColorStop(1, "rgba(14,30,52,0.18)");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, w, h);
+      ctx.restore();
+    }
     const tiles = this._tiles();
     const scale = this._scale();
     // v5 §12 — viewport culling: compute the visible lon/lat bounds once, so
@@ -527,6 +547,17 @@ export class Tier2Map {
           this.ctx.fillStyle = cell.color;
           for (const ring of cell.rings) {
             if (ring.length < 6) continue;
+            // v8.13 — skip a ring that projects to sub-pixel size, so a map mode
+            // + a div2/div3 tier doesn't fill India's ~700 districts (Xinjiang's
+            // prefectures) as a mesh of tiny polygons when zoomed out (the
+            // owner's phantom-NSA-zone "net of dots"). ring is [lon,lat,…] deg;
+            // × scale = px. The country choropleth underneath keeps the colour.
+            let mnX = Infinity, mnY = Infinity, mxX = -Infinity, mxY = -Infinity;
+            for (let i = 0; i < ring.length; i += 2) {
+              if (ring[i] < mnX) mnX = ring[i]; if (ring[i] > mxX) mxX = ring[i];
+              if (ring[i + 1] < mnY) mnY = ring[i + 1]; if (ring[i + 1] > mxY) mxY = ring[i + 1];
+            }
+            if ((mxX - mnX) * scale < 3 && (mxY - mnY) * scale < 3) continue;
             this.ctx.beginPath();
             for (let i = 0; i < ring.length; i += 2) {
               if (i) this.ctx.lineTo(ring[i], ring[i + 1]);
@@ -589,9 +620,21 @@ export class Tier2Map {
       if (this.histRings && this.histRings.length) {
         this._drawRings(this.histRings, off, "rgba(242,178,82,0.92)", 1.2);
       }
-      // v7.6 — autonomous regions: always-on DOTTED borders (like territories)
+      // v8.13.4 — autonomous regions render like a real territory: a solid
+      // bright light-blue border + a faint fill (was a crude dotted line), and
+      // they're clickable (App.onCountryClick hit-tests the outline → zone panel).
       for (const z of this.autonomousZones) {
-        this._drawRings([z.ring], off, "rgba(120,200,255,0.85)", 1.3, true, [2, 3]);
+        const pts = [];
+        ctx.beginPath();
+        for (let i = 0; i < z.ring.length; i += 2) {
+          const [x, y] = this._project(z.ring[i + 1], z.ring[i]);
+          pts.push([x + off, y]);
+          i ? ctx.lineTo(x + off, y) : ctx.moveTo(x + off, y);
+        }
+        ctx.closePath();
+        ctx.fillStyle = "rgba(120,200,255,0.10)";
+        ctx.fill();
+        this._drawRings([z.ring], off, "rgba(130,205,255,0.95)", 1.5);
       }
       // v5 §11 / v6 §21 — NSA territory zones: shaped polygons with a
       // pulsing dotted rough-boundary style (never solid rectangles);
@@ -646,19 +689,27 @@ export class Tier2Map {
       }
     }
 
-    // heatmap
+    // v8.13.4 — high-quality heat field: ADDITIVE ("lighter") warm radial
+    // stamps with a soft two-stop falloff and a zoom-aware radius, so dense
+    // areas glow up toward white-hot and sparse ones stay a gentle amber — a
+    // smooth thermal gradient instead of the old flat, hard-edged orange blobs.
     if (this.showHeatmap) {
+      const zr = Math.min(2.4, Math.max(0.7, this._scale() / 2));
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
       for (const off of tiles) {
         for (const e of this.events) {
           const [x, y] = this._project(e.lat, e.lon);
-          const r = 18 + (e.severity || 1) * 6;
+          const r = (20 + (e.severity || 1) * 8) * zr;
           const grad = ctx.createRadialGradient(x + off, y, 0, x + off, y, r);
-          grad.addColorStop(0, "rgba(255,120,40,0.16)");
-          grad.addColorStop(1, "rgba(255,120,40,0)");
+          grad.addColorStop(0, "rgba(255,150,45,0.22)");
+          grad.addColorStop(0.5, "rgba(255,95,30,0.09)");
+          grad.addColorStop(1, "rgba(255,60,20,0)");
           ctx.fillStyle = grad;
           ctx.fillRect(x + off - r, y - r, r * 2, r * 2);
         }
       }
+      ctx.restore();
     }
 
     // v6.1.1 — dynamic country labels: reveal by apparent width (span° × px/°) + v6.2 toggle

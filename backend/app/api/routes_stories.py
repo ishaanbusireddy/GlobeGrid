@@ -17,6 +17,7 @@ exclude wire-copy duplicates.
 import csv
 import io
 import json
+import re
 
 from ..db.session import query, query_one, write_tx
 from ..db.models import row_to_dict, new_id, now_iso, meta_get
@@ -366,10 +367,28 @@ def _watchlist_condition() -> str:
     return " OR ".join(clauses)
 
 
+def _dedup_by_headline(cards: list) -> list:
+    """v8.13 — collapse repeated stories in the History/archive view (owner: "the
+    history archive repeats the same stories from 7/08 and 7/09"). The same real
+    event reported across days/sources can spawn near-identical story cards; in
+    the date-range archive they read as duplicates. Keep the first (newest, since
+    the list is already sorted) card per normalized headline."""
+    seen, out = set(), []
+    for c in cards:
+        key = re.sub(r"[^a-z0-9]+", " ", (c.get("headline") or "").lower()).strip()
+        if key and key in seen:
+            continue
+        seen.add(key)
+        out.append(c)
+    return out
+
+
 @route("GET", "/api/stories")
 def list_stories(params, q, body):
     rows = _stories_rows(q)
     cards = _story_cards(rows)   # v7.4.5 — batched (was per-story; timed out under load)
+    if q.get("from") or q.get("to"):   # v8.13 — archive view de-dups repeats
+        cards = _dedup_by_headline(cards)
     if q.get("format") == "csv":  # §6.4 export
         buf = io.StringIO()
         writer = csv.writer(buf)
@@ -410,8 +429,64 @@ def conflict_feed(params, q, body):
         " LEFT JOIN stories s ON s.id = m.story_id"
         " WHERE COALESCE(e.is_synthetic,0)=0 AND (e.conflict_id = ? OR s.conflict_id = ?)"
         " ORDER BY e.occurred_at DESC LIMIT 250", (cid, cid))]
-    return 200, {"stories": stories, "events": events,
-                 "story_count": len(stories), "event_count": len(events)}
+    # v8.13.2 — the War Mode "stories" tab shows THREADS/patterns, not individual
+    # articles (owner: "the stories tab should be threads/clusters/patterns of
+    # what's happening, not individual news articles — the events tab is the
+    # articles"). Real narrative threads (story_threads) whose members belong to
+    # this conflict come first; any remaining stories are grouped into themed
+    # buckets by category, so the tab always reads as patterns, never a flat list.
+    threads = _conflict_threads(cid, stories)
+    return 200, {"stories": stories, "events": events, "threads": threads,
+                 "story_count": len(stories), "event_count": len(events),
+                 "thread_count": len(threads)}
+
+
+# v8.13.2 — bucket labels for the synthesized-thread fallback (a themed pattern
+# name per event category so the war "stories" tab reads as narrative threads).
+_THREAD_BUCKETS = {
+    "conflict": "Military operations & fighting", "military": "Force posture & deployments",
+    "geopolitics": "Diplomacy & international response", "finance": "Economic & sanctions impact",
+    "domestic": "Internal politics & governance", "health": "Humanitarian & public health",
+    "disaster": "Humanitarian & disaster", "technology": "Cyber & technology",
+    "other": "Other developments",
+}
+
+
+def _conflict_threads(cid: str, story_cards: list) -> list:
+    """Group this conflict's stories into narrative threads: real story_threads
+    first, then a category-bucket fallback for the rest."""
+    by_id = {c["id"]: c for c in story_cards}
+    used = set()
+    out = []
+    # real threads whose members are in this conflict
+    for t in query(
+            "SELECT t.id, t.name, t.description, COUNT(*) AS n"
+            " FROM story_threads t"
+            " JOIN story_thread_members m ON m.thread_id = t.id"
+            " JOIN stories s ON s.id = m.story_id"
+            " WHERE s.conflict_id = ? GROUP BY t.id ORDER BY n DESC", (cid,)):
+        members = [by_id[r["story_id"]] for r in query(
+            "SELECT m.story_id FROM story_thread_members m JOIN stories s"
+            " ON s.id = m.story_id WHERE m.thread_id = ? AND s.conflict_id = ?", (t["id"], cid))
+            if r["story_id"] in by_id]
+        if not members:
+            continue
+        used.update(c["id"] for c in members)
+        out.append({"id": t["id"], "name": t["name"], "kind": "thread",
+                    "description": t["description"], "stories": members,
+                    "story_count": len(members)})
+    # category-bucket fallback for stories not in a real thread
+    buckets: dict = {}
+    for c in story_cards:
+        if c["id"] in used:
+            continue
+        cat = c.get("category") or "other"
+        buckets.setdefault(cat, []).append(c)
+    for cat, members in sorted(buckets.items(), key=lambda kv: -len(kv[1])):
+        out.append({"id": f"bucket:{cid}:{cat}", "name": _THREAD_BUCKETS.get(cat, cat.title()),
+                    "kind": "bucket", "description": None, "stories": members,
+                    "story_count": len(members)})
+    return out
 
 
 def _impacted_entities(story_id: str) -> list[dict]:
@@ -442,17 +517,21 @@ def _impacted_entities(story_id: str) -> list[dict]:
         return []
     out, seen = [], set()
 
-    def _add(kind, eid, nm):
+    def _add(kind, eid, nm, flag=None):
         key = (kind, eid)
         if key not in seen:
             seen.add(key)
-            out.append({"type": kind, "id": eid, "name": nm})
+            item = {"type": kind, "id": eid, "name": nm}
+            if flag:                       # v8.13.4 — real flag on country/territory chips
+                item["flag"] = flag
+            out.append(item)
 
     for nm in list(names)[:60]:
         low = nm.lower()
-        c = query_one("SELECT id, name, status FROM countries WHERE lower(name) = ?", (low,))
+        c = query_one("SELECT id, name, status, flag_image_url FROM countries WHERE lower(name) = ?", (low,))
         if c:
-            _add("territory" if (c["status"] == "territory") else "country", c["id"], c["name"])
+            _add("territory" if (c["status"] == "territory") else "country", c["id"], c["name"],
+                 c["flag_image_url"])
             continue
         a = query_one("SELECT id, name FROM alliances WHERE lower(name) = ?", (low,))
         if a:

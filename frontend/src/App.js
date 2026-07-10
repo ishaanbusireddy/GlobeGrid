@@ -35,7 +35,7 @@ import { BOUNDARIES_50M_ENC } from "./data/boundaries50m.js";
 // is used, so its payload never gates initial boot.
 import { HISTORICAL_EPOCHS } from "./data/historicalBoundaries.js";   // v8.4 — real historical borders
 import { decodeBoundaries, countryAtPoint, decodeRing } from "./data/boundaryCodec.js";
-import { LANGUAGE_INFO, RELIGION_INFO, familyColor, sectInfo, dialectInfo } from "./data/families.js";
+import { LANGUAGE_INFO, RELIGION_INFO, familyColor, sectInfo, dialectInfo, climateInfo } from "./data/families.js";
 import { TIMEZONES, getTimeZone, setTimeZone, formatDateTime } from "./data/timefmt.js";  // v6.2 header tz
 import { LANGUAGES, applyLanguage } from "./i18n.js";   // v5 §2
 import { renderWhatIf } from "./components/panes/WhatIf.js";   // v7 §2
@@ -192,6 +192,22 @@ function applyThemeToRenderer() {
 // prefiltered), replacing the coarse 110m set that misplaced clicks
 const BOUNDARIES_50M = decodeBoundaries(BOUNDARIES_50M_ENC);
 function countryAt(lat, lon) { return countryAtPoint(BOUNDARIES_50M, lat, lon); }
+// v8.13.4 — which autonomous zone (if any) contains a point. Outlines are
+// [lon,lat] rings on state.autonomousZones; ray-cast point-in-polygon.
+function autonomousZoneAt(lat, lon) {
+  for (const z of (state.autonomousZones || [])) {
+    const ring = z.outline;
+    if (!Array.isArray(ring) || ring.length < 3) continue;
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
+      if (((yi > lat) !== (yj > lat))
+          && (lon < (xj - xi) * (lat - yi) / ((yj - yi) || 1e-9) + xi)) inside = !inside;
+    }
+    if (inside) return z;
+  }
+  return null;
+}
 
 // v8 §3 — the Administrative Atlas: real ADM1 (province/state) boundaries,
 // decoded LAZILY on first use so boot stays fast (4,500+ units of encoded
@@ -242,6 +258,63 @@ function adminFlatRings(level) {   // flat ring list for one tier's render buffe
   }
   return ADMIN_FLAT[i];
 }
+// v8.13.4 — per-country tier FALLBACK (owner: "if in level 2 mode and a country
+// doesnt have level 2 divisions just show the level 1 divisions; if in level 3
+// and no level 3, show level 2, and if no level 2, show level 1"). A country
+// with no units at the requested tier would otherwise render as a blank interior.
+// We tag each admin unit with the country it falls in (bbox-centre point-in-
+// polygon against the 50m country set, cached on the unit), note which countries
+// actually HAVE each deeper tier, then fill the render buffer with the DEEPEST
+// tier each country actually has, capped at the requested tier.
+function _unitCountryKey(u) {
+  if (u._ck !== undefined) return u._ck;
+  let k = null;
+  if (u.b) {
+    const c = countryAt((u.b[1] + u.b[3]) / 2, (u.b[0] + u.b[2]) / 2);
+    k = c ? (c.i != null ? c.i : c.n) : null;
+  }
+  u._ck = k;
+  return k;
+}
+let _countriesWithLevel = null;          // { 2: Set, 3: Set } of country keys
+const ADMIN_FALLBACK_FLAT = [null, null, null];
+function _ensureAdminCountryGroups() {
+  if (_countriesWithLevel) return;
+  _countriesWithLevel = { 2: new Set(), 3: new Set() };
+  for (const lvl of [2, 3])
+    for (const u of ensureAdminLevel(lvl)) {
+      const k = _unitCountryKey(u);
+      if (k != null) _countriesWithLevel[lvl].add(k);
+    }
+}
+function adminRingsWithFallback(tier) {
+  if (tier <= 1) return adminFlatRings(1);
+  const i = tier - 1;
+  if (ADMIN_FALLBACK_FLAT[i]) return ADMIN_FALLBACK_FLAT[i];
+  _ensureAdminCountryGroups();
+  const has2 = _countriesWithLevel[2], has3 = _countriesWithLevel[3];
+  const out = [];
+  const push = (u) => { for (const r of u.r) out.push(r); };
+  if (tier === 2) {
+    for (const u of ensureAdminLevel(2)) push(u);            // countries WITH div2
+    for (const u of ensureAdminLevel(1)) {                   // div1-only countries
+      const k = _unitCountryKey(u);
+      if (k == null || !has2.has(k)) push(u);
+    }
+  } else {                                                    // tier === 3
+    for (const u of ensureAdminLevel(3)) push(u);            // countries WITH div3
+    for (const u of ensureAdminLevel(2)) {                   // div2 but no div3
+      const k = _unitCountryKey(u);
+      if (k != null && has2.has(k) && !has3.has(k)) push(u);
+    }
+    for (const u of ensureAdminLevel(1)) {                   // only div1
+      const k = _unitCountryKey(u);
+      if (k == null || (!has2.has(k) && !has3.has(k))) push(u);
+    }
+  }
+  ADMIN_FALLBACK_FLAT[i] = out;
+  return out;
+}
 // Which admin tier is actually drawn (and thus clickable) given toggle + zoom:
 // 0 = off, 1 = provinces, 2 = + districts/counties, 3 = + sub-districts. Clicks
 // then match what the user sees; deeper zoom resolves to the deepest unit.
@@ -276,8 +349,8 @@ async function applyAdminLayers() {
   if (!tier) { r.setAdminVisible?.(false); sync(); return; }
   await ensureAdminData();
   if (tier === 1) r.setAdminBoundaries?.(adminFlatRings(1));
-  if (tier === 2) r.setAdmin2Boundaries?.(adminFlatRings(2));
-  if (tier === 3) r.setAdmin3Boundaries?.(adminFlatRings(3));
+  if (tier === 2) r.setAdmin2Boundaries?.(adminRingsWithFallback(2));
+  if (tier === 3) r.setAdmin3Boundaries?.(adminRingsWithFallback(3));
   sync();
 }
 // v8.3 — index every decoded admin unit by uid (all tiers), so the Hotspots
@@ -510,6 +583,13 @@ const ctx = {
     key: `dir:${type || "all"}`, title: "stories directory",
     render: (el) => Wiki.renderStoriesDirectory(el, ctx, type),
   }, { replace: pane.top() && String(pane.top().key).startsWith("dir:") }),
+  // v8.13.2 — a browser for EVERY event (owner: "all the events everywhere in
+  // every view should be viewable"). The map only shows recent/placed events;
+  // this lists them all with a category filter, each row clickable.
+  openAllEvents: () => pane.push({
+    key: "all-events", title: "all events",
+    render: (el) => renderAllEvents(el),
+  }, { replace: pane.top() && pane.top().key === "all-events" }),
   openRegion: (region) => {                // v5 §20 / v6 §26
     api.regionSummary(region).then((d) =>
       highlightCountries((d.countries || []).map((c) => c.id))).catch(() => {});
@@ -826,6 +906,65 @@ function openClusterList(cluster) {
   });
 }
 
+// v8.13.2 — the all-events browser: EVERY ingested event, filterable by category,
+// each row clickable (its story, or fly-to for a standalone). The map only shows
+// recent/placed events, so this is the "see everything" view (owner item 31).
+function renderAllEvents(el) {
+  el.innerHTML = `<h1>📍 All events</h1>
+    <p class="cp-meta">Every ingested event, newest first. Click a row to open its
+      story, or fly the map to a standalone event.</p>
+    <div class="ae-controls" style="display:flex;gap:8px;align-items:center;margin:8px 0">
+      <label class="cp-meta">Category
+        <select class="ae-cat">${["", ...CATEGORIES.filter((c) => c && c !== "military")]
+          .map((c) => `<option value="${c}">${c || "all"}</option>`).join("")}</select>
+      </label>
+      <input class="ae-search" placeholder="filter by text…" style="flex:1;min-width:120px">
+    </div>
+    <div class="ae-list"><p class="cp-meta">Loading…</p></div>`;
+  const listEl = el.querySelector(".ae-list");
+  const catSel = el.querySelector(".ae-cat");
+  const search = el.querySelector(".ae-search");
+  let all = [];
+  const paint = () => {
+    const term = (search.value || "").toLowerCase();
+    const shown = all.filter((e) => !term
+      || (e.title || "").toLowerCase().includes(term)
+      || (e.location_name || "").toLowerCase().includes(term));
+    if (!shown.length) { listEl.innerHTML = `<p class="cp-meta">No matching events.</p>`; return; }
+    listEl.innerHTML = "";
+    for (const e of shown.slice(0, 600)) {
+      const loc = e.location || {};
+      const row = document.createElement("button");
+      row.className = "ap-chip ae-row";
+      row.innerHTML = `<span class="chip cat-${e.category || "other"}">${e.category || "other"}</span>
+        <span class="ae-t"></span>
+        <span class="cp-meta ae-when">${formatDateTime(e.occurred_at)}</span>`;
+      row.querySelector(".ae-t").textContent =
+        (e.title || "(untitled event)") + (e.location_name ? " · " + e.location_name : "");
+      row.addEventListener("click", () => {
+        if (e.story_id) { openStory(e.story_id); return; }
+        if (loc.lat != null) state.renderer?.flyTo?.(loc.lat, loc.lon, state.tier === 1 ? 2.0 : undefined, 900);
+      });
+      listEl.appendChild(row);
+    }
+    if (shown.length > 600) {
+      const more = document.createElement("p");
+      more.className = "cp-meta";
+      more.textContent = `Showing 600 of ${shown.length} — narrow with the filter above.`;
+      listEl.appendChild(more);
+    }
+  };
+  const load = async () => {
+    listEl.innerHTML = `<p class="cp-meta">Loading…</p>`;
+    const d = await api.events({ category: catSel.value || undefined, limit: 2000 }).catch(() => null);
+    all = (d && d.events) || [];
+    paint();
+  };
+  catSel.addEventListener("change", load);
+  search.addEventListener("input", paint);
+  load();
+}
+
 // v7.4.1 — click a source in the health drawer to browse the stories + events
 // it fed (owner: "in the sources tab you should be able to click on a source
 // and see the stories sourced from that source").
@@ -1046,6 +1185,13 @@ function mountRenderer(tier) {
         const u = adminAt(lat, lon, _lvl);
         if (u && u.i) { ctx.openAdminUnit(u.i); return; }
       }
+      // v8.13.4 — an autonomous zone is now clickable like a territory (owner:
+      // "treat Autonomous Zones exactly like a country or territory, not a crude
+      // dotted line that aint clickable"). With an admin tier active the click
+      // resolves to the subdivision above (whose panel carries the zone chip);
+      // otherwise a click inside a zone's outline opens the zone's full panel.
+      const _az = autonomousZoneAt(lat, lon);
+      if (_az) { setFocus("zone", _az.name); ctx.openAutonomousZone(_az.id); return; }
       let c = countryAt(lat, lon);
       // v6.2 — small island nations (Mauritius, Comoros, Malta, Seychelles…)
       // have tiny polygons that a click almost never lands exactly on, so they
@@ -1384,7 +1530,6 @@ async function loadReal() {
         catch (e) { console.error("feed upsert failed (non-fatal):", e); }
         if (msg.type === "story_created") {
           try {
-            sound.blip();
             const ev = state.mapData.events.find((e) => e.story_id === msg.payload.id);
             if (ev) state.renderer?.burst?.(ev.lat, ev.lon, ev.category);
             // §25 — in-app breaking alert above the severity floor
@@ -1392,7 +1537,11 @@ async function loadReal() {
               : Math.max(0, ...state.mapData.events
                   .filter((e) => e.story_id === msg.payload.id)
                   .map((e) => e.severity || 0));
-            alerts.maybeAlert(msg.payload, sev);
+            // v8.13.3 — a breaking story lands with the dramatic bright fanfare
+            // cue; an ordinary arrival gets the sparkle ping. (maybeAlert now
+            // returns whether it actually raised a toast.)
+            if (alerts.maybeAlert(msg.payload, sev)) sound.breaking();
+            else sound.blip();
           } catch (e) { console.error("breaking alert failed (non-fatal):", e); }
         }
         refreshMap().catch(() => {});
@@ -2338,9 +2487,32 @@ const analyst = new AnalystPanel({
     } else if (nav.type === "non_state_actor" || nav.type === "party"
                || nav.type === "person" || nav.type === "organization") {
       openEntity(nav.type, nav.id);   // v7.4 — generic entity open
+    } else if (nav.type === "admin") {
+      // v8.13 — the analyst opens an administrative division's page
+      ctx.openAdminUnit && ctx.openAdminUnit(nav.id);
+    } else if (nav.type === "city") {
+      ctx.openCity && ctx.openCity(nav.id);   // v8.13 — open a city's page
+    } else if (nav.type === "mapmode") {
+      applyMapMode(nav.id);                    // v8.13 — switch the map mode
+    } else if (nav.type === "ui") {
+      openUiAction(nav.id);                    // v8.13 — open a panel/menu
     }
   },
 });
+
+// v8.13 — the analyst can drive UI panels/menus ("open settings", "show the
+// what-if engine"). Each maps to the header control that already opens it;
+// clicking the real element runs that control's existing handler.
+function openUiAction(action) {
+  if (action === "events") { ctx.openAllEvents(); return; }   // v8.13.2
+  const el = {
+    settings: els.settingsBtn, whatif: els.whatifBtn, un: els.unBtn,
+    conflicts: els.conflictsBtn, sources: els.statusToggle,
+    briefing: els.briefingBtn, stories: els.storiesBtn,
+    hotspots: els.activityToggle,
+  }[action];
+  if (el && el.click) el.click();
+}
 
 setInterval(() => {
   const cam = state.renderer?.getCamera?.();
@@ -2859,7 +3031,7 @@ const warFeed = {
   _renderTabs() {
     const tabs = document.getElementById("war-feed-tabs");
     tabs.innerHTML = "";
-    const sc = this.data ? (this.data.stories || []).length : "";
+    const tc = this.data ? (this.data.threads || []).length : "";   // v8.13.2 threads
     const ec = this.data ? (this.data.events || []).length : "";
     const mk = (id, label) => {
       const b = document.createElement("button");
@@ -2868,7 +3040,7 @@ const warFeed = {
       b.addEventListener("click", () => { this.tab = id; this._renderTabs(); this._renderList(); });
       tabs.appendChild(b);
     };
-    mk("stories", `📰 stories${sc !== "" ? " (" + sc + ")" : ""}`);
+    mk("stories", `🧵 threads${tc !== "" ? " (" + tc + ")" : ""}`);
     mk("events", `📍 events${ec !== "" ? " (" + ec + ")" : ""}`);
   },
   _renderList() {
@@ -2877,25 +3049,36 @@ const warFeed = {
     list.innerHTML = "";
     if (!this.data) return;
     if (this.tab === "stories") {
-      const items = this.data.stories || [];
-      if (!items.length) {
-        list.innerHTML = `<p class="cp-meta">No stories tracked for this conflict yet — ` +
-          `they appear as coverage is correlated to it.</p>`;
+      // v8.13.2 — the stories tab shows THREADS/patterns (owner: "threads/
+      // clusters/patterns, not individual news articles"). Each thread is a
+      // titled group; its member stories are clickable rows beneath it. The
+      // events tab (below) carries the individual articles.
+      const threads = this.data.threads || [];
+      if (!threads.length) {
+        list.innerHTML = `<p class="cp-meta">No threads tracked for this conflict yet — ` +
+          `patterns emerge as coverage is correlated to it. Try the 📍 events tab.</p>`;
         return;
       }
-      for (const s of items) {
-        const card = document.createElement("div");
-        card.className = "story-card";
-        const conf = s.confidence || "low";
-        card.innerHTML = `<h3></h3><div class="card-meta">
-          <span class="chip cat-${s.category || "other"}">${s.category || "other"}</span>
-          <span class="badge-src">${s.source_count || 0} src · ${s.member_count || 0} ev</span>
-          <span class="conf conf-${conf}">${conf}</span>
-          <span class="we-when"></span></div>`;
-        card.querySelector("h3").textContent = s.headline || "(untitled story)";
-        card.querySelector(".we-when").textContent = formatDateTime(s.last_updated_at);
-        card.addEventListener("click", () => openStory(s.id));
-        list.appendChild(card);
+      for (const th of threads) {
+        const grp = document.createElement("div");
+        grp.className = "war-thread";
+        grp.innerHTML = `<div class="war-thread-head">
+            <span class="war-thread-name"></span>
+            <span class="war-thread-n">${th.story_count || (th.stories || []).length}</span>
+          </div>${th.description ? `<p class="cp-meta war-thread-desc"></p>` : ""}
+          <div class="war-thread-stories"></div>`;
+        grp.querySelector(".war-thread-name").textContent = th.name || "Thread";
+        if (th.description) grp.querySelector(".war-thread-desc").textContent = th.description;
+        const host = grp.querySelector(".war-thread-stories");
+        for (const s of (th.stories || [])) {
+          const row = document.createElement("button");
+          row.className = "ap-chip war-thread-story";
+          row.innerHTML = `<span class="chip cat-${s.category || "other"}">${s.category || "other"}</span> <span class="wts-t"></span>`;
+          row.querySelector(".wts-t").textContent = s.headline || "(untitled story)";
+          row.addEventListener("click", () => openStory(s.id));
+          host.appendChild(row);
+        }
+        list.appendChild(grp);
       }
     } else {
       const items = this.data.events || [];
@@ -2960,22 +3143,29 @@ document.addEventListener("keydown", (ev) => {
 // the window edges, never rotated with the globe); on release every event
 // inside opens in the left pane, grouped by location.
 (() => {
+  // v8.13.2 — the box lives on document.body with position:fixed (client px),
+  // NOT inside #map-host. Root cause it never showed before: mountRenderer does
+  // `mapHost.innerHTML = ""` on every renderer mount, which DESTROYED a box
+  // appended once at module load — so after boot's first mount the element was
+  // detached and setting display:block did nothing. On body it survives every
+  // remount, and fixed + clientX/Y needs no offset-parent math.
   const box = document.createElement("div");
   box.id = "rect-select";
   box.style.display = "none";
-  els.mapHost.appendChild(box);
+  document.body.appendChild(box);
   let start = null;
   els.mapHost.addEventListener("pointerdown", (ev) => {
     if (!ev.shiftKey) return;
     start = { x: ev.clientX, y: ev.clientY };
     box.style.display = "block";
+    box.style.left = ev.clientX + "px"; box.style.top = ev.clientY + "px";
+    box.style.width = "0px"; box.style.height = "0px";
     ev.preventDefault(); ev.stopPropagation();
   }, { capture: true });
   window.addEventListener("pointermove", (ev) => {
     if (!start) return;
-    const host = els.mapHost.getBoundingClientRect();
-    box.style.left = (Math.min(start.x, ev.clientX) - host.left) + "px";
-    box.style.top = (Math.min(start.y, ev.clientY) - host.top) + "px";
+    box.style.left = Math.min(start.x, ev.clientX) + "px";
+    box.style.top = Math.min(start.y, ev.clientY) + "px";
     box.style.width = Math.abs(ev.clientX - start.x) + "px";
     box.style.height = Math.abs(ev.clientY - start.y) + "px";
   });
@@ -3001,20 +3191,27 @@ document.addEventListener("keydown", (ev) => {
       key: `rect:${Date.now()}`,
       title: `${events.length} selected events`,
       render: (el) => {
-        el.innerHTML = `<h1>${events.length} events in selection</h1>`;
+        el.innerHTML = `<h1>${events.length} events in selection</h1>
+          <p class="cp-meta">Every event is clickable — a correlated one opens its
+          story, a standalone one flies the map to it.</p>`;
         for (const [loc, evs] of [...byLoc.entries()]
             .sort((a, b) => b[1].length - a[1].length)) {
           const sec = document.createElement("section");
           sec.innerHTML = `<h4>${loc.replace(/</g, "&lt;")} · ${evs.length}</h4>`;
           for (const e of evs) {
-            const row = document.createElement("div");
-            row.className = "cluster-row";
-            row.innerHTML = `<span class="chip cat-${e.category || "other"}">${e.category || "other"}</span> <span></span>`;
-            row.querySelector("span:last-child").textContent = e.title || "";
-            if (e.story_id) {
-              row.style.cursor = "pointer";
-              row.addEventListener("click", () => openStory(e.story_id));
-            }
+            // v8.13.2 — render as a clickable chip; EVERY row is actionable now
+            // (owner: "selected events should be fully clickable chips"). A
+            // story-linked event opens the story; a standalone one flies to it.
+            const row = document.createElement("button");
+            row.className = "ap-chip rect-evt";
+            row.innerHTML = `<span class="chip cat-${e.category || "other"}">${e.category || "other"}</span> <span class="rect-evt-t"></span>`;
+            row.querySelector(".rect-evt-t").textContent = e.title || "(untitled event)";
+            row.addEventListener("click", () => {
+              if (e.story_id) { openStory(e.story_id); return; }
+              if (e.lat != null && e.lon != null) {
+                state.renderer?.flyTo?.(e.lat, e.lon, state.tier === 1 ? 2.0 : undefined, 900);
+              }
+            });
             sec.appendChild(row);
           }
           el.appendChild(sec);
@@ -3085,6 +3282,7 @@ function _modeInfoFor(mode) {
   if (mode === "religious_sect") return (v) => sectInfo(v);
   if (mode === "language") return (v) => LANGUAGE_INFO[v] || dialectInfo(v);
   if (mode === "dialect") return (v) => dialectInfo(v);
+  if (mode === "climate") return (v) => climateInfo(v);   // v8.13
   return null;   // any future palette-only categorical mode
 }
 
@@ -3211,10 +3409,27 @@ els.mapHost.addEventListener("pointermove", (ev) => {
     return;
   }
   const geo = state.renderer.screenToLatLon(ev.clientX, ev.clientY);
+  const tip = ensureModeTip();
+  // v8.13 — GRANULAR tooltip: when an admin tier is active and the mode carries
+  // per-unit values, name the DIVISION under the cursor + its own value (e.g.
+  // Kerala → Malayalam, Xinjiang → Arid), not just the country. Falls back to
+  // the country value for units with no finer figure.
+  if (geo && state.adminTier && state.modeUnitValues) {
+    const u = adminAt(geo.lat, geo.lon, state.adminTier);
+    if (u && (u.i in state.modeUnitValues)) {
+      const uv = state.modeUnitValues[u.i];
+      const ushown = state.modeUnit ? state.modeUnit(uv) : uv;
+      tip.innerHTML = `<b>${String(u.n || "").replace(/</g, "&lt;")}</b>`
+        + `<span>${state.modeLabel}: ${String(ushown).replace(/</g, "&lt;")}</span>`;
+      tip.style.left = (ev.clientX + 14) + "px";
+      tip.style.top = (ev.clientY + 14) + "px";
+      tip.classList.remove("hidden");
+      return;
+    }
+  }
   // countryAt returns the boundary object ({i, n, ...}); take its iso3
   const hit = geo ? countryAt(geo.lat, geo.lon) : null;
   const iso3 = hit && hit.i;
-  const tip = ensureModeTip();
   if (!iso3 || !(iso3 in state.modeValues)) { tip.classList.add("hidden"); return; }
   const val = state.modeValues[iso3];
   const shown = state.modeUnit ? state.modeUnit(val) : val;

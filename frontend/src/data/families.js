@@ -6,42 +6,65 @@
 // tellable apart. The hover tooltip names the exact language/religion/sect,
 // so no colour key is needed.
 
-// family -> { hue (0-360), langs: [...] }. Placement favours genetic proximity.
+// v8.13.4 — hues RE-SPREAD across the full wheel (owner: "why are the vietic/tai
+// and austronesian and sino-tibetan-burmese groups so similarly coloured? that
+// makes them seem related … fix"). Genuinely-related families still sit within
+// ~12° of each other (Indo-Iranian pair, Sino-Tibetan pair, Balto-Slavic pair,
+// Afroasiatic Semitic/Cushitic pair — reading as related is CORRECT there), but
+// every UNRELATED neighbour is now ≥12° apart, and the four East/SE-Asian
+// families that used to all read as "green" are pulled to clearly different
+// bands: Kra-Dai (Tai) = yellow-green, Sino-Tibetan = green, Austroasiatic
+// (Vietic) = teal, Austronesian = cyan. `sat` per family adds a second axis so
+// even hue-neighbours differ in vividness. Semitic langs are ordered so Arabic
+// (family-min shade) and Hebrew (family-max shade) land at opposite ends of the
+// within-family gradient — Hebrew reads clearly distinct from the Arabic sea
+// around it (owner: "make hebrew colour more visible compared to arabic").
 const LANGUAGE_FAMILIES = {
-  "Iranian (Indo-Iranian)": { hue: 8, langs: ["Persian", "Dari", "Tajik", "Pashto"] },
-  "Indo-Aryan (Indo-Iranian)": { hue: 22, langs: ["Hindi", "Bengali", "Punjabi", "Nepali", "Sinhala", "Dhivehi"] },
-  "Romance (Italic)": { hue: 38, langs: ["French", "Spanish", "Portuguese", "Italian", "Romanian", "Catalan"] },
-  "French/Portuguese creole": { hue: 46, langs: ["Haitian Creole", "Mauritian Creole", "Seychellois Creole", "Crioulo", "Papiamento"] },
-  "Turkic": { hue: 60, langs: ["Turkish", "Azerbaijani", "Kazakh", "Kyrgyz", "Turkmen", "Uzbek"] },
-  "Mongolic": { hue: 72, langs: ["Mongolian"] },
-  "Sinitic (Sino-Tibetan)": { hue: 96, langs: ["Mandarin Chinese", "Cantonese"] },
-  "Tibeto-Burman (Sino-Tibetan)": { hue: 108, langs: ["Burmese", "Dzongkha"] },
-  "Kra-Dai": { hue: 122, langs: ["Thai", "Lao"] },
-  "Bantu (Niger-Congo)": { hue: 134, langs: ["Swahili", "Zulu", "Shona", "Kinyarwanda", "Kirundi", "Luganda", "Chichewa", "Bemba", "Setswana", "Sesotho", "Swazi", "Oshiwambo", "Comorian"] },
-  "West African (Niger-Congo)": { hue: 146, langs: ["Wolof", "Fula", "Bambara", "Mandinka", "Ewe", "Sango", "Mooré", "Hausa", "Krio"] },
-  "Nilo-Saharan": { hue: 152, langs: ["Dinka"] },
-  "Austroasiatic": { hue: 138, langs: ["Vietnamese", "Khmer"] },
-  "Austronesian": { hue: 165, langs: ["Malay", "Indonesian", "Filipino", "Malagasy", "Samoan", "Tongan", "Bislama", "Gilbertese", "Marshallese", "Nauruan", "Palauan", "Tuvaluan", "Tetum", "Tok Pisin", "Pijin"] },
-  "Kartvelian": { hue: 190, langs: ["Georgian"] },
-  "Armenian (Indo-European)": { hue: 200, langs: ["Armenian"] },
-  "Eskimo-Aleut": { hue: 185, langs: ["Greenlandic"] },
-  "Germanic (Indo-European)": { hue: 215, langs: ["English", "German", "Dutch", "Danish", "Norwegian", "Swedish", "Icelandic", "Faroese", "Luxembourgish"] },
-  "Japonic": { hue: 245, langs: ["Japanese"] },
-  "Koreanic": { hue: 256, langs: ["Korean"] },
-  "Semitic (Afroasiatic)": { hue: 278, langs: ["Arabic", "Hebrew", "Amharic", "Tigrinya", "Maltese"] },
-  "Cushitic (Afroasiatic)": { hue: 288, langs: ["Somali"] },
-  "Uralic": { hue: 302, langs: ["Finnish", "Estonian", "Hungarian"] },
-  "Baltic (Balto-Slavic)": { hue: 330, langs: ["Latvian", "Lithuanian"] },
-  "Slavic (Balto-Slavic)": { hue: 346, langs: ["Russian", "Ukrainian", "Polish", "Czech", "Slovak", "Bulgarian", "Serbian", "Croatian", "Bosnian", "Slovene", "Macedonian", "Montenegrin"] },
-  "Hellenic (Indo-European)": { hue: 168, langs: ["Greek"] },
-  "Albanian (Indo-European)": { hue: 178, langs: ["Albanian"] },
+  "Iranian (Indo-Iranian)": { hue: 4, sat: 70, langs: ["Persian", "Dari", "Tajik", "Pashto"] },
+  "Indo-Aryan (Indo-Iranian)": { hue: 18, sat: 68, langs: ["Hindi", "Bengali", "Punjabi", "Nepali", "Sinhala", "Dhivehi"] },
+  "Romance (Italic)": { hue: 32, sat: 72, langs: ["French", "Spanish", "Portuguese", "Italian", "Romanian", "Catalan"] },
+  "French/Portuguese creole": { hue: 44, sat: 60, langs: ["Haitian Creole", "Mauritian Creole", "Seychellois Creole", "Crioulo", "Papiamento"] },
+  "Turkic": { hue: 56, sat: 74, langs: ["Turkish", "Azerbaijani", "Kazakh", "Kyrgyz", "Turkmen", "Uzbek"] },
+  "Mongolic": { hue: 68, sat: 60, langs: ["Mongolian"] },
+  "Kra-Dai": { hue: 82, sat: 70, langs: ["Thai", "Lao"] },
+  "Sinitic (Sino-Tibetan)": { hue: 100, sat: 66, langs: ["Mandarin Chinese", "Cantonese"] },
+  "Tibeto-Burman (Sino-Tibetan)": { hue: 113, sat: 58, langs: ["Burmese", "Dzongkha"] },
+  "Nilo-Saharan": { hue: 128, sat: 50, langs: ["Dinka"] },
+  "Bantu (Niger-Congo)": { hue: 140, sat: 60, langs: ["Swahili", "Zulu", "Shona", "Kinyarwanda", "Kirundi", "Luganda", "Chichewa", "Bemba", "Setswana", "Sesotho", "Swazi", "Oshiwambo", "Comorian"] },
+  "West African (Niger-Congo)": { hue: 152, sat: 52, langs: ["Wolof", "Fula", "Bambara", "Mandinka", "Ewe", "Sango", "Mooré", "Hausa", "Krio"] },
+  "Kartvelian": { hue: 164, sat: 46, langs: ["Georgian"] },
+  "Austroasiatic": { hue: 177, sat: 64, langs: ["Vietnamese", "Khmer"] },
+  "Austronesian": { hue: 190, sat: 66, langs: ["Malay", "Indonesian", "Filipino", "Malagasy", "Samoan", "Tongan", "Bislama", "Gilbertese", "Marshallese", "Nauruan", "Palauan", "Tuvaluan", "Tetum", "Tok Pisin", "Pijin"] },
+  "Eskimo-Aleut": { hue: 202, sat: 40, langs: ["Greenlandic"] },
+  "Armenian (Indo-European)": { hue: 214, sat: 54, langs: ["Armenian"] },
+  "Germanic (Indo-European)": { hue: 226, sat: 64, langs: ["English", "German", "Dutch", "Danish", "Norwegian", "Swedish", "Icelandic", "Faroese", "Luxembourgish"] },
+  "Hellenic (Indo-European)": { hue: 240, sat: 50, langs: ["Greek"] },
+  "Japonic": { hue: 254, sat: 60, langs: ["Japanese"] },
+  "Koreanic": { hue: 266, sat: 58, langs: ["Korean"] },
+  "Semitic (Afroasiatic)": { hue: 280, sat: 62, langs: ["Arabic", "Amharic", "Tigrinya", "Maltese", "Hebrew"] },
+  "Cushitic (Afroasiatic)": { hue: 292, sat: 52, langs: ["Somali"] },
+  "Uralic": { hue: 306, sat: 56, langs: ["Finnish", "Estonian", "Hungarian"] },
+  "Albanian (Indo-European)": { hue: 320, sat: 50, langs: ["Albanian"] },
+  "Baltic (Balto-Slavic)": { hue: 334, sat: 58, langs: ["Latvian", "Lithuanian"] },
+  "Slavic (Balto-Slavic)": { hue: 348, sat: 66, langs: ["Russian", "Ukrainian", "Polish", "Czech", "Slovak", "Bulgarian", "Serbian", "Croatian", "Bosnian", "Slovene", "Macedonian", "Montenegrin"] },
 };
 
-// build language -> { hue, family, light } (small lightness step within family)
+// v8.13.4 — build language -> { hue, family, light, sat } as a within-family
+// GRADIENT (owner: "make sure each dialect/language/religion/sect has its own
+// distinct colour granularly, esp compared to those around it"). Each language
+// in a family gets BOTH a small hue offset spread across the family's width AND
+// a distinct lightness along a 40→72 ramp, so sibling languages are clearly
+// tellable apart (not just repeating one of five lightness buckets as before).
 export const LANGUAGE_INFO = {};
-for (const [family, { hue, langs }] of Object.entries(LANGUAGE_FAMILIES)) {
+for (const [family, fam] of Object.entries(LANGUAGE_FAMILIES)) {
+  const { hue, sat = 62, langs } = fam;
+  const N = langs.length;
   langs.forEach((l, i) => {
-    LANGUAGE_INFO[l] = { hue, family, light: 52 + (i % 5) * 6 - 6 };
+    const t = N > 1 ? i / (N - 1) : 0.5;                 // 0..1 across the family
+    const spread = Math.min(18, 6 + N * 1.4);            // total hue width
+    const hueOff = (t - 0.5) * spread;                   // ±spread/2
+    const light = 40 + t * 32;                           // 40..72 gradient
+    LANGUAGE_INFO[l] = { hue: hue + hueOff, family, light, sat };
   });
 }
 
@@ -157,13 +180,35 @@ export function dialectInfo(v, langInfoLookup) {
   }
   // direct language name (no dialect qualifier) → its own language info
   if (!base) base = (langInfoLookup ? langInfoLookup(v) : LANGUAGE_INFO[v]) || null;
-  const hue = base ? base.hue : (_strHash(s) % 360);
-  const light = 42 + (_strHash(s) % 5) * 8;   // 42,50,58,66,74 — sibling shades
+  // v8.13.4 — the dialect map now carries the SAME "related-languages gradient"
+  // as the language/sect modes (owner: "make sure the dialect map has that
+  // related-languages gradient colour scheme … each dialect its own distinct
+  // colour granularly"). A dialect inherits its parent language's family hue,
+  // then a deterministic per-dialect hue offset (±7°) AND a 7-step lightness
+  // ramp (36→72) pick a clearly-distinct sibling shade — so e.g. the Arabic
+  // dialects fan out as near-but-separable Semitic tones instead of collapsing
+  // onto ~5 repeated shades.
+  const baseHue = base ? base.hue : (_strHash(s) % 360);
+  const hueOff = ((_strHash(s + "#h") % 15) - 7);        // ±7°
+  const light = 36 + (_strHash(s) % 7) * 6;              // 36,42,…,72
+  const hue = ((baseHue + hueOff) % 360 + 360) % 360;
   const family = base ? base.family : "other";
-  return { hue, sat: base ? 60 : 45, light, family };
+  return { hue, sat: base ? (base.sat || 62) : 45, light, family };
 }
 
 // HSL -> rgba() css string
+// v8.13 — climate map-mode colours: one intuitive hue per Köppen main group,
+// each its own legend "family" so the grouped legend names them.
+const CLIMATE_INFO = {
+  "Tropical":    { hue: 140, sat: 58, light: 40, family: "Tropical" },
+  "Arid":        { hue: 38,  sat: 72, light: 55, family: "Arid" },
+  "Temperate":   { hue: 82,  sat: 52, light: 48, family: "Temperate" },
+  "Continental": { hue: 210, sat: 55, light: 52, family: "Continental" },
+  "Polar":       { hue: 195, sat: 30, light: 74, family: "Polar" },
+  "Highland":    { hue: 280, sat: 34, light: 56, family: "Highland" },
+};
+export function climateInfo(v) { return CLIMATE_INFO[v] || null; }
+
 export function familyColor(info, alpha = 0.72) {
   if (!info) return `rgba(140,150,170,${alpha})`;
   const h = info.hue, s = info.sat != null ? info.sat : 62, l = info.light || 52;

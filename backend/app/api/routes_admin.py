@@ -48,6 +48,20 @@ def _as_of_clause(alias: str, as_of):
             [as_of, as_of])
 
 
+_COUNTRY_FLAG = None
+
+
+def _country_flag(iso3):
+    """v8.9.1 — the NATIONAL flag URL for a unit's country, so the UI can fall
+    back to it when an admin unit has no flag of its own (Indian states, US
+    counties, …). Cached iso3→flag_image_url map, built once."""
+    global _COUNTRY_FLAG
+    if _COUNTRY_FLAG is None:
+        _COUNTRY_FLAG = {r["id"]: r["flag_image_url"] for r in
+                         query("SELECT id, flag_image_url FROM countries")}
+    return _COUNTRY_FLAG.get(iso3)
+
+
 _AREA_BY_UID = None
 
 
@@ -69,9 +83,12 @@ def _unit_row(r) -> dict:
         except (json.JSONDecodeError, TypeError):
             d["bbox"] = None
     d.pop("bbox_json", None)
-    # v8.1 — a best-effort flag URL (browser-loaded); None → the UI draws a seal.
+    # v8.1 — a best-effort (constructed) flag URL, browser-loaded.
     from ..geopolitics.province_flags import flag_url
     d["flag_url"] = flag_url(d.get("name"), d.get("country_id"), d.get("iso2"))
+    # v8.9.1 — the national flag, so the UI falls back to it when the unit has
+    # no flag of its own (no fake seals). e.g. Indian states → the Indian flag.
+    d["country_flag_url"] = _country_flag(d.get("country_id"))
     # v8.5 — the unit's own polygon area rides on every unit row.
     d["area_km2"] = _area_of(d.get("admin_uid"))
     return d
@@ -339,6 +356,7 @@ def admin_detail(params, q, body):
     def _with_flag(r):
         row = dict(r)
         row["flag_url"] = _flag(row.get("name"), cc)
+        row["country_flag_url"] = _country_flag(cc)   # v8.9.1 — national fallback
         return row
 
     # v8.3 — local activity readout: recent tracked coverage that resolved to
@@ -364,13 +382,43 @@ def admin_detail(params, q, body):
         "top_categories": [{"category": c, "count": n} for c, n in top_cats],
     }
 
+    # v8.13.4 — dual membership: if this unit's centroid falls inside an
+    # autonomous zone, surface the zone so its page lists BOTH the country chip
+    # and the zone chip (owner: "in Erbil, the Iraq chip and Iraqi Kurdistan chip
+    # should both be present").
+    zone = _autonomous_zone_for(unit.get("centroid_lat"), unit.get("centroid_lon"))
+
     return 200, {
         "unit": unit,
         "ancestry": ancestry,
         "country": country,
+        "autonomous_zone": zone,
         "siblings": [_with_flag(r) for r in siblings],
         "children": [_with_flag(r) for r in children],
         "coverage": [dict(r) for r in coverage],
         "event_count": event_count["n"] if event_count else 0,
         "activity": activity,
     }
+
+
+def _autonomous_zone_for(lat, lon):
+    """Which autonomous zone (if any) contains a point — ray-cast against each
+    zone's [lon,lat] outline. Returns {id, name, flag_url} or None."""
+    if lat is None or lon is None:
+        return None
+    from ..geopolitics.autonomous_zones import zones_list
+    for z in zones_list():
+        ring = z.get("outline")
+        if not ring or len(ring) < 3:
+            continue
+        inside = False
+        n = len(ring)
+        for i in range(n):
+            xi, yi = ring[i][0], ring[i][1]
+            xj, yj = ring[i - 1][0], ring[i - 1][1]
+            if ((yi > lat) != (yj > lat)) and \
+               (lon < (xj - xi) * (lat - yi) / ((yj - yi) or 1e-9) + xi):
+                inside = not inside
+        if inside:
+            return {"id": z["id"], "name": z["name"], "flag_url": z.get("flag_url")}
+    return None

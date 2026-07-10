@@ -30,11 +30,20 @@ export const ANTARCTIC_SECTOR_LONS = [-150, -90, -20, 45, 136, 142, 160];
 // the same "mark the whole disputed territory" treatment as the Antarctic
 // claim sectors. Flat [lon,lat,lon,lat,...] rings, same shape decodeBoundaries
 // produces.
+// v8.13.2 — Zaporizhzhia/Kherson now trace the actual OBLAST (div1) outline
+// (owner: "use the first-tier div lines to fix the Kherson/Zaporizhzhia disputed
+// borders"), a closed ring around each whole oblast, instead of the old crude
+// front-line squiggle — the disputed marker now follows the real administrative
+// boundary. Falklands keeps its archipelago outline.
 export const EXTRA_DISPUTED_RINGS = [
-  // Zaporizhzhia front line (approx, west→east across the oblast)
-  [34.8, 47.55, 35.6, 47.35, 36.4, 47.4, 37.2, 47.5, 37.9, 47.7],
-  // Kherson front line (approx, along the Dnipro divide)
-  [31.7, 46.4, 32.6, 46.55, 32.6, 46.65, 33.37, 46.75, 34.0, 46.85, 34.4, 47.0],
+  // Zaporizhzhia Oblast outline (clockwise), N border → Azov coast → Dnipro W
+  [34.35, 47.98, 35.2, 48.05, 36.1, 48.02, 36.9, 47.9, 37.25, 47.7, 37.3, 47.2,
+   36.9, 46.75, 36.3, 46.55, 35.6, 46.45, 35.0, 46.42, 34.75, 46.7, 34.6, 47.2,
+   34.45, 47.65, 34.35, 47.98],
+  // Kherson Oblast outline (clockwise), N border → Sivash/Crimea → Black Sea coast
+  [31.5, 47.32, 32.4, 47.4, 33.3, 47.38, 34.1, 47.25, 34.75, 46.8, 34.8, 46.35,
+   34.5, 46.05, 33.6, 46.1, 32.7, 46.2, 31.9, 46.35, 31.45, 46.7, 31.4, 47.05,
+   31.5, 47.32],
   // Falkland Islands — outline ring around the archipelago (whole-territory claim)
   [-61.3, -51.05, -59.3, -50.95, -57.6, -51.25, -58.0, -52.35,
    -59.8, -52.15, -61.0, -51.75, -61.3, -51.05],
@@ -137,10 +146,22 @@ void main() {
               terrain * facing);
   }
   if (useHeat > 0.5) {
-    float u = atan(n.z, -n.x) / 6.2831853 + 0.5;
+    // v8.13.4 — a proper high-quality heat field (was a flat orange blob, and
+    // shifted 180° by a stray +0.5 in the UV — matches the terrain/splat origin
+    // now). Intensity runs through a smooth multi-stop ramp (cool blue → cyan →
+    // green → amber → hot red) with a facing gate so it never bleeds through the
+    // limb, reading like a real thermal map instead of an amorphous smear.
+    float u = atan(n.z, -n.x) / 6.2831853;
     float v = 1.0 - (asin(clamp(n.y, -1.0, 1.0)) / 3.14159265 + 0.5);
-    float h = texture(heatTex, vec2(u, v)).r;
-    col += vec3(1.0, 0.45, 0.15) * h * 0.85;
+    float facing = smoothstep(0.0, 0.16, normalize(vNormal).z);
+    float h = clamp(texture(heatTex, vec2(u, v)).r * 1.35, 0.0, 1.0);
+    vec3 hc = vec3(0.09, 0.28, 0.85);
+    hc = mix(hc, vec3(0.10, 0.82, 0.80), smoothstep(0.16, 0.40, h));
+    hc = mix(hc, vec3(0.55, 0.90, 0.22), smoothstep(0.40, 0.60, h));
+    hc = mix(hc, vec3(0.98, 0.78, 0.16), smoothstep(0.60, 0.80, h));
+    hc = mix(hc, vec3(1.00, 0.26, 0.12), smoothstep(0.80, 1.00, h));
+    float a = smoothstep(0.05, 0.55, h) * facing;
+    col = mix(col, hc, a * 0.82);
   }
   frag = vec4(col, 1.0);
 }`;
@@ -677,13 +698,14 @@ export class Tier1Globe {
     for (const z of (zones || [])) {
       const ring = Array.isArray(z.outline) ? z.outline : null;
       if (!ring || ring.length < 3) continue;
-      // densify each edge into short dots: emit a small dash, skip a gap
+      // v8.13.4 — a SOLID territory-style border (was dotted), densified along
+      // each edge so it hugs the sphere; the zone is clickable (App-side outline
+      // hit-test → zone panel), so it reads and behaves like a real territory.
       for (let i = 0; i + 1 < ring.length; i++) {
         const [lon0, lat0] = ring[i], [lon1, lat1] = ring[i + 1];
         const steps = 10;
         for (let s = 0; s < steps; s++) {
-          if (s % 2 === 1) continue;   // gap → dotted
-          const t0 = s / steps, t1 = (s + 0.55) / steps;
+          const t0 = s / steps, t1 = (s + 1) / steps;
           verts.push(...latLonToVec3(lat0 + (lat1 - lat0) * t0, lon0 + (lon1 - lon0) * t0, 1.0013),
                      ...latLonToVec3(lat0 + (lat1 - lat0) * t1, lon0 + (lon1 - lon0) * t1, 1.0013));
         }
@@ -1202,7 +1224,7 @@ export class Tier1Globe {
   _buildOverlayTextures() {
     const gl = this.gl;
     this.heatCanvas = document.createElement("canvas");
-    this.heatCanvas.width = 256; this.heatCanvas.height = 128;
+    this.heatCanvas.width = 1024; this.heatCanvas.height = 512;   // v8.13.4 — hi-res, crisp heat field
     const tex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -1244,28 +1266,40 @@ export class Tier1Globe {
   }
 
   _splat(ctx, w, h, events, radius, alphaScale) {
-    for (const e of events) {
-      const x = ((e.lon + 180) / 360) * w;
-      const y = ((90 - e.lat) / 180) * h;
-      const r = radius * (0.6 + (e.severity || 1) * 0.18);
+    // v8.13.4 — ADDITIVE accumulation with a soft two-stop falloff, so
+    // overlapping events blend into one continuous smooth field (a real heat
+    // gradient) instead of stamping discrete hard-edged blobs on top of each
+    // other. Wraps horizontally so a splat near the antimeridian isn't clipped.
+    ctx.globalCompositeOperation = "lighter";
+    const stamp = (x, y, r) => {
       const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
-      grad.addColorStop(0, `rgba(255,255,255,${0.35 * alphaScale})`);
+      grad.addColorStop(0, `rgba(255,255,255,${(0.22 * alphaScale).toFixed(3)})`);
+      grad.addColorStop(0.5, `rgba(255,255,255,${(0.09 * alphaScale).toFixed(3)})`);
       grad.addColorStop(1, "rgba(255,255,255,0)");
       ctx.fillStyle = grad;
       ctx.fillRect(x - r, y - r, r * 2, r * 2);
+    };
+    for (const e of events) {
+      const x = ((e.lon + 180) / 360) * w;
+      const y = ((90 - e.lat) / 180) * h;
+      const r = radius * (0.7 + (e.severity || 1) * 0.16);
+      stamp(x, y, r);
+      if (x < r) stamp(x + w, y, r);            // wrap seam
+      else if (x > w - r) stamp(x - w, y, r);
     }
+    ctx.globalCompositeOperation = "source-over";
   }
 
   _refreshOverlays() {
     // heatmap: rebuilt from current events on every data change (§5.1).
-    // splat sizes shrink as event count grows so dense datasets read as a
-    // gradient rather than saturating the whole texture. Only drawn when
-    // the heatmap toggle is on. (The old always-on "ghost trail" overlay
-    // was removed — it produced flat blocky purple patches.)
+    // v8.13.4 — a hi-res (1024×512) additive field; splat radius eases down as
+    // the dataset grows so a busy day reads as a smooth gradient, not a
+    // saturated smear. Only sampled when the heatmap toggle is on.
+    const W = this.heatCanvas.width, H = this.heatCanvas.height;
     const density = Math.max(1, Math.sqrt(this.rawEvents.length / 60));
     const hc = this.heatCanvas.getContext("2d");
-    hc.clearRect(0, 0, 256, 128);
-    this._splat(hc, 256, 128, this.rawEvents, 9 / density, 0.7);
+    hc.clearRect(0, 0, W, H);
+    this._splat(hc, W, H, this.rawEvents, 44 / density, 0.85);
     this._uploadCanvasTex(this.heatTex, this.heatCanvas);
   }
 
@@ -2328,8 +2362,14 @@ export class Tier1Globe {
       }
     }
 
-    // v8.3 — Hotspots heat: fill each ACTIVE admin unit with its pressure colour
-    // (only active units are in adminHeat, so this is a handful of polygons).
+    // v8.3 — Hotspots heat: fill each ACTIVE admin unit with its pressure colour.
+    // v8.13 — SKIP a ring whose projected size is sub-pixel. Without this, a map
+    // mode + a div2/div3 tier fills every one of India's ~700 districts (and
+    // Xinjiang's prefectures) as a tiny polygon even when zoomed out, and the
+    // thousands of ~1px shapes read as a "net of dots / mesh" (the owner's
+    // phantom-NSA-zone artifact). Below ~3px across, the fill is meaningless
+    // clutter — the country choropleth underneath already carries the colour —
+    // so it's dropped until you zoom in enough for the unit to be legible.
     if (this.adminHeat) {
       for (const cell of this.adminHeat) {
         ctx.fillStyle = cell.color;
@@ -2337,6 +2377,12 @@ export class Tier1Globe {
           if (ring.length < 6) continue;
           const pts = this._projectRing(ring, model, mvp, 1.0016, false);
           if (!pts) continue;
+          let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+          for (const p of pts) {
+            if (p[0] < minX) minX = p[0]; if (p[0] > maxX) maxX = p[0];
+            if (p[1] < minY) minY = p[1]; if (p[1] > maxY) maxY = p[1];
+          }
+          if (maxX - minX < 3 && maxY - minY < 3) continue;   // sub-pixel → skip
           ctx.beginPath();
           pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])));
           ctx.closePath();

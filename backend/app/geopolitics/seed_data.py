@@ -314,8 +314,13 @@ CONFLICTS = [
      "Since 1949 the PRC claims Taiwan and has never renounced force; cross-strait "
      "tension, incursions and deterrence make this the world's highest-stakes frozen "
      "flashpoint.",
+     # v8.13.4 — fuller Taiwan-side backer roster (owner: "add Japan and such
+     # states as supporting Taiwan"). Japan (US forces host, closest neighbour,
+     # explicit 'Taiwan contingency' stance) and Australia (AUKUS) are the most
+     # significant beyond the US; all three are side b.
      [("country", "CHN", "belligerent", "a"), ("country", "TWN", "belligerent", "b"),
-      ("country", "USA", "backer", "b")]),
+      ("country", "USA", "backer", "b"), ("country", "JPN", "backer", "b"),
+      ("country", "AUS", "backer", "b")]),
 
     # ---- v7.4.2 — RESOLVED / ended conflicts (historical; do NOT enter War Mode,
     # do NOT absorb new stories). Drawn from the 1945→present archive. ----

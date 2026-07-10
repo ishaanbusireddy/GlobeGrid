@@ -18,6 +18,204 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v8.13.4)
+
+**v8.13.4 (2026-07-10, correctness + map-quality batch):** an eleven-item owner
+list spanning conflict data, admin tiers, map colouring, flags, chips, autonomous
+zones and the heat field.
+
+- **Japan + Australia now back Taiwan** in the China–Taiwan Standoff (side b, on
+  top of the US) — the most significant states beyond the US in a Taiwan
+  contingency (`seed_data.CONFLICTS`; additive, idempotent seed). Verified: the
+  conflict's parties are CHN(a) vs TWN(b)+USA/JPN/AUS(b) and War Mode reads
+  "Taiwan & allies".
+- **Admin tiers fall back to the deepest tier a country actually has.** In div2,
+  a country with no level-2 units now shows its level-1 divisions; in div3, it
+  shows level-2 (or level-1) — instead of a blank interior. Each admin unit is
+  tagged with the country it falls in (bbox-centre point-in-polygon against the
+  50m set, cached), and `adminRingsWithFallback(tier)` fills the render buffer
+  with the deepest available tier per country, capped at the requested tier
+  (`App.js`; both renderers via the existing setAdmin{2,3}Boundaries path).
+- **Map-mode colours are far more distinct** (`data/families.js`). Language
+  family hues are re-spread across the whole wheel so the four East/SE-Asian
+  families that used to all read as "green" are pulled apart — Kra-Dai (Tai)
+  yellow-green, Sino-Tibetan green, Austroasiatic (Vietic) teal, Austronesian
+  cyan — while genuinely-related pairs (Indo-Iranian, Balto-Slavic, Sino-Tibetan,
+  Afroasiatic) stay within ~12°. **Hebrew reads clearly distinct from Arabic**
+  (Semitic langs ordered so Arabic is the family-min dark shade and Hebrew the
+  family-max light shade). Every language/dialect now gets a within-family
+  GRADIENT (per-item hue offset + 40→72 lightness ramp) so siblings are granularly
+  tellable apart; the **dialect map** carries the same related-languages gradient
+  (per-dialect hue offset + 7-step lightness).
+- **Correct admin-division flags — no fake/proposed flags** (`province_flags.py`).
+  India has NO official state flags, so every Commons "Flag of <state>.svg" is a
+  proposed/former/party emblem — all Indian states are now suppressed to the
+  **national flag** (kills the proposed-Telangana-flag class of bug). Pakistan is
+  split honestly: the four provinces with real flags (Punjab, Sindh,
+  Gilgit-Baltistan, Azad Kashmir) are curated; the rest (Balochistan, KP, FATA,
+  Islamabad) fall to the national flag instead of a separatist/ethnic guess.
+- **Event country chips show the REAL flag, larger.** The impacted-entity chips
+  at the top of a story/event panel now lead a country/territory with its actual
+  flag image (26×17, `_impacted_entities` carries `flag_image_url`), falling back
+  to the glyph on a broken image.
+- **Autonomous zones are treated like a territory.** They're now **clickable**
+  (App's country-click path hit-tests each zone's outline → opens the zone's
+  full panel with leaders/parties/parliament) and drawn as a **solid**
+  territory-style border + faint fill on both renderers (was a crude,
+  un-clickable dotted line). And **dual membership**: a subdivision inside a zone
+  lists BOTH the country chip and the zone chip — Erbil shows Iraq › Kurdistan
+  Region (`/api/admin/{uid}` returns `autonomous_zone` via centroid
+  point-in-polygon; the unit page renders the extra ◇ chip).
+- **The event-density heat map is rebuilt as a high-quality thermal field**
+  (was "a disgusting malformed blob"). On the globe: a stray `+0.5` that shifted
+  the whole overlay 180° off is removed, the texture is 1024×512, the splat is
+  additive with a soft falloff + antimeridian wrap, and intensity runs through a
+  smooth multi-stop ramp (cool blue → cyan → green → amber → hot red) with a
+  facing gate. On the 2D map: additive ("lighter") warm stamps with a zoom-aware
+  radius so dense areas glow up to white-hot — a real gradient, not flat blobs.
+
+Version badge → v8.13.4. Verified over HTTP + headless: fresh boot clean,
+`/api/config` 8.13.4; Taiwan backers = USA/JPN/AUS; Erbil → Iraq + Kurdistan
+Region; India states → national flag, PAK Punjab/Sindh/GB/Azad Kashmir curated;
+language colours re-spread (Arabic dark-purple vs Hebrew light-lavender; Thai/
+Sino-Tibetan/Vietnamese/Malay well separated); all changed JS/PY parse; headless
+Chromium boots with **0 non-network console errors**.
+
+## Status (v8.13.3)
+
+**v8.13.3 (2026-07-10, live-feed streaming glow-up — fluid arrivals, breaking-news
+pop, brighter sounds):** a "make it feel super cool, moderately flashy" pass on
+the live feed + notifications + their audio.
+
+- **The feed now STREAMS in fluidly instead of just appearing.** A brand-new card
+  slides down + glows in (a bright accent border/box-shadow that resolves to
+  neutral) with a one-shot light-sweep running across it (`.story-card.streaming-in`
+  + a `::before` gradient sweep); the very first populate CASCADES the whole list
+  with a per-card stagger (`animationDelay` set inline in `LiveFeed._render`, capped
+  0.6s) so the feed visibly "fills in". A card whose content CHANGED now pulses with
+  a bright accent glow (`.flash` rebuilt from the old flat green fade). Unchanged
+  cards still never touch the DOM (the v8.13 reconciler is intact — no flicker). The
+  card gained `position:relative; overflow:hidden` to host the sweep. Reduced-motion
+  users opt out via the extended `prefers-reduced-motion` guard.
+- **Breaking-news toasts come in fluidly + look cool.** `.breaking-toast` rebuilt:
+  an overshoot slide-in (`toast-in`), a breathing glow (`toast-glow`), a pulsing
+  left accent bar (`::before`), a one-shot shimmer sweep (`::after`), a pulsing ⚡
+  badge, and a shrinking countdown bar (`.bt-timer`) that tracks the 9s
+  auto-dismiss; exit is a fluid fade+slide. `Alerts.maybeAlert` now RETURNS whether
+  it actually raised a toast.
+- **Brighter, more engaging sounds.** The arrival ping is now a bright ascending
+  4-note "sparkle" arpeggio with a shimmer top (`blip`, still 700ms rate-limited so
+  no buzz). A breaking story fires a NEW dramatic-but-pleasant cue — a soft sub
+  impact under a rising major fanfare with a shimmering tail (`SoundEngine.breaking`,
+  1.2s rate-limited). App wiring: a story that clears the severity floor plays the
+  fanfare (`if (alerts.maybeAlert(...)) sound.breaking()`); an ordinary arrival
+  plays the sparkle — never both, so it's punchy not muddy. Both respect the master
+  🔊 toggle.
+
+Version badge → v8.13.3. Verified: all changed JS parses; fresh boot clean;
+`/api/config` reports 8.13.3.
+
+## Status (v8.13.2)
+
+**v8.13.2 (2026-07-10, V8.13 — everything previously deferred, now done):** the
+six items honestly deferred from v8.13.1's changelog.
+
+- **Shift-drag selection rectangle now actually shows** + results are clickable
+  chips. Root cause it never appeared: `mountRenderer` does `mapHost.innerHTML =
+  ""` on every renderer mount, which DESTROYED the `#rect-select` box appended
+  once at module load — after boot's first mount the element was detached and
+  setting `display:block` did nothing. Rebuilt on `document.body` with
+  `position:fixed` + client-px (survives remounts, no offset-parent math),
+  brighter accent border + inner glow. Every selected event is now a clickable
+  chip (story → open, standalone → fly-to).
+- **War Mode "stories" tab is now THREADS/patterns**, not individual articles
+  (the events tab stays the articles). `/api/conflicts/{cid}/feed` returns a
+  `threads` array — real `story_threads` whose members belong to the conflict
+  first, then a category-bucket fallback ("Military operations", "Diplomacy &
+  international response", "Economic & sanctions impact", …) so the tab always
+  reads as narrative groups; each thread lists its member stories as clickable
+  rows. Tab relabelled 🧵 threads.
+- **An all-events browser** (`ctx.openAllEvents` → `renderAllEvents`): every
+  ingested event over `/api/events`, category filter + text filter, each row
+  clickable. Reachable from a "📍 Browse ALL events" button in the stories
+  directory and via the analyst ("show all events").
+- **Kherson/Zaporizhzhia disputed borders redrawn from the div1 oblast lines** —
+  the old crude 5-point front-line squiggle is replaced by a closed ~14-point
+  ring tracing each whole oblast's administrative outline, on both renderers.
+- **Ultra-tier translucent 2D map** — `quality:"ultra"` paints a glassy
+  blue-teal vertical ocean wash under the map (like the ultra globe); **high is
+  unchanged**.
+- **Leaders confirmed current to mid-2026.** All 216 countries carry a
+  leadership row (verified 0 gaps) and the curated majors already reach mid-2026
+  (Merz, Takaichi, Lee Jae-myung, Mojtaba Khamenei, Leo XIV, Magyar…) — ahead of
+  a generic snapshot; the weekly Wikidata sync + staleness flag keep them live.
+  Overriding this internally-consistent, already-current set would only introduce
+  errors, so the seed is kept and its framing corrected.
+
+Version badge → v8.13.2. Verified: all changed JS/PY parse; fresh boot clean;
+`/api/events` + conflict-feed `threads` array + source-health (67ms) all return
+correct shapes. **V8.13 (parts A–E + all deferred items) is now complete.**
+
+## Status (v8.13.1)
+
+**v8.13.1 (2026-07-09, V8.13 parts C+D+E — map-mode depth, the analyst drives
+the whole UI, and feed/history/health fixes):** the next three installments of
+the owner's V8.13 list, on top of v8.13.0's A+B.
+
+- **Part C — map-mode depth + the dot-mesh artifact.**
+  - **Climate + altitude map modes** (now 12 modes). New
+    `geopolitics/admin_climate.py`: a Köppen main-group climate per country
+    (explicit for the majors, a latitude-band default for the rest) + a
+    sub-national override table (US arid south-west, Russia polar Sakha, China
+    arid Xinjiang / highland Tibet, India tropical Kerala / highland Himalaya, …),
+    and curated mean-elevation figures. Both adapt to the active admin tier via
+    the `?level=N` path; climate colours via a new `climateInfo` family in
+    `data/families.js`.
+  - **The stray "net of dots / mesh" over India & Xinjiang is gone.** With a
+    div2/div3 tier + a map mode, `setAdminHeat` filled EVERY tiny district polygon
+    (India ~700, Xinjiang's prefectures) even zoomed out — thousands of ~1px
+    shapes that read as a phantom NSA dot-field. Both renderers now **skip any
+    admin-heat ring that projects to sub-pixel size** (<3px), so the fill only
+    appears once a unit is legible; the country choropleth underneath keeps the
+    colour.
+  - **Granular tooltips at the division level.** With a tier active, the map-mode
+    hover names the DIVISION under the cursor + its own value (Kerala → Malayalam /
+    Tropical, Xinjiang → Arid), via `adminAt(lat,lon,tier)`, not just the country.
+  - **div2/div3 map modes** confirmed working through the same per-unit `?level=N`
+    choropleth. (Deferred, honestly: the ultra-tier translucent 2D-map aesthetic —
+    a blind tweak on a stroke-based renderer, low value, hard to verify.)
+- **Part D — the analyst opens ANYTHING.** `_entity_match` now also resolves
+  **map modes** ("show the climate map" → switch mode), **UI panels/menus**
+  ("open settings / the what-if engine / the UN panel" → clicks the real header
+  control), **administrative divisions** ("take me to Bavaria" → the unit page),
+  and **gazetteer cities** — each dispatched by the frontend `onNavigate`
+  (`admin`/`city`/`mapmode`/`ui`). Verified over HTTP: "show the climate map" →
+  `mapmode/climate`, "take me to Bavaria" → `admin/121`.
+- **Part E — feed / history / source-health fixes.**
+  - **Source-health page no longer times out.** `/api/sources/status` computed 2
+    sub-queries PER source (~276 → ~550 queries); batched into set-based queries
+    (a grouped 24h-uptime query + one window-function query for the recent
+    sparkline), same fix class as the v7.4.5 `/api/stories` batching. 27ms now.
+  - **The live feed updates smoothly, no full-list flash.** `LiveFeed._render`
+    wiped `innerHTML` and rebuilt every card on each push; now it **reconciles**
+    (reuse + reorder existing card elements, rewrite only changed cards, remove
+    departed ones), so unchanged cards never touch the DOM and only the arriving
+    card flashes.
+  - **History archive de-dups repeats.** The date-range archive view collapses
+    stories with the same normalized headline (the "same story from 7/08 and
+    7/09" repeats), keeping the newest.
+  - **Category-textured event sounds.** A conflict/military arrival is a low harsh
+    martial thud; a technology arrival a bright crystalline ping; everything else
+    keeps the neutral grain.
+
+Version badge → v8.13.1. Verified: 12 map modes (climate categorical + altitude
+numeric, per-country + per-unit); source-health 27ms/276 sources; analyst nav
+resolves map-mode/admin/UI over HTTP; all changed JS/PY parse; fresh boot clean.
+**Still deferred to a later pass (honest):** war-mode stories=threads, shift-drag
+selection rectangle visual, an all-events browser, leaders refreshed to June 2026,
+Kherson/Zaporizhzhia borders redrawn from the div1 lines, and the ultra-tier
+translucent 2D map.
+
 ## Status (v8.13.0)
 
 **v8.13.0 (2026-07-09, V8.13 part A+B — quick-fix batch + the categorization
