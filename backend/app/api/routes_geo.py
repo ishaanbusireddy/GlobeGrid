@@ -21,6 +21,18 @@ _PARAMOUNT_ROLE_OVERRIDE = {
     "AFG": "head_of_state",   # Taliban Supreme Leader (de facto)
     "SAU": "head_of_state",   # King (absolute monarchy)
     "VAT": "head_of_state",
+    # v8.13.6 — parliamentary constitutional monarchies whose monarch is purely
+    # CEREMONIAL: the PM is paramount (owner: "Frederik X is still leader of
+    # Denmark, bruh"). Denmark/Belgium/Luxembourg carry a NULL government_type in
+    # the seed, so the label-based rule defaulted to head_of_state and the
+    # Wikidata-synced king won on a networked box — an explicit override fixes it
+    # regardless of government_type. (Jordan/Morocco/Gulf monarchs keep real
+    # power, so they are deliberately NOT here.)
+    "DNK": "head_of_government", "BEL": "head_of_government",
+    "LUX": "head_of_government", "SWE": "head_of_government",
+    "NOR": "head_of_government", "NLD": "head_of_government",
+    "ESP": "head_of_government", "GBR": "head_of_government",
+    "JPN": "head_of_government", "THA": "head_of_government",
 }
 
 # v6.1 — the paramount leader's real title, when it's more than the office
@@ -455,6 +467,17 @@ MAP_MODES = {
     "dialect": {"label": "Dialect", "kind": "categorical",
                 "column": "dominant_language", "field": "dialect",
                 "source": "Curated (Ethnologue / glottolog)", "icon": "语"},
+    # v8.13 — climate (categorical, Köppen main group) + altitude (numeric, mean
+    # elevation m). Both adapt to the active admin tier via the ?level=N path.
+    "climate": {"label": "Climate", "kind": "categorical", "column": None,
+                "field": "climate", "source": "Köppen–Geiger (curated)", "icon": "☁"},
+    "altitude": {"label": "Altitude (mean elevation)", "kind": "numeric",
+                 "column": None, "source": "Curated (SRTM/national)", "icon": "⛰",
+                 "log_scale": False},
+    # v8.13.6 — government / regime type (categorical), per country.
+    "government": {"label": "Government type", "kind": "categorical", "column": None,
+                   "field": "government", "icon": "⚖",
+                   "source": "Curated (Democracy Index / V-Dem / Freedom House bands)"},
 }
 
 
@@ -463,6 +486,14 @@ def mapmodes_list(params, q, body):
     return 200, {"modes": [{"id": k, "label": v["label"], "kind": v["kind"],
                             "icon": v["icon"], "source": v["source"]}
                            for k, v in MAP_MODES.items()]}
+
+
+def _adm1_name(u):
+    """v8.13.7 — the ADM1 (first-level) name in a deeper unit's ancestry, taken
+    from its `path` ('USA/Ohio/Highland' → 'Ohio'). Used so a div2/div3 unit can
+    inherit its parent province's curated sub-national / demographic value."""
+    p = (u.get("path") or "").split("/")
+    return p[1] if len(p) >= 2 else None
 
 
 def _unit_level_values(mode_id, mode, level):
@@ -477,18 +508,55 @@ def _unit_level_values(mode_id, mode, level):
     cc = {r["id"]: dict(r) for r in
           query("SELECT id, dominant_religion, dominant_language FROM countries")}
     values = {}
+    # v8.13 — climate is a categorical mode resolved per unit via admin_climate's
+    # sub-national override table (falls to the country climate).
+    if mode_id == "climate":
+        from ..geopolitics import admin_climate
+        for u in units:
+            iso3 = u.get("country")
+            base = admin_climate.country_climate(iso3)
+            v = admin_climate.unit_climate(iso3, u.get("name"), base)
+            if v:
+                values[u["uid"]] = v
+        return values, sorted({v for v in values.values()})
+    if mode_id == "altitude":
+        # numeric; only where a curated country elevation exists (units inherit
+        # the country figure — no per-district elevation dataset is vendored).
+        from ..geopolitics import admin_climate
+        for u in units:
+            e = admin_climate.country_elevation(u.get("country"))
+            if e is not None:
+                values[u["uid"]] = e
+        nums = sorted(values.values())
+        return values, (nums[0] if nums else None, nums[-1] if nums else None)
+    if mode_id == "government":
+        # v8.13.6 — government type is a country-level attribute; admin units just
+        # inherit the country choropleth, so no per-unit values are emitted.
+        return {}, []
     if mode["kind"] == "categorical":
         field = mode["field"]
         for u in units:
             iso3 = u.get("country")
             base = cc.get(iso3, {})
+            # v8.13.7 — a div2/div3 unit inherits its parent ADM1's sub-national
+            # override (the SUBNATIONAL table is ADM1-keyed), so the religion/
+            # sect/language/dialect heterogeneity carries all the way down the
+            # tiers instead of collapsing to the flat country value at div2.
+            adm1 = _adm1_name(u)
             v = admin_thematic.unit_value(
                 iso3, u.get("name"), field,
-                base.get("dominant_religion"), base.get("dominant_language"))
+                base.get("dominant_religion"), base.get("dominant_language"),
+                adm1_name=adm1)
             if v:
                 values[u["uid"]] = v
         return values, sorted({v for v in values.values()})
-    # numeric — only where a curated own figure exists for the unit
+    # numeric — a curated own figure at div1 (population/density/GDP/per-capita
+    # from the vendored demographics floor). At div2/div3 the extensive figures
+    # (pop/GDP) can't be split across districts and no per-district dataset is
+    # vendored, so those units fall through to the COUNTRY choropleth base
+    # underneath — the numeric map still reads correctly, just at country grain.
+    # gdp_per_capita (an intensive ratio) is inherited from the parent ADM1 so a
+    # deeper-tier unit still carries a per-unit value where one is curated.
     for u in units:
         iso3, name = u.get("country"), u.get("name")
         area = u.get("area_km2") or 0
@@ -501,8 +569,12 @@ def _unit_level_values(mode_id, mode, level):
             values[u["uid"]] = round(pop / area, 2)
         elif mode_id == "gdp" and gdp:
             values[u["uid"]] = gdp
-        elif mode_id == "gdp_per_capita" and gdp and pop:
-            values[u["uid"]] = round(gdp / pop, 2)
+        elif mode_id == "gdp_per_capita":
+            pdem = dem if level == 1 else admin_demographics.lookup(iso3, _adm1_name(u), 0)
+            pp = pdem.get("pop") if pdem else None
+            gg = pdem.get("gdp") if pdem else None
+            if gg and pp:
+                values[u["uid"]] = round(gg / pp, 2)
         # hdi / nuclear_arsenal have no per-unit figure → left to the country base
     nums = sorted(values.values())
     return values, (nums[0] if nums else None, nums[-1] if nums else None)
@@ -515,6 +587,26 @@ def mapmode_values(params, q, body):
         return 404, {"error": f"unknown map mode '{params['mode']}'"}
     if params["mode"] == "nuclear_arsenal":
         values = dict(NUCLEAR_WARHEADS)
+    elif params["mode"] == "climate":
+        # v8.13 — categorical climate; country value is explicit or a
+        # latitude-band default from the seeded centroid.
+        from ..geopolitics import admin_climate
+        rows = query("SELECT id FROM countries")
+        values = {r["id"]: admin_climate.country_climate(r["id"]) for r in rows}
+    elif params["mode"] == "altitude":
+        from ..geopolitics import admin_climate
+        values = {}
+        for r in query("SELECT id FROM countries"):
+            e = admin_climate.country_elevation(r["id"])
+            if e is not None:
+                values[r["id"]] = e
+    elif params["mode"] == "government":
+        # v8.13.6 — curated regime category (falls back to a parse of the seeded
+        # government_type string for uncurated countries).
+        from ..geopolitics import gov_types
+        rows = query("SELECT id, government_type FROM countries")
+        values = {r["id"]: gov_types.government_category(r["id"], r["government_type"])
+                  for r in rows}
     elif params["mode"] == "population_density":
         rows = query("SELECT id, population * 1.0 / area_km2 AS v FROM countries"
                      " WHERE population IS NOT NULL AND area_km2 > 0")

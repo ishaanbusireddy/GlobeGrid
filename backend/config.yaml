@@ -196,7 +196,9 @@ annotations:
   enabled: true
 
 alerts:
-  in_app_breaking_alert_severity_floor: 4
+  # v8.13.7 — lowered 4→3 so more breaking-news toasts fire (owner: "make sure
+  # i get more breaking news alerts"). 3 = a genuinely significant story.
+  in_app_breaking_alert_severity_floor: 3
 
 coverage:
   thin_coverage_story_floor: 3          # §15.1 — below this, profiles show a thin-coverage badge

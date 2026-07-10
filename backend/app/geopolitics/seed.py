@@ -10,6 +10,38 @@ from .m49 import M49_SUBREGION
 
 log = logging.getLogger("geo_seed")
 
+# v8.13.7 — government_type for the EU + North-American states that ship in
+# seed_data.COUNTRIES_V4_EXTRA with a NULL type. Applied ONLY where the column
+# is still NULL (see _seed_countries), so it never overrides a real seed value
+# or a Wikidata-synced one. Keeps _paramount_role picking the right office once
+# both a head of state and a head of government are seeded for these countries.
+_GOV_TYPE_FILL = {
+    # EU parliamentary republics — the PM leads
+    "AUT": "federal parliamentary republic", "IRL": "parliamentary republic",
+    "EST": "parliamentary republic", "LVA": "parliamentary republic",
+    "HRV": "parliamentary republic", "BGR": "parliamentary republic",
+    "CZE": "parliamentary republic", "SVK": "parliamentary republic",
+    "SVN": "parliamentary republic", "MLT": "parliamentary republic",
+    # EU semi-presidential republics — the president has real power
+    "LTU": "semi-presidential republic",
+    # EU constitutional monarchies — the PM leads (monarch ceremonial)
+    "DNK": "parliamentary constitutional monarchy",
+    "BEL": "federal parliamentary constitutional monarchy",
+    "LUX": "parliamentary constitutional monarchy",
+    # North America — Commonwealth realms (King is HoS, PM leads)
+    "JAM": "parliamentary constitutional monarchy",
+    "BHS": "parliamentary constitutional monarchy",
+    "BLZ": "parliamentary constitutional monarchy",
+    "ATG": "parliamentary constitutional monarchy",
+    "GRD": "parliamentary constitutional monarchy",
+    "KNA": "parliamentary constitutional monarchy",
+    "LCA": "parliamentary constitutional monarchy",
+    "VCT": "parliamentary constitutional monarchy",
+    # North America — Caribbean parliamentary republics (president ceremonial)
+    "BRB": "parliamentary republic", "TTO": "parliamentary republic",
+    "DMA": "parliamentary republic",
+}
+
 
 def seed_all() -> dict:
     counts = {}
@@ -146,6 +178,20 @@ def _seed_countries() -> int:
                     " (SELECT 1 FROM marked_locations WHERE category='capital' AND country_id=?)",
                     (new_id(), f"{capital} (capital of {name})", lat, lon, iso3,
                      f"Capital of {name}.", iso3))
+        # v8.13.7 — fill government_type for the EU + North-American states that
+        # were seeded from COUNTRIES_V4_EXTRA with a NULL government_type (owner:
+        # "seed all leaders of every EU and North American country"). A NULL type
+        # made _paramount_role default to head_of_state, so seeding a ceremonial
+        # president/monarch alongside the PM would have flipped the paramount
+        # office to the figurehead. These correct strings keep the PM paramount
+        # in the parliamentary states/realms and the president paramount in the
+        # semi-presidential ones. Only fills where still NULL (never overrides a
+        # real value or a Wikidata-synced one).
+        for iso3, gtype in _GOV_TYPE_FILL.items():
+            conn.execute(
+                "UPDATE countries SET government_type = ?"
+                " WHERE id = ? AND government_type IS NULL",
+                (gtype, iso3))
         # v6 §15/§16 — profile depth from the vendored authoritative dataset
         # (World Bank / UNDP / Pew figures; the §30 accuracy pipeline refreshes
         # them). gdp_per_capita is derived, never independently guessed.
