@@ -564,7 +564,7 @@ const state = {
     relevance: { global_relevance_default_filter: true, global_relevance_floor: 0.3 },
     audio: { master_gain_default: 0.4, preset: "ambient_default" },
     panes: { transition_duration_ms: 300 },
-    alerts: { in_app_breaking_alert_severity_floor: 3 },
+    alerts: { in_app_breaking_alert_severity_floor: 4 },
     onboarding: { require_ai_key_before_first_run: true },
     attribution: [],
   },
@@ -620,18 +620,6 @@ const pane = new SlidePane(els.slidePane, {
       setFocus(null); state.renderer?.setHighlight?.(null); return;
     }
     if (entry.focus) setFocus(entry.focus.type, entry.focus.name);
-    // v8.13.7 — re-apply the selected-entity glow when this entry becomes the
-    // active pane (e.g. navigating BACK to it), so a country/admin/zone keeps
-    // its pulsing border the whole time its panel is on top.
-    const key = String(entry.key || "");
-    if (entry.targetType === "country" && entry.targetId) highlightCountries([entry.targetId]);
-    else if (key.startsWith("admin:")) highlightAdminUnit(key.slice(6));
-    else if (key.startsWith("autonomous:")) {
-      const z = (state.autonomousZones || []).find((x) => x.id === key.slice(11));
-      highlightFlatRings(z ? zoneRings(z) : null);
-    }
-    // (other pane types — story/region/directory — leave the current highlight
-    // untouched; region deliberately glows its whole country set.)
   },
 });
 
@@ -785,14 +773,10 @@ const ctx = {
     key: "autonomous", title: "Autonomous regions",
     render: (el) => Wiki.renderAutonomousZones(el, ctx),
   }),
-  openAutonomousZone: (zid) => {                         // v8.13.7 glow the zone's border
-    const z = (state.autonomousZones || []).find((x) => x.id === zid);
-    if (z) { const r = zoneRings(z); if (r.length) highlightFlatRings(r); }
-    return pane.push({
-      key: "autonomous:" + zid, title: "autonomous region",
-      render: (el) => Wiki.renderAutonomousZone(el, zid, ctx),
-    });
-  },
+  openAutonomousZone: (zid) => pane.push({
+    key: "autonomous:" + zid, title: "autonomous region",
+    render: (el) => Wiki.renderAutonomousZone(el, zid, ctx),
+  }),
   openEntityByName: (type, name) => {                    // v7.4.1 resolve name→iso3
     const c = BOUNDARIES_50M.find((b) => b.n && b.n.toLowerCase() === (name || "").toLowerCase());
     if (c && c.i) openEntity(type, c.i);
@@ -812,10 +796,10 @@ const ctx = {
   // v8 §5 — an administrative unit (province/state) as a first-class page,
   // the way a country or territory is. Opened by clicking a province on the
   // map (admin layer active) or a province chip on the parent country page.
-  openAdminUnit: (uid) => { highlightAdminUnit(uid); return pane.push({   // v8.13.7 glow the unit's border
+  openAdminUnit: (uid) => pane.push({
     key: "admin:" + uid, title: "administrative unit",
     render: (el) => Wiki.renderAdminUnit(el, uid, ctx),
-  }); },
+  }),
   // v8.8 — a city's own panel (population, country, the admin unit it sits in).
   openCity: (id) => pane.push({
     key: "city:" + id, title: "city",
@@ -876,27 +860,6 @@ function highlightCountries(iso3List) {
     if (iso3List.includes(c.i)) rings.push(...c.r);
   }
   state.renderer?.setHighlight?.(rings.length ? rings : null);
-}
-// v8.13.7 — the SAME pulsing glow for any non-country entity the owner selects
-// (admin division, autonomous zone, …): "their borders should highlight and
-// glow just as if you selected a country." Rings are flat [lon,lat,…] and are
-// pushed to the renderer's dedicated highlight slot; null clears it. Retried a
-// couple of times because an admin unit's rings decode lazily (ensureAdminData)
-// and may not be ready the instant the panel opens.
-function highlightFlatRings(rings, _tries = 0) {
-  if (rings && rings.length) { state.renderer?.setHighlight?.(rings); return; }
-  if (_tries < 6) setTimeout(() => highlightFlatRings(rings, _tries + 1), 250);
-  else state.renderer?.setHighlight?.(null);
-}
-// The flat rings of one admin unit (by uid), decoding the atlas on demand.
-function adminUnitRings(uid) {
-  const u = adminUnitByUid(+uid);
-  return u && u.r && u.r.length ? u.r : null;
-}
-// A promise-aware highlighter for admin units: ensures the atlas payload is
-// loaded, then glows the unit's real border.
-function highlightAdminUnit(uid) {
-  ensureAdminData().then(() => highlightFlatRings(adminUnitRings(uid)));
 }
 
 async function openEntity(type, id, { replace = false } = {}) {
@@ -1205,7 +1168,7 @@ const graphExplorer = new GraphExplorer(els.graphOverlay);
 // autoplay policy by resuming on the first user gesture.
 const sound = new SoundEngine(true);
 const alerts = new Alerts(els.alertsHost, {
-  severityFloor: 3,
+  severityFloor: 4,
   onOpenStory: (id) => openStory(id),
 });
 
@@ -1563,7 +1526,7 @@ async function loadReal() {
   document.documentElement.style.setProperty("--pane-ms",
     ((state.clientConfig.panes || {}).transition_duration_ms ?? 300) + "ms");
   alerts.severityFloor =
-    (state.clientConfig.alerts || {}).in_app_breaking_alert_severity_floor ?? 3;
+    (state.clientConfig.alerts || {}).in_app_breaking_alert_severity_floor ?? 4;
   sound.volume = localStorage.getItem("tdl_sound_vol") !== null
     ? sound.volume : (state.clientConfig.audio || {}).master_gain_default ?? 0.4;
   els.volumeSlider.value = String(Math.round(sound.volume * 100));

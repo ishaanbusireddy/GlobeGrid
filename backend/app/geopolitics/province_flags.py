@@ -44,7 +44,11 @@ CURATED = {
 # party emblem, i.e. fake — so ALL Indian states resolve to the national flag.
 # Pakistan is mixed: the four provinces with real flags are CURATED above, and
 # everything else here falls to the national flag instead of a wrong guess.
-NO_SUBDIVISION_FLAGS = {"IND", "PAK"}
+# v8.13.6 — China added (owner: "Tibet uses old flag … fake ladakh flag"): PRC
+# provinces have no official flags, and the Tibetan snow-lion flag is a banned
+# pro-independence symbol, NOT an official flag — so all Chinese provinces
+# (incl. Tibet/Xizang) resolve to the national flag.
+NO_SUBDIVISION_FLAGS = {"IND", "PAK", "CHN"}
 
 # Subdivision names that collide with a sovereign state name — suppress the blind
 # guess (fall through to a generated seal) unless CURATED has an entry.
