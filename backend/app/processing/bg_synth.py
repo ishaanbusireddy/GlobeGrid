@@ -19,26 +19,13 @@ _inflight = set()
 _lock = threading.Lock()
 
 
-def inflight(key) -> bool:
-    """True if a generation job for this key is currently running."""
-    with _lock:
-        return key in _inflight
-
-
 def kick(key, fn):
     """Run fn() once in a daemon thread, de-duplicated by key. fn is expected
-    to generate and cache a synthesis; its return value is ignored.
-
-    Returns True whenever a job for this key is IN PROGRESS — whether this call
-    started it or one was already running. v8.13.7 fix: it used to return False
-    for an already-running job, which made the route report synth_pending=False
-    on the frontend's 2nd poll while a slow (Ollama) generation was still going,
-    so the page STOPPED polling before any AI field landed and the leader/party
-    AI profile never appeared. Reporting the in-flight job as pending keeps the
-    page polling until the fields are actually cached."""
+    to generate and cache a synthesis; its return value is ignored. Returns
+    True if a job was started, False if one for this key is already running."""
     with _lock:
         if key in _inflight:
-            return True   # already generating → still pending, keep polling
+            return False
         _inflight.add(key)
 
     def _run():

@@ -415,142 +415,6 @@ SUBNATIONAL = {
     ("KAZ", "pavlodar"): _S(language="Russian", dialect="Standard Russian"),
     ("KAZ", "akmola"): _S(language="Russian", dialect="Standard Russian"),
     ("KAZ", "east kazakhstan"): _S(language="Russian", dialect="Standard Russian"),
-    # ======================================================================
-    # v8.13.7 — a much wider curated sub-national layer (owner: "you might have
-    # to add lots of new religions, sects, and languages"). New traditions
-    # introduced here: Hinduism outside India (Bali), Theravada Buddhist belts,
-    # Ismaili/Alawite/Hazara Shia pockets, Druze, folk/animist traditions, and a
-    # long tail of minority languages. All ADM1-keyed, so they now also flow down
-    # to div2/div3 via the parent-ADM1 inheritance in routes_geo._unit_level_values.
-    # ---------------------------------------------------------------------------
-    # Indonesia — Bali is Hindu (a whole new tradition on the map), Aceh strict
-    # Sunni, the east (Papua / NTT / N. Sulawesi) Christian, W. Kalimantan mixed.
-    ("IDN", "bali"): _S(religion="Hinduism", sect="Balinese Hindu",
-                        language="Balinese", dialect="Balinese"),
-    ("IDN", "aceh"): _S(religion="Islam", sect="Sunni (Shafi'i, Sharia)",
-                        language="Acehnese", dialect="Acehnese"),
-    ("IDN", "papua"): _S(religion="Christianity", sect="Protestant", language="Papuan"),
-    ("IDN", "west papua"): _S(religion="Christianity", sect="Protestant", language="Papuan"),
-    ("IDN", "east nusa tenggara"): _S(religion="Christianity", sect="Catholic"),
-    ("IDN", "north sulawesi"): _S(religion="Christianity", sect="Protestant",
-                                  language="Minahasan"),
-    ("IDN", "north sumatra"): _S(religion="Christianity", sect="Protestant (Batak)",
-                                 language="Batak"),
-    ("IDN", "west sumatra"): _S(religion="Islam", sect="Sunni", language="Minangkabau"),
-    ("IDN", "yogyakarta"): _S(language="Javanese", dialect="Javanese"),
-    ("IDN", "central java"): _S(language="Javanese", dialect="Javanese"),
-    ("IDN", "west java"): _S(language="Sundanese", dialect="Sundanese"),
-    # Myanmar — Buddhist Bamar core, Christian highlands, Muslim Rakhine coast.
-    ("MMR", "kachin"): _S(religion="Christianity", sect="Protestant (Baptist)",
-                          language="Kachin (Jingpho)"),
-    ("MMR", "chin"): _S(religion="Christianity", sect="Protestant (Baptist)",
-                        language="Chin"),
-    ("MMR", "kayah"): _S(religion="Christianity", sect="Catholic", language="Karenni"),
-    ("MMR", "kayin"): _S(religion="Buddhism", sect="Theravada Buddhist", language="Karen"),
-    ("MMR", "shan"): _S(religion="Buddhism", sect="Theravada Buddhist", language="Shan"),
-    ("MMR", "rakhine"): _S(religion="Buddhism", sect="Theravada Buddhist",
-                           language="Rakhine"),
-    ("MMR", "mon"): _S(religion="Buddhism", sect="Theravada Buddhist", language="Mon"),
-    # Thailand — the deep south is Malay-Muslim (Sunni), the north-east Isan/Lao.
-    ("THA", "pattani"): _S(religion="Islam", sect="Sunni", language="Malay",
-                           dialect="Pattani Malay"),
-    ("THA", "yala"): _S(religion="Islam", sect="Sunni", language="Malay",
-                        dialect="Pattani Malay"),
-    ("THA", "narathiwat"): _S(religion="Islam", sect="Sunni", language="Malay",
-                              dialect="Pattani Malay"),
-    ("THA", "satun"): _S(religion="Islam", sect="Sunni", language="Malay"),
-    ("THA", "udon thani"): _S(language="Thai", dialect="Isan (Lao)"),
-    ("THA", "khon kaen"): _S(language="Thai", dialect="Isan (Lao)"),
-    ("THA", "chiang mai"): _S(language="Thai", dialect="Northern Thai (Lanna)"),
-    # China — deeper: Yunnan Dai Theravada, Qinghai Tibetan, Gansu/Ningxia Hui.
-    ("CHN", "yunnan"): _S(language="Yi", dialect="Southwestern Mandarin"),
-    ("CHN", "qinghai"): _S(religion="Buddhism", sect="Vajrayana Buddhist",
-                           language="Tibetan"),
-    ("CHN", "gansu"): _S(religion="Islam", sect="Sunni (Hui)"),
-    ("CHN", "hong kong"): _S(dialect="Cantonese (Yue)"),
-    ("CHN", "macau"): _S(dialect="Cantonese (Yue)"),
-    ("CHN", "fujian"): _S(dialect="Hokkien (Min)"),
-    ("CHN", "shanghai"): _S(dialect="Wu (Shanghainese)"),
-    ("CHN", "zhejiang"): _S(dialect="Wu"),
-    # Iran — Sunni Kurdish west, Sunni Baloch south-east, Arab Khuzestan.
-    ("IRN", "kurdistan"): _S(sect="Sunni", language="Kurdish", dialect="Sorani Kurdish"),
-    ("IRN", "sistan and baluchestan"): _S(sect="Sunni", language="Balochi",
-                                          dialect="Balochi"),
-    ("IRN", "khuzestan"): _S(language="Arabic", dialect="Khuzestani Arabic"),
-    ("IRN", "west azarbaijan"): _S(language="Azerbaijani", dialect="Azerbaijani"),
-    ("IRN", "east azarbaijan"): _S(language="Azerbaijani", dialect="Azerbaijani"),
-    ("IRN", "golestan"): _S(sect="Sunni", language="Turkmen"),
-    # Afghanistan — the Hazarajat is Twelver Shia (Hazara); north Tajik/Uzbek.
-    ("AFG", "bamyan"): _S(sect="Twelver Shia", language="Hazaragi"),
-    ("AFG", "daykundi"): _S(sect="Twelver Shia", language="Hazaragi"),
-    ("AFG", "balkh"): _S(language="Dari", dialect="Dari"),
-    ("AFG", "herat"): _S(language="Dari", dialect="Herati Dari"),
-    ("AFG", "kandahar"): _S(language="Pashto", dialect="Kandahari Pashto"),
-    # Saudi Arabia / Bahrain — Twelver Shia pockets on the Gulf coast.
-    ("SAU", "eastern province"): _S(sect="Sunni / Twelver Shia (east)"),
-    # Sri Lanka — Tamil Hindu north, Muslim east, Sinhala Buddhist south.
-    ("LKA", "northern province"): _S(religion="Hinduism", sect="Tamil Hindu",
-                                     language="Tamil", dialect="Sri Lankan Tamil"),
-    ("LKA", "eastern province"): _S(religion="Islam", sect="Sunni", language="Tamil"),
-    # India — fill the Hindi belt + more state languages so div2 is dense.
-    ("IND", "uttar pradesh"): _S(language="Hindi", dialect="Awadhi / Braj"),
-    ("IND", "bihar"): _S(language="Hindi", dialect="Bhojpuri / Maithili"),
-    ("IND", "rajasthan"): _S(language="Hindi", dialect="Rajasthani (Marwari)"),
-    ("IND", "madhya pradesh"): _S(language="Hindi", dialect="Malvi / Bundeli"),
-    ("IND", "chhattisgarh"): _S(language="Hindi", dialect="Chhattisgarhi"),
-    ("IND", "jharkhand"): _S(language="Hindi", dialect="Nagpuri"),
-    ("IND", "haryana"): _S(language="Hindi", dialect="Haryanvi"),
-    ("IND", "himachal pradesh"): _S(language="Hindi", dialect="Pahari"),
-    ("IND", "uttarakhand"): _S(language="Hindi", dialect="Garhwali / Kumaoni"),
-    ("IND", "tripura"): _S(language="Bengali", dialect="Kokborok / Bengali"),
-    # Israel — the north has a large Arab (Muslim/Christian/Druze) population.
-    ("ISR", "northern district"): _S(religion="Islam", sect="Sunni / Druze",
-                                     language="Arabic"),
-    # Lebanon — add the Druze heartland (Chouf sits in Mount Lebanon already).
-    ("SYR", "as-suwayda"): _S(religion="Druze", sect="Druze", language="Arabic"),
-    # United Kingdom — the Celtic nations + the NI communal split.
-    ("GBR", "wales"): _S(language="Welsh", dialect="Welsh"),
-    ("GBR", "scotland"): _S(dialect="Scots / Scottish English"),
-    ("GBR", "northern ireland"): _S(sect="Catholic / Protestant (split)"),
-    # France — the regional/minority languages.
-    ("FRA", "corse"): _S(language="Corsican", dialect="Corsican"),
-    ("FRA", "corsica"): _S(language="Corsican", dialect="Corsican"),
-    # Italy — German South Tyrol, French Aosta, Sardinian Sardinia.
-    ("ITA", "bolzano"): _S(language="German", dialect="South Tyrolean German"),
-    ("ITA", "south tyrol"): _S(language="German", dialect="South Tyrolean German"),
-    ("ITA", "aosta"): _S(language="French", dialect="Valdôtain"),
-    ("ITA", "aosta valley"): _S(language="Italian", dialect="Valdôtain / French"),
-    ("ITA", "sardinia"): _S(language="Sardinian", dialect="Sardinian"),
-    ("ITA", "sassari"): _S(language="Sardinian", dialect="Sassarese"),
-    ("ITA", "cagliari"): _S(language="Sardinian", dialect="Campidanese"),
-    ("ITA", "nuoro"): _S(language="Sardinian", dialect="Logudorese"),
-    # Ethiopia — the big ethnolinguistic regions + Orthodox/Muslim split.
-    ("ETH", "tigray"): _S(religion="Christianity", sect="Oriental Orthodox",
-                          language="Tigrinya"),
-    ("ETH", "amhara"): _S(religion="Christianity", sect="Oriental Orthodox",
-                          language="Amharic"),
-    ("ETH", "oromia"): _S(language="Oromo", dialect="Oromo"),
-    ("ETH", "harari"): _S(religion="Islam", sect="Sunni", language="Harari"),
-    # South Africa — provincial home languages.
-    ("ZAF", "kwazulu-natal"): _S(language="Zulu", dialect="Zulu"),
-    ("ZAF", "eastern cape"): _S(language="Xhosa", dialect="Xhosa"),
-    ("ZAF", "western cape"): _S(language="Afrikaans", dialect="Afrikaans"),
-    ("ZAF", "limpopo"): _S(language="Northern Sotho", dialect="Sepedi"),
-    ("ZAF", "free state"): _S(language="Southern Sotho", dialect="Sesotho"),
-    # Kenya — the coast is Muslim/Swahili; the north-east Somali.
-    ("KEN", "mombasa"): _S(religion="Islam", sect="Sunni", language="Swahili"),
-    ("KEN", "garissa"): _S(religion="Islam", sect="Sunni", language="Somali"),
-    ("KEN", "wajir"): _S(religion="Islam", sect="Sunni", language="Somali"),
-    ("KEN", "mandera"): _S(religion="Islam", sect="Sunni", language="Somali"),
-    # Georgia — Adjara has a large Muslim minority; the south-east is Azeri.
-    ("GEO", "adjara"): _S(religion="Islam", sect="Sunni", language="Georgian"),
-    ("GEO", "kvemo kartli"): _S(language="Azerbaijani", dialect="Azerbaijani"),
-    # Tanzania mainland vs Zanzibar covered above; add the Swahili coast label.
-    # Nepal — the mountainous north is Tibetan-Buddhist.
-    ("NPL", "karnali"): _S(religion="Hinduism", sect="Hindu / Tibetan Buddhist"),
-    # Vietnam — the Central Highlands host Christian minorities.
-    ("VNM", "gia lai"): _S(religion="Christianity", sect="Protestant", language="Jarai"),
-    ("VNM", "kon tum"): _S(religion="Christianity", sect="Protestant"),
 }
 
 
@@ -562,24 +426,12 @@ def country_dialect(iso3):
     return COUNTRY_DIALECT.get(iso3)
 
 
-def unit_value(iso3, unit_name, field, country_religion, country_language,
-               adm1_name=None):
+def unit_value(iso3, unit_name, field, country_religion, country_language):
     """Return the categorical value for one admin unit and one field
     ('religion' | 'sect' | 'language' | 'dialect'), applying the curated
     sub-national override, then falling back to the country value.
-
-    v8.13.7 — `adm1_name` lets a DEEPER-tier unit (div2 district / div3 ward)
-    inherit its parent ADM1's override. The SUBNATIONAL table is keyed by ADM1
-    name, so without this a div2 district would never pick up "Kerala →
-    Malayalam" / "Basra → Twelver Shia" and the sub-national heterogeneity
-    vanished the moment you switched from div1 to div2. The unit's OWN name is
-    tried first (a rare div2-specific entry wins), then its ADM1 parent.
     """
     override = SUBNATIONAL.get((iso3, (unit_name or "").strip().lower()))
-    if not (override and field in override) and adm1_name:
-        parent = SUBNATIONAL.get((iso3, (adm1_name or "").strip().lower()))
-        if parent and field in parent:
-            override = parent
     if override and field in override:
         return override[field]
     if field == "religion":

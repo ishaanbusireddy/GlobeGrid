@@ -1266,18 +1266,8 @@ export async function renderUN(el, ctx) {
 // continent, the Antarctic Treaty, and the seven territorial claims as chips
 // that open the matching disputed-zone breakdown.
 export async function renderAntarctica(el, ctx) {
-  // v8.13.6 — fly the real Antarctic Treaty emblem as Antarctica's "flag"
-  // (owner: "instead of an ice cube emoji … use the emblem of the Antarctic
-  // Treaty as a flag"), degrading to the glyph if the image can't load.
-  const treatyFlag = "https://commons.wikimedia.org/wiki/Special:FilePath/" +
-    encodeURIComponent("Flag of the Antarctic Treaty.svg") + "?width=96";
-  el.innerHTML = `<div class="wiki-header">
-      <div class="wiki-flag"><img src="${treatyFlag}" alt="Antarctic Treaty flag"
-        style="height:60px;width:auto;box-shadow:0 0 0 1px rgba(255,255,255,.18)"
-        onerror="this.replaceWith(document.createTextNode('🧊'))"></div>
-      <div class="wiki-head-meta"><h1>Antarctica</h1>
-        <p class="cp-meta">The southern polar continent · no permanent population · governed by the Antarctic Treaty System</p></div>
-    </div>`;
+  el.innerHTML = `<h1>🧊 Antarctica</h1>
+    <p class="cp-meta">The southern polar continent · no permanent population · governed by the Antarctic Treaty System</p>`;
   const d = await api.disputedZones().catch(() => ({ zones: [] }));
   const claims = (d.zones || []).filter((z) => (z.id || "").startsWith("antarctica_"));
   el.innerHTML += `
@@ -1737,13 +1727,9 @@ export async function renderPartyDossier(el, name, iso, ctx) {
   }
   el.innerHTML = html;
   wireStoryChips(el, ctx);
-  // v8.13.7 — re-render every 5s until the AI dossier lands (was a single
-  // re-fetch, which missed a slow local model). Capped so it can't loop forever.
+  // v7.4.2 — if the AI profile was pending, re-fetch once to upgrade in place
   if (d.synth_pending) {
-    el._pdTries = (el._pdTries || 0) + 1;
-    if (el._pdTries <= 10 && el.isConnected) {
-      setTimeout(() => renderPartyDossier(el, name, iso, ctx), 5000);
-    }
+    setTimeout(() => renderPartyDossier(el, name, iso, ctx), 6000);
   }
 }
 
@@ -2149,11 +2135,9 @@ export async function renderLeader(el, name, ctx) {
   // v6.6.8 — the profile fills in FIELD BY FIELD in the background; poll a few
   // times to paint each field as it lands (fast per-field generation).
   if (d.synth_pending) {
-    // v8.13.7 — poll longer (a slow local Ollama can take ~30-60s to fill all
-    // five fields); repaint each field as it lands, stop once synthesis is done.
     let tries = 0;
     const poll = async () => {
-      if (!el.isConnected || tries++ >= 14) return;
+      if (!el.isConnected || tries++ >= 5) return;
       const d2 = await api.leaderProfile(name).catch(() => null);
       if (d2 && el.isConnected) paintLeader(el, name, d2, ctx);
       if (d2 && d2.synth_pending) setTimeout(poll, 4000);
