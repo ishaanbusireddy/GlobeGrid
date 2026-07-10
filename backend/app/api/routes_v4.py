@@ -30,7 +30,7 @@ def cities(params, q, body):
     min_pop = int(q.get("min_population", 500000))
     limit = min(int(q.get("limit", 4000)), 12000)
     rows = query(
-        "SELECT name, lat, lon, country_code, population FROM gazetteer_places"
+        "SELECT id, name, lat, lon, country_code, population FROM gazetteer_places"  # v8.8 — id → clickable city chips
         " WHERE population >= ? ORDER BY population DESC LIMIT ?", (min_pop, limit))
     return 200, {"cities": [dict(r) for r in rows],
                  "attribution": "Geocoding data © GeoNames (geonames.org), CC BY 4.0"}

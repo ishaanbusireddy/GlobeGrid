@@ -736,17 +736,46 @@ export class SoundEngine {
       this._kick(t, 0.12, false);
       return;
     }
-    // v7.4 — a crisp, obvious "ping" (owner: "make the noise that plays when
-    // events stream in more obvious and pingy"). The 700ms rate-limit above
-    // still prevents the old buzz, so each individual arrival can be a clear
-    // bell-like notification: a bright two-tone with a fast bell attack, a
-    // short ringing decay and a little more presence than the soft v6.6.2 chime.
-    const ping = { attack: 0.004, decay: 0.09, sustain: 0.12, release: 0.28,
-                   cutoff: 5200, resonance: 1.1 };
-    // bright fundamental + an octave shimmer = a recognizable "ding-ping"
-    this._note(midiHz(scale.root + 24), t, 0.32, 0.095, "sine", 0, ping);
-    this._note(midiHz(scale.root + 31), t + 0.055, 0.28, 0.07, "triangle", 0, ping);
-    this._note(midiHz(scale.root + 36), t + 0.11, 0.22, 0.045, "sine", 0, ping);
+    // v8.13.3 — a brighter, cooler "sparkle" arrival (owner: "nice bright
+    // engaging cool sounds … everything super cool"). A fast ascending 4-note
+    // arpeggio (root+octave → +maj3 → +5 → +2 octaves) with a crisp bell attack,
+    // a ringing decay and a high shimmer top — reads as an energetic "stream-in"
+    // chime, not a flat ding. The 700ms rate-limit above still stops any buzz.
+    const spark = { attack: 0.003, decay: 0.08, sustain: 0.14, release: 0.32,
+                    cutoff: 6200, resonance: 1.2 };
+    const r = scale.root;
+    this._note(midiHz(r + 24), t,         0.28, 0.085, "sine",     0, spark);
+    this._note(midiHz(r + 28), t + 0.045, 0.26, 0.070, "triangle", 0, spark);
+    this._note(midiHz(r + 31), t + 0.090, 0.24, 0.058, "sine",     0, spark);
+    this._note(midiHz(r + 36), t + 0.140, 0.34, 0.048, "sine",     0, spark);  // octave sparkle top
+  }
+
+  // v8.13.3 — a distinct, dramatic-but-pleasant BREAKING-NEWS cue (owner:
+  // "make sure the breaking news notifications come in fluidly … with nice
+  // bright engaging cool sounds"). Separate from the ordinary arrival ping so a
+  // high-severity story lands with real presence: a soft sub-impact to grab
+  // attention (never harsh) under a bright rising major fanfare arpeggio and a
+  // shimmering tail. Rate-limited so a burst can't stack into a drone.
+  breaking() {
+    if (!this.enabled || !this.ctx) return;
+    const nowMs = this.ctx.currentTime * 1000;
+    if (this._lastBreakMs && nowMs - this._lastBreakMs < 1200) return;
+    this._lastBreakMs = nowMs;
+    const t = this.ctx.currentTime;
+    const r = this._scale().root;
+    // soft sub impact — a rounded low sine, not a click
+    this._note(midiHz(r - 12), t, 0.5, 0.11, "sine", 0,
+               { attack: 0.006, decay: 0.2, sustain: 0.0, release: 0.42, cutoff: 240 });
+    // bright rising fanfare (major triad climbing two octaves)
+    const bright = { attack: 0.004, decay: 0.1, sustain: 0.22, release: 0.5,
+                     cutoff: 6600, resonance: 1.2 };
+    [0, 4, 7, 12, 16].forEach((semi, i) => {
+      this._note(midiHz(r + 24 + semi), t + 0.06 + i * 0.07, 0.5,
+                 Math.max(0.03, 0.085 - i * 0.009), i % 2 ? "triangle" : "sine", 0, bright);
+    });
+    // high shimmer tail — the "cool" glisten after the fanfare
+    this._note(midiHz(r + 43), t + 0.5, 0.8, 0.03, "sine", 0,
+               { attack: 0.02, decay: 0.32, sustain: 0.18, release: 0.95, cutoff: 7200 });
   }
 
   noteSeverity(sev) { this.lastSeverity = Math.max(this.lastSeverity, sev || 1); }
@@ -808,6 +837,24 @@ export class SoundEngine {
     const sev = ev.severity || 1;
     const lon = (ev.location && ev.location.lon) || 0;
     const pan = Math.max(-1, Math.min(1, lon / 180));
+    // v8.13 — category-textured event cue (owner: "conflict events should sound
+    // more conflicty; tech news a brighter pingy tech sound"). Conflict/military
+    // = a low, harsh martial thud (sawtooth, sub-octave, tight low-pass);
+    // technology = a bright crystalline ping (sine, high, ringing); everything
+    // else keeps the neutral square-grain cluster.
+    const cat = ev.category || "";
+    if (cat === "conflict" || cat === "military" || ev.development_type === "conflict") {
+      const thud = { attack: 0.004, decay: 0.12, sustain: 0.1, release: 0.22, cutoff: 620, resonance: 1.6 };
+      this._note(70 + sev * 8, t, 0.26, 0.09, "sawtooth", pan, thud);        // sub thud
+      this._note(150 + sev * 12, t + 0.02, 0.2, 0.06, "square", pan, thud);  // harsh body
+      return;
+    }
+    if (cat === "technology") {
+      const ping = { attack: 0.002, decay: 0.06, sustain: 0.08, release: 0.3, cutoff: 6200, resonance: 1.2 };
+      this._note(1760, t, 0.28, 0.07, "sine", pan, ping);                    // bright
+      this._note(2637, t + 0.05, 0.22, 0.04, "sine", pan, ping);            // shimmer
+      return;
+    }
     const base = 1400 - sev * 180;
     for (let i = 0; i < 2 + sev; i++) {   // grain cluster
       const jitter = (Math.random() - 0.5) * 220;

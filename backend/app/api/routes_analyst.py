@@ -211,6 +211,77 @@ def _leader_match(question: str) -> str | None:
     return best
 
 
+# v8.13 — the analyst can drive the whole UI, not just open entity pages.
+_MAPMODE_KEYWORDS = {
+    "hdi": "hdi", "human development": "hdi", "nuclear": "nuclear_arsenal",
+    "gdp per capita": "gdp_per_capita", "gdp": "gdp", "population density": "population_density",
+    "population": "population", "religious sect": "religious_sect", "sect": "religious_sect",
+    "religion": "religion", "dialect": "dialect", "language": "language",
+    "climate": "climate", "altitude": "altitude", "elevation": "altitude",
+}
+_UI_ACTIONS = {
+    "settings": "settings", "what if": "whatif", "what-if": "whatif",
+    "counterfactual": "whatif",
+    "united nations": "un", "un panel": "un", "conflicts": "conflicts",
+    "sources": "sources", "briefing": "briefing", "stories": "stories",
+    "hotspots": "hotspots", "all events": "events", "every event": "events",
+    "browse events": "events", "all the events": "events",
+}
+
+
+def _mapmode_match(lowered: str) -> dict | None:
+    """"show the religion map", "switch to population density", "climate mode"."""
+    if not any(w in lowered for w in ("map", "mode", "colou", "color", "choropleth", "show", "shade")):
+        return None
+    # longest keyword first so "gdp per capita" beats "gdp", "religious sect" beats "religion"
+    for kw in sorted(_MAPMODE_KEYWORDS, key=len, reverse=True):
+        if kw in lowered:
+            mid = _MAPMODE_KEYWORDS[kw]
+            return {"type": "mapmode", "id": mid, "name": kw, "context": {"mode": mid}}
+    return None
+
+
+def _ui_match(lowered: str) -> dict | None:
+    """"open settings", "open the what-if engine", "show the UN panel"."""
+    if not any(w in lowered for w in ("open", "show", "go to", "take me", "bring up")):
+        return None
+    for kw in sorted(_UI_ACTIONS, key=len, reverse=True):
+        if kw in lowered:
+            act = _UI_ACTIONS[kw]
+            return {"type": "ui", "id": act, "name": kw, "context": {"action": act}}
+    return None
+
+
+def _candidate_phrases(question: str) -> list:
+    """Capitalized multi/single-word phrases from the ORIGINAL question — the
+    proper nouns a division/city name would appear as."""
+    return re.findall(r"\b([A-Z][\w’'-]+(?:\s+[A-Z][\w’'-]+){0,3})", question or "")
+
+
+def _admin_unit_match(question: str) -> dict | None:
+    """A province/state/district/… named in the question → its unit page."""
+    for cand in _candidate_phrases(question):
+        row = query_one(
+            "SELECT admin_uid, name, country_id, adm_level FROM administrative_units"
+            " WHERE name = ? COLLATE NOCASE LIMIT 1", (cand,))
+        if row:
+            return {"type": "admin", "id": row["admin_uid"], "name": row["name"],
+                    "context": dict(row)}
+    return None
+
+
+def _city_match(question: str) -> dict | None:
+    """A gazetteer city named in the question → its city page (largest match)."""
+    for cand in _candidate_phrases(question):
+        row = query_one(
+            "SELECT id, name, country_code, population FROM gazetteer_places"
+            " WHERE name = ? COLLATE NOCASE ORDER BY population DESC LIMIT 1", (cand,))
+        if row:
+            return {"type": "city", "id": row["id"], "name": row["name"],
+                    "context": dict(row)}
+    return None
+
+
 def _entity_match(question: str) -> dict | None:
     """Path 1 — structured entity match against the §13-23 layer."""
     lowered = question.lower()
@@ -260,6 +331,22 @@ def _entity_match(question: str) -> dict | None:
         if r["name"].split(" (")[0].lower() in lowered:
             return {"type": "location", "id": r["id"], "name": r["name"],
                     "context": dict(r)}
+    # v8.13 — the analyst opens ANYTHING (owner: "the analyst should be able to
+    # open any … districts, divisions, cities, map modes, menus"). A map-mode /
+    # UI-action command is checked first (they're explicit "show the X map" /
+    # "open X" instructions), then administrative divisions and cities by name.
+    mm = _mapmode_match(lowered)
+    if mm:
+        return mm
+    ui = _ui_match(lowered)
+    if ui:
+        return ui
+    admin = _admin_unit_match(question)
+    if admin:
+        return admin
+    city = _city_match(question)
+    if city:
+        return city
     # v5 §20 — region match: 'what's happening in Eastern Europe?' resolves to
     # a region (distinct countries.region values), opening a region summary
     # page rather than failing to match or defaulting to a single country.

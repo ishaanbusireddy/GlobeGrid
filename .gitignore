@@ -245,3 +245,5 @@ scripts/_ne_admin1.geojson
 scripts/_gb_*.geojson
 
 scripts/_hist_world_*.geojson
+logs/*.log.*
+logs/app.log*

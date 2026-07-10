@@ -78,14 +78,20 @@ export function adminCrest(unit, size = 40, cls = "") {
   const alt = esc((unit.name || "") + " flag");
   const style = `height:${Math.round(size * 0.66)}px`;
   if (own) {
-    // real (constructed) province flag; on 404 fall back to the national flag,
-    // then to nothing — never a fake seal.
-    const err = nat
-      ? `onerror="if(this.dataset.n){this.remove()}else{this.dataset.n=1;this.src='${nat}';this.classList.add('is-national')}"`
-      : `onerror="this.remove()"`;
+    // v8.13.7 — a division that HAS its own flag must NEVER fall back to the
+    // NATIONAL flag (owner: "Wyoming shows the US flag … national flags should
+    // only be a fallback if the division has no flag/emblem of its own"). The
+    // old code swapped to the country flag on any load hiccup, and the backend
+    // used a throttled Special:FilePath redirect that 404s in bulk — so ~50
+    // state chips loading at once mostly fell to the national flag. The backend
+    // now emits the direct (un-throttled) Wikimedia CDN URL, and on the rare
+    // remaining failure we show a neutral placeholder, not the country flag.
+    const err = `onerror="this.outerHTML='<span class=&quot;admin-flag-empty ${cls}&quot; title=&quot;flag&quot;>▧</span>'"`;
     return `<img class="admin-flag ${cls}" src="${own}" alt="${alt}" style="${style}" loading="lazy" ${err}>`;
   }
   if (nat) {
+    // no own flag (India/Pakistan/China states have none) → the national flag is
+    // the honest, intended fallback here (owner v8.13.4/.6), not a fake emblem.
     return `<img class="admin-flag is-national ${cls}" src="${nat}" alt="${alt}" style="${style}" loading="lazy" onerror="this.remove()">`;
   }
   return `<span class="admin-flag-empty ${cls}" title="flag pending">▧</span>`;
@@ -1266,8 +1272,18 @@ export async function renderUN(el, ctx) {
 // continent, the Antarctic Treaty, and the seven territorial claims as chips
 // that open the matching disputed-zone breakdown.
 export async function renderAntarctica(el, ctx) {
-  el.innerHTML = `<h1>🧊 Antarctica</h1>
-    <p class="cp-meta">The southern polar continent · no permanent population · governed by the Antarctic Treaty System</p>`;
+  // v8.13.6 — fly the real Antarctic Treaty emblem as Antarctica's "flag"
+  // (owner: "instead of an ice cube emoji … use the emblem of the Antarctic
+  // Treaty as a flag"), degrading to the glyph if the image can't load.
+  const treatyFlag = "https://commons.wikimedia.org/wiki/Special:FilePath/" +
+    encodeURIComponent("Flag of the Antarctic Treaty.svg") + "?width=96";
+  el.innerHTML = `<div class="wiki-header">
+      <div class="wiki-flag"><img src="${treatyFlag}" alt="Antarctic Treaty flag"
+        style="height:60px;width:auto;box-shadow:0 0 0 1px rgba(255,255,255,.18)"
+        onerror="this.replaceWith(document.createTextNode('🧊'))"></div>
+      <div class="wiki-head-meta"><h1>Antarctica</h1>
+        <p class="cp-meta">The southern polar continent · no permanent population · governed by the Antarctic Treaty System</p></div>
+    </div>`;
   const d = await api.disputedZones().catch(() => ({ zones: [] }));
   const claims = (d.zones || []).filter((z) => (z.id || "").startsWith("antarctica_"));
   el.innerHTML += `
@@ -1727,9 +1743,13 @@ export async function renderPartyDossier(el, name, iso, ctx) {
   }
   el.innerHTML = html;
   wireStoryChips(el, ctx);
-  // v7.4.2 — if the AI profile was pending, re-fetch once to upgrade in place
+  // v8.13.7 — re-render every 5s until the AI dossier lands (was a single
+  // re-fetch, which missed a slow local model). Capped so it can't loop forever.
   if (d.synth_pending) {
-    setTimeout(() => renderPartyDossier(el, name, iso, ctx), 6000);
+    el._pdTries = (el._pdTries || 0) + 1;
+    if (el._pdTries <= 10 && el.isConnected) {
+      setTimeout(() => renderPartyDossier(el, name, iso, ctx), 5000);
+    }
   }
 }
 
@@ -2135,9 +2155,11 @@ export async function renderLeader(el, name, ctx) {
   // v6.6.8 — the profile fills in FIELD BY FIELD in the background; poll a few
   // times to paint each field as it lands (fast per-field generation).
   if (d.synth_pending) {
+    // v8.13.7 — poll longer (a slow local Ollama can take ~30-60s to fill all
+    // five fields); repaint each field as it lands, stop once synthesis is done.
     let tries = 0;
     const poll = async () => {
-      if (!el.isConnected || tries++ >= 5) return;
+      if (!el.isConnected || tries++ >= 14) return;
       const d2 = await api.leaderProfile(name).catch(() => null);
       if (d2 && el.isConnected) paintLeader(el, name, d2, ctx);
       if (d2 && d2.synth_pending) setTimeout(poll, 4000);

@@ -14,12 +14,18 @@ export class Alerts {
     this.enabled = localStorage.getItem("tdl_alerts_enabled") !== "0";
   }
 
+  // v8.13.3 — returns true when a toast was actually shown, so the caller can
+  // fire the matching bright "breaking" audio cue only for real alerts. The
+  // toast now carries a shrinking countdown bar (`bt-timer`) and its entrance /
+  // glow / shimmer are handled in CSS for a fluid, moderately-flashy pop.
   maybeAlert(story, severity) {
-    if (!this.enabled) return;
-    if ((severity || 0) < this.severityFloor) return;
+    if (!this.enabled) return false;
+    if ((severity || 0) < this.severityFloor) return false;
     const toast = document.createElement("div");
     toast.className = "breaking-toast";
-    toast.innerHTML = `<span class="bt-badge">⚡ breaking</span> <span class="bt-head"></span>`;
+    toast.innerHTML =
+      `<span class="bt-badge">⚡ breaking</span> <span class="bt-head"></span>` +
+      `<span class="bt-timer"></span>`;
     toast.querySelector(".bt-head").textContent =
       (story.headline || "high-severity story").slice(0, 90);
     toast.addEventListener("click", () => {
@@ -27,9 +33,10 @@ export class Alerts {
       toast.remove();
     });
     this.host.appendChild(toast);
-    // slide-in handled by CSS; auto-dismiss with fade
+    // slide-in / glow / shimmer handled by CSS; auto-dismiss with a fluid fade
     setTimeout(() => toast.classList.add("bt-out"), 9000);
     setTimeout(() => toast.remove(), 9600);
     while (this.host.children.length > 3) this.host.firstChild.remove();
+    return true;
   }
 }

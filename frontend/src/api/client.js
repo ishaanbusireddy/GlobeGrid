@@ -57,12 +57,13 @@ export const api = {
     return get(`/api/stories?${q}`);
   },
   story: (id) => get(`/api/stories/${id}`),
-  events: ({ bbox, category, since, as_of } = {}) => {
+  events: ({ bbox, category, since, as_of, limit } = {}) => {
     const q = new URLSearchParams();
     if (bbox) q.set("bbox", bbox);
     if (category) q.set("category", category);
     if (since) q.set("since", since);
     if (as_of) q.set("as_of", as_of);
+    if (limit) q.set("limit", limit);
     return get(`/api/events?${q}`);
   },
   mapEvents: ({ category, since, as_of, min_relevance, conflict_id } = {}) => {

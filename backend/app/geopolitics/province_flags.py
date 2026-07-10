@@ -16,8 +16,30 @@ Two correctness guards:
     flag, so we suppress the guess (→ seal) unless we have a curated correct URL.
   - CURATED: hand-verified correct filenames for the notable collisions.
 """
+import hashlib
 import urllib.parse
 
+
+def _commons_thumb(filename, width=160):
+    """Direct Wikimedia CDN thumbnail URL for a Commons file.
+
+    v8.13.7 — the old approach hit `commons.wikimedia.org/wiki/Special:FilePath/…`,
+    a 302-REDIRECT endpoint that Wikimedia rate-limits: a country page that lists
+    ~50 state chips fires ~50 of those at once, many get throttled → they 404 →
+    the frontend fell back to the NATIONAL flag, so states WITH their own flag
+    (Wyoming, Bavaria, …) wrongly showed the country flag. The direct upload host
+    (`upload.wikimedia.org/.../thumb/{a}/{ab}/{file}/{w}px-{file}.png`, where
+    a/ab are the first hex chars of md5(underscored filename)) is the CDN itself —
+    no redirect, no throttle, safe to embed in bulk. All our files are .svg, so
+    the thumbnail is a rendered PNG."""
+    name = filename.replace(" ", "_")
+    md5 = hashlib.md5(name.encode("utf-8")).hexdigest()
+    enc = urllib.parse.quote(name)
+    return ("https://upload.wikimedia.org/wikipedia/commons/thumb/"
+            f"{md5[0]}/{md5[0:2]}/{enc}/{width}px-{enc}.png")
+
+
+# retained for any caller that still wants the (throttled) redirect form
 _BASE = "https://commons.wikimedia.org/wiki/Special:FilePath/{f}?width=160"
 
 # (name, iso3) -> exact Commons filename (no path), for known collisions where
@@ -44,7 +66,11 @@ CURATED = {
 # party emblem, i.e. fake — so ALL Indian states resolve to the national flag.
 # Pakistan is mixed: the four provinces with real flags are CURATED above, and
 # everything else here falls to the national flag instead of a wrong guess.
-NO_SUBDIVISION_FLAGS = {"IND", "PAK"}
+# v8.13.6 — China added (owner: "Tibet uses old flag … fake ladakh flag"): PRC
+# provinces have no official flags, and the Tibetan snow-lion flag is a banned
+# pro-independence symbol, NOT an official flag — so all Chinese provinces
+# (incl. Tibet/Xizang) resolve to the national flag.
+NO_SUBDIVISION_FLAGS = {"IND", "PAK", "CHN"}
 
 # Subdivision names that collide with a sovereign state name — suppress the blind
 # guess (fall through to a generated seal) unless CURATED has an entry.
@@ -62,10 +88,9 @@ def flag_url(name, iso3, iso2=None):
     iso3u = (iso3 or "").upper()
     key = (name.strip(), iso3u)
     if key in CURATED:                       # a hand-verified correct flag
-        return _BASE.format(f=urllib.parse.quote(CURATED[key]))
+        return _commons_thumb(CURATED[key])
     if iso3u in NO_SUBDIVISION_FLAGS:        # no real subdivision flags → national
         return None
     if name.strip().lower() in COLLISION_BLOCK:
         return None
-    fname = urllib.parse.quote(f"Flag of {name.strip()}.svg")
-    return _BASE.format(f=fname)
+    return _commons_thumb(f"Flag of {name.strip()}.svg")

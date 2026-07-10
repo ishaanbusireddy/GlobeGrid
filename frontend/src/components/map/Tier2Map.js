@@ -148,6 +148,7 @@ export class Tier2Map {
   }
   // v8 §3 — real ADM1 (province) borders: a flat list of [lon,lat,…] rings,
   // drawn only when the layer is toggled on AND zoomed in (gate in draw()).
+  setAdminLabels(labels) { this.adminLabels = labels || []; this.draw(); }   // v8.13.6
   setAdminBoundaries(rings) { this.adminRings = rings || []; this.draw(); }
   setAdmin2Boundaries(rings) { this.admin2Rings = rings || []; this.draw(); }   // v8.1
   setAdmin3Boundaries(rings) { this.admin3Rings = rings || []; this.draw(); }   // v8.2
@@ -581,9 +582,13 @@ export class Tier2Map {
         const adminOn = (this.adminVis[0] && this.zoom >= 2.5 && this.adminRings.length)
                      || (this.adminVis[1] && this.zoom >= 4.5 && this.admin2Rings.length)
                      || (this.adminVis[2] && this.zoom >= 7 && this.admin3Rings.length);
-        const stroke = adminOn ? "rgba(122,146,190,0.16)"
+        // v8.13.6 — with an admin tier active, the national border is drawn in a
+        // DISTINCT bright amber (was dimmed to near-invisible) so you can still
+        // see where the country lines are under the cooler admin lines (owner:
+        // "make the border between countries a different colour").
+        const stroke = adminOn ? "rgba(255,196,92,0.85)"
                                : (this.landStroke || "rgba(122,146,190,0.5)");
-        this._strokeBoundaryTiles(boundaries, lodKey, off, stroke, 1);
+        this._strokeBoundaryTiles(boundaries, lodKey, off, stroke, adminOn ? 1.5 : 1);
       }
       // alliance tint (§4.1 parity with the globe's bloc overlay)
       if (this.allianceRings) {
@@ -744,6 +749,41 @@ export class Tier2Map {
           ctx.lineWidth = 3;
           ctx.strokeStyle = `rgba(6,10,18,${(alpha * 0.7).toFixed(2)})`;
           ctx.fillStyle = `rgba(225,232,246,${alpha.toFixed(2)})`;
+          ctx.strokeText(l.name, xx, y);
+          ctx.fillText(l.name, xx, y);
+        }
+      }
+    }
+
+    // v8.13.6 — on-map ADMIN-UNIT names that fade in by apparent size, so a
+    // raion / Italian comune only shows once you've zoomed in a LOT, while a big
+    // province shows sooner (owner request). Gated on the admin layer being on.
+    if (this.adminLabels && this.adminLabels.length
+        && (this.adminVis[0] || this.adminVis[1] || this.adminVis[2])) {
+      const scale = this._scale();
+      const placedA = [];
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      for (const l of this.adminLabels) {
+        if (this._vb && (l.lat < this._vb.minLat - 2 || l.lat > this._vb.maxLat + 2)) continue;
+        const apparentPx = (l.span || 1) * scale;
+        if (apparentPx < 70) continue;   // higher floor than countries → only legible units
+        const alpha = Math.min(0.8, 0.15 + (apparentPx - 70) / 40 * 0.6);
+        const [x, y] = this._project(l.lat, l.lon);
+        for (const off of tiles) {
+          const xx = x + off;
+          if (xx < 0 || xx > w || y < 0 || y > h) continue;
+          let collide = false;
+          for (const q of placedA) {
+            if (Math.abs(q[0] - xx) < 48 && Math.abs(q[1] - y) < 12) { collide = true; break; }
+          }
+          if (collide) continue;
+          placedA.push([xx, y]);
+          const fs = Math.max(9, Math.min(13, apparentPx / 12));
+          ctx.font = `500 ${fs}px system-ui`;
+          ctx.lineWidth = 2.5;
+          ctx.strokeStyle = `rgba(6,10,18,${(alpha * 0.7).toFixed(2)})`;
+          ctx.fillStyle = `rgba(196,214,230,${alpha.toFixed(2)})`;
           ctx.strokeText(l.name, xx, y);
           ctx.fillText(l.name, xx, y);
         }

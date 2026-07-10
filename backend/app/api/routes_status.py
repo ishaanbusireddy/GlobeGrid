@@ -68,21 +68,35 @@ def sources_status(params, q, body):
                  " ELSE 2 END, name")
     day_ago = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat(
         timespec="seconds").replace("+00:00", "Z")
+    # v8.13 — the per-source uptime stats + recent history were computed with TWO
+    # sub-queries PER source (~276 sources → ~550 queries), so the health drawer
+    # could exceed the client timeout and show "unavailable" (owner: "the source
+    # health page … says timeout"). Batched into set-based queries, same fix as
+    # the v7.4.5 /api/stories batching.
+    uptime = {r["source_id"]: r for r in query(
+        "SELECT source_id, COUNT(*) AS total,"
+        " SUM(CASE WHEN status = 'ok' THEN 1 ELSE 0 END) AS ok_count"
+        " FROM source_uptime_history WHERE checked_at >= ? GROUP BY source_id",
+        (day_ago,))}
+    # recent 24 checks per source in ONE query via a window function (SQLite
+    # 3.25+); if the runtime's SQLite is older it degrades to no sparkline.
+    recent_by_src: dict = {}
+    try:
+        for x in query(
+                "SELECT source_id, status FROM ("
+                "  SELECT source_id, status, checked_at,"
+                "  ROW_NUMBER() OVER (PARTITION BY source_id ORDER BY checked_at DESC) rn"
+                "  FROM source_uptime_history) WHERE rn <= 24 ORDER BY checked_at ASC"):
+            recent_by_src.setdefault(x["source_id"], []).append(x["status"])
+    except Exception:  # noqa: BLE001 — window functions unavailable → skip sparkline
+        recent_by_src = {}
     sources = []
     for r in rows:
         d = dict(r)
-        # v2 §7.1 — 24h uptime percentage + compact recent history
-        stats = query_one(
-            "SELECT COUNT(*) AS total,"
-            " SUM(CASE WHEN status = 'ok' THEN 1 ELSE 0 END) AS ok_count"
-            " FROM source_uptime_history WHERE source_id = ? AND checked_at >= ?",
-            (r["id"], day_ago))
-        d["uptime_24h_pct"] = (round(100.0 * stats["ok_count"] / stats["total"], 1)
-                               if stats["total"] else None)
-        recent = query(
-            "SELECT status FROM source_uptime_history WHERE source_id = ?"
-            " ORDER BY checked_at DESC LIMIT 24", (r["id"],))
-        d["recent_history"] = [x["status"] for x in reversed(recent)]
+        st = uptime.get(r["id"])
+        d["uptime_24h_pct"] = (round(100.0 * st["ok_count"] / st["total"], 1)
+                               if st and st["total"] else None)
+        d["recent_history"] = recent_by_src.get(r["id"], [])
         sources.append(d)
     return 200, {"sources": sources, "attribution": [GEONAMES_ATTRIBUTION]}
 

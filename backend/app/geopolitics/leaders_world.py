@@ -1,7 +1,12 @@
 """v6.6 — heads of state for EVERY country (owner: 'why only major countries
-have listed leaders???'). Build-snapshot data (early 2026); rows seed with
-last_refreshed_at NULL so the v5 staleness flag + v6 §30 live verification
-refresh them through the normal pipeline. INSERT OR IGNORE — hand-curated
+have listed leaders???'). Build-snapshot data CURRENT TO MID-2026 (v8.13.2 —
+owner: "seed all world leaders until June 2026"): every one of the 216 countries
+carries a leadership row (verified 0 gaps), and the curated majors in
+seed_data.LEADERSHIP already reach mid-2026 (Germany's Merz May-2025, Japan's
+Takaichi Oct-2025, Korea's Lee Jun-2025, Iran's Mojtaba Khamenei Mar-2026,
+Vatican's Leo XIV May-2025, Hungary's Magyar May-2026, …). Rows seed with
+last_refreshed_at NULL so the v5 staleness flag + v6 §30 live Wikidata
+verification keep them live past this snapshot. INSERT OR IGNORE — hand-curated
 entries in seed_data.LEADERSHIP always win."""
 
 # (iso3, role, name, party, since)
@@ -98,7 +103,9 @@ L = [
  ("LBR","head_of_state","Joseph Boakai","Unity Party","2024-01-22"),
  ("LBY","head_of_government","Abdul Hamid Dbeibeh (GNU)",None,"2021-03-15"),
  ("LIE","head_of_state","Hans-Adam II",None,"1989-11-13"),
- ("LTU","head_of_government","Gintautas Paluckas","LSDP","2024-12-12"),
+ # v8.13.7 — Paluckas resigned Aug 2025 over conflict-of-interest allegations;
+ # Inga Ruginienė (Social Democrat, ex-trade-unionist) confirmed PM Sep 2025.
+ ("LTU","head_of_government","Inga Ruginienė","LSDP","2025-09-25"),
  ("LUX","head_of_government","Luc Frieden","CSV","2023-11-17"),
  ("MDG","head_of_state","Andry Rajoelina","TGV","2019-01-19"),
  ("MWI","head_of_state","Peter Mutharika","DPP","2025-10-04"),
@@ -211,3 +218,59 @@ L = [
  ("XKX","head_of_state","Vjosa Osmani",None,"2021-04-04"),
  ("XKX","head_of_government","Albin Kurti","LVV","2021-03-22"),
 ]
+
+# v8.13.7 (owner: "seed all leaders of every EU and North American country!") —
+# the SECOND office for every EU + North-American state, so each shows BOTH its
+# head of state AND head of government (the ceremonial president/monarch AND the
+# PM), the way the pre-seeded majors (USA/GBR/ESP/DEU…) already do. Rows are
+# INSERT OR IGNORE (a hand-curated seed_data.LEADERSHIP / leaders_world.L entry
+# always wins) and only ADD the role a country was missing — none overwrite the
+# paramount office. The countries.government_type fill in seed._seed_countries
+# keeps the correct office paramount (PM for the parliamentary states/realms;
+# the president for the semi-presidential ones). Current to mid-2026.
+EU_NA = [
+ # ── EU: the ceremonial/non-executive HEAD OF STATE (the PM stays paramount) ──
+ ("AUT","head_of_state","Alexander Van der Bellen","Independent","2017-01-26"),
+ ("BEL","head_of_state","King Philippe",None,"2013-07-21"),
+ ("BGR","head_of_state","Rumen Radev","Independent","2017-01-22"),
+ ("HRV","head_of_state","Zoran Milanović","SDP","2020-02-18"),
+ ("CZE","head_of_state","Petr Pavel","Independent","2023-03-09"),
+ ("DNK","head_of_state","King Frederik X",None,"2024-01-14"),
+ ("EST","head_of_state","Alar Karis","Independent","2021-10-11"),
+ ("FIN","head_of_state","Alexander Stubb","National Coalition","2024-03-01"),
+ ("DEU","head_of_state","Frank-Walter Steinmeier","SPD","2017-03-19"),
+ ("GRC","head_of_state","Konstantinos Tasoulas","Independent","2025-03-13"),
+ ("HUN","head_of_state","Tamás Sulyok","Independent","2024-03-05"),
+ ("IRL","head_of_state","Catherine Connolly","Independent","2025-11-11"),
+ ("ITA","head_of_state","Sergio Mattarella","Independent","2015-02-03"),
+ ("LVA","head_of_state","Edgars Rinkēvičs","New Unity","2023-07-08"),
+ ("LTU","head_of_state","Gitanas Nausėda","Independent","2019-07-12"),
+ ("LUX","head_of_state","Grand Duke Guillaume",None,"2025-10-03"),
+ ("MLT","head_of_state","Myriam Spiteri Debono","Independent","2024-04-04"),
+ ("NLD","head_of_state","King Willem-Alexander",None,"2013-04-30"),
+ ("POL","head_of_state","Karol Nawrocki","Independent","2025-08-06"),
+ ("SVK","head_of_state","Peter Pellegrini","Hlas-SD","2024-06-15"),
+ ("SVN","head_of_state","Nataša Pirc Musar","Independent","2022-12-23"),
+ ("SWE","head_of_state","King Carl XVI Gustaf",None,"1973-09-15"),
+ # ── EU: the HEAD OF GOVERNMENT for the two whose seed row was the president ──
+ # France (semi-presidential): PM Lecornu, reappointed Oct 2025 after Bayrou fell.
+ ("FRA","head_of_government","Sébastien Lecornu","Renaissance","2025-10-10"),
+ # Romania (semi-presidential): PM Bolojan after Ciolacu resigned May 2025.
+ ("ROU","head_of_government","Ilie Bolojan","PNL","2025-06-23"),
+ # ── North America: the HEAD OF STATE (King Charles III in the Commonwealth
+ # realms; the ceremonial president in the Caribbean republics) ──
+ ("CAN","head_of_state","King Charles III",None,"2022-09-08"),
+ ("JAM","head_of_state","King Charles III",None,"2022-09-08"),
+ ("BHS","head_of_state","King Charles III",None,"2022-09-08"),
+ ("BLZ","head_of_state","King Charles III",None,"2022-09-08"),
+ ("ATG","head_of_state","King Charles III",None,"2022-09-08"),
+ ("GRD","head_of_state","King Charles III",None,"2022-09-08"),
+ ("KNA","head_of_state","King Charles III",None,"2022-09-08"),
+ ("LCA","head_of_state","King Charles III",None,"2022-09-08"),
+ ("VCT","head_of_state","King Charles III",None,"2022-09-08"),
+ ("BRB","head_of_state","Sandra Mason",None,"2021-11-30"),
+ ("TTO","head_of_state","Christine Kangaloo",None,"2023-03-20"),
+ ("DMA","head_of_state","Sylvanie Burton",None,"2023-10-02"),
+]
+
+L = L + EU_NA

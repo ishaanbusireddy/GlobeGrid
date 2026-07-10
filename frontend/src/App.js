@@ -36,7 +36,7 @@ import { BOUNDARIES_50M_ENC } from "./data/boundaries50m.js";
 import { HISTORICAL_EPOCHS } from "./data/historicalBoundaries.js";   // v8.4 — real historical borders
 import { ZONE_BOUNDS } from "./data/autonomousZoneBoundaries.js";     // v8.13.5 — exact zone borders
 import { decodeBoundaries, countryAtPoint, decodeRing } from "./data/boundaryCodec.js";
-import { LANGUAGE_INFO, RELIGION_INFO, familyColor, sectInfo, dialectInfo, climateInfo } from "./data/families.js";
+import { LANGUAGE_INFO, RELIGION_INFO, familyColor, sectInfo, dialectInfo, climateInfo, govInfo } from "./data/families.js";
 import { TIMEZONES, getTimeZone, setTimeZone, formatDateTime } from "./data/timefmt.js";  // v6.2 header tz
 import { LANGUAGES, applyLanguage } from "./i18n.js";   // v5 §2
 import { renderWhatIf } from "./components/panes/WhatIf.js";   // v7 §2
@@ -331,6 +331,46 @@ function adminRingsWithFallback(tier) {
   ADMIN_FALLBACK_FLAT[i] = out;
   return out;
 }
+// v8.13.6 — the actual UNIT objects (name + bbox) that get drawn for a tier,
+// with the same per-country deepest-available fallback as the rings. Used to
+// build on-map admin-unit labels.
+const ADMIN_FALLBACK_UNITS = [null, null, null];
+function adminUnitsWithFallback(tier) {
+  if (tier <= 1) return ensureAdminLevel(1);
+  const i = tier - 1;
+  if (ADMIN_FALLBACK_UNITS[i]) return ADMIN_FALLBACK_UNITS[i];
+  _ensureAdminCountryGroups();
+  const has2 = _countriesWithLevel[2], has3 = _countriesWithLevel[3];
+  const out = [];
+  if (tier === 2) {
+    for (const u of ensureAdminLevel(2)) out.push(u);
+    for (const u of ensureAdminLevel(1)) { const k = _unitCountryKey(u); if (k == null || !has2.has(k)) out.push(u); }
+  } else {
+    for (const u of ensureAdminLevel(3)) out.push(u);
+    for (const u of ensureAdminLevel(2)) { const k = _unitCountryKey(u); if (k != null && has2.has(k) && !has3.has(k)) out.push(u); }
+    for (const u of ensureAdminLevel(1)) { const k = _unitCountryKey(u); if (k == null || (!has2.has(k) && !has3.has(k))) out.push(u); }
+  }
+  ADMIN_FALLBACK_UNITS[i] = out;
+  return out;
+}
+const ADMIN_LABELS = [null, null, null];
+function adminLabelsForTier(tier) {
+  if (!tier) return [];
+  const i = tier - 1;
+  if (ADMIN_LABELS[i]) return ADMIN_LABELS[i];
+  const labels = [];
+  for (const u of adminUnitsWithFallback(tier)) {
+    const b = u.b;
+    if (!b || !u.n) continue;
+    // span in ° (cos-lat corrected for lon) — drives the apparent-size fade so
+    // tiny units (raions, communes) only appear when you've zoomed in a lot.
+    const lat = (b[1] + b[3]) / 2, lon = (b[0] + b[2]) / 2;
+    const span = Math.max((b[2] - b[0]) * Math.cos(lat * Math.PI / 180), b[3] - b[1]);
+    labels.push({ name: u.n, lat, lon, span });
+  }
+  ADMIN_LABELS[i] = labels;
+  return labels;
+}
 // Which admin tier is actually drawn (and thus clickable) given toggle + zoom:
 // 0 = off, 1 = provinces, 2 = + districts/counties, 3 = + sub-districts. Clicks
 // then match what the user sees; deeper zoom resolves to the deepest unit.
@@ -362,11 +402,12 @@ async function applyAdminLayers() {
     r.setAdminLayerVisible?.(2, tier === 2);
     r.setAdminLayerVisible?.(3, tier === 3);
   };
-  if (!tier) { r.setAdminVisible?.(false); sync(); return; }
+  if (!tier) { r.setAdminVisible?.(false); r.setAdminLabels?.([]); sync(); return; }
   await ensureAdminData();
   if (tier === 1) r.setAdminBoundaries?.(adminFlatRings(1));
   if (tier === 2) r.setAdmin2Boundaries?.(adminRingsWithFallback(2));
   if (tier === 3) r.setAdmin3Boundaries?.(adminRingsWithFallback(3));
+  r.setAdminLabels?.(adminLabelsForTier(tier));   // v8.13.6 — on-map admin names (fade by size)
   sync();
 }
 // v8.3 — index every decoded admin unit by uid (all tiers), so the Hotspots
@@ -523,7 +564,7 @@ const state = {
     relevance: { global_relevance_default_filter: true, global_relevance_floor: 0.3 },
     audio: { master_gain_default: 0.4, preset: "ambient_default" },
     panes: { transition_duration_ms: 300 },
-    alerts: { in_app_breaking_alert_severity_floor: 4 },
+    alerts: { in_app_breaking_alert_severity_floor: 3 },
     onboarding: { require_ai_key_before_first_run: true },
     attribution: [],
   },
@@ -579,6 +620,18 @@ const pane = new SlidePane(els.slidePane, {
       setFocus(null); state.renderer?.setHighlight?.(null); return;
     }
     if (entry.focus) setFocus(entry.focus.type, entry.focus.name);
+    // v8.13.7 — re-apply the selected-entity glow when this entry becomes the
+    // active pane (e.g. navigating BACK to it), so a country/admin/zone keeps
+    // its pulsing border the whole time its panel is on top.
+    const key = String(entry.key || "");
+    if (entry.targetType === "country" && entry.targetId) highlightCountries([entry.targetId]);
+    else if (key.startsWith("admin:")) highlightAdminUnit(key.slice(6));
+    else if (key.startsWith("autonomous:")) {
+      const z = (state.autonomousZones || []).find((x) => x.id === key.slice(11));
+      highlightFlatRings(z ? zoneRings(z) : null);
+    }
+    // (other pane types — story/region/directory — leave the current highlight
+    // untouched; region deliberately glows its whole country set.)
   },
 });
 
@@ -732,10 +785,14 @@ const ctx = {
     key: "autonomous", title: "Autonomous regions",
     render: (el) => Wiki.renderAutonomousZones(el, ctx),
   }),
-  openAutonomousZone: (zid) => pane.push({
-    key: "autonomous:" + zid, title: "autonomous region",
-    render: (el) => Wiki.renderAutonomousZone(el, zid, ctx),
-  }),
+  openAutonomousZone: (zid) => {                         // v8.13.7 glow the zone's border
+    const z = (state.autonomousZones || []).find((x) => x.id === zid);
+    if (z) { const r = zoneRings(z); if (r.length) highlightFlatRings(r); }
+    return pane.push({
+      key: "autonomous:" + zid, title: "autonomous region",
+      render: (el) => Wiki.renderAutonomousZone(el, zid, ctx),
+    });
+  },
   openEntityByName: (type, name) => {                    // v7.4.1 resolve name→iso3
     const c = BOUNDARIES_50M.find((b) => b.n && b.n.toLowerCase() === (name || "").toLowerCase());
     if (c && c.i) openEntity(type, c.i);
@@ -755,10 +812,10 @@ const ctx = {
   // v8 §5 — an administrative unit (province/state) as a first-class page,
   // the way a country or territory is. Opened by clicking a province on the
   // map (admin layer active) or a province chip on the parent country page.
-  openAdminUnit: (uid) => pane.push({
+  openAdminUnit: (uid) => { highlightAdminUnit(uid); return pane.push({   // v8.13.7 glow the unit's border
     key: "admin:" + uid, title: "administrative unit",
     render: (el) => Wiki.renderAdminUnit(el, uid, ctx),
-  }),
+  }); },
   // v8.8 — a city's own panel (population, country, the admin unit it sits in).
   openCity: (id) => pane.push({
     key: "city:" + id, title: "city",
@@ -819,6 +876,27 @@ function highlightCountries(iso3List) {
     if (iso3List.includes(c.i)) rings.push(...c.r);
   }
   state.renderer?.setHighlight?.(rings.length ? rings : null);
+}
+// v8.13.7 — the SAME pulsing glow for any non-country entity the owner selects
+// (admin division, autonomous zone, …): "their borders should highlight and
+// glow just as if you selected a country." Rings are flat [lon,lat,…] and are
+// pushed to the renderer's dedicated highlight slot; null clears it. Retried a
+// couple of times because an admin unit's rings decode lazily (ensureAdminData)
+// and may not be ready the instant the panel opens.
+function highlightFlatRings(rings, _tries = 0) {
+  if (rings && rings.length) { state.renderer?.setHighlight?.(rings); return; }
+  if (_tries < 6) setTimeout(() => highlightFlatRings(rings, _tries + 1), 250);
+  else state.renderer?.setHighlight?.(null);
+}
+// The flat rings of one admin unit (by uid), decoding the atlas on demand.
+function adminUnitRings(uid) {
+  const u = adminUnitByUid(+uid);
+  return u && u.r && u.r.length ? u.r : null;
+}
+// A promise-aware highlighter for admin units: ensures the atlas payload is
+// loaded, then glows the unit's real border.
+function highlightAdminUnit(uid) {
+  ensureAdminData().then(() => highlightFlatRings(adminUnitRings(uid)));
 }
 
 async function openEntity(type, id, { replace = false } = {}) {
@@ -1127,7 +1205,7 @@ const graphExplorer = new GraphExplorer(els.graphOverlay);
 // autoplay policy by resuming on the first user gesture.
 const sound = new SoundEngine(true);
 const alerts = new Alerts(els.alertsHost, {
-  severityFloor: 4,
+  severityFloor: 3,
   onOpenStory: (id) => openStory(id),
 });
 
@@ -1155,7 +1233,14 @@ window.addEventListener("popstate", (ev) => {
 });
 
 function onSelectEvent(event) {
-  if (event.story_id) openStory(event.story_id);
+  if (event && event.story_id) { openStory(event.story_id); return; }
+  // v8.13.6 — a standalone (not-yet-correlated) event pin used to be INERT when
+  // clicked (owner: "fix events not being clickable in different places"). Now
+  // it opens a single-event detail via the same clickable list pane, so every
+  // event on the map does something.
+  if (event && event.lat != null && event.lon != null) {
+    openClusterList({ lat: event.lat, lon: event.lon, members: [event] });
+  }
 }
 
 // ---------- tier + quality management (§5) ----------
@@ -1478,7 +1563,7 @@ async function loadReal() {
   document.documentElement.style.setProperty("--pane-ms",
     ((state.clientConfig.panes || {}).transition_duration_ms ?? 300) + "ms");
   alerts.severityFloor =
-    (state.clientConfig.alerts || {}).in_app_breaking_alert_severity_floor ?? 4;
+    (state.clientConfig.alerts || {}).in_app_breaking_alert_severity_floor ?? 3;
   sound.volume = localStorage.getItem("tdl_sound_vol") !== null
     ? sound.volume : (state.clientConfig.audio || {}).master_gain_default ?? 0.4;
   els.volumeSlider.value = String(Math.round(sound.volume * 100));
@@ -3299,6 +3384,7 @@ function _modeInfoFor(mode) {
   if (mode === "language") return (v) => LANGUAGE_INFO[v] || dialectInfo(v);
   if (mode === "dialect") return (v) => dialectInfo(v);
   if (mode === "climate") return (v) => climateInfo(v);   // v8.13
+  if (mode === "government") return (v) => govInfo(v);     // v8.13.6
   return null;   // any future palette-only categorical mode
 }
 

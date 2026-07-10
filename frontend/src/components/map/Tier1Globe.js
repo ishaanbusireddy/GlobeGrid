@@ -807,6 +807,7 @@ export class Tier1Globe {
   // size, so big countries (Russia/USA) show from far out and small ones
   // (Bhutan/Luxembourg) only reveal as you zoom into them.
   setCountryLabels(labels) { this.countryLabels = labels || []; }
+  setAdminLabels(labels) { this.adminLabels = labels || []; }   // v8.13.6 — on-map admin names
   setCountryLabelsVisible(on) { this.countryLabelsOn = on !== false; }   // v6.2 toggle
 
   // v6.2 — theme-driven globe colouring: the App reads --globe-ocean and
@@ -1512,7 +1513,12 @@ export class Tier1Globe {
       moved += Math.abs(dx) + Math.abs(dy);
       lastX = ev.clientX; lastY = ev.clientY;
       const ps = this.panSensitivity || 1;                       // v8.13 — x+y pan sensitivity
-      this.velYaw = dx * 0.005 * ps; this.velPitch = dy * 0.005 * ps;
+      // v8.13.6 — scale drag-rotate by how CLOSE the camera is (owner: "when
+      // zoomed in close, a drag pans super fast and yeets me to another
+      // continent"). A fixed angular step moves a huge surface distance when
+      // you're near the surface, so ease it right down as dist→1.
+      const zf = Math.max(0.05, Math.min(1, (this.dist - 1.0) * 0.62));
+      this.velYaw = dx * 0.005 * ps * zf; this.velPitch = dy * 0.005 * ps * zf;
       this.yaw += this.velYaw;
       this.pitch = Math.max(-1.35, Math.min(1.35, this.pitch + this.velPitch));
     });
@@ -1557,7 +1563,10 @@ export class Tier1Globe {
   _applyKeys(dt) {
     if (!this.keys) return false;
     const ps = this.panSensitivity || 1;                          // v8.13 — WASD pan sensitivity
-    const yawStep = 1.4 * dt * ps, pitchStep = 1.1 * dt * ps, zoomStep = 1.6 * dt;
+    // v8.13.6 — WASD rotate is distance-scaled too, so it doesn't fling you
+    // across the surface when zoomed in close.
+    const zf = Math.max(0.05, Math.min(1, (this.dist - 1.0) * 0.62));
+    const yawStep = 1.4 * dt * ps * zf, pitchStep = 1.1 * dt * ps * zf, zoomStep = 1.6 * dt;
     let moved = false;
     // v6.2 — A/D direction inverted (owner request)
     if (this.keys.a) { this.yaw += yawStep; moved = true; }
@@ -1980,10 +1989,14 @@ export class Tier1Globe {
       const adminOn = (this.adminVis[0] && this.adminCount && this.dist < 3.0)
                    || (this.adminVis[1] && this.admin2Count && this.dist < 1.9)
                    || (this.adminVis[2] && this.admin3Count && this.dist < 1.55);
-      const ba = adminOn ? 0.12 : 0.34;
       gl.bindBuffer(gl.ARRAY_BUFFER, this.borderBuf);
       gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-      gl.uniform4f(colLoc, 0.5, 0.6, 0.78, ba);
+      // v8.13.6 — with an admin tier active, draw the national border in a
+      // DISTINCT bright amber (was faded blue-grey to near-nothing) so the
+      // country lines stay visible under the cooler admin lines (owner: "make
+      // the border between countries a different colour so i can see them").
+      if (adminOn) gl.uniform4f(colLoc, 1.0, 0.77, 0.36, 0.85);
+      else gl.uniform4f(colLoc, 0.5, 0.6, 0.78, 0.34);
       gl.drawArrays(gl.LINES, 0, this.borderCount);
     }
 
@@ -2530,6 +2543,42 @@ export class Tier1Globe {
         ctx.fillStyle = `rgba(225,232,246,${alpha.toFixed(2)})`;
         ctx.strokeStyle = `rgba(6,10,18,${(alpha * 0.7).toFixed(2)})`;
         ctx.lineWidth = 3 * dpr;
+        ctx.strokeText(l.name, p[0], p[1]);
+        ctx.fillText(l.name, p[0], p[1]);
+      }
+    }
+
+    // v8.13.6 — on-map ADMIN-UNIT names, revealed by apparent size so tiny units
+    // (raions, communes) only show when zoomed in a lot. Gated on the admin
+    // layer being active + near enough that any could be legible.
+    if (this.adminLabels && this.adminLabels.length && this.dist < 1.9
+        && (this.adminVis[0] || this.adminVis[1] || this.adminVis[2])) {
+      const placedA = [];
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      for (const l of this.adminLabels) {
+        const [x, y, z] = latLonToVec3(l.lat, l.lon, 1.002);
+        if (this._facing(model, x, y, z) < 0.2) continue;
+        const p = this._project(mvp, x, y, z);
+        if (!p) continue;
+        const [x2, y2, z2] = latLonToVec3(l.lat, l.lon + (l.span || 1), 1.002);
+        const p2 = this._project(mvp, x2, y2, z2);
+        if (!p2) continue;
+        const apparentPx = Math.hypot(p2[0] - p[0], p2[1] - p[1]);
+        if (apparentPx < 70 * dpr) continue;
+        if (p[0] < 0 || p[0] > this.overlay.width || p[1] < 0 || p[1] > this.overlay.height) continue;
+        let collide = false;
+        for (const q of placedA) {
+          if (Math.abs(q[0] - p[0]) < 52 * dpr && Math.abs(q[1] - p[1]) < 13 * dpr) { collide = true; break; }
+        }
+        if (collide) continue;
+        placedA.push(p);
+        const alpha = Math.min(0.8, 0.15 + (apparentPx - 70 * dpr) / (40 * dpr) * 0.6);
+        const fs = Math.max(9, Math.min(13, apparentPx / 12)) * dpr;
+        ctx.font = `500 ${fs}px system-ui`;
+        ctx.fillStyle = `rgba(196,214,230,${alpha.toFixed(2)})`;
+        ctx.strokeStyle = `rgba(6,10,18,${(alpha * 0.7).toFixed(2)})`;
+        ctx.lineWidth = 2.5 * dpr;
         ctx.strokeText(l.name, p[0], p[1]);
         ctx.fillText(l.name, p[0], p[1]);
       }

@@ -191,6 +191,37 @@ UNITS = {
     ("RUS", "Bashkortostan"): {"pop": 4091423, "year": 2021, "src": "Rosstat census"},
     ("RUS", "Nizhny Novgorod"): {"pop": 3119115, "year": 2021, "src": "Rosstat census"},
     ("RUS", "Samara"): {"pop": 3172925, "year": 2021, "src": "Rosstat census"},
+    # v8.11 — the rest of Russia's larger federal subjects (2021 Rosstat census).
+    ("RUS", "Republic of Dagestan"): {"pop": 3182054, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Krasnoyarsk Krai"): {"pop": 2855899, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Stavropol Krai"): {"pop": 2907593, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Perm Krai"): {"pop": 2532405, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Voronezh"): {"pop": 2308792, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Volgograd"): {"pop": 2489100, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Saratov"): {"pop": 2395111, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Tyumen"): {"pop": 3853520, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Kemerovo"): {"pop": 2600923, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Irkutsk"): {"pop": 2370102, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Novosibirsk"): {"pop": 2797176, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Omsk"): {"pop": 1879548, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Orenburg"): {"pop": 1862134, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Leningrad"): {"pop": 2000212, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Tula"): {"pop": 1491855, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Vladimir"): {"pop": 1348134, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Kirov"): {"pop": 1153680, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Chechen Republic"): {"pop": 1510824, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Udmurt Republic"): {"pop": 1449154, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Chuvash Republic"): {"pop": 1204750, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Khabarovsk Krai"): {"pop": 1298978, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Primorsky Krai"): {"pop": 1845165, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Sakha Republic"): {"pop": 995686, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Belgorod"): {"pop": 1541259, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Arkhangelsk"): {"pop": 1024581, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Vologda"): {"pop": 1136316, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Kaliningrad"): {"pop": 1029966, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Bryansk"): {"pop": 1168771, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Kursk"): {"pop": 1082458, "year": 2021, "src": "Rosstat census"},
+    ("RUS", "Tver"): {"pop": 1245619, "year": 2021, "src": "Rosstat census"},
 
     # ---- United Kingdom: DELIBERATELY OMITTED — the GB atlas ADM1 is the
     # LOCAL-AUTHORITY level (Birmingham, Cornwall, …) with no England/Scotland/
@@ -349,7 +380,88 @@ UNITS = {
     ("JPN", "Hyōgo Prefecture"): {"pop": 5465002, "year": 2020, "src": "Japan census"},
     ("JPN", "Hokkaidō"): {"pop": 5224614, "year": 2020, "src": "Japan census"},
     ("JPN", "Fukuoka Prefecture"): {"pop": 5135214, "year": 2020, "src": "Japan census"},
+
+    # ===================== v8.7 — UK + more provinces =======================
+    # ---- United Kingdom — the biggest single local-authority units (2021 ONS).
+    # The GB atlas ADM1 is the local-authority level, so these are real units.
+    ("GBR", "Birmingham"): {"pop": 1144900, "year": 2021, "src": "ONS census"},
+    ("GBR", "Leeds"): {"pop": 812000, "year": 2021, "src": "ONS census"},
+    ("GBR", "Glasgow"): {"pop": 622820, "year": 2021, "src": "NRS census"},
+    ("GBR", "Cornwall"): {"pop": 570300, "year": 2021, "src": "ONS census"},
+    ("GBR", "Sheffield"): {"pop": 556500, "year": 2021, "src": "ONS census"},
+    ("GBR", "Manchester"): {"pop": 552000, "year": 2021, "src": "ONS census"},
+    ("GBR", "Bradford"): {"pop": 546400, "year": 2021, "src": "ONS census"},
+    ("GBR", "Durham"): {"pop": 522100, "year": 2021, "src": "ONS census"},
+    ("GBR", "Edinburgh"): {"pop": 512150, "year": 2021, "src": "NRS census"},
+    ("GBR", "Liverpool"): {"pop": 486100, "year": 2021, "src": "ONS census"},
+    ("GBR", "Bristol"): {"pop": 472400, "year": 2021, "src": "ONS census"},
+    ("GBR", "Cardiff"): {"pop": 362400, "year": 2021, "src": "ONS census"},
+    ("GBR", "Belfast"): {"pop": 345400, "year": 2021, "src": "NISRA census"},
+
+    # ---- China — the remaining big provinces / municipalities (2020 census) --
+    ("CHN", "Chongqing"): {"pop": 32054159, "year": 2020, "src": "China census"},
+    ("CHN", "Shanxi"): {"pop": 34915616, "year": 2020, "src": "China census"},
+    ("CHN", "Guizhou"): {"pop": 38562148, "year": 2020, "src": "China census"},
+    ("CHN", "Heilongjiang"): {"pop": 31850088, "year": 2020, "src": "China census"},
+    ("CHN", "Jilin"): {"pop": 24073453, "year": 2020, "src": "China census"},
+    ("CHN", "Gansu"): {"pop": 25019831, "year": 2020, "src": "China census"},
+    ("CHN", "Tianjin"): {"pop": 13866009, "year": 2020, "src": "China census"},
+
+    # ---- India — the remaining big states / territories (2011 census) --------
+    ("IND", "Telangana"): {"pop": 35003674, "year": 2011, "src": "Census of India"},
+    ("IND", "Delhi"): {"pop": 16787941, "year": 2011, "src": "Census of India"},
+
+    # ---- New-country capitals / big regions (national statistics) ------------
+    ("PER", "Lima"): {"pop": 9674755, "year": 2017, "src": "INEI census"},
+    ("COL", "Cundinamarca"): {"pop": 3242999, "year": 2018, "src": "DANE census"},
+    ("VEN", "Zulia"): {"pop": 3704404, "year": 2011, "src": "Venezuela census"},
+    ("VEN", "Miranda"): {"pop": 2675165, "year": 2011, "src": "Venezuela census"},
+    ("SAU", "Eastern"): {"pop": 5148598, "year": 2022, "src": "GASTAT"},
+    ("IRQ", "Nineveh"): {"pop": 3729000, "year": 2018, "src": "Iraq CSO"},
+    ("VNM", "Thanh Hóa"): {"pop": 3640128, "year": 2019, "src": "Vietnam census"},
+    ("THA", "Nakhon Ratchasima"): {"pop": 2639226, "year": 2020, "src": "Thailand NSO"},
+    ("MYS", "Selangor"): {"pop": 6994423, "year": 2020, "src": "DOSM census"},
+    ("BGD", "Dhaka"): {"pop": 44215000, "year": 2022, "src": "Bangladesh census"},
+    ("KAZ", "Almaty"): {"pop": 2039376, "year": 2022, "src": "Kazakhstan stats"},
 }
+
+# v8.7 — nominal GDP (USD, approximate recent) for the world's biggest
+# sub-national economies, merged over the population rows above by (iso3, name).
+# Kept separate so a GDP figure is a one-line add without touching the pop row;
+# only applied to single-dict entries (never the area-disambiguated lists).
+_GDP_USD = {
+    ("DEU", "North Rhine-Westphalia"): 800e9,
+    ("DEU", "Bavaria"): 780e9,
+    ("DEU", "Baden-Württemberg"): 620e9,
+    ("DEU", "Hesse"): 350e9,
+    ("CHN", "Guangdong"): 1_960_000e6,
+    ("CHN", "Jiangsu"): 1_870_000e6,
+    ("CHN", "Shandong"): 1_290_000e6,
+    ("CHN", "Zhejiang"): 1_150_000e6,
+    ("CHN", "Sichuan"): 830_000e6,
+    ("JPN", "Tokyo"): 1_000_000e6,
+    ("JPN", "Ōsaka Prefecture"): 380e9,
+    ("CAN", "Ontario"): 860e9,
+    ("CAN", "Quebec"): 430e9,
+    ("AUS", "New South Wales"): 480e9,
+    ("AUS", "Victoria"): 340e9,
+    ("IND", "Maharashtra"): 430e9,
+    ("IND", "Tamil Nadu"): 300e9,
+    ("IND", "Karnataka"): 300e9,
+    ("BRA", "São Paulo"): 710e9,
+    ("ESP", "Community of Madrid"): 280e9,
+    ("ESP", "Barcelona"): 180e9,
+    ("ITA", "Milan"): 200e9,
+    ("ITA", "Rome"): 190e9,
+    ("KOR", "Gyeonggi"): 430e9,
+    ("KOR", "Seoul"): 370e9,
+    ("MEX", "Mexico"): 230e9,
+    ("TUR", "Istanbul"): 330e9,
+}
+for _k, _g in _GDP_USD.items():
+    _v = UNITS.get(_k)
+    if isinstance(_v, dict):
+        _v.setdefault("gdp", int(_g))
 
 
 def lookup(iso3, name, area=None):
