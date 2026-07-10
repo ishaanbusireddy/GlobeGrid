@@ -137,9 +137,13 @@ export class Tier2Map {
   // v7.6 — autonomous-region outlines as always-on DOTTED borders (owner: shown
   // like territories by default, but slightly dotted). Each zone → a flat ring.
   setAutonomousZones(zones) {
+    // v8.13.5 — each zone carries its EXACT real member polygons (multiple flat
+    // [lon,lat,…] rings) from the admin atlas, not a single hand-typed outline.
     this.autonomousZones = (zones || [])
-      .filter((z) => Array.isArray(z.outline) && z.outline.length > 2)
-      .map((z) => ({ name: z.name, ring: z.outline.flatMap(([lon, lat]) => [lon, lat]) }));
+      .map((z) => ({ name: z.name, rings: (z.rings || (z.outline
+        ? [z.outline.flatMap(([lon, lat]) => [lon, lat])] : []))
+        .filter((r) => r && r.length >= 6) }))
+      .filter((z) => z.rings.length);
     this.draw();
   }
   // v8 §3 — real ADM1 (province) borders: a flat list of [lon,lat,…] rings,
@@ -620,21 +624,23 @@ export class Tier2Map {
       if (this.histRings && this.histRings.length) {
         this._drawRings(this.histRings, off, "rgba(242,178,82,0.92)", 1.2);
       }
-      // v8.13.4 — autonomous regions render like a real territory: a solid
-      // bright light-blue border + a faint fill (was a crude dotted line), and
-      // they're clickable (App.onCountryClick hit-tests the outline → zone panel).
+      // v8.13.5 — autonomous regions render like a real territory from their
+      // EXACT admin-unit polygons: a faint fill over the whole zone + a solid
+      // bright light-blue border on every member ring (clickable via the
+      // App-side outline hit-test → zone panel).
       for (const z of this.autonomousZones) {
-        const pts = [];
-        ctx.beginPath();
-        for (let i = 0; i < z.ring.length; i += 2) {
-          const [x, y] = this._project(z.ring[i + 1], z.ring[i]);
-          pts.push([x + off, y]);
-          i ? ctx.lineTo(x + off, y) : ctx.moveTo(x + off, y);
+        for (const ring of z.rings) {
+          ctx.beginPath();
+          for (let i = 0; i < ring.length; i += 2) {
+            const [x, y] = this._project(ring[i + 1], ring[i]);
+            i ? ctx.lineTo(x + off, y) : ctx.moveTo(x + off, y);
+          }
+          ctx.closePath();
+          ctx.fillStyle = "rgba(120,200,255,0.10)";
+          ctx.fill();
         }
-        ctx.closePath();
-        ctx.fillStyle = "rgba(120,200,255,0.10)";
-        ctx.fill();
-        this._drawRings([z.ring], off, "rgba(130,205,255,0.95)", 1.5);
+        for (const ring of z.rings)
+          this._drawRings([ring], off, "rgba(130,205,255,0.95)", 1.5);
       }
       // v5 §11 / v6 §21 — NSA territory zones: shaped polygons with a
       // pulsing dotted rough-boundary style (never solid rectangles);

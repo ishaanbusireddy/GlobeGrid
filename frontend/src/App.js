@@ -34,6 +34,7 @@ import { BOUNDARIES_50M_ENC } from "./data/boundaries50m.js";
 // a dynamic import (ensureAdminData) the first time the provinces/hotspots layer
 // is used, so its payload never gates initial boot.
 import { HISTORICAL_EPOCHS } from "./data/historicalBoundaries.js";   // v8.4 — real historical borders
+import { ZONE_BOUNDS } from "./data/autonomousZoneBoundaries.js";     // v8.13.5 — exact zone borders
 import { decodeBoundaries, countryAtPoint, decodeRing } from "./data/boundaryCodec.js";
 import { LANGUAGE_INFO, RELIGION_INFO, familyColor, sectInfo, dialectInfo, climateInfo } from "./data/families.js";
 import { TIMEZONES, getTimeZone, setTimeZone, formatDateTime } from "./data/timefmt.js";  // v6.2 header tz
@@ -192,19 +193,34 @@ function applyThemeToRenderer() {
 // prefiltered), replacing the coarse 110m set that misplaced clicks
 const BOUNDARIES_50M = decodeBoundaries(BOUNDARIES_50M_ENC);
 function countryAt(lat, lon) { return countryAtPoint(BOUNDARIES_50M, lat, lon); }
-// v8.13.4 — which autonomous zone (if any) contains a point. Outlines are
-// [lon,lat] rings on state.autonomousZones; ray-cast point-in-polygon.
+// v8.13.5 — a zone's drawable geometry: the EXACT real admin-unit polygons
+// (governorates/provinces/rayons) from the atlas when we have them, else the
+// curated single outline. Returns a list of flat [lon,lat,lon,lat,…] rings.
+function zoneRings(z) {
+  if (z && ZONE_BOUNDS[z.id] && ZONE_BOUNDS[z.id].length) return ZONE_BOUNDS[z.id];
+  if (z && Array.isArray(z.outline) && z.outline.length > 2)
+    return [z.outline.flatMap((p) => [p[0], p[1]])];
+  return [];
+}
+// zones normalized for the renderers: { id, name, rings: [flat ring, …] }.
+function zonesForRender() {
+  return (state.autonomousZones || [])
+    .map((z) => ({ id: z.id, name: z.name, rings: zoneRings(z) }))
+    .filter((z) => z.rings.length);
+}
+// v8.13.4/5 — which autonomous zone (if any) contains a point; ray-cast against
+// each of the zone's real member rings (flat [lon,lat,…]).
 function autonomousZoneAt(lat, lon) {
   for (const z of (state.autonomousZones || [])) {
-    const ring = z.outline;
-    if (!Array.isArray(ring) || ring.length < 3) continue;
-    let inside = false;
-    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-      const xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
-      if (((yi > lat) !== (yj > lat))
-          && (lon < (xj - xi) * (lat - yi) / ((yj - yi) || 1e-9) + xi)) inside = !inside;
+    for (const ring of zoneRings(z)) {
+      let inside = false;
+      for (let i = 0, j = ring.length - 2; i < ring.length; j = i, i += 2) {
+        const xi = ring[i], yi = ring[i + 1], xj = ring[j], yj = ring[j + 1];
+        if (((yi > lat) !== (yj > lat))
+            && (lon < (xj - xi) * (lat - yi) / ((yj - yi) || 1e-9) + xi)) inside = !inside;
+      }
+      if (inside) return z;
     }
-    if (inside) return z;
   }
   return null;
 }
@@ -1246,7 +1262,7 @@ function mountRenderer(tier) {
   if (state.cities.length) state.renderer.setCities?.(state.cities);
   // v7.6 — autonomous-region dotted borders, on by default (togglable)
   if (state.autonomousZones && state.autonomousZones.length)
-    state.renderer.setAutonomousZones?.(state.azOn !== false ? state.autonomousZones : []);
+    state.renderer.setAutonomousZones?.(state.azOn !== false ? zonesForRender() : []);
   // v8/v8.1/v8.2 — re-apply the active admin tier on (re)mount (v8.7 lazy load;
   // v8.9 single-tier unified dropdown).
   if (state.adminTier) applyAdminLayers();
@@ -1581,8 +1597,8 @@ async function loadCities() {
 // map (like territories, but dashed). Loaded once at boot.
 async function loadAutonomousZones() {
   const data = await api.autonomousZones();
-  state.autonomousZones = (data.zones || []).filter((z) => Array.isArray(z.outline));
-  state.renderer?.setAutonomousZones?.(state.azOn !== false ? state.autonomousZones : []);
+  state.autonomousZones = (data.zones || []).filter((z) => ZONE_BOUNDS[z.id] || Array.isArray(z.outline));
+  state.renderer?.setAutonomousZones?.(state.azOn !== false ? zonesForRender() : []);
 }
 
 // v4 §14, v5.1 §18 — first-run onboarding: surface the key setup, don't

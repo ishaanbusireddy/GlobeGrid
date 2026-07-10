@@ -146,22 +146,23 @@ void main() {
               terrain * facing);
   }
   if (useHeat > 0.5) {
-    // v8.13.4 — a proper high-quality heat field (was a flat orange blob, and
-    // shifted 180° by a stray +0.5 in the UV — matches the terrain/splat origin
-    // now). Intensity runs through a smooth multi-stop ramp (cool blue → cyan →
-    // green → amber → hot red) with a facing gate so it never bleeds through the
-    // limb, reading like a real thermal map instead of an amorphous smear.
+    // v8.13.5 — a proper high-quality heat GLOW (was a flat orange blob, shifted
+    // 180° by a stray +0.5 in the UV — now matches the terrain/splat origin).
+    // Intensity runs through a smooth thermal ramp (cool blue → cyan → green →
+    // amber → hot red) and is ADDED to the surface so it genuinely glows and is
+    // visible at every zoom; a gentle facing term keeps it off the far limb.
     float u = atan(n.z, -n.x) / 6.2831853;
     float v = 1.0 - (asin(clamp(n.y, -1.0, 1.0)) / 3.14159265 + 0.5);
-    float facing = smoothstep(0.0, 0.16, normalize(vNormal).z);
-    float h = clamp(texture(heatTex, vec2(u, v)).r * 1.35, 0.0, 1.0);
-    vec3 hc = vec3(0.09, 0.28, 0.85);
-    hc = mix(hc, vec3(0.10, 0.82, 0.80), smoothstep(0.16, 0.40, h));
-    hc = mix(hc, vec3(0.55, 0.90, 0.22), smoothstep(0.40, 0.60, h));
-    hc = mix(hc, vec3(0.98, 0.78, 0.16), smoothstep(0.60, 0.80, h));
-    hc = mix(hc, vec3(1.00, 0.26, 0.12), smoothstep(0.80, 1.00, h));
-    float a = smoothstep(0.05, 0.55, h) * facing;
-    col = mix(col, hc, a * 0.82);
+    float facing = smoothstep(-0.05, 0.22, normalize(vNormal).z);
+    float h = clamp(texture(heatTex, vec2(u, v)).r * 1.6, 0.0, 1.0);
+    vec3 hc = vec3(0.10, 0.32, 0.95);
+    hc = mix(hc, vec3(0.10, 0.88, 0.85), smoothstep(0.16, 0.40, h));
+    hc = mix(hc, vec3(0.58, 0.95, 0.20), smoothstep(0.40, 0.60, h));
+    hc = mix(hc, vec3(1.00, 0.80, 0.15), smoothstep(0.60, 0.80, h));
+    hc = mix(hc, vec3(1.00, 0.30, 0.12), smoothstep(0.80, 1.00, h));
+    float glow = smoothstep(0.03, 0.5, h);
+    col += hc * glow * facing * 1.25;                     // additive glow
+    col = mix(col, hc, glow * facing * 0.35);             // + a little body so hot cores read
   }
   frag = vec4(col, 1.0);
 }`;
@@ -693,21 +694,26 @@ export class Tier1Globe {
   // like territories by default, but slightly dotted). A finely-broken line so
   // it reads as a dotted boundary distinct from settled country borders.
   setAutonomousZones(zones) {
+    // v8.13.5 — a SOLID territory-style border built from each zone's EXACT real
+    // member polygons (flat [lon,lat,…] rings from the admin atlas), densified
+    // along each edge so it hugs the sphere. The zone is clickable (App-side
+    // outline hit-test → zone panel), so it reads and behaves like a territory.
     const gl = this.gl;
     const verts = [];
     for (const z of (zones || [])) {
-      const ring = Array.isArray(z.outline) ? z.outline : null;
-      if (!ring || ring.length < 3) continue;
-      // v8.13.4 — a SOLID territory-style border (was dotted), densified along
-      // each edge so it hugs the sphere; the zone is clickable (App-side outline
-      // hit-test → zone panel), so it reads and behaves like a real territory.
-      for (let i = 0; i + 1 < ring.length; i++) {
-        const [lon0, lat0] = ring[i], [lon1, lat1] = ring[i + 1];
-        const steps = 10;
-        for (let s = 0; s < steps; s++) {
-          const t0 = s / steps, t1 = (s + 1) / steps;
-          verts.push(...latLonToVec3(lat0 + (lat1 - lat0) * t0, lon0 + (lon1 - lon0) * t0, 1.0013),
-                     ...latLonToVec3(lat0 + (lat1 - lat0) * t1, lon0 + (lon1 - lon0) * t1, 1.0013));
+      // accept the new multi-ring shape, or fall back to a legacy single outline
+      const rings = z.rings || (Array.isArray(z.outline)
+        ? [z.outline.flatMap(([lon, lat]) => [lon, lat])] : []);
+      for (const ring of rings) {
+        if (!ring || ring.length < 6) continue;
+        for (let i = 0; i + 3 < ring.length; i += 2) {
+          const lon0 = ring[i], lat0 = ring[i + 1], lon1 = ring[i + 2], lat1 = ring[i + 3];
+          const steps = 6;
+          for (let s = 0; s < steps; s++) {
+            const t0 = s / steps, t1 = (s + 1) / steps;
+            verts.push(...latLonToVec3(lat0 + (lat1 - lat0) * t0, lon0 + (lon1 - lon0) * t0, 1.0013),
+                       ...latLonToVec3(lat0 + (lat1 - lat0) * t1, lon0 + (lon1 - lon0) * t1, 1.0013));
+          }
         }
       }
     }

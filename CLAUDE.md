@@ -18,6 +18,42 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v8.13.5)
+
+**v8.13.5 (2026-07-10, exact autonomous-zone borders + heat-glow fix):** the two
+follow-ups the owner flagged on v8.13.4.
+
+- **Autonomous zones now draw EXACT, geo-accurate borders** (owner: "I want exact
+  to the inch borders … not rectangular … treat it like a hybrid of territories
+  and admin divisions"). Every zone IS a set of real first-level admin units, so a
+  new build step (`scripts/build_autonomous_zone_boundaries.py`) pulls those
+  units' genuine polygons straight from the vendored `admin_atlas` and emits one
+  committed artifact `frontend/src/data/autonomousZoneBoundaries.js`
+  (`ZONE_BOUNDS = {zoneId: [flat [lon,lat…] rings]}`). Six zones now carry real
+  geometry: **Iraqi Kurdistan** (Erbil+Duhok+Sulaymaniyah governorates),
+  **Rojava** (Al-Hasakah+Al-Raqqah+Deir ez-Zor), **Zanzibar** (5 archipelago
+  regions), **Nakhchivan** (8 rayons), **Bougainville**, **Catalonia** (Barcelona+
+  Girona+Lleida+Tarragona). (An edge-dissolve union was tried but the atlas
+  simplifies each unit independently so shared vertices don't line up — the
+  constituent real polygons are emitted instead: exact to the source, with the
+  internal admin lines showing, i.e. the requested "hybrid".) Both renderers were
+  generalized from a single `outline` to N real `rings` per zone (globe GL line
+  buffer + 2D fill/stroke), and the App-side click hit-test resolves against those
+  real rings. Åland/Gagauzia (no clean atlas geometry) and Hong Kong/Greenland
+  (drawn as territories) keep their prior outline. Verified: Erbil & Sulaymaniyah
+  resolve inside Iraqi Kurdistan, Baghdad does not; Barcelona inside Catalonia,
+  Madrid does not; Zanzibar City inside Zanzibar.
+- **The globe heat overlay is a real GLOW again and always present** (owner: "the
+  glow effect is not present … only renders when you scroll it down"). The v8.13.4
+  ramp used `mix()`, which REPLACED the surface colour instead of adding to it, so
+  it read flat and washed out. It's now **additive** (`col += thermal * glow *
+  facing`) with a wider facing term, so it genuinely glows over the globe and is
+  visible at every zoom, not just up close — while keeping the smooth blue→cyan→
+  green→amber→red thermal ramp and hi-res additive splat from v8.13.4.
+
+Version badge → v8.13.5. Verified: all changed JS/PY parse; zone geometry
+hit-tests correct; headless Chromium boots with **0 non-network console errors**.
+
 ## Status (v8.13.4)
 
 **v8.13.4 (2026-07-10, correctness + map-quality batch):** an eleven-item owner
