@@ -28,6 +28,7 @@ Writes stories + story_members with linked_via = 'same_window' |
 import json
 import logging
 import threading
+import time
 from datetime import datetime, timedelta, timezone
 
 from ..config import cfg
@@ -35,6 +36,15 @@ from ..db.models import new_id, now_iso, unpack_embedding
 from ..db.session import query, query_one, write_tx
 from .embed import cosine
 from .gazetteer import haversine_km
+
+# v8.14 (Update 1 §1.2) — OPTIONAL numpy fast path for the historical linear
+# scan, auto-detected exactly like sentence-transformers/spacy: installed →
+# the whole chain's cosine similarities compute as one matrix-vector product;
+# absent → the pure-python loop below runs unchanged. Never a hard dependency.
+try:
+    import numpy as _np
+except Exception:  # noqa: BLE001 — numpy is an optional accelerator
+    _np = None
 
 log = logging.getLogger("correlate")
 
@@ -54,6 +64,11 @@ class FactChainCache:
         self._facts: list[tuple] = []
         self._loaded_through = ""
         self._lock = threading.Lock()
+        # v8.14 — cached numpy matrix of the chain's embeddings (rebuilt only
+        # when the fact count changes); None when numpy isn't installed.
+        self._mat = None
+        self._mat_norms = None
+        self._mat_len = -1
 
     def _append_since(self, since: str) -> None:
         rows = query(
@@ -73,10 +88,31 @@ class FactChainCache:
             self._append_since(self._loaded_through)
             return list(self._facts)
 
+    def snapshot_with_matrix(self):
+        """v8.14 — snapshot + embedding matrix for the vectorized scan.
+        Stored vectors are L2-normalized (embed.cosine is a plain dot
+        product), so the whole chain's similarities are exactly `mat @ vec` —
+        float64 so the numbers match the python fallback bit-for-bit at
+        threshold precision. Rebuilt only when the fact count changed (the
+        chain is append-only, so a length check is a correct staleness test).
+        Returns (facts, None) when numpy is absent or the chain is empty."""
+        with self._lock:
+            self._append_since(self._loaded_through)
+            facts = list(self._facts)
+            if _np is None or not facts:
+                return facts, None
+            if self._mat is None or self._mat_len != len(facts):
+                self._mat = _np.array([f[3] for f in facts], dtype=_np.float64)
+                self._mat_len = len(facts)
+            return facts, self._mat
+
     def invalidate(self) -> None:
         with self._lock:
             self._facts.clear()
             self._loaded_through = ""
+            self._mat = None
+            self._mat_norms = None
+            self._mat_len = -1
 
 
 fact_chain_cache = FactChainCache()
@@ -156,6 +192,10 @@ def correlate_event(event_id: str) -> dict:
 
     created = updated = False
     story_id = _story_of_event(event_id)
+    # v8.14 (Update 1 §1.2) — instrument the passes so "is the linear scan
+    # actually slow yet?" (the v2 addendum's ANN trigger question) is answered
+    # by real numbers in logs/app.log instead of guesswork.
+    _t0 = time.monotonic()
 
     # --- (a) same-window pass ---
     window_rows = query(
@@ -196,16 +236,46 @@ def correlate_event(event_id: str) -> dict:
                                                "similarity": round(best_sim, 4),
                                                "story_id": story_id}})
 
+    _t_sw = time.monotonic()
+
     # --- (b) historical fact-chain pass (no time gate, cached chain §3.6) ---
     window_floor = _iso_hours_ago(gap_hours)
     best_fact, best_fact_sim = None, hist_thresh
-    for fact_id, fact_event_id, when_occurred, fact_vec, fact_ents in \
-            fact_chain_cache.snapshot():
-        if fact_event_id == event_id or when_occurred >= window_floor:
-            continue
-        sim = cosine(vec, fact_vec) + _entity_boost(ev_entities, fact_ents)
-        if sim >= best_fact_sim:
-            best_fact, best_fact_sim = (fact_id, fact_event_id), sim
+    facts, _mat = fact_chain_cache.snapshot_with_matrix()
+    if _mat is not None:
+        # v8.14 — numpy fast path: one matrix-vector product replaces the
+        # per-fact python dot (stored vectors are L2-normalized, so dot IS
+        # cosine); only facts whose BASE similarity could still clear the
+        # threshold after the max entity boost are then re-checked exactly
+        # (boost + window/self filters) in python.
+        _base = _mat @ _np.asarray(vec, dtype=_np.float64)
+        _boost_max = float(cfg("correlation", "entity_overlap_boost"))
+        for i in _np.nonzero(_base + _boost_max >= hist_thresh)[0]:
+            fact_id, fact_event_id, when_occurred, _fv, fact_ents = facts[int(i)]
+            if fact_event_id == event_id or when_occurred >= window_floor:
+                continue
+            sim = float(_base[int(i)]) + _entity_boost(ev_entities, fact_ents)
+            if sim >= best_fact_sim:
+                best_fact, best_fact_sim = (fact_id, fact_event_id), sim
+    else:
+        for fact_id, fact_event_id, when_occurred, fact_vec, fact_ents in facts:
+            if fact_event_id == event_id or when_occurred >= window_floor:
+                continue
+            sim = cosine(vec, fact_vec) + _entity_boost(ev_entities, fact_ents)
+            if sim >= best_fact_sim:
+                best_fact, best_fact_sim = (fact_id, fact_event_id), sim
+
+    _t_hist = time.monotonic()
+    _timing = {"event_id": event_id,
+               "same_window_candidates": len(window_rows),
+               "chain_size": len(facts),
+               "vectorized": _mat is not None,
+               "same_window_ms": round((_t_sw - _t0) * 1000, 1),
+               "historical_ms": round((_t_hist - _t_sw) * 1000, 1)}
+    # quiet when fast; loud once the scan actually gets slow — that log line
+    # IS the ANN-index trigger the v2 addendum asked to measure for.
+    (log.info if (_t_hist - _t0) > 0.25 else log.debug)(
+        "correlate_timing", extra={"data": _timing})
 
     if best_fact is not None:
         with write_tx() as conn:

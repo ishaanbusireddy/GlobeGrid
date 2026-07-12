@@ -154,10 +154,14 @@ _WB_CACHE: dict[str, "_re.Pattern"] = {}
 
 def _kw_hit(keyword: str, lowered: str) -> bool:
     kw = keyword.strip()
-    # multi-word or long tokens: a plain substring is specific enough
-    if " " in kw or len(kw) > 5:
+    # multi-word phrases: a plain substring is specific enough
+    if " " in kw:
         return kw in lowered
-    # short single word: require word boundaries so "war" != "warning"
+    # v8.14 — EVERY single-word keyword gets word boundaries, not just short
+    # ones. The old `len(kw) > 5 → substring` shortcut let "market" (6 chars)
+    # hit "supermarket" — the exact bug the boundary rule was added for in
+    # v7.4.1, silently regressed by the length gate; caught by
+    # backend/tests/test_classify.py.
     pat = _WB_CACHE.get(kw)
     if pat is None:
         pat = _re.compile(r"\b" + _re.escape(kw) + r"\b")

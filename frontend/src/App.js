@@ -457,6 +457,32 @@ function ensureHistDecoded() {
   }
   return HIST_DECODED;
 }
+// v8.14 (Update 2 §2.3) — APPROXIMATED historical sub-national republics.
+// Each Soviet Socialist Republic / Yugoslav republic corresponds closely to a
+// present-day country's full extent already in BOUNDARIES_50M, so its
+// present-day outline serves as an honest, clearly-labelled approximation of
+// the republic's border (known caveats: Crimea's 1954 transfer and various
+// Central-Asian adjustments are not reflected — this is a proxy, never
+// presented as exact-era geometry, per the project's data-honesty rule).
+const HISTORICAL_REPUBLICS = [
+  // USSR 1922–1991: the 15 SSRs by their present-day successor iso3.
+  { from: 1922, to: 1991, isos: ["RUS", "UKR", "BLR", "MDA", "EST", "LVA", "LTU",
+    "GEO", "ARM", "AZE", "KAZ", "KGZ", "UZB", "TJK", "TKM"] },
+  // Yugoslavia 1945–1991: the 6 republics (Serbia = present-day SRB + XKX).
+  { from: 1945, to: 1991, isos: ["SVN", "HRV", "BIH", "SRB", "MNE", "MKD"] },
+];
+function _republicRings(year) {
+  const rings = [];
+  for (const era of HISTORICAL_REPUBLICS) {
+    if (year < era.from || year > era.to) continue;
+    for (const iso of era.isos) {
+      const c = BOUNDARIES_50M.find((b) => b.i === iso);
+      if (c) rings.push(...c.r);
+    }
+  }
+  return rings;
+}
+
 // When the time capsule (as_of) points into the past, overlay the borders of
 // the nearest historical epoch (USSR as one polity pre-1991, unified Yugoslavia,
 // colonial-era Africa…). Cleared when as_of is off or effectively present-day.
@@ -467,15 +493,22 @@ function applyHistoricalBoundaries(asOf) {
   const yr = asOf ? parseInt(String(asOf).slice(0, 4), 10) : NaN;
   if (!asOf || Number.isNaN(yr) || yr > 2015 || !eps.length) {
     r.setHistoricalBoundaries(null);
+    r.setHistoricalSubnational?.(null);
     state.histEpoch = null;
     return;
   }
   let pick = eps[0];
   for (const e of eps) if (e.year <= yr) pick = e;   // largest epoch <= as_of year
   r.setHistoricalBoundaries(pick.flat);
+  // v8.14 — inside the USSR/Yugoslav eras, overlay the constituent republics
+  // as a dimmer approximated sub-layer (keyed to the EPOCH year shown, so the
+  // layer matches the borders on screen, not the raw scrubber year).
+  const subRings = _republicRings(pick.year);
+  r.setHistoricalSubnational?.(subRings.length ? subRings : null);
   if (state.histEpoch !== pick.year) {
     state.histEpoch = pick.year;
-    alerts.toast?.(`⏳ Borders shown as of ${pick.year} (nearest historical epoch)`);
+    alerts.toast?.(`⏳ Borders shown as of ${pick.year} (nearest historical epoch)`
+      + (subRings.length ? " · internal republics approximated from present-day lines" : ""));
   }
 }
 

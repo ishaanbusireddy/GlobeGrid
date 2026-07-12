@@ -73,16 +73,24 @@ export function flagInline(country) {
 // the unit has none or its guessed flag 404s (e.g. Indian states have no flags,
 // so show the Indian flag) → a small placeholder glyph only if nothing exists.
 export function adminCrest(unit, size = 40, cls = "") {
-  // v8.13.9 — an admin division shows ONLY its own flag. If it has none, or the
-  // image fails to load, it shows NOTHING: no national-flag fallback and no ▧
-  // placeholder (owner: "remove the national flag fallback entirely … if an
-  // admin div doesnt have its own flag, it doesnt show anything"). The backend
-  // still emits country_flag_url; it is deliberately ignored here now.
+  // v8.13.9 — an admin division shows ONLY its own flag; no national-flag
+  // fallback, no ▧ placeholder (owner rule). v8.14 — but a flag that EXISTS
+  // must actually show: the v8.13.9 single-URL + remove-on-error combo blanked
+  // every division flag when the v8.13.8 direct-CDN URL failed in real
+  // browsers. Now the backend sends TWO candidate URLs for the same file —
+  // Special:FilePath (follows Commons redirects, the historically-proven form)
+  // then the direct CDN thumb (never rate-limited) — and the <img> walks the
+  // chain on error before giving up. Only when every candidate fails does the
+  // element remove itself (the unit genuinely has no such flag).
   const own = unit.flag_url ? esc(unit.flag_url) : "";
   if (!own) return "";
+  const alt2 = unit.flag_url_alt ? esc(unit.flag_url_alt) : "";
   const alt = esc((unit.name || "") + " flag");
   const style = `height:${Math.round(size * 0.66)}px`;
-  return `<img class="admin-flag ${cls}" src="${own}" alt="${alt}" style="${style}" loading="lazy" onerror="this.remove()">`;
+  const err = alt2
+    ? `onerror="if(this.dataset.n){this.remove()}else{this.dataset.n=1;this.src='${alt2}'}"`
+    : `onerror="this.remove()"`;
+  return `<img class="admin-flag ${cls}" src="${own}" alt="${alt}" style="${style}" loading="lazy" ${err}>`;
 }
 
 const STATUS_LABEL = {
@@ -1507,7 +1515,22 @@ export async function renderAdminUnit(el, uid, ctx) {
       <div class="stat-grid">${own.map(([k, v]) =>
         `<div class="stat-cell"><span class="stat-k">${esc(k)}</span><span class="stat-v">${esc(String(v))}</span></div>`).join("")}</div>
       <p class="cp-meta" style="margin-top:6px">Area is measured from this unit's own boundary polygon (approximate, from the simplified geometry).${
-        st.own_population ? "" : " Its own population/GDP aren't in the curated set yet — see the country context below."}</p></section>`;
+        st.own_population || st.estimated_population ? "" : " Its own population/GDP aren't in the curated set yet — see the country context below."}</p></section>`;
+  }
+
+  // v8.14 (Update 2 §2.2) — the DERIVED tier: an area-weighted estimate from
+  // the unit's ADM1 ancestor's curated census figure. Its own section with an
+  // explicit "estimated, not recorded" label — never mixed into the curated
+  // figures above (the project's data-honesty rule applied to derived numbers).
+  if (!st.own_population && st.estimated_population) {
+    html += `<section><h4>Estimated figures <span class="cp-meta">— derived, not a recorded census figure</span></h4>
+      <div class="stat-grid">
+        ${cell("Population (est.)", (st.estimated_population / 1e6) >= 0.1
+          ? (st.estimated_population / 1e6).toFixed(2) + "M"
+          : Math.round(st.estimated_population).toLocaleString())}
+        ${st.estimated_density_km2 != null ? cell("Density (est.)", Math.round(st.estimated_density_km2).toLocaleString() + " /km²") : ""}
+      </div>
+      <p class="cp-meta" style="margin-top:6px">Estimated as this unit's area-weighted share of ${esc(st.estimate_parent || "its province")}'s population (${esc(st.estimate_basis_source || "curated census")}${st.estimate_basis_year ? ", " + esc(String(st.estimate_basis_year)) : ""}), assuming uniform density — an approximation, not a recorded figure.</p></section>`;
   }
 
   // v8.3 — local activity readout (recent tracked coverage in this unit)

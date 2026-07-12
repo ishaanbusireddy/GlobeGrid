@@ -155,6 +155,9 @@ export class Tier2Map {
   // v8.4 — real historical world borders overlaid for a past as_of epoch:
   // a flat list of [lon,lat,…] rings, drawn (ungated) in amber when set.
   setHistoricalBoundaries(rings) { this.histRings = rings || null; this.draw(); }   // v8.4
+  // v8.14 — approximated republic sub-divisions (SSRs / Yugoslav republics),
+  // drawn dimmer + dashed under the bold epoch lines.
+  setHistoricalSubnational(rings) { this.histSubRings = rings || null; this.draw(); }
   setAdminVisible(on) { this.showAdmin = !!on; this.adminVis = [!!on, !!on, !!on]; this.draw(); }
   // v8.8 — per-tier visibility so div1/div2/div3 toggle independently.
   setAdminLayerVisible(level, on) {
@@ -623,6 +626,11 @@ export class Tier2Map {
       // v8.2 — ADM3 (sub-district) borders: faintest, only at the tightest zoom
       if (this.adminVis[2] && this.zoom >= 7 && this.admin3Rings.length) {
         this._drawRings(this.admin3Rings, off, "rgba(158,152,174,0.4)", 0.45);
+      }
+      // v8.14 — approximated republic sub-divisions first (dimmer, dashed), so
+      // the bold country-level epoch lines draw over them and stay dominant.
+      if (this.histSubRings && this.histSubRings.length) {
+        this._drawRings(this.histSubRings, off, "rgba(216,168,96,0.5)", 0.8, true, [4, 4]);
       }
       // v8.4 — historical world borders for a past as_of epoch: amber, ungated
       // (they replace the modern outline conceptually), drawn over the base map.

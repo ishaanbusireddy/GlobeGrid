@@ -441,16 +441,21 @@ SUBNATIONAL = {
     ("IDN", "central java"): _S(language="Javanese", dialect="Javanese"),
     ("IDN", "west java"): _S(language="Sundanese", dialect="Sundanese"),
     # Myanmar — Buddhist Bamar core, Christian highlands, Muslim Rakhine coast.
-    ("MMR", "kachin"): _S(religion="Christianity", sect="Protestant (Baptist)",
-                          language="Kachin (Jingpho)"),
-    ("MMR", "chin"): _S(religion="Christianity", sect="Protestant (Baptist)",
-                        language="Chin"),
-    ("MMR", "kayah"): _S(religion="Christianity", sect="Catholic", language="Karenni"),
-    ("MMR", "kayin"): _S(religion="Buddhism", sect="Theravada Buddhist", language="Karen"),
-    ("MMR", "shan"): _S(religion="Buddhism", sect="Theravada Buddhist", language="Shan"),
-    ("MMR", "rakhine"): _S(religion="Buddhism", sect="Theravada Buddhist",
-                           language="Rakhine"),
-    ("MMR", "mon"): _S(religion="Buddhism", sect="Theravada Buddhist", language="Mon"),
+    # (v8.14 — keys carry the atlas's " state" suffix; the bare names were dead.)
+    ("MMR", "kachin state"): _S(religion="Christianity", sect="Protestant (Baptist)",
+                                language="Kachin (Jingpho)"),
+    ("MMR", "chin state"): _S(religion="Christianity", sect="Protestant (Baptist)",
+                              language="Chin"),
+    ("MMR", "kayah state"): _S(religion="Christianity", sect="Catholic",
+                               language="Karenni"),
+    ("MMR", "kayin state"): _S(religion="Buddhism", sect="Theravada Buddhist",
+                               language="Karen"),
+    ("MMR", "shan state"): _S(religion="Buddhism", sect="Theravada Buddhist",
+                              language="Shan"),
+    ("MMR", "rakhine state"): _S(religion="Buddhism", sect="Theravada Buddhist",
+                                 language="Rakhine"),
+    ("MMR", "mon state"): _S(religion="Buddhism", sect="Theravada Buddhist",
+                             language="Mon"),
     # Thailand — the deep south is Malay-Muslim (Sunni), the north-east Isan/Lao.
     ("THA", "pattani"): _S(religion="Islam", sect="Sunni", language="Malay",
                            dialect="Pattani Malay"),
@@ -467,8 +472,10 @@ SUBNATIONAL = {
     ("CHN", "qinghai"): _S(religion="Buddhism", sect="Vajrayana Buddhist",
                            language="Tibetan"),
     ("CHN", "gansu"): _S(religion="Islam", sect="Sunni (Hui)"),
-    ("CHN", "hong kong"): _S(dialect="Cantonese (Yue)"),
-    ("CHN", "macau"): _S(dialect="Cantonese (Yue)"),
+    # (v8.14 — Hong Kong / Macau removed: they are NOT CHN ADM1 units in the
+    #  atlas — they render as territories with their own pages, so a CHN-keyed
+    #  override could never fire. Guangdong's Cantonese entry already exists
+    #  above.)
     ("CHN", "fujian"): _S(dialect="Hokkien (Min)"),
     ("CHN", "shanghai"): _S(dialect="Wu (Shanghainese)"),
     ("CHN", "zhejiang"): _S(dialect="Wu"),
@@ -477,21 +484,35 @@ SUBNATIONAL = {
     ("IRN", "sistan and baluchestan"): _S(sect="Sunni", language="Balochi",
                                           dialect="Balochi"),
     ("IRN", "khuzestan"): _S(language="Arabic", dialect="Khuzestani Arabic"),
-    ("IRN", "west azarbaijan"): _S(language="Azerbaijani", dialect="Azerbaijani"),
-    ("IRN", "east azarbaijan"): _S(language="Azerbaijani", dialect="Azerbaijani"),
+    ("IRN", "west azerbaijan"): _S(language="Azerbaijani", dialect="Azerbaijani"),
+    ("IRN", "east azerbaijan"): _S(language="Azerbaijani", dialect="Azerbaijani"),
     ("IRN", "golestan"): _S(sect="Sunni", language="Turkmen"),
     # Afghanistan — the Hazarajat is Twelver Shia (Hazara); north Tajik/Uzbek.
+    # (v8.14 — Daykundi removed: Natural Earth's AFG ADM1 layer predates the
+    #  province's 2004 split from Urozgan, so the atlas has no such unit and
+    #  the key could never fire; Bamyan carries the Hazarajat override.)
     ("AFG", "bamyan"): _S(sect="Twelver Shia", language="Hazaragi"),
-    ("AFG", "daykundi"): _S(sect="Twelver Shia", language="Hazaragi"),
     ("AFG", "balkh"): _S(language="Dari", dialect="Dari"),
     ("AFG", "herat"): _S(language="Dari", dialect="Herati Dari"),
     ("AFG", "kandahar"): _S(language="Pashto", dialect="Kandahari Pashto"),
     # Saudi Arabia / Bahrain — Twelver Shia pockets on the Gulf coast.
-    ("SAU", "eastern province"): _S(sect="Sunni / Twelver Shia (east)"),
+    ("SAU", "eastern"): _S(sect="Sunni / Twelver Shia (east)"),
     # Sri Lanka — Tamil Hindu north, Muslim east, Sinhala Buddhist south.
-    ("LKA", "northern province"): _S(religion="Hinduism", sect="Tamil Hindu",
-                                     language="Tamil", dialect="Sri Lankan Tamil"),
-    ("LKA", "eastern province"): _S(religion="Islam", sect="Sunni", language="Tamil"),
+    # (v8.14 — LKA's atlas ADM1 is DISTRICTS, not provinces: key the Northern
+    #  Province's five districts + the Eastern Province's three individually.)
+    ("LKA", "jaffna"): _S(religion="Hinduism", sect="Tamil Hindu",
+                          language="Tamil", dialect="Sri Lankan Tamil"),
+    ("LKA", "kilinochchi"): _S(religion="Hinduism", sect="Tamil Hindu",
+                               language="Tamil", dialect="Sri Lankan Tamil"),
+    ("LKA", "mannar"): _S(religion="Hinduism", sect="Tamil Hindu",
+                          language="Tamil", dialect="Sri Lankan Tamil"),
+    ("LKA", "mullaitivu"): _S(religion="Hinduism", sect="Tamil Hindu",
+                              language="Tamil", dialect="Sri Lankan Tamil"),
+    ("LKA", "vavuniya"): _S(religion="Hinduism", sect="Tamil Hindu",
+                            language="Tamil", dialect="Sri Lankan Tamil"),
+    ("LKA", "trincomalee"): _S(religion="Islam", sect="Sunni", language="Tamil"),
+    ("LKA", "batticaloa"): _S(religion="Islam", sect="Sunni", language="Tamil"),
+    ("LKA", "ampara"): _S(religion="Islam", sect="Sunni", language="Tamil"),
     # India — fill the Hindi belt + more state languages so div2 is dense.
     ("IND", "uttar pradesh"): _S(language="Hindi", dialect="Awadhi / Braj"),
     ("IND", "bihar"): _S(language="Hindi", dialect="Bhojpuri / Maithili"),
@@ -504,23 +525,19 @@ SUBNATIONAL = {
     ("IND", "uttarakhand"): _S(language="Hindi", dialect="Garhwali / Kumaoni"),
     ("IND", "tripura"): _S(language="Bengali", dialect="Kokborok / Bengali"),
     # Israel — the north has a large Arab (Muslim/Christian/Druze) population.
-    ("ISR", "northern district"): _S(religion="Islam", sect="Sunni / Druze",
-                                     language="Arabic"),
+    ("ISR", "northern"): _S(religion="Islam", sect="Sunni / Druze",
+                            language="Arabic"),
     # Lebanon — add the Druze heartland (Chouf sits in Mount Lebanon already).
     ("SYR", "as-suwayda"): _S(religion="Druze", sect="Druze", language="Arabic"),
-    # United Kingdom — the Celtic nations + the NI communal split.
-    ("GBR", "wales"): _S(language="Welsh", dialect="Welsh"),
-    ("GBR", "scotland"): _S(dialect="Scots / Scottish English"),
-    ("GBR", "northern ireland"): _S(sect="Catholic / Protestant (split)"),
-    # France — the regional/minority languages.
-    ("FRA", "corse"): _S(language="Corsican", dialect="Corsican"),
-    ("FRA", "corsica"): _S(language="Corsican", dialect="Corsican"),
+    # United Kingdom / France / Italy / Kenya — regions that span MANY atlas
+    # ADM1 units (the GB atlas is local authorities, FRA is departments, ITA is
+    # provinces, KEN is the former provinces): expanded to every member unit by
+    # the _REGION_ALIASES block below the table, so the values live once here.
+    # France — the regional/minority languages (Corsica via _REGION_ALIASES).
     # Italy — German South Tyrol, French Aosta, Sardinian Sardinia.
-    ("ITA", "bolzano"): _S(language="German", dialect="South Tyrolean German"),
-    ("ITA", "south tyrol"): _S(language="German", dialect="South Tyrolean German"),
+    ("ITA", "trentino-south tyrol"): _S(language="German",
+                                        dialect="South Tyrolean German"),
     ("ITA", "aosta"): _S(language="French", dialect="Valdôtain"),
-    ("ITA", "aosta valley"): _S(language="Italian", dialect="Valdôtain / French"),
-    ("ITA", "sardinia"): _S(language="Sardinian", dialect="Sardinian"),
     ("ITA", "sassari"): _S(language="Sardinian", dialect="Sassarese"),
     ("ITA", "cagliari"): _S(language="Sardinian", dialect="Campidanese"),
     ("ITA", "nuoro"): _S(language="Sardinian", dialect="Logudorese"),
@@ -537,21 +554,63 @@ SUBNATIONAL = {
     ("ZAF", "western cape"): _S(language="Afrikaans", dialect="Afrikaans"),
     ("ZAF", "limpopo"): _S(language="Northern Sotho", dialect="Sepedi"),
     ("ZAF", "free state"): _S(language="Southern Sotho", dialect="Sesotho"),
-    # Kenya — the coast is Muslim/Swahili; the north-east Somali.
-    ("KEN", "mombasa"): _S(religion="Islam", sect="Sunni", language="Swahili"),
-    ("KEN", "garissa"): _S(religion="Islam", sect="Sunni", language="Somali"),
-    ("KEN", "wajir"): _S(religion="Islam", sect="Sunni", language="Somali"),
-    ("KEN", "mandera"): _S(religion="Islam", sect="Sunni", language="Somali"),
+    # Kenya — the coast is Muslim/Swahili; the north-east Somali. (v8.14 — the
+    # KEN atlas ADM1 is the eight FORMER PROVINCES, not counties: key those.)
+    ("KEN", "coast"): _S(religion="Islam", sect="Sunni", language="Swahili"),
+    ("KEN", "north eastern"): _S(religion="Islam", sect="Sunni", language="Somali"),
     # Georgia — Adjara has a large Muslim minority; the south-east is Azeri.
     ("GEO", "adjara"): _S(religion="Islam", sect="Sunni", language="Georgian"),
     ("GEO", "kvemo kartli"): _S(language="Azerbaijani", dialect="Azerbaijani"),
     # Tanzania mainland vs Zanzibar covered above; add the Swahili coast label.
-    # Nepal — the mountainous north is Tibetan-Buddhist.
-    ("NPL", "karnali"): _S(religion="Hinduism", sect="Hindu / Tibetan Buddhist"),
+    # Nepal — the mountainous north is Tibetan-Buddhist. (Atlas uses the old
+    # zone names, so Karnali keys "karnali zone".)
+    ("NPL", "karnali zone"): _S(religion="Hinduism", sect="Hindu / Tibetan Buddhist"),
     # Vietnam — the Central Highlands host Christian minorities.
     ("VNM", "gia lai"): _S(religion="Christianity", sect="Protestant", language="Jarai"),
     ("VNM", "kon tum"): _S(religion="Christianity", sect="Protestant"),
 }
+
+# v8.14 — region → atlas-unit expansion. Some cultural regions span MANY atlas
+# ADM1 units under a different naming scheme (the GB atlas is ~220 local
+# authorities, France is departments, Italy is provinces), so a single
+# "wales"/"scotland"/"corsica" key could never match anything (the exact
+# silently-dead-override bug class found in v8.11, reintroduced by v8.13.7 and
+# now caught by backend/tests/test_admin_data.py). Each region's value is
+# defined ONCE here and expanded onto every member unit; setdefault so a more
+# specific per-unit entry above always wins.
+_REGION_ALIASES = [
+    ("GBR", _S(language="Welsh", dialect="Welsh"), [
+        "anglesey", "blaenau gwent", "bridgend", "caerphilly", "cardiff",
+        "carmarthenshire", "ceredigion", "conwy", "denbighshire", "flintshire",
+        "gwynedd", "merthyr tydfil", "monmouthshire", "neath port talbot",
+        "newport", "pembrokeshire", "powys", "rhondda cynon taf", "swansea",
+        "torfaen", "vale of glamorgan", "wrexham"]),                 # Wales
+    ("GBR", _S(dialect="Scots / Scottish English"), [
+        "aberdeen", "aberdeenshire", "angus", "argyll and bute",
+        "clackmannanshire", "dumfries and galloway", "dundee", "east ayrshire",
+        "east dunbartonshire", "east lothian", "east renfrewshire", "edinburgh",
+        "falkirk", "fife", "glasgow", "highland", "inverclyde", "midlothian",
+        "moray", "north ayrshire", "north lanarkshire", "orkney islands",
+        "outer hebrides", "perth and kinross", "renfrewshire",
+        "scottish borders", "shetland islands", "south ayrshire",
+        "south lanarkshire", "stirling", "west dunbartonshire",
+        "west lothian"]),                                            # Scotland
+    ("GBR", _S(sect="Catholic / Protestant (split)"), [
+        "antrim", "ards", "armagh", "ballymena", "ballymoney", "banbridge",
+        "belfast", "carrickfergus", "castlereagh", "coleraine", "craigavon",
+        "derry", "down", "dungannon and south tyrone", "fermanagh", "larne",
+        "limavady", "lisburn", "magherafelt", "mid ulster", "moyle",
+        "newry and mourne", "newtownabbey", "north down", "omagh",
+        "strabane"]),                                                # N. Ireland
+    ("FRA", _S(language="Corsican", dialect="Corsican"), [
+        "corse-du-sud", "haute-corse"]),                             # Corsica
+    ("ITA", _S(language="Sardinian", dialect="Sardinian"), [
+        "oristano", "olbia-tempio", "ogliastra", "carbonia-iglesias",
+        "medio campidano"]),                                         # Sardinia
+]
+for _iso3, _val, _names in _REGION_ALIASES:
+    for _n in _names:
+        SUBNATIONAL.setdefault((_iso3, _n), _val)
 
 
 def country_sect(iso3):

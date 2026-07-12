@@ -84,8 +84,12 @@ def _unit_row(r) -> dict:
             d["bbox"] = None
     d.pop("bbox_json", None)
     # v8.1 — a best-effort (constructed) flag URL, browser-loaded.
-    from ..geopolitics.province_flags import flag_url
+    # v8.14 — plus a second candidate URL (direct CDN thumb) the frontend
+    # retries against when the primary fails to load, so one throttled or
+    # 404'd request never blanks a flag that exists.
+    from ..geopolitics.province_flags import flag_url, flag_url_alt
     d["flag_url"] = flag_url(d.get("name"), d.get("country_id"), d.get("iso2"))
+    d["flag_url_alt"] = flag_url_alt(d.get("name"), d.get("country_id"), d.get("iso2"))
     # v8.9.1 — the national flag, so the UI falls back to it when the unit has
     # no flag of its own (no fake seals). e.g. Indian states → the Indian flag.
     d["country_flag_url"] = _country_flag(d.get("country_id"))
@@ -94,11 +98,41 @@ def _unit_row(r) -> dict:
     return d
 
 
+_ATLAS_BY_UID = None
+
+
+def _atlas_unit(uid):
+    """Atlas record (name/parent/level/area/country) by uid, cached once."""
+    global _ATLAS_BY_UID
+    if _ATLAS_BY_UID is None:
+        from ..geopolitics.admin_atlas import units as _units
+        _ATLAS_BY_UID = {u["uid"]: u for u in _units()}
+    return _ATLAS_BY_UID.get(uid)
+
+
+def _adm1_ancestor(uid):
+    """Walk parent links up to the unit's first-level (ADM1) ancestor."""
+    u = _atlas_unit(uid)
+    hops = 0
+    while u and u.get("level", 1) > 1 and u.get("parent") is not None and hops < 5:
+        u = _atlas_unit(u["parent"])
+        hops += 1
+    return u if (u and u.get("level") == 1) else None
+
+
 def _unit_stats(unit) -> dict:
     """v8.5 — the unit's OWN figures (Q4): real polygon area for every unit, plus
     curated population/GDP for the world's major first-level units, with density
     DERIVED from that population and this unit's area so it matches the geometry
-    shown. own_population=False → the page shows the inherited country figure."""
+    shown. own_population=False → the page shows the inherited country figure.
+
+    v8.14 (roadmap Update 2 §2.2) — a third tier between "curated" and
+    "inherited": a deeper unit (district/county) whose ADM1 ancestor HAS a
+    curated census figure gets an area-weighted ESTIMATE (parent population ×
+    this unit's polygon share of the parent's polygon, uniform-density
+    assumption). Always returned under separate `estimated_*` keys with the
+    derivation method + basis attached, so the UI can never present it as a
+    recorded figure — the same honesty split as inherited country stats."""
     from ..geopolitics import admin_demographics
     area = unit.get("area_km2")
     if area is None:
@@ -116,6 +150,20 @@ def _unit_stats(unit) -> dict:
             stats["gdp_usd"] = demo["gdp"]
         if area and demo.get("pop"):
             stats["density_km2"] = round(demo["pop"] / area, 1)
+    elif (unit.get("adm_level") or 1) >= 2 and area:
+        anc = _adm1_ancestor(unit.get("admin_uid"))
+        if anc:
+            p_area = anc.get("area_km2")
+            p_demo = admin_demographics.lookup(
+                anc.get("country"), anc.get("name"), p_area)
+            if p_demo and p_demo.get("pop") and p_area:
+                est = int(min(p_demo["pop"], p_demo["pop"] * (area / p_area)))
+                if est > 0:
+                    stats["estimated_population"] = est
+                    stats["estimated_density_km2"] = round(est / area, 1)
+                    stats["estimate_parent"] = anc.get("name")
+                    stats["estimate_basis_year"] = p_demo.get("year")
+                    stats["estimate_basis_source"] = p_demo.get("src")
     return stats
 
 
@@ -350,12 +398,13 @@ def admin_detail(params, q, body):
         "SELECT COUNT(*) AS n FROM events WHERE admin_uid = ?"
         " AND COALESCE(is_synthetic,0)=0", (uid,))
 
-    from ..geopolitics.province_flags import flag_url as _flag
+    from ..geopolitics.province_flags import flag_url as _flag, flag_url_alt as _flag2
     cc = unit.get("country_id")
 
     def _with_flag(r):
         row = dict(r)
         row["flag_url"] = _flag(row.get("name"), cc)
+        row["flag_url_alt"] = _flag2(row.get("name"), cc)   # v8.14 retry candidate
         row["country_flag_url"] = _country_flag(cc)   # v8.9.1 — national fallback
         return row
 

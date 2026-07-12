@@ -18,6 +18,143 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v8.14.0)
+
+**v8.14.0 (2026-07-12, Roadmap Update 1 [Architecture Debt] + Update 2 [Data
+Coverage Gaps] + the admin-flag regression fix):** the owner's "tackle #1 & #2"
+batch from the architecture-roadmap PDF, plus the urgent report that "8.13.9
+actually broke first level division flags … basically you removed all flags."
+
+- **Admin flags WORK again — a two-candidate URL chain.** Root cause of the
+  v8.13.9 breakage: v8.13.8 had made the direct CDN md5-thumbnail the ONLY
+  flag URL, and that form fails broadly in a real browser (a Commons filename
+  that is a redirect — "Flag of Bavaria.svg" et al. — 404s on the direct CDN
+  path *by design*), while v8.13.9's single-URL + remove-on-error gave no
+  second chance — so US states/Canadian provinces/German+Russian divisions all
+  lost their flags. Now `province_flags` emits BOTH forms and the frontend
+  walks them: `flag_url` = Commons `Special:FilePath` (follows filename
+  redirects; the form proven in-browser for every flag through v8.13.7) → on
+  image error `flag_url_alt` = the direct CDN md5-thumb (immune to FilePath
+  rate-limits, the v8.13.8 lesson) → on second error the element is removed.
+  The v8.13.9 owner rule is preserved exactly: NO national fallback, NO ▧ —
+  a unit without its own flag still shows nothing. Both URLs ride on every
+  `/api/admin/*` row (children/sibling chips too); `adminCrest` steps the
+  chain via a `dataset.n` onerror guard. Locked by tests
+  (`backend/tests/test_province_flags.py`): Wyoming FilePath primary +
+  `/b/bc/` CDN alt, IND/CHN/uncurated-PAK → None in BOTH slots, curated
+  Georgia (U.S. state) collision file, alt-null exactly where primary-null.
+
+- **Update 1 — a real test suite (`backend/tests/` + `python run_tests.py`),
+  21 pure-stdlib unittest cases, zero installs.** Curated-table↔atlas key
+  integrity, classifier labelled set, flag-chain URLs, polyline codec
+  round-trip, and DB tests (migration idempotence, the events-category CHECK,
+  write_tx reentrancy, 8-thread write concurrency) — the DB scenarios run in
+  fresh SUBPROCESSES because config.py reads DATABASE_URL at import time, so
+  an in-process env swap could silently hit the real DB. **The suite caught
+  two REAL regressions on its first run:**
+  1. **30 silently-dead SUBNATIONAL overrides** (the v8.11 bug class,
+     reintroduced by v8.13.7's big curation batch): Myanmar's seven
+     states/regions keyed without the atlas's " state" suffix, GBR
+     "wales"/"scotland"/"northern ireland" against a local-authority atlas,
+     Sri Lankan "northern/eastern province" against a district atlas, IRN
+     "azarbaijan" spelling, SAU/ISR/NPL/KEN name mismatches, FRA "corse",
+     ITA "sardinia"/"south tyrol"/"aosta valley", CHN "hong kong"/"macau"
+     (territories, not CHN ADM1) and AFG "daykundi" (absent from Natural
+     Earth). All fixed — direct renames plus a new `_REGION_ALIASES`
+     expansion (each region's value defined once, expanded onto every member
+     unit; `setdefault` so a more specific per-unit entry wins). Now **361
+     keys, 0 misses**, and the test makes any future dead key a loud failure.
+  2. **`_kw_hit`'s `len(kw) > 5 → substring` shortcut let "market" match
+     "supermarket"** — the exact bug the v7.4.1 word-boundary rule was added
+     for, silently regressed by the length gate. Every single-word keyword now
+     gets word boundaries.
+- **Update 1 — correlation instrumentation + optional numpy fast path
+  (§1.2).** `correlate_event` now logs `same_window_candidates`, `chain_size`
+  and per-pass ms (debug-level when fast, info once a scan exceeds 250 ms —
+  that log line IS the measured ANN-index trigger the v2 addendum called
+  for). And if numpy is installed (auto-detected like sentence-transformers,
+  never required) the historical linear scan becomes ONE matrix-vector
+  product over a cached float64 embedding matrix (stored vectors are
+  L2-normalized so dot IS cosine) with an entity-boost-aware candidate
+  filter; verified equivalent to the python fallback to ≤1.2e-16.
+- **Update 1 — forecasting surfaced (§1.4).** Every briefing now appends a
+  factual "Forecast calibration" section once the nightly Brier backtest has
+  graded ≥1 category — which categories have EARNED live forecasting, or the
+  best Brier so far and that forecasts stay off until the bar is cleared.
+  Purely factual system state appended after generation, never LLM prose.
+- **Update 1 — the seed's atlas reconcile is now GENERIC.** The v8.12 one-off
+  `admin_level_reconcile='v8.12'` marker became a FINGERPRINT of the atlas's
+  (uid, level, parent) tuples reconciling adm_level + parent_uid + path — any
+  future atlas rebuild that moves units (the GADM builder below re-levels
+  China's counties) self-heals an already-seeded DB exactly once, no bespoke
+  marker bump. New `_unit_source()` honors a builder's `src` tag and fixes
+  the old `level == 2` test that mislabeled DEU/POL/TZA level-3 rows as
+  naturalearth.
+- **Update 1 — honestly deferred: the raster/SDF GPU spine (§1.3).** By the
+  roadmap's own sequencing it follows the smoke suite, and its admin-ID
+  raster bake is compute-infeasible in this sandbox — it stays the named
+  next architecture pass.
+
+- **Update 2 — derived demographics for the 60k+ deeper units (§2.2).** A
+  div2/div3 unit with no curated figures now derives
+  `estimated_population = ADM1 population × (unit area ÷ ADM1 area)`
+  (clamped) by walking `admin_atlas` up to the unit's ADM1 ancestor, emitted
+  as SEPARATE `estimated_*` keys (never mixed with recorded figures) with the
+  parent name + basis year/source. The unit page renders a clearly-labelled
+  **"Estimated figures — derived, not a recorded census figure"** section
+  with the method spelled out (area-weighted share assuming uniform density —
+  an approximation, per the data-honesty rule). Verified over HTTP: LA County
+  → est 1.02M as California's area share (labelled); Kreis Böblingen walks
+  Kreis→Regierungsbezirk→Baden-Württemberg → est 190k.
+- **Update 2 — the time scrubber shows internal republics (§2.3).** Inside
+  the USSR (1922–1991) and Yugoslavia (1945–1991) epochs, both renderers now
+  overlay the 15 SSRs / 6 Yugoslav republics as a dimmer, dashed sub-layer
+  beneath the bold epoch borders — drawn from the present-day successor
+  outlines in BOUNDARIES_50M as an honest, clearly-labelled approximation
+  (the toast appends "internal republics approximated from present-day
+  lines"; Crimea-1954-class caveats documented in code). New
+  `setHistoricalSubnational` on globe (dedicated GL buffer, drawn before the
+  bold hist lines) + 2D map (dashed dim amber), keyed to the epoch year
+  actually shown.
+- **Update 2 — the GADM China-prefecture builder ships
+  (`scripts/build_admin_atlas_gadm.py`, owner-run).** GADM/DataV stay blocked
+  from the sandbox (HTTP 000, verified against seven hosts in v8.13.7), so
+  the script is written to run on the owner's open network: fetches GADM 4.1
+  CHN ADM2 (~340 REAL prefectures — the tier geoBoundaries simply doesn't
+  have), appends them as div2 with fresh uids at the end (every existing uid
+  stays byte-stable), re-levels the existing geoBoundaries counties 2→3 and
+  re-parents each to the prefecture containing its centroid (province kept
+  where none matches — variable depth Q1), and optionally
+  `--india-adm2 URL_OR_PATH` replaces India's district tier with any
+  post-2022 GeoJSON (the one op that renumbers uids, warned loudly —
+  documented since v8.12). Refuses to ship partial tiers (<300 prefectures /
+  <700 districts); emits the exact same two artifacts as the deeper builder;
+  the fingerprint reconcile lands the re-leveled tree in an existing DB on
+  next boot.
+- **Update 2 — legislature batch: 11 new parliaments** (each verified to sum
+  exactly to its chamber total — tested): Sri Lanka 2024 (NPP 159), Romania
+  2024, Bulgaria Oct-2024, Taiwan 2024, Singapore 2025, Serbia Dec-2023,
+  Croatia 2024, Uzbekistan 2024, Azerbaijan 2024, Jordan Sept-2024, Peru
+  2021. Kuwait (assembly dissolved May 2024), Myanmar (junta rule) and Nepal
+  (house dissolved Sept 2025) get honest LEGISLATURE_NOTES instead of stale
+  seat arcs. The seed's `ON CONFLICT(country_id) DO UPDATE` upsert propagates
+  all of it to existing DBs. (The IDN/ZAF/MEX/PAK/AUS/JPN/CAN/KOR/IND set the
+  roadmap flagged was re-checked and is ALREADY the correct 2024-25 results —
+  left untouched.)
+- **Update 2 — ACLED: verified already fully wired, corrected the record.**
+  The roadmap PDF claimed "no ACLED fetcher exists"; in fact
+  `ingestion/sources/acled.py` + the scheduler entry + the seed row + its
+  place in `corroborate.SENSOR_SOURCE_TYPES` have been complete since v3 —
+  it is key-gated (`ACLED_KEY`/`ACLED_EMAIL`) and the ONLY missing step is
+  the human registration at acleddata.com. No code was needed; the roadmap's
+  claim is corrected here.
+
+Version badge → v8.14.0. Verified: **21/21 tests green** (`python
+run_tests.py`); fresh DB boots clean; over HTTP — config 8.14.0, Wyoming
+carries both flag URLs, Telangana carries neither, LA County + Böblingen
+return labelled estimates, LKA parliament seeded; headless Chromium badge
+v8.14.0 with **0 non-network console errors**; all changed JS/PY parse.
+
 ## Status (v8.13.9)
 
 **v8.13.9 (2026-07-10, admin flags: own-flag-only, no fallback):** the owner (on
@@ -2954,12 +3091,16 @@ spec, AGPL-3.0 + .gitignore (§14).
 
 ```
 python run.py                    # start everything (creates DB, seeds, ingests)
-python run.py --synthetic        # with demo data
+python run_tests.py              # v8.14 — smoke-test suite (backend/tests/, stdlib)
+python run_tests.py classify     # only test files matching a substring
 python scripts/generate_synthetic_data.py --purge
 python scripts/seed_sources.py   # re-seed/refresh source list
 python scripts/import_gazetteer.py [--force]   # re-import gazetteer
+python scripts/build_admin_atlas_gadm.py       # owner-run: GADM CHN prefectures (open network)
 ```
 
-No test suite yet; verification is behavioral (see Status). Logs: `logs/app.log`
-(JSON lines, rotating) + console. DB: `backend/data/talkdiplomacy_live.db`
-(gitignored).
+v8.14 added `backend/tests/` (21 stdlib unittest cases — curated-key
+integrity, classifier, flag chain, codec, DB migration/locking); run it before
+committing. Deeper verification stays behavioral (see Status). Logs:
+`logs/app.log` (JSON lines, rotating) + console. DB:
+`backend/data/talkdiplomacy_live.db` (gitignored).

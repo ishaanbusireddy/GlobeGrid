@@ -522,6 +522,16 @@ def _seed_subnational() -> int:
     return added
 
 
+def _unit_source(u) -> str:
+    """v8.14 — a unit's provenance tag. Honors an explicit `src` written by the
+    builder (the GADM prefecture builder tags its units "gadm-4.1"); otherwise
+    every deeper tier (level >= 2, not just == 2 — the old test mislabeled the
+    DEU/POL/TZA level-3 rows as naturalearth) is geoBoundaries, ADM1 is NE."""
+    if u.get("src"):
+        return u["src"]
+    return "geoboundaries-adm2" if u.get("level", 1) >= 2 else "naturalearth-10m"
+
+
 def _seed_administrative_units() -> int:
     """v8 §4 — populate administrative_units from the vendored Administrative
     Atlas (admin_atlas.units(), built by scripts/build_admin_atlas.py from
@@ -543,23 +553,32 @@ def _seed_administrative_units() -> int:
     rows = _atlas_units()
     added = 0
     with write_tx() as conn:
-        # v8.12 — relabel reconcile. A unit's adm_level can CHANGE between builds
-        # (the ESP/ITA/FRA municipios moved from level 3 → level 2). INSERT OR
-        # IGNORE can't update an existing uid, so an already-seeded DB would keep
-        # the stale level. Reconcile adm_level + source from the atlas ONCE, gated
-        # by an app_meta marker so it never runs on every boot. Only rows whose
-        # level actually differs are touched (indexed by the admin_uid PK).
+        # v8.12/v8.14 — tree reconcile, now GENERIC. A unit's adm_level,
+        # parent_uid or path can CHANGE between atlas builds (v8.12 relabeled
+        # ESP/ITA/FRA municipios 3→2; the v8.14 GADM prefecture builder
+        # re-levels China's counties 2→3 and re-parents them under the new
+        # prefectures). INSERT OR IGNORE can't update an existing uid, so an
+        # already-seeded DB would keep the stale tree. Instead of a bespoke
+        # version marker per build, the reconcile is gated by a FINGERPRINT of
+        # the atlas's own (uid, level, parent) tuples — any rebuild that moves a
+        # unit changes the fingerprint and the reconcile runs exactly once.
+        import hashlib as _hashlib
+        fp = _hashlib.md5(_json.dumps(
+            sorted([u["uid"], u.get("level", 1), u.get("parent")]
+                   for u in rows), separators=(",", ":")).encode()).hexdigest()
         marker = conn.execute(
             "SELECT value FROM app_meta WHERE key='admin_level_reconcile'").fetchone()
-        if not marker or marker["value"] != "v8.12":
-            relabel = [(u.get("level", 1),
-                        "geoboundaries-adm2" if u.get("level", 1) == 2 else "naturalearth-10m",
-                        u["uid"], u.get("level", 1)) for u in rows]
+        if not marker or marker["value"] != fp:
+            relabel = [(u.get("level", 1), _unit_source(u), u.get("parent"),
+                        u.get("path"), u["uid"],
+                        u.get("level", 1), u.get("parent")) for u in rows]
             conn.executemany(
-                "UPDATE administrative_units SET adm_level=?, source=?"
-                " WHERE admin_uid=? AND adm_level<>?", relabel)
+                "UPDATE administrative_units SET adm_level=?, source=?,"
+                " parent_uid=?, path=COALESCE(?, path)"
+                " WHERE admin_uid=? AND (adm_level<>? OR"
+                " COALESCE(parent_uid,-1)<>COALESCE(?,-1))", relabel)
             conn.execute("INSERT OR REPLACE INTO app_meta(key, value)"
-                         " VALUES('admin_level_reconcile', 'v8.12')")
+                         " VALUES('admin_level_reconcile', ?)", (fp,))
         existing = conn.execute(
             "SELECT COUNT(*) AS n FROM administrative_units").fetchone()["n"]
         if existing >= len(rows):
@@ -573,7 +592,7 @@ def _seed_administrative_units() -> int:
             # path ("USA/California/Los Angeles") + their own source tag.
             parent_uid = u.get("parent")
             path = u.get("path") or (f"{country}/{name}" if country else name)
-            source = "geoboundaries-adm2" if level == 2 else "naturalearth-10m"
+            source = _unit_source(u)
             params.append((
                 u["uid"], country, level, parent_uid, path,
                 name, u.get("name_local"), (u.get("type") or None),

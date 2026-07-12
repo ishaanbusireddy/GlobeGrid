@@ -396,6 +396,49 @@ LEGISLATURES = {
             "parties": [("National", 49, "#00529f"), ("Labour", 34, "#d82c20"),
                         ("Green", 15, "#098137"), ("ACT", 11, "#ffd700"),
                         ("NZ First", 8, "#000000"), ("Other", 6, "#888888")]},
+    # v8.14 — Update-2 legislature batch: the countries whose latest elections
+    # (2021-2025) had no seat-arc at all. Each composition is the certified
+    # result of the election named in `note`.
+    "LKA": {"chamber": "Parliament of Sri Lanka", "total": 225, "note": "2024 election",
+            "parties": [("NPP", 159, "#c4022b"), ("SJB", 40, "#0f7a3d"),
+                        ("ITAK", 8, "#f2c500"), ("NDF", 5, "#1560bd"),
+                        ("Other", 13, "#888888")]},
+    "ROU": {"chamber": "Chamber of Deputies", "total": 331, "note": "2024 election",
+            "parties": [("PSD", 86, "#e4003b"), ("AUR", 63, "#f5b800"),
+                        ("PNL", 49, "#f5d000"), ("USR", 40, "#00aeef"),
+                        ("SOS", 28, "#7a1f7a"), ("POT", 24, "#5a3fbf"),
+                        ("UDMR", 22, "#0f7a3d"), ("Minorities", 19, "#888888")]},
+    "BGR": {"chamber": "National Assembly", "total": 240, "note": "Oct 2024 election",
+            "parties": [("GERB-SDS", 69, "#1560bd"), ("PP-DB", 37, "#00aeef"),
+                        ("Vazrazhdane", 35, "#0d3b2e"), ("DPS-New Beginning", 30, "#7b3f99"),
+                        ("BSP", 20, "#e4003b"), ("APS", 19, "#9060c0"),
+                        ("ITN", 18, "#00b5ad"), ("MECH", 12, "#888888")]},
+    "TWN": {"chamber": "Legislative Yuan", "total": 113, "note": "2024 election",
+            "parties": [("KMT", 52, "#000095"), ("DPP", 51, "#1b9431"),
+                        ("TPP", 8, "#28c8c8"), ("Independent", 2, "#888888")]},
+    "SGP": {"chamber": "Parliament of Singapore", "total": 97, "note": "2025 election (elected seats)",
+            "parties": [("PAP", 87, "#0032a0"), ("Workers' Party", 10, "#00a5e5")]},
+    "SRB": {"chamber": "National Assembly", "total": 250, "note": "Dec 2023 election",
+            "parties": [("SNS-led coalition", 129, "#2054a6"), ("SPN (opposition)", 65, "#e05020"),
+                        ("SPS-led", 18, "#e4003b"), ("Other", 38, "#888888")]},
+    "HRV": {"chamber": "Sabor", "total": 151, "note": "2024 election",
+            "parties": [("HDZ-led", 61, "#1560bd"), ("SDP-led (Rivers of Justice)", 42, "#e4003b"),
+                        ("Homeland Movement", 14, "#101a4a"), ("Most", 11, "#0d6a9e"),
+                        ("Možemo!", 10, "#3dbf3d"), ("Other", 13, "#888888")]},
+    "UZB": {"chamber": "Legislative Chamber", "total": 150, "note": "2024 election",
+            "parties": [("UzLiDeP", 64, "#1560bd"), ("Milliy Tiklanish", 29, "#0d8a4a"),
+                        ("Adolat SDP", 21, "#e4a000"), ("PDP", 20, "#c43a2b"),
+                        ("Ecological Party", 16, "#3dbf3d")]},
+    "AZE": {"chamber": "Milli Majlis", "total": 125, "note": "2024 election",
+            "parties": [("New Azerbaijan Party", 68, "#1560bd"),
+                        ("Independents", 44, "#888888"), ("Other", 13, "#aaaaaa")]},
+    "JOR": {"chamber": "House of Representatives", "total": 138, "note": "Sept 2024 election",
+            "parties": [("Islamic Action Front", 31, "#0d7a3d"), ("Mithaq", 21, "#1560bd"),
+                        ("Eradah", 19, "#7b3f99"), ("Other/centrist lists", 67, "#888888")]},
+    "PER": {"chamber": "Congress of the Republic", "total": 130, "note": "2021 election",
+            "parties": [("Perú Libre", 37, "#c4022b"), ("Fuerza Popular", 24, "#f57e20"),
+                        ("Acción Popular", 16, "#000000"), ("APP", 15, "#00aeef"),
+                        ("Other", 38, "#888888")]},
 }
 
 # v6.6.2 — countries WITHOUT an ordinary elected legislature (or with an
@@ -434,6 +477,23 @@ LEGISLATURE_NOTES = {
     "ERI": "Eritrea's National Assembly has not convened since 2002. No "
            "national elections have been held since independence (1993); the "
            "PFDJ one-party state governs by executive authority.",
+    # v8.14 — parliaments in suspension/transition, explained instead of shown
+    # with a stale seat arc.
+    "KWT": "Kuwait's National Assembly — historically the Gulf's most "
+           "assertive elected parliament — was dissolved by the Emir in May "
+           "2024, with parts of the constitution suspended for up to four "
+           "years. Legislation currently proceeds by decree through the Emir "
+           "and Council of Ministers.",
+    "MMR": "Myanmar's elected Assembly of the Union was overthrown in the "
+           "February 2021 military coup. The junta's State Administration "
+           "Council rules by decree; the ousted legislators' NUG operates in "
+           "exile and no internationally recognized parliament is seated.",
+    "NPL": "Nepal's House of Representatives was dissolved in September 2025 "
+           "amid the youth-led protest movement that brought down the "
+           "government; an interim administration under Sushila Karki was "
+           "appointed and fresh elections were scheduled for March 2026. A "
+           "new seat composition will be shown once certified results are "
+           "vendored.",
 }
 
 

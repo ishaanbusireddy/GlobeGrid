@@ -80,17 +80,48 @@ COLLISION_BLOCK = {
 }
 
 
-def flag_url(name, iso3, iso2=None):
-    """Best-effort flag image URL for an administrative unit, or None to signal
-    the frontend to fall back to the national flag."""
+def _flag_filename(name, iso3):
+    """The Commons filename this unit's flag should live under, or None when the
+    unit has no real flag (suppressed countries / uncurated collisions)."""
     if not name:
         return None
     iso3u = (iso3 or "").upper()
     key = (name.strip(), iso3u)
     if key in CURATED:                       # a hand-verified correct flag
-        return _commons_thumb(CURATED[key])
-    if iso3u in NO_SUBDIVISION_FLAGS:        # no real subdivision flags → national
+        return CURATED[key]
+    if iso3u in NO_SUBDIVISION_FLAGS:        # no real subdivision flags
         return None
     if name.strip().lower() in COLLISION_BLOCK:
         return None
-    return _commons_thumb(f"Flag of {name.strip()}.svg")
+    return f"Flag of {name.strip()}.svg"
+
+
+def flag_url(name, iso3, iso2=None):
+    """Primary flag image URL for an administrative unit, or None when it has no
+    real flag of its own.
+
+    v8.14.0 — back to Special:FilePath as the PRIMARY (v8.13.8's direct
+    md5-thumb URL broke real browsers wholesale: US states, Canadian provinces,
+    German Länder all lost their flags — and the direct path 404s BY DESIGN for
+    any file that only exists as a Commons redirect, e.g. "Flag of Bavaria.svg"
+    → "Flag of Bavaria (lozengy).svg", because only Special:FilePath follows
+    redirects). FilePath is the URL form that demonstrably loaded these flags
+    in-browser for every release before v8.13.8; its only weakness is bulk
+    rate-limiting, which the frontend now absorbs by retrying a failed load
+    against flag_url_alt() (the direct CDN thumb) instead of giving up."""
+    fname = _flag_filename(name, iso3)
+    if not fname:
+        return None
+    return _BASE.format(f=urllib.parse.quote(fname))
+
+
+def flag_url_alt(name, iso3, iso2=None):
+    """Secondary candidate for the same flag: the direct Wikimedia CDN thumbnail
+    (md5-path form). No redirect endpoint involved, so it is never throttled —
+    the frontend retries a failed primary load against this before showing
+    nothing. Correct for canonically-named files; a redirect-only name 404s
+    here, which is fine because the primary already handles those."""
+    fname = _flag_filename(name, iso3)
+    if not fname:
+        return None
+    return _commons_thumb(fname)

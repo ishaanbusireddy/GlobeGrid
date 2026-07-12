@@ -146,6 +146,31 @@ def _top_stories(top_n: int, hours: int = 24) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def _calibration_line() -> str | None:
+    """v8.14 — one factual line on forecast calibration, only when the
+    nightly backtest has graded ≥1 category (an empty scorecard table stays
+    silent — nothing to report is not a status)."""
+    rows = query("SELECT category, graded, brier, passed FROM forecast_scorecards"
+                 " WHERE graded > 0 ORDER BY brier")
+    if not rows:
+        return None
+    earned = [r["category"] for r in rows if r["passed"]]
+    graded_total = sum(r["graded"] for r in rows)
+    best = rows[0]
+    parts = [f"### Forecast calibration",
+             f"- {graded_total} historical predictions graded across "
+             f"{len(rows)} categories (nightly Brier backtest)."]
+    if earned:
+        parts.append(f"- Categories that have EARNED live forecasting: "
+                     f"{', '.join(earned)}.")
+    else:
+        parts.append(f"- No category has cleared the calibration bar yet "
+                     f"(best: {best['category']}, Brier "
+                     f"{round(best['brier'], 3)}) — live forecasts stay off "
+                     f"until one does.")
+    return "\n".join(parts)
+
+
 def generate_briefing(briefing_date: str | None = None,
                       period: str = "day") -> dict | None:
     """Generate (or return cached) briefing. period is 'day' | 'week' | 'month';
@@ -190,6 +215,17 @@ def generate_briefing(briefing_date: str | None = None,
             for s in rest:
                 lines.append(f"- {s['headline']}")
         content = "\n".join(lines)
+    # v8.14 (Update 1 §1.4) — surface the forecasting calibration state in
+    # every briefing once the nightly Brier backtest has actually graded
+    # something, so the earned/not-earned gate is visible where people read,
+    # not only on the 🎯 dashboard. Appended AFTER generation (AI or fallback)
+    # so it is always factual system state, never LLM prose.
+    try:
+        cal = _calibration_line()
+        if cal:
+            content = content + "\n\n" + cal
+    except Exception:  # noqa: BLE001 — a scorecard hiccup must not block the briefing
+        log.exception("briefing_calibration_line_failed")
     row = {"id": new_id(), "briefing_date": briefing_date, "content": content,
            "generated_at": now_iso()}
     with write_tx() as conn:

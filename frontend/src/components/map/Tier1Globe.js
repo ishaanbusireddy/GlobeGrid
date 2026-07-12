@@ -801,6 +801,23 @@ export class Tier1Globe {
     this.histCount = verts.length / 3;
   }
 
+  // v8.14 (Update 2 §2.3) — APPROXIMATED historical sub-national units (Soviet
+  // republics, Yugoslav republics) drawn as a dimmer companion layer under the
+  // bold epoch borders. rings = flat [lon,lat,…]; null clears it.
+  setHistoricalSubnational(rings) {
+    const gl = this.gl;
+    const verts = [];
+    for (const ring of (rings || [])) {
+      for (let i = 0; i + 3 < ring.length; i += 2) {
+        verts.push(...latLonToVec3(ring[i + 1], ring[i], 1.0016),
+                   ...latLonToVec3(ring[i + 3], ring[i + 2], 1.0016));
+      }
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.histSubBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+    this.histSubCount = verts.length / 3;
+  }
+
   setCities(cities) { this.cities = cities || []; }
   // v6.1.1 — dynamic country labels: {name, lat, lon, span} where span is the
   // country's bbox size in degrees. Visibility is gated on APPARENT on-screen
@@ -978,6 +995,8 @@ export class Tier1Globe {
     this.adminVis = [false, false, false];    // v8.8 — per-tier (div1/div2/div3) visibility
     this.histBuf = gl.createBuffer();         // v8.4 — historical epoch borders overlay
     this.histCount = 0;
+    this.histSubBuf = gl.createBuffer();      // v8.14 — approximated republics sub-layer
+    this.histSubCount = 0;
     this.actorBuf = gl.createBuffer();
     this.actorCount = 0;
     this._ensureBoundaryLod("50m");
@@ -2053,6 +2072,16 @@ export class Tier1Globe {
       }
     }
 
+    // v8.14 — approximated republic sub-divisions (SSRs / Yugoslav republics):
+    // a dimmer companion layer drawn UNDER the bold epoch borders, so the
+    // country-level era lines stay dominant and the internal lines read as
+    // secondary structure.
+    if (this.histSubCount) {
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.histSubBuf);
+      gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+      gl.uniform4f(colLoc, 0.85, 0.66, 0.38, 0.42);
+      gl.drawArrays(gl.LINES, 0, this.histSubCount);
+    }
     // v8.4 — historical epoch borders: a bold sepia/amber overlay, drawn on top
     // of the (dimmed by the capsule) present borders so the era reads clearly.
     if (this.histCount) {
