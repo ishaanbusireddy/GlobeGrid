@@ -1158,3 +1158,12 @@ body.theme-light       #war-glow { --war-glow: rgba(220, 40, 10, 0.22); }
 .cfx-deepen { font-size: 11px; }
 .cfx-dyn-children:not(:empty) { margin: 8px 0 0 22px;
   border-left: 1px dashed var(--accent); padding-left: 10px; }
+
+/* v8.15 (Roadmap Update 3 §3.4) — the translation honesty indicator: a node
+   whose string could NOT be translated (per the backend's `untranslated`
+   report) stays English with a subtle dotted underline + tooltip, never a
+   silent pass-through pretending to be translated. */
+.i18n-missed {
+  border-bottom: 1px dotted rgba(160, 160, 160, 0.55);
+  cursor: help;
+}

@@ -1,111 +1,172 @@
-// v6.6.8 — site-wide live DOM translator (clean-slate rebuild).
+// v8.15 (Roadmap Update 3 §3.4) — the live DOM-walker translator, REBUILT.
 //
-// The UI is authored in English. When the user picks a language, we walk EVERY
-// visible text node in the document, send the unique strings to the backend
-// (/api/i18n/translate) for that language, and swap the text in place. Original
-// English is preserved per node, so switching back to English restores it
-// instantly. A MutationObserver translates newly-rendered text (feed updates,
-// opened panels, map labels in the DOM) so the whole site stays translated.
-//
-// This replaces the old summary-only translation entirely.
+// The v6.6.8 architecture was sound (walk visible text nodes, batch-translate
+// unique strings, swap in place, WeakMap originals for instant English
+// restore, MutationObserver for newly-rendered content) — it was the backend
+// protocol that failed five times, not this piece. This rebuild keeps that
+// architecture with the two corrections found along the way, plus one new
+// honesty feature:
+//   1. NEVER String.replace(orig, tr) for the swap — `$`-sequences in the
+//      replacement are treated as special patterns (a real hazard in
+//      currency/price strings) and only the first occurrence swaps. The
+//      node's leading/trailing whitespace is spliced back by hand instead.
+//   2. [data-no-translate] subtrees are skipped — the language picker's
+//      entries are endonyms ("Français", "日本語") that must always render
+//      in their own script (a deliberate v6.6.9 exception, preserved).
+//   3. NEW — the honesty indicator: the backend reports exactly which
+//      strings could NOT be translated (roadmap §3.2's guarantee); those
+//      nodes get a dotted underline + "translation unavailable" tooltip
+//      instead of silently staying English with no signal.
 
-import { api } from "./api/client.js";
-
-const ORIG = new WeakMap();          // text node -> original English string
-let currentLang = "en";
+const originals = new WeakMap();   // Text node → original English nodeValue
+const nodeLang = new WeakMap();    // Text node → language it currently shows
+const lastWritten = new WeakMap(); // Text node → the value WE last wrote
+                                   // (distinguishes our swaps from the app's
+                                   // own re-renders in the observer)
+let activeLang = "en";
 let observer = null;
+let debounceTimer = null;
 
-// never translate inside these (code, canvas, the map GL canvas, etc.)
-// v6.6.9 — OPTION text IS translated (dropdown labels like the timezone/
-// language pickers): every <select> in this codebase is read by `.value`,
-// never by its visible option label, so rewriting the label text is safe and
-// closes the one real gap found in the v6.6.8 translation sweep.
-const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "CANVAS", "CODE",
-  "PRE", "TEXTAREA", "INPUT", "SELECT"]);
+const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "TEXTAREA", "CODE"]);
 
-function acceptNode(n) {
-  const t = n.nodeValue;
-  if (!t || !t.trim()) return false;
-  if (!/[A-Za-z]/.test(t)) return false;      // pure numbers/symbols/emoji — skip
-  const p = n.parentElement;
-  if (!p) return false;
-  if (SKIP_TAGS.has(p.tagName)) return false;
-  if (p.closest("[data-no-translate]")) return false;
-  return true;
+function skippedByAncestor(node) {
+  let el = node.parentElement;
+  while (el) {
+    if (SKIP_TAGS.has(el.tagName)) return true;
+    if (el.hasAttribute && el.hasAttribute("data-no-translate")) return true;
+    el = el.parentElement;
+  }
+  return false;
 }
 
-function collectTextNodes(root) {
-  const nodes = [];
+// forRestore: no content heuristics — a node translated into a non-Latin
+// script must still be found on the way BACK to English.
+function collectNodes(root, forRestore = false) {
+  const out = [];
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-    acceptNode: (n) => acceptNode(n) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT,
+    acceptNode(n) {
+      const t = n.nodeValue;
+      if (!t || !t.trim()) return NodeFilter.FILTER_REJECT;
+      if (!forRestore && !/[A-Za-z]{2}/.test(t)) return NodeFilter.FILTER_REJECT;
+      if (skippedByAncestor(n)) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    },
   });
   let n;
-  while ((n = walker.nextNode())) nodes.push(n);
-  return nodes;
+  while ((n = walker.nextNode())) out.push(n);
+  return out;
+}
+
+function writeNode(node, value) {
+  lastWritten.set(node, value);
+  node.nodeValue = value;
+}
+
+function markMissed(el, missed) {
+  if (!el) return;
+  if (missed) {
+    el.classList.add("i18n-missed");
+    if (!el.title) el.title = "translation unavailable";
+  } else if (el.classList.contains("i18n-missed")) {
+    el.classList.remove("i18n-missed");
+    if (el.title === "translation unavailable") el.removeAttribute("title");
+  }
 }
 
 async function translateNodes(nodes, lang) {
-  const targets = [];
+  // group nodes by their ORIGINAL trimmed string (originals, not the current
+  // nodeValue, which may already be a translation)
+  const byString = new Map();
   for (const n of nodes) {
-    if (!ORIG.has(n)) ORIG.set(n, n.nodeValue);   // remember the English source
-    if (lang === "en") { n.nodeValue = ORIG.get(n); continue; }   // restore
-    targets.push(n);
-  }
-  if (lang === "en" || !targets.length) return;
-
-  // unique trimmed strings → one server round-trip per batch, cached server-side
-  const uniq = [...new Set(targets.map((n) => ORIG.get(n).trim()))];
-  const map = {};
-  for (let i = 0; i < uniq.length; i += 80) {
-    const batch = uniq.slice(i, i + 80);
-    try {
-      const r = await api.i18nTranslate(lang, batch);
-      Object.assign(map, r.translations || {});
-    } catch { /* leave this batch in English */ }
-    if (lang !== currentLang) return;   // user switched again mid-flight — abort
-  }
-  for (const n of targets) {
-    const orig = ORIG.get(n);
+    if (nodeLang.get(n) === lang) continue;   // already showing this language
+    const orig = originals.has(n) ? originals.get(n) : n.nodeValue;
     const key = orig.trim();
-    const tr = map[key];
-    // Preserve the node's leading/trailing whitespace around the swapped text.
-    // NOTE: never use orig.replace(key, tr) — String.replace treats `$` runs in
-    // the replacement as special patterns (a real hazard in currency/price
-    // strings) and only swaps the first match. Splice the whitespace back on by
-    // hand instead.
-    if (tr && tr !== key) {
-      const lead = (orig.match(/^\s*/) || [""])[0];
-      const trail = (orig.match(/\s*$/) || [""])[0];
-      n.nodeValue = lead + tr + trail;
-    }
+    if (!key || key.length < 2) continue;
+    if (!byString.has(key)) byString.set(key, []);
+    byString.get(key).push(n);
+  }
+  const texts = [...byString.keys()];
+  for (let off = 0; off < texts.length && activeLang === lang; off += 200) {
+    const slice = texts.slice(off, off + 200);
+    let resp = null;
+    try {
+      const r = await fetch("/api/i18n/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lang, texts: slice }),
+      });
+      if (r.ok) resp = await r.json();
+    } catch { /* backend unreachable — nodes stay English, retried later */ }
+    if (!resp || activeLang !== lang) return;
+    const missedIdx = new Set(resp.untranslated || []);
+    slice.forEach((src, i) => {
+      const tr = resp.translations[i];
+      for (const node of byString.get(src) || []) {
+        if (!node.isConnected) continue;
+        if (!originals.has(node)) originals.set(node, node.nodeValue);
+        const orig = originals.get(node);
+        const lead = (orig.match(/^\s*/) || [""])[0];
+        const trail = (orig.match(/\s*$/) || [""])[0];
+        // splice whitespace by hand — never String.replace (correction #1)
+        writeNode(node, lead + tr + trail);
+        // a missed string keeps a distinct tag so a later full pass retries
+        // it instead of considering it done
+        nodeLang.set(node, missedIdx.has(i) ? lang + ":missed" : lang);
+        markMissed(node.parentElement, missedIdx.has(i));
+      }
+    });
   }
 }
 
-// Public: switch the whole site to `lang` (or restore English).
-export function setLanguage(lang) {
-  currentLang = lang || "en";
-  translateNodes(collectTextNodes(document.body), currentLang);
-}
-
-export function currentLanguage() { return currentLang; }
-
-// Translate content rendered after a language switch (feed items, opened panes,
-// DOM map labels). Only active when a non-English language is selected.
-export function startObserver() {
-  if (observer) return;
+function startObserver(lang) {
+  stopObserver();
   observer = new MutationObserver((muts) => {
-    if (currentLang === "en") return;
-    const fresh = [];
+    if (activeLang !== lang) return;
     for (const m of muts) {
-      for (const node of m.addedNodes) {
-        if (node.nodeType === Node.TEXT_NODE) {
-          if (acceptNode(node)) fresh.push(node);
-        } else if (node.nodeType === Node.ELEMENT_NODE) {
-          fresh.push(...collectTextNodes(node));
+      if (m.type === "characterData") {
+        const t = m.target;
+        // the APP rewrote this node (not us): its stored original is stale —
+        // forget it so the new content translates fresh instead of being
+        // clobbered by an old translation
+        if (lastWritten.get(t) !== t.nodeValue) {
+          originals.delete(t);
+          nodeLang.delete(t);
         }
       }
     }
-    if (fresh.length) translateNodes(fresh, currentLang);
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      if (activeLang === lang) {
+        translateNodes(collectNodes(document.body), lang);
+      }
+    }, 350);
   });
-  observer.observe(document.body, { childList: true, subtree: true });
+  observer.observe(document.body,
+                   { childList: true, subtree: true, characterData: true });
 }
+
+function stopObserver() {
+  if (observer) { observer.disconnect(); observer = null; }
+  clearTimeout(debounceTimer);
+}
+
+export async function translatePage(lang) {
+  if (!lang || lang === "en") { restoreEnglish(); return; }
+  activeLang = lang;
+  startObserver(lang);
+  await translateNodes(collectNodes(document.body), lang);
+}
+
+export function restoreEnglish() {
+  activeLang = "en";
+  stopObserver();
+  for (const n of collectNodes(document.body, /* forRestore */ true)) {
+    if (originals.has(n)) {
+      writeNode(n, originals.get(n));   // byte-identical original back
+      nodeLang.delete(n);
+    }
+    markMissed(n.parentElement, false);
+  }
+}
+
+export function currentLanguage() { return activeLang; }

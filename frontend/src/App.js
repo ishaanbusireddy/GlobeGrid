@@ -3086,8 +3086,17 @@ function setSiteLanguage(code) {
     ? WORDMARK_TRANSLIT[code] : null;
   els.brandTranslit.textContent = t || "";
   if (els.langBtn.value !== code) els.langBtn.value = code;
+  // v8.15 (Roadmap Update 3) — live AI translation, rebuilt. Lazy import so
+  // English-only sessions never pay for the module; a non-English pick
+  // translates the whole visible UI, English restores the WeakMap originals.
+  import("./i18n_translate.js")
+    .then((m) => (code === "en" ? m.restoreEnglish() : m.translatePage(code)))
+    .catch(() => {});
 }
 
+// v8.15 — the picker's entries are endonyms that must always render in
+// their own script; exempt the whole control from live translation.
+els.langBtn.setAttribute("data-no-translate", "");
 for (const l of LANGUAGES) {
   const o = document.createElement("option");
   o.value = l.code;

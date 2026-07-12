@@ -18,6 +18,84 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v8.15.0)
+
+**v8.15.0 (2026-07-12, Roadmap Update 3 — Live AI Translation, full rebuild):**
+the owner's "part 3". Translation was attempted five times (v6.6.8 → v6.6.12)
+and scrapped in v7.0; this rebuild starts from the roadmap's root-cause
+retrospective and is engineered against each specific prior failure.
+
+- **The protocol (`processing/i18n2.py`) — plain-text, chunked, self-healing.**
+  One primitive: `POST /api/i18n/translate {lang, texts}` →
+  `{translations, untranslated}`. NEVER `json_mode` (the deepest v6.6.12
+  finding: JSON-shape compliance beats the translation instruction on small
+  local models and produces echoed English — plain text, always). Batches
+  bounded by BOTH count (20) and characters (900) so one long welcome-popup
+  paragraph can't break a whole batch (the v6.6.11 class). The parser is
+  line-oriented and tolerant by construction: `1.`/`1)`/`1:` numbering drift,
+  code fences, quote wrapping, preambles, and even a JSON-object reply the
+  model emits despite instructions are all salvaged PER LINE — a malformed
+  line 7 never costs lines 1–6 or 8–20. Missing/echoed lines become
+  stragglers retried one-at-a-time; a multi-word reply identical to its
+  English source is treated as an echo (failure), never a result.
+- **The honesty guarantee, end to end.** A string still English after both
+  passes is returned as-is AND reported in `untranslated` — the direct fix
+  for v6.6.10's silent full-English passthrough that looked like success.
+  It is never cached (fresh `i18n_v2` namespace, dodging every pre-v7.0
+  poisoned row; only genuine `dst != src` translations persist), so the next
+  request retries instead of freezing the failure. The frontend surfaces it:
+  nodes whose string could not be translated get a dotted underline +
+  "translation unavailable" tooltip (`.i18n-missed`) — no silent pretending.
+- **The DOM walker (`frontend/src/i18n_translate.js`), rebuilt.** The sound
+  v6.6.8 architecture kept (walk text nodes, batch unique strings, swap in
+  place, WeakMap originals for instant byte-identical English restore,
+  MutationObserver for newly-rendered content) with the two known
+  corrections baked in: whitespace spliced by hand (never `String.replace`,
+  whose `$`-pattern hazard bites currency strings) and `data-no-translate`
+  on the language picker (endonyms always render in their own script). New:
+  the observer distinguishes the app's own re-renders from the translator's
+  swaps (a `lastWritten` WeakMap), so live feed updates re-translate fresh
+  instead of being clobbered by stale swaps. Wired into `setSiteLanguage`
+  via lazy import — English-only sessions never load the module.
+- **Layer 1 — adversarial simulator tests (`backend/tests/test_i18n.py`,
+  10 cases, suite now 31).** A lexicon-backed simulator (never an echo) that
+  randomly perturbs its own replies with every §3.1 failure mode — JSON-shape
+  replies despite plain-text prompting, raw newlines inside long strings,
+  dropped numbered lines, English echoes — over 200 seeded randomized calls:
+  ≥98% of strings must land exactly translated AND zero multi-word strings
+  may be silently reported as translated while still English (both bars
+  pass). Plus parser unit tests, batch-bounding tests, cache-honesty tests
+  (failures never cached; cache hit skips the LLM), and a protocol assert
+  that `json_mode` is never used.
+- **Layer 3 — headless DOM verification against a wire-accurate simulated
+  Ollama** (real `/api/tags` + `/api/chat` on localhost:11434, French
+  lexicon): switching the real picker to French translated **151 DOM text
+  nodes** through the full HTTP→llm→i18n2→walker stack ("Conflits" and the
+  lexicon strings visible in the page), the picker's endonyms stayed
+  untouched, switching back to English left zero French markers, 0
+  non-network console errors. Diagnostics endpoint
+  (`GET /api/i18n/diagnostics?lang=`) returns the exact prompt + raw reply +
+  parsed result for the owner's own ground-truth runs.
+- **Phase B — the real-model gate — is explicitly NOT claimed here.** Per
+  the roadmap's one unbreakable rule ("no changelog entry may claim
+  'verified' or 'working' based on simulators"), this release is **built and
+  simulator/headless-verified, UNVERIFIED against a real model** — the
+  sandbox has no reachable Ollama/cloud provider, exactly the condition that
+  made five prior "verified" claims false. The gate is
+  **`python scripts/verify_translation_live.py`** (owner-run): a fixed
+  30-string set — short labels, `$`-price sentences, proper nouns, and the
+  exact long welcome-popup paragraph class that broke v6.6.11 — translated
+  into 3 languages against the REAL configured model, every raw reply
+  printed for human review, exiting non-zero (naming exactly which strings
+  fell back and why) on any failure. Until that passes on the owner's
+  machine, the feature's status is "built", not "working".
+
+Version badge → v8.15.0. Verified in-sandbox: **31/31 tests green**; fresh
+boot clean; over HTTP — translate + cache round-trip + diagnostics correct
+against the simulated model; headless Chromium badge v8.15.0, 151 nodes
+live-translated, English restore clean, **0 non-network console errors**;
+all changed JS/PY parse. Real-model verification: owner-run, see above.
+
 ## Status (v8.14.0)
 
 **v8.14.0 (2026-07-12, Roadmap Update 1 [Architecture Debt] + Update 2 [Data
@@ -3097,6 +3175,7 @@ python scripts/generate_synthetic_data.py --purge
 python scripts/seed_sources.py   # re-seed/refresh source list
 python scripts/import_gazetteer.py [--force]   # re-import gazetteer
 python scripts/build_admin_atlas_gadm.py       # owner-run: GADM CHN prefectures (open network)
+python scripts/verify_translation_live.py      # owner-run: the v8.15 real-model translation gate
 ```
 
 v8.14 added `backend/tests/` (21 stdlib unittest cases — curated-key
