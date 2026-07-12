@@ -73,28 +73,16 @@ export function flagInline(country) {
 // the unit has none or its guessed flag 404s (e.g. Indian states have no flags,
 // so show the Indian flag) → a small placeholder glyph only if nothing exists.
 export function adminCrest(unit, size = 40, cls = "") {
+  // v8.13.9 — an admin division shows ONLY its own flag. If it has none, or the
+  // image fails to load, it shows NOTHING: no national-flag fallback and no ▧
+  // placeholder (owner: "remove the national flag fallback entirely … if an
+  // admin div doesnt have its own flag, it doesnt show anything"). The backend
+  // still emits country_flag_url; it is deliberately ignored here now.
   const own = unit.flag_url ? esc(unit.flag_url) : "";
-  const nat = unit.country_flag_url ? esc(unit.country_flag_url) : "";
+  if (!own) return "";
   const alt = esc((unit.name || "") + " flag");
   const style = `height:${Math.round(size * 0.66)}px`;
-  if (own) {
-    // v8.13.7 — a division that HAS its own flag must NEVER fall back to the
-    // NATIONAL flag (owner: "Wyoming shows the US flag … national flags should
-    // only be a fallback if the division has no flag/emblem of its own"). The
-    // old code swapped to the country flag on any load hiccup, and the backend
-    // used a throttled Special:FilePath redirect that 404s in bulk — so ~50
-    // state chips loading at once mostly fell to the national flag. The backend
-    // now emits the direct (un-throttled) Wikimedia CDN URL, and on the rare
-    // remaining failure we show a neutral placeholder, not the country flag.
-    const err = `onerror="this.outerHTML='<span class=&quot;admin-flag-empty ${cls}&quot; title=&quot;flag&quot;>▧</span>'"`;
-    return `<img class="admin-flag ${cls}" src="${own}" alt="${alt}" style="${style}" loading="lazy" ${err}>`;
-  }
-  if (nat) {
-    // no own flag (India/Pakistan/China states have none) → the national flag is
-    // the honest, intended fallback here (owner v8.13.4/.6), not a fake emblem.
-    return `<img class="admin-flag is-national ${cls}" src="${nat}" alt="${alt}" style="${style}" loading="lazy" onerror="this.remove()">`;
-  }
-  return `<span class="admin-flag-empty ${cls}" title="flag pending">▧</span>`;
+  return `<img class="admin-flag ${cls}" src="${own}" alt="${alt}" style="${style}" loading="lazy" onerror="this.remove()">`;
 }
 
 const STATUS_LABEL = {

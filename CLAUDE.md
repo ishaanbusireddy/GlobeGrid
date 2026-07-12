@@ -18,6 +18,21 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v8.13.9)
+
+**v8.13.9 (2026-07-10, admin flags: own-flag-only, no fallback):** the owner (on
+top of v8.13.8) wanted the national-flag fallback gone entirely — the v8.13.8
+"neutral ▧ placeholder" was itself showing up for many flag-less regions (Iraqi
+governorates, Russian oblasts whose guessed `Flag of {name}.svg` 404s). Now
+`adminCrest` renders **only** the unit's own flag: if it has none, or the image
+fails to load, it shows **nothing** — no national flag, no ▧ (owner: "remove the
+national flag fallback entirely … if an admin div doesn't have its own flag, it
+doesn't show anything"). `country_flag_url` is still emitted by the backend but
+deliberately ignored on the frontend; an empty `.wiki-flag` header simply
+collapses to zero width (no border/background), so nothing shows. Version badge →
+v8.13.9. Verified: `node --check` clean; `adminCrest` is the only admin-flag
+renderer (no other national-flag path remains).
+
 ## Status (v8.13.8)
 
 **v8.13.8 (2026-07-10, admin-flag reliability fix + full-tree resync):** the owner
