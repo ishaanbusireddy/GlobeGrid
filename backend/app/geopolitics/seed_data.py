@@ -239,6 +239,44 @@ CONFLICTS = [
      "humanitarian consequences.",
      [("country", "SDN", "belligerent", "a"),
       ("non_state_actor", "Rapid Support Forces", "belligerent", "b")]),
+    # v8.16 — four owner-requested conflicts
+    ("Israel\u2013Hezbollah Conflict", "Middle East", "2023-10-08", "ceasefire",
+     "Cross-border war between Israel and Hezbollah along the Israel\u2013Lebanon frontier: the "
+     "2023-24 exchange of fire, Israel's Sept\u2013Nov 2024 air-and-ground campaign that killed "
+     "Nasrallah and degraded (but did not eliminate) Hezbollah's arsenal, and a fragile "
+     "ceasefire with continuing Israeli strikes tracked since.",
+     [("country", "ISR", "belligerent", "a"),
+      ("non_state_actor", "Hezbollah", "belligerent", "b"),
+      ("country", "LBN", "belligerent", "b"),
+      ("country", "IRN", "backer", "b"), ("country", "USA", "backer", "a"),
+      ("country", "FRA", "mediator", None)]),
+    ("Yemen Civil War", "Middle East", "2014-09-21", "active",
+     "War between the Houthi movement (controlling Sanaa and the northwest) and the "
+     "internationally-recognized government backed by the Saudi-led coalition; since 2023 "
+     "extended into Red Sea shipping attacks and US-UK strikes on Houthi targets.",
+     [("non_state_actor", "Houthi Movement (Ansar Allah)", "belligerent", "a"),
+      ("country", "YEM", "belligerent", "b"),
+      ("country", "SAU", "backer", "b"), ("country", "ARE", "backer", "b"),
+      ("country", "USA", "backer", "b"), ("country", "GBR", "backer", "b"),
+      ("country", "IRN", "backer", "a")]),
+    ("Libyan Civil War", "North Africa", "2014-05-16", "frozen",
+     "Standoff between the UN-recognized Tripoli government (GNU) and the eastern "
+     "administration aligned with Khalifa Haftar's Libyan National Army; the 2020 ceasefire "
+     "froze the front but left the country split with rival institutions and foreign backers.",
+     [("country", "LBY", "belligerent", "a"),
+      ("non_state_actor", "Libyan National Army", "belligerent", "b"),
+      ("country", "TUR", "backer", "a"),
+      ("country", "EGY", "backer", "b"), ("country", "RUS", "backer", "b")]),
+    ("South China Sea Dispute", "Southeast Asia", "2012-04-10", "frozen",
+     "Standing maritime confrontation over China's nine-dash-line claims: militarized "
+     "artificial islands, coast-guard blockades of Philippine resupply missions at Second "
+     "Thomas Shoal, and friction with Vietnamese, Malaysian and Indonesian claims \u2014 "
+     "contested short of open war.",
+     [("country", "CHN", "belligerent", "a"),
+      ("country", "PHL", "belligerent", "b"), ("country", "VNM", "belligerent", "b"),
+      ("country", "MYS", "belligerent", "b"),
+      ("country", "USA", "backer", "b"), ("country", "JPN", "backer", "b"),
+      ("country", "AUS", "backer", "b")]),
     ("Myanmar Civil War", "Southeast Asia", "2021-02-01", "active",
      "Armed conflict between the military junta and resistance forces following the 2021 coup.",
      [("country", "MMR", "belligerent", "a"),
@@ -458,6 +496,9 @@ NON_STATE_ACTORS = [
      "Israel-Palestine conflict."),
     ("Hezbollah", "militant", "Middle East", "IRN", "1985-02-16",
      "Lebanese Shia political party and militant group; publicly reported Iranian backing."),
+    ("Libyan National Army", "militant", "North Africa", None, "2014-05-16",
+     "Khalifa Haftar's eastern-Libya armed coalition; controls Cyrenaica and much of the "
+     "south, aligned with the Tobruk/Benghazi administration against the Tripoli GNU."),
     ("Houthi Movement (Ansar Allah)", "militant", "Middle East", "IRN", "1994-06-01",
      "Yemeni armed movement controlling much of northwest Yemen; Red Sea shipping attacks "
      "widely reported."),

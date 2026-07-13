@@ -36,10 +36,11 @@ import { BOUNDARIES_50M_ENC } from "./data/boundaries50m.js";
 import { HISTORICAL_EPOCHS } from "./data/historicalBoundaries.js";   // v8.4 — real historical borders
 import { ZONE_BOUNDS } from "./data/autonomousZoneBoundaries.js";     // v8.13.5 — exact zone borders
 import { decodeBoundaries, countryAtPoint, decodeRing } from "./data/boundaryCodec.js";
-import { LANGUAGE_INFO, RELIGION_INFO, familyColor, sectInfo, dialectInfo, climateInfo, govInfo } from "./data/families.js";
+import { LANGUAGE_INFO, RELIGION_INFO, familyColor, sectInfo, dialectInfo, climateInfo, govInfo, ideologyInfo } from "./data/families.js";
 import { TIMEZONES, getTimeZone, setTimeZone, formatDateTime } from "./data/timefmt.js";  // v6.2 header tz
 import { LANGUAGES, applyLanguage } from "./i18n.js";   // v5 §2
 import { renderWhatIf } from "./components/panes/WhatIf.js";   // v7 §2
+import * as Trackers from "./components/panes/Trackers.js";    // v8.16 tracking windows
 import { renderSituationRoom } from "./components/panes/SituationRoom.js";  // v7 §3
 import * as morning from "./components/MorningBriefing.js";   // v7 §6
 // v7 — backend translation scrapped (owner will architect a replacement);
@@ -73,16 +74,19 @@ document.addEventListener("keydown", (ev) => {
   }
 });
 
-// v6.6.2 — single-key navigation shortcuts (owner-requested):
-//   F = toggle live feed   L = next language   C = last/random country
-//   G = globe mode         M = 2D map mode
+// v8.16 — single-key navigation shortcuts (owner-rebound):
+//   F = command palette (replaces Ctrl/Cmd+K)   N = toggle live feed
+//   L = list view (the third tier)              Shift+L = next language
+//   C = last/random country   G = globe   M = 2D map   P = provinces
+//   Space = analyst   ? = the startup guide
 // Plain unmodified keypresses only, and never while typing in a field.
 document.addEventListener("keydown", (ev) => {
   if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
   if (ev.target && /INPUT|TEXTAREA|SELECT/.test(ev.target.tagName)) return;
   const k = ev.key.toLowerCase();
-  if (k === "f") { setFeedVisible(feedPanelEl.style.display === "none"); }
-  else if (k === "l") { cycleLanguage(); }
+  if (k === "f") { try { palette.toggle(); } catch { /* not mounted yet */ } }
+  else if (k === "n") { setFeedVisible(feedPanelEl.style.display === "none"); }
+  else if (k === "l") { if (ev.shiftKey) cycleLanguage(); else switchToTier(3); }
   else if (k === "c") { openLastOrRandomCountry(); }
   else if (k === "g") { switchToTier(1); }
   else if (k === "m") { switchToTier(2); }
@@ -91,7 +95,7 @@ document.addEventListener("keydown", (ev) => {
     ev.preventDefault();
     try { analyst.toggle(); } catch { /* not mounted yet */ }
   }
-  else if (ev.key === "?") { showHelp(); }   // v7.4.1 — open the full guide
+  else if (ev.key === "?") { showHelp(); }   // v8.16 — ? opens the startup guide
 });
 
 // v8.13 — "P" toggles the province (div1) layer on/off through the same path as
@@ -197,9 +201,11 @@ function countryAt(lat, lon) { return countryAtPoint(BOUNDARIES_50M, lat, lon); 
 // (governorates/provinces/rayons) from the atlas when we have them, else the
 // curated single outline. Returns a list of flat [lon,lat,lon,lat,…] rings.
 function zoneRings(z) {
+  // v8.16 — REAL admin-unit geometry only (owner: "delete the angular
+  // rectangle representations of autonomous zones"). A zone without exact
+  // atlas polygons draws NOTHING on the map (its panel/chips still work) —
+  // the crude hand-typed outline fallback is gone.
   if (z && ZONE_BOUNDS[z.id] && ZONE_BOUNDS[z.id].length) return ZONE_BOUNDS[z.id];
-  if (z && Array.isArray(z.outline) && z.outline.length > 2)
-    return [z.outline.flatMap((p) => [p[0], p[1]])];
   return [];
 }
 // zones normalized for the renderers: { id, name, rings: [flat ring, …] }.
@@ -552,6 +558,7 @@ for (const id of ["marked-toggle", "sat-toggle", "sensors-toggle", "blocs-btn", 
                   "heatmap-toggle", "borders-toggle", "disputes-toggle", "actors-toggle",
                   "names-toggle", "spin-toggle", "az-toggle", "admin-div-select", "activity-toggle", "tz-header",
                   "palette-btn", "briefing-btn", "graph-btn", "watchlist-btn", "whatif-btn", "audio-briefing-btn",
+                  "trackers-btn",
                   "bookmarks-btn", "stories-btn", "settings-btn", "snapshot-btn", "help-btn",
                   "watchlist-panel", "conn-badge", "map-filters", "graph-overlay",
                   "briefing-overlay", "status-drawer", "status-toggle",
@@ -669,6 +676,7 @@ const pane = new SlidePane(els.slidePane, {
 });
 
 const ctx = {
+  get pane() { return pane; },   // v8.16 — pane pushes from Trackers windows
   openStory: (id) => openStory(id),
   // v7.4 — open a conflict by ENTERING WAR MODE (fetches it by id), so a
   // conflict chip on an NSA / country / bloc panel always opens even when the
@@ -1228,7 +1236,9 @@ const storyPage = new StoryPage(pane, {
   },
 });
 const feed = new LiveFeed(els.feedList, { onOpenStory: (id) => openStory(id),
-  onOpenConflict: (cid) => enterWarMode(cid) });   // v6.6.2 conflict chip → War Mode
+  onOpenConflict: (cid) => enterWarMode(cid),      // v6.6.2 conflict chip → War Mode
+  onOpenCountry: (ch) => openEntity(               // v8.16 feed impact chips
+    ch.type === "alliance" ? "alliance" : "country", ch.id) });
 const instChart = new InstabilityChart(els.instabilityValue, els.instabilitySpark);
 const statusPanel = new StatusPanel(els.statusDrawer, els.statusToggle,
   (src) => openSourceStories(src));   // v7.4.1 — click a source → its stories
@@ -1366,6 +1376,7 @@ function mountRenderer(tier) {
   }
   state.renderer.setHeatmap?.(els.heatmapToggle.classList.contains("active"));
   state.renderer.setBorders?.(state.bordersOn);
+  state.renderer.setLabelFont?.(getComputedStyle(document.body).fontFamily);  // v8.16 — map font
   state.renderer.setZoomSensitivity?.(state.zoomSensitivity);   // v8.9 — persisted wheel sensitivity
   state.renderer.setPanSensitivity?.(state.panSensitivity);     // v8.13 — persisted pan sensitivity
   if (state.spinOn) state.renderer.setAutoSpin?.(true);   // v6.6.6 re-apply auto-spin
@@ -1666,9 +1677,13 @@ async function loadReal() {
           try {
             const ev = state.mapData.events.find((e) => e.story_id === msg.payload.id);
             if (ev) state.renderer?.burst?.(ev.lat, ev.lon, ev.category);
-            // §25 — in-app breaking alert above the severity floor
-            const sev = ev ? ev.severity
-              : Math.max(0, ...state.mapData.events
+            // §25 — in-app breaking alert above the severity floor.
+            // v8.16 — prefer the severity the PAYLOAD carries (instant, no
+            // dependency on the map having refreshed yet), so the toast +
+            // fanfare fire the moment the story arrives.
+            const sev = (msg.payload.severity != null ? msg.payload.severity : 0)
+              || (ev ? ev.severity : 0)
+              || Math.max(0, ...state.mapData.events
                   .filter((e) => e.story_id === msg.payload.id)
                   .map((e) => e.severity || 0));
             // v8.13.3 — a breaking story lands with the dramatic bright fanfare
@@ -1715,7 +1730,8 @@ async function loadCities() {
 // map (like territories, but dashed). Loaded once at boot.
 async function loadAutonomousZones() {
   const data = await api.autonomousZones();
-  state.autonomousZones = (data.zones || []).filter((z) => ZONE_BOUNDS[z.id] || Array.isArray(z.outline));
+  // v8.16 — only zones with REAL atlas geometry render (no rectangle fallback)
+  state.autonomousZones = (data.zones || []).filter((z) => ZONE_BOUNDS[z.id]);
   state.renderer?.setAutonomousZones?.(state.azOn !== false ? zonesForRender() : []);
 }
 
@@ -1843,15 +1859,16 @@ const HELP_TABS = [
       <li><b>Event dots</b> are colored by category and sized by severity. Dense areas
           cluster into a counted circle — zoom in to split them, or click to browse them all.</li>
       <li><b>⟳ spin</b> toggles a slow auto-rotation; <b>names</b> toggles country labels.</li>
-      <li><b>Shift-drag</b> box-selects a region and lists every event inside it.</li>
+      <li><b>Shift-drag</b> or <b>right-click-drag</b> box-selects a region and lists every event inside it.</li>
       <li><b>Pan to Event</b> buttons (on story pages and event panels) fly the camera to the spot.</li>
       <li>The <b>📡 sensor</b> toggle overlays physical ground truth (fires, flights, quakes, ships, blackouts).</li>
     </ul>`],
   ["Feed & stories", `
     <h3>Live feed &amp; story pages</h3>
     <ul>
-      <li>The <b>live feed</b> streams correlated <b>stories</b> (clusters of related events),
-          newest first, each showing its source and event counts. Close it with <kbd>F</kbd> or the ✕.</li>
+      <li>The <b>live feed</b> streams correlated <b>stories</b> (clusters of related events) —
+          new arrivals pile in fluidly from the TOP, each showing its source and event
+          counts plus the countries it names. Close it with <kbd>N</kbd> or the ✕.</li>
       <li>Filter by <b>category</b> chips; <b>sort</b> newest / oldest / most-active.</li>
       <li>Click a card to open the <b>story page</b>: a one-line takeaway, bulleted deep
           summary (AI), the full event timeline, every source link, a <b>bias view</b>, and
@@ -1860,7 +1877,21 @@ const HELP_TABS = [
       <li>A <b>📡 corroboration</b> badge means physical sensors agree with the reporting.</li>
       <li>The <b>history / archive</b> view browses the entire permanent fact chain by date &amp; category.</li>
       <li>Historical landmark events (1945→present) are seeded into the chain and marked <i>(historical)</i>.</li>
-    </ul>`],
+    </ul>
+    <h3>What the categories mean</h3>
+    <ul>
+      <li><b>conflict</b> — active organized violence (battles, strikes, offensives).</li>
+      <li><b>military</b> — armed-forces activity short of combat (drills, deployments, arms deals).</li>
+      <li><b>geopolitics</b> — relations between states (summits, sanctions, treaties, major elections).</li>
+      <li><b>finance</b> — markets, central banks, trade figures, macro policy.</li>
+      <li><b>technology</b> — AI, chips, cyber, space, platforms.</li>
+      <li><b>disaster</b> — earthquakes, floods, storms, industrial catastrophes.</li>
+      <li><b>health</b> — outbreaks, vaccines, public-health emergencies.</li>
+      <li><b>domestic</b> — a country's internal civil life: local news, crime, courts, <b>sports</b>, culture.</li>
+      <li><b>other</b> — genuinely unclassifiable only (kept as close to empty as possible).</li>
+    </ul>
+    <p class="help-foot">An AI wire editor also reviews new event titles (grammar, translation,
+       de-linking, specificity) and re-checks each category against these definitions.</p>`],
   ["Countries & world", `
     <h3>Countries, leaders &amp; institutions</h3>
     <ul>
@@ -1935,15 +1966,18 @@ const HELP_TABS = [
       <tr><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></td><td>pan / tilt the camera</td></tr>
       <tr><td><kbd>Q</kbd> / <kbd>E</kbd></td><td>zoom out / in</td></tr>
       <tr><td>scroll</td><td>zoom</td></tr>
-      <tr><td><kbd>shift</kbd> + drag</td><td>box-select a region → grouped events</td></tr>
-      <tr><td><kbd>F</kbd></td><td>toggle the live feed</td></tr>
+      <tr><td><kbd>shift</kbd> + drag or <b>right-click</b> + drag</td><td>box-select a region → grouped events</td></tr>
+      <tr><td><kbd>F</kbd></td><td>command palette (jump anywhere)</td></tr>
+      <tr><td><kbd>N</kbd></td><td>toggle the live feed</td></tr>
       <tr><td><kbd>G</kbd></td><td>globe (3-D) view</td></tr>
       <tr><td><kbd>M</kbd></td><td>2-D map view</td></tr>
-      <tr><td><kbd>L</kbd></td><td>next interface language</td></tr>
+      <tr><td><kbd>L</kbd></td><td>list / category view</td></tr>
+      <tr><td><kbd>Shift</kbd>+<kbd>L</kbd></td><td>next interface language</td></tr>
+      <tr><td><kbd>Space</kbd></td><td>open / close the AI analyst</td></tr>
+      <tr><td><kbd>P</kbd></td><td>toggle the provinces layer</td></tr>
       <tr><td><kbd>C</kbd></td><td>open last / random country</td></tr>
       <tr><td><kbd>t</kbd> or <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>T</kbd></td><td>cycle color themes</td></tr>
-      <tr><td><kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>K</kbd></td><td>command palette (jump anywhere)</td></tr>
-      <tr><td><kbd>?</kbd></td><td>open this guide</td></tr>
+      <tr><td><kbd>?</kbd></td><td>open this startup guide</td></tr>
       <tr><td><kbd>Esc</kbd></td><td>close one layer at a time (palette → modes → drawers → panels → War Mode)</td></tr>
     </table>
     <p class="help-foot">Single-key shortcuts only fire when you're not typing in a field.</p>`],
@@ -2181,6 +2215,11 @@ els.graphBtn.addEventListener("click", () => graphExplorer.open());
 
 // v4 pane-hosted directories & pages
 els.storiesBtn.addEventListener("click", () => ctx.openDirectory(null));
+// v8.16 — the tracking-windows hub
+els.trackersBtn.addEventListener("click", () => pane.push({
+  key: "trackers", title: "tracking windows",
+  render: (el) => Trackers.renderTrackers(el, ctx),
+}));
 els.bookmarksBtn.addEventListener("click", () => pane.push({
   key: "bookmarks", title: "bookmarks",
   render: (el) => Wiki.renderBookmarks(el, ctx),
@@ -2879,11 +2918,17 @@ const conflictBriefing = {
       if (backers.length) line += `, backed by ${backers.join(", ")}`;
       segs.push(line + ".");
     }
-    // recent tracked developments from the war feed
-    const recent = (feed.snapshot() || []).slice(0, 5)
-      .map((s) => this._clean(s.headline)).filter(Boolean);
+    // v8.16 — recent developments come ONLY from THIS conflict's own feed
+    // (owner: "the conflict audio briefing should read only the current
+    // conflict's info"). The global feed snapshot was stale/unrelated news
+    // (the global feed is closed in War Mode); warFeed.data is the
+    // conflict-scoped stories+events, so it's the right source.
+    const wf = (warFeed.data && (warFeed.data.stories || [])) || [];
+    const wfEv = (warFeed.data && (warFeed.data.events || [])) || [];
+    const recent = (wf.length ? wf : wfEv).slice(0, 5)
+      .map((s) => this._clean(s.headline || s.title)).filter(Boolean);
     if (recent.length) {
-      segs.push("Recent tracked developments:");
+      segs.push("Recent developments in this conflict:");
       recent.forEach((h, i) => segs.push(`${i + 1}. ${h}.`));
     }
     // AI order of battle for real depth (degrades cleanly with no provider)
@@ -2973,17 +3018,14 @@ async function enterWarMode(conflictId) {
     }
   }
 
-  // parties: one consistent color per side, painted on their borders
-  const groups = [];
-  for (const side of ["a", "b"]) {
-    const isos = (data.parties || [])
-      .filter((pt) => pt.side === side && pt.country_id)
-      .map((pt) => pt.country_id);
-    const rings = [];
-    for (const c of BOUNDARIES_50M) if (isos.includes(c.i)) rings.push(...c.r);
-    if (rings.length) groups.push({ rings, color: SIDE_COLORS[side] });
-  }
-  state.renderer?.setColoredRings?.(groups);
+  // parties: one consistent color per side, painted on their borders.
+  // v8.16 — belligerents and SUPPORTERS get slightly different outlining
+  // (owner): backers ride a dimmer, desaturated version of their side's
+  // color; a war-panel button can hide/re-show the supporter outlines
+  // entirely. Rebuilt through applyWarRings so the toggle can re-apply.
+  state.warShowBackers = state.warShowBackers !== false;
+  applyWarRings();
+  try { sound.warMode(); } catch { /* audio not up yet */ }   // v8.16 war cue
 
   // subfactions: conflict-scoped internal-control areas that never render in
   // global mode (side a → established/pink, side b → contested/amber)
@@ -3012,6 +3054,36 @@ async function enterWarMode(conflictId) {
   });
 
   document.body.classList.add("war-active");   // v6.6.6 — themed edge glow
+}
+
+// v8.16 — build + apply the war-mode border rings from the current conflict:
+// belligerents in the full side color, supporters in a dimmed desaturated
+// shade of the same side (visually "with, but not in, the fight"), and
+// supporters removable via the ⚑ button in the war feed panel.
+function applyWarRings() {
+  const data = state.warMode;
+  if (!data) return;
+  const dim = (c) => [c[0] * 0.55 + 0.18, c[1] * 0.55 + 0.18, c[2] * 0.55 + 0.18];
+  const groups = [];
+  for (const side of ["a", "b"]) {
+    const bell = [], back = [];
+    for (const pt of (data.parties || [])) {
+      if (pt.side !== side || !pt.country_id) continue;
+      (pt.role === "backer" ? back : bell).push(pt.country_id);
+    }
+    const ringsOf = (isos) => {
+      const rings = [];
+      for (const c of BOUNDARIES_50M) if (isos.includes(c.i)) rings.push(...c.r);
+      return rings;
+    };
+    const br = ringsOf(bell);
+    if (br.length) groups.push({ rings: br, color: SIDE_COLORS[side] });
+    if (state.warShowBackers !== false && back.length) {
+      const kr = ringsOf(back);
+      if (kr.length) groups.push({ rings: kr, color: dim(SIDE_COLORS[side]) });
+    }
+  }
+  state.renderer?.setColoredRings?.(groups);
 }
 
 function exitWarMode() {
@@ -3146,6 +3218,36 @@ const warFeed = {
     document.getElementById("war-feed-list").innerHTML =
       `<p class="cp-meta">Loading the conflict feed…</p>`;
     this._renderTabs();
+    // v8.16 — public-sentiment strip: this conflict's live prediction-market
+    // odds (Polymarket/Kalshi) under the feed; empty when unreachable.
+    let strip = document.getElementById("war-sentiment");
+    if (!strip) {
+      strip = document.createElement("div");
+      strip.id = "war-sentiment";
+      panel.appendChild(strip);
+    }
+    strip.innerHTML = "";
+    Trackers.predMarketStrip(strip, name || "").catch(() => {});
+    // v8.16 — supporters outline toggle (owner: "a button to hide/re-enable
+    // supporting states' outlines"), next to the exit button.
+    let sup = document.getElementById("war-backers-toggle");
+    if (!sup) {
+      sup = document.createElement("button");
+      sup.id = "war-backers-toggle";
+      const exitBtn = document.getElementById("war-feed-exit");
+      if (exitBtn && exitBtn.parentElement)
+        exitBtn.parentElement.insertBefore(sup, exitBtn);
+      sup.addEventListener("click", () => {
+        state.warShowBackers = state.warShowBackers === false;
+        sup.textContent = state.warShowBackers ? "⚑ supporters ✓" : "⚑ supporters ✗";
+        sup.title = state.warShowBackers
+          ? "supporting states outlined (dimmer shade) — click to hide"
+          : "supporting states hidden — click to show";
+        applyWarRings();
+      });
+    }
+    sup.textContent = state.warShowBackers === false ? "⚑ supporters ✗" : "⚑ supporters ✓";
+    sup.title = "toggle the supporting states' (dimmer) outlines";
     await this._load();
   },
   close() {
@@ -3211,6 +3313,16 @@ const warFeed = {
           </div>${th.description ? `<p class="cp-meta war-thread-desc"></p>` : ""}
           <div class="war-thread-stories"></div>`;
         grp.querySelector(".war-thread-name").textContent = th.name || "Thread";
+        // v8.16 — a REAL thread's name links to its full thread page (owner:
+        // "the thread breakdown should link to the actual thread to click on");
+        // synthetic category buckets (id "bucket:…") have no page, so they
+        // stay plain labels.
+        if (th.id && !String(th.id).startsWith("bucket:")) {
+          const head = grp.querySelector(".war-thread-head");
+          head.style.cursor = "pointer";
+          head.title = "open this thread's full page";
+          head.addEventListener("click", () => ctx.openThread(th.id));
+        }
         if (th.description) grp.querySelector(".war-thread-desc").textContent = th.description;
         const host = grp.querySelector(".war-thread-stories");
         for (const s of (th.stories || [])) {
@@ -3298,13 +3410,16 @@ document.addEventListener("keydown", (ev) => {
   document.body.appendChild(box);
   let start = null;
   els.mapHost.addEventListener("pointerdown", (ev) => {
-    if (!ev.shiftKey) return;
+    // v8.16 — right-click-drag is an alternative to shift-drag (owner). The
+    // contextmenu event is suppressed below so the browser menu never opens.
+    if (!ev.shiftKey && ev.button !== 2) return;
     start = { x: ev.clientX, y: ev.clientY };
     box.style.display = "block";
     box.style.left = ev.clientX + "px"; box.style.top = ev.clientY + "px";
     box.style.width = "0px"; box.style.height = "0px";
     ev.preventDefault(); ev.stopPropagation();
   }, { capture: true });
+  els.mapHost.addEventListener("contextmenu", (ev) => ev.preventDefault());
   window.addEventListener("pointermove", (ev) => {
     if (!start) return;
     box.style.left = Math.min(start.x, ev.clientX) + "px";
@@ -3427,6 +3542,7 @@ function _modeInfoFor(mode) {
   if (mode === "dialect") return (v) => dialectInfo(v);
   if (mode === "climate") return (v) => climateInfo(v);   // v8.13
   if (mode === "government") return (v) => govInfo(v);     // v8.13.6
+  if (mode === "ideology") return (v) => ideologyInfo(v);   // v8.16
   return null;   // any future palette-only categorical mode
 }
 
@@ -3466,7 +3582,18 @@ async function applyMapMode(mode) {
     legendHtml += ` <span class="ramp"></span>
       <span>${Number(d.min).toLocaleString()} – ${Number(d.max).toLocaleString()}</span>`;
   } else {
-    for (const [iso3, v] of Object.entries(d.values)) colors[iso3] = catColorFor(v);
+    // v8.16 — relative-share shading (owner: "shade by relative percentage"):
+    // religion/sect maps carry a per-country majority share (0-1); a country
+    // where the top tradition holds 95% paints near-solid, a plural country
+    // (~40%) paints noticeably fainter — the fill opacity IS the share.
+    const shares = d.shares || null;
+    for (const [iso3, v] of Object.entries(d.values)) {
+      const sh = shares && shares[iso3] != null ? shares[iso3] : null;
+      colors[iso3] = (infoFor && sh != null)
+        ? familyColor(infoFor(v), 0.30 + 0.50 * Math.max(0, Math.min(1, sh)))
+        : catColorFor(v);
+    }
+    if (shares) legendHtml += ` <span class="src">opacity = majority share</span>`;
     if (infoFor) {
       // legend groups by FAMILY (no per-value key needed — hover names it)
       const fam = {};
@@ -3504,6 +3631,11 @@ async function applyMapMode(mode) {
 // v8.9 — fetch per-admin-unit values for the active tier and paint them as a
 // filled choropleth over the admin polygons (reuses the v8.3 setAdminHeat path).
 async function applyModeAdminHeat(mode, countryData, numColor, catColorFor) {
+  // v8.16 — ALWAYS drop the previous mode's per-unit values first. They used
+  // to survive a mode switch, so a mode with no per-unit data (government,
+  // ideology) showed the PREVIOUS mode's division values in the hover tooltip
+  // (owner: "government type map mode shouldn't show a religion tooltip").
+  state.modeUnitValues = null;
   const tier = state.adminTier || 0;
   if (!mode || !tier) {
     if (state.activityOn) applyActivityHeat(); else state.renderer?.setAdminHeat?.(null);

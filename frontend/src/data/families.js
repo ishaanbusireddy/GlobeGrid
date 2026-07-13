@@ -81,6 +81,8 @@ export const RELIGION_INFO = {
   "Buddhism": { hue: 45, family: "Buddhism", light: 55 },
   "Judaism": { hue: 258, family: "Judaism", light: 58 },
   "Druze": { hue: 168, family: "Druze", light: 42, sat: 40 },   // v8.13.7
+  "Shinto": { hue: 350, family: "Shinto", light: 58, sat: 55 },   // v8.16 — Japan
+  "Chinese folk religion": { hue: 56, family: "Folk / syncretic", light: 56, sat: 40 },   // v8.16
   "Unaffiliated": { hue: 0, family: "Unaffiliated", light: 60, sat: 0 },
 };
 
@@ -100,7 +102,7 @@ export const SECT_INFO = {
   "Twelver/Ismaili Shia": { hue: 100, sat: 58, light: 56, family: "Shia Islam" },
   "Ismaili Shia": { hue: 112, sat: 58, light: 60, family: "Shia Islam" },
   "Zaydi Shia": { hue: 94, sat: 58, light: 58, family: "Shia Islam" },
-  "Alawite Shia": { hue: 118, sat: 52, light: 64, family: "Shia Islam" },
+  "Alawite":      { hue: 178, sat: 50, light: 52, family: "Alawite" },   // v8.16 — own sect, own hue (not a Shia shade)
   "Ibadi": { hue: 166, sat: 60, light: 40, family: "Ibadi Islam" },
   "Ahmadiyya": { hue: 128, sat: 50, light: 68, family: "Islam (other)" },
   // Christianity — blue (base hue ~212)
@@ -125,6 +127,7 @@ export const SECT_INFO = {
   "Theravada Buddhist": { hue: 45, sat: 66, light: 50, family: "Buddhism" },
   "Mahayana Buddhist": { hue: 52, sat: 62, light: 58, family: "Buddhism" },
   "Vajrayana Buddhist": { hue: 38, sat: 66, light: 46, family: "Buddhism" },
+  "Shinto": { hue: 350, sat: 55, light: 58, family: "Shinto" },   // v8.16 — Japan
   // v8.13.7 — Druze (a distinct Levantine tradition), Balinese Hindu
   "Druze": { hue: 168, sat: 42, light: 42, family: "Druze" },
   "Sunni / Druze": { hue: 155, sat: 50, light: 46, family: "Druze" },
@@ -233,6 +236,34 @@ const GOV_INFO = {
   "Military / transitional": { hue: 32,  sat: 30, light: 45, family: "Military / transitional" },
 };
 export function govInfo(v) { return GOV_INFO[v] || { hue: 220, sat: 10, light: 55, family: "other" }; }
+
+// v8.16 — ruling-party ideology (the Ideology map mode). The left→right
+// political spectrum reads as the classic red→blue sweep (far-left deep red,
+// social democracy rose, centrism yellow-grey, liberalism sky, conservatism
+// deep blue, right-populism navy-violet), with non-party regimes in the same
+// off-spectrum colors as the government map (junta grey-brown, monarchy
+// purple, theocracy magenta-purple, personalist dark red-brown).
+const IDEOLOGY_INFO = {
+  "Communism (one-party)":      { hue: 355, sat: 72, light: 32, family: "Left" },
+  "Socialism":                  { hue: 0,   sat: 66, light: 44, family: "Left" },
+  "Left-wing populism":         { hue: 12,  sat: 62, light: 50, family: "Left" },
+  "Social democracy":           { hue: 340, sat: 52, light: 55, family: "Left" },
+  "Green politics":             { hue: 120, sat: 55, light: 42, family: "Left" },
+  "Centrism":                   { hue: 48,  sat: 30, light: 55, family: "Center" },
+  "Liberalism":                 { hue: 200, sat: 58, light: 55, family: "Center" },
+  "Christian democracy":        { hue: 215, sat: 42, light: 48, family: "Right" },
+  "Conservatism":               { hue: 225, sat: 58, light: 42, family: "Right" },
+  "Nationalism":                { hue: 250, sat: 50, light: 42, family: "Right" },
+  "Right-wing populism":        { hue: 262, sat: 58, light: 38, family: "Right" },
+  "Islamism":                   { hue: 155, sat: 48, light: 36, family: "Religious" },
+  "Theocracy":                  { hue: 300, sat: 40, light: 40, family: "Religious" },
+  "Absolute monarchy":          { hue: 268, sat: 46, light: 46, family: "Non-party" },
+  "Military rule":              { hue: 32,  sat: 30, light: 45, family: "Non-party" },
+  "Personalist authoritarian":  { hue: 8,   sat: 60, light: 30, family: "Non-party" },
+};
+export function ideologyInfo(v) {
+  return IDEOLOGY_INFO[v] || { hue: 220, sat: 10, light: 55, family: "other" };
+}
 
 export function familyColor(info, alpha = 0.72) {
   if (!info) return `rgba(140,150,170,${alpha})`;

@@ -778,6 +778,31 @@ export class SoundEngine {
                { attack: 0.02, decay: 0.32, sustain: 0.18, release: 0.95, cutoff: 7200 });
   }
 
+  // v8.16 — the WAR MODE entry cue (owner: "when activating war mode there
+  // should be a special war sound"): two low war-drum hits under a dark
+  // minor-second horn swell — martial and unmistakable, but short (~1.3s)
+  // and band-limited like every other cue. Rate-limited so a double-entry
+  // can't stack it.
+  warMode() {
+    if (!this.enabled || !this._ensureCtx()) return;
+    const nowMs = this.ctx.currentTime * 1000;
+    if (this._lastWarMs && nowMs - this._lastWarMs < 1500) return;
+    this._lastWarMs = nowMs;
+    const t = this.ctx.currentTime;
+    const r = this._scale().root;
+    const drum = { attack: 0.004, decay: 0.16, sustain: 0.0, release: 0.3, cutoff: 200 };
+    this._note(midiHz(r - 24), t, 0.4, 0.14, "sine", 0, drum);          // boom
+    this._note(midiHz(r - 24), t + 0.28, 0.4, 0.11, "sine", 0, drum);   // boom
+    // dark horn swell: root + minor second above, slow attack
+    const horn = { attack: 0.18, decay: 0.3, sustain: 0.3, release: 0.6,
+                   cutoff: 1400, resonance: 1.4 };
+    this._note(midiHz(r), t + 0.1, 0.9, 0.055, "sawtooth", 0, horn);
+    this._note(midiHz(r + 1), t + 0.16, 0.9, 0.04, "sawtooth", 0, horn);
+    // low fifth to ground it
+    this._note(midiHz(r - 5), t + 0.2, 0.8, 0.05, "triangle", 0,
+               { attack: 0.1, decay: 0.25, sustain: 0.25, release: 0.55, cutoff: 900 });
+  }
+
   noteSeverity(sev) { this.lastSeverity = Math.max(this.lastSeverity, sev || 1); }
 
   // v6.6.4 — distinct analyst open/close cues. These play even when the music

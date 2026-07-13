@@ -32,9 +32,9 @@ export class CommandPalette {
     this._debounce = null;
 
     document.addEventListener("keydown", (ev) => {
-      if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "k") {
-        ev.preventDefault(); this.toggle();
-      } else if (ev.key === "Escape" && !this.el.classList.contains("hidden")) {
+      // v8.16 — Ctrl/Cmd+K replaced by the plain F key (owner request); the
+      // F binding lives in App.js's single-key shortcut handler.
+      if (ev.key === "Escape" && !this.el.classList.contains("hidden")) {
         this.hide();
       }
     });

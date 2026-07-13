@@ -12,6 +12,10 @@
 //               blur, additively composited)
 import { COASTLINES } from "../../data/worldCoastline.js";
 import { CITY_LIGHTS } from "../../data/cityLights.js";
+
+// v8.16 — map label font follows the Settings font (owner). App.js calls
+// setLabelFont(family) whenever the font changes; the render loops read this.
+let _LABEL_FAM = "system-ui";
 // v4 §2.3 — Natural Earth boundary LOD: 50m for the full-globe view, 10m
 // decoded lazily on first zoom-in (accurate coastlines where they matter)
 import { BOUNDARIES_50M_ENC } from "../../data/boundaries50m.js";
@@ -86,7 +90,12 @@ uniform vec4 color;
 out vec4 frag;
 void main() {
   if (vFacing < -0.02) discard;          // back hemisphere — never show through
-  float edge = smoothstep(-0.02, 0.10, vFacing);  // fade in at the limb
+  // v8.16 — fade ONLY right at the limb (owner: "borders shouldn't phase out
+  // when i zoom in very close"). The old [-0.02, 0.10] band covered a large
+  // fraction of the frame under close-zoom perspective, so lines toward the
+  // view edges dimmed out; hugging the true limb keeps borders crisp at every
+  // zoom while still hiding the far hemisphere.
+  float edge = smoothstep(-0.02, 0.015, vFacing);
   frag = vec4(color.rgb, color.a * edge);
 }`;
 
@@ -672,6 +681,8 @@ export class Tier1Globe {
 
   // v6.6.6 — explicit user-toggled auto-spin (independent of the idle tour)
   setAutoSpin(on) { this.spinLocked = !!on; }
+  // v8.16 — the map/globe labels follow the Settings font (owner)
+  setLabelFont(fam) { if (fam) { _LABEL_FAM = fam; this._needsRedraw = true; } }
 
   setActors(actors) {
     const gl = this.gl;
@@ -2514,7 +2525,7 @@ export class Tier1Globe {
       ctx.arc(p[0], p[1], r * 0.55, 0, 7);
       ctx.fillStyle = color + "33";
       ctx.fill();
-      ctx.font = `bold ${11 * dpr}px system-ui`;
+      ctx.font = `bold ${11 * dpr}px ${_LABEL_FAM}`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillStyle = "#e8eefb";
@@ -2548,7 +2559,7 @@ export class Tier1Globe {
             ctx.fillStyle = "rgba(180,200,235,0.55)";
             ctx.fill();
             if (this.dist < 2.2) {   // show the name when zoomed toward it
-              ctx.font = `600 ${10 * dpr}px system-ui`;
+              ctx.font = `600 ${10 * dpr}px ${_LABEL_FAM}`;
               ctx.fillStyle = "rgba(210,222,240,0.7)";
               ctx.strokeStyle = "rgba(6,10,18,0.6)"; ctx.lineWidth = 3 * dpr;
               ctx.strokeText(l.name, p[0], p[1] - 8 * dpr);
@@ -2568,7 +2579,7 @@ export class Tier1Globe {
         if (collide) continue;
         placed.push(p);
         const fs = Math.max(10, Math.min(16, apparentPx / 9)) * dpr;
-        ctx.font = `600 ${fs}px system-ui`;
+        ctx.font = `600 ${fs}px ${_LABEL_FAM}`;
         ctx.fillStyle = `rgba(225,232,246,${alpha.toFixed(2)})`;
         ctx.strokeStyle = `rgba(6,10,18,${(alpha * 0.7).toFixed(2)})`;
         ctx.lineWidth = 3 * dpr;
@@ -2604,7 +2615,7 @@ export class Tier1Globe {
         placedA.push(p);
         const alpha = Math.min(0.8, 0.15 + (apparentPx - 70 * dpr) / (40 * dpr) * 0.6);
         const fs = Math.max(9, Math.min(13, apparentPx / 12)) * dpr;
-        ctx.font = `500 ${fs}px system-ui`;
+        ctx.font = `500 ${fs}px ${_LABEL_FAM}`;
         ctx.fillStyle = `rgba(196,214,230,${alpha.toFixed(2)})`;
         ctx.strokeStyle = `rgba(6,10,18,${(alpha * 0.7).toFixed(2)})`;
         ctx.lineWidth = 2.5 * dpr;
@@ -2620,7 +2631,7 @@ export class Tier1Globe {
       const minPop = this.dist > 2.4 ? 5000000 : this.dist > 1.8 ? 500000 : 50000;
       const placed = [];
       const maxLabels = 46;
-      ctx.font = `${10.5 * dpr}px system-ui`;
+      ctx.font = `${10.5 * dpr}px ${_LABEL_FAM}`;
       ctx.textAlign = "left";
       ctx.textBaseline = "middle";
       for (const c of this.cities) {            // already sorted by population

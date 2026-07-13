@@ -4,11 +4,13 @@
 import { formatDateTime } from "../../data/timefmt.js";   // v6.1.1 tz-aware
 
 export class LiveFeed {
-  constructor(listEl, { onOpenStory, onOpenConflict } = {}) {
+  constructor(listEl, { onOpenStory, onOpenConflict, onOpenCountry } = {}) {
     this.listEl = listEl;
     this.onOpenStory = onOpenStory || (() => {});
     this.onOpenConflict = onOpenConflict || (() => {});   // v6.6.2 conflict chip
+    this.onOpenCountry = onOpenCountry || (() => {});     // v8.16 impact chips
     this.stories = new Map(); // id -> story card data
+    this._order = [];         // v8.16 — stable display order (new ids on TOP)
   }
 
   setStories(stories, { force = false } = {}) {
@@ -19,8 +21,17 @@ export class LiveFeed {
     if (!force && (!stories || stories.length === 0) && this.stories.size > 0) {
       return;
     }
+    const wasEmpty = this.stories.size === 0;
     this.stories.clear();
     for (const s of stories) this.stories.set(s.id, s);
+    // v8.16 — only a FIRST fill (or forced reset) re-sorts by recency; a
+    // periodic refresh keeps the on-screen order so cards never jump around
+    // mid-list — genuinely new ids still pile in from the top via _render.
+    if (wasEmpty || force || !this._order || this._order.length === 0) {
+      this._order = [...this.stories.values()]
+        .sort((a, b) => (b.last_updated_at || "").localeCompare(a.last_updated_at || ""))
+        .map((s) => s.id);
+    }
     this._render();
   }
 
@@ -44,7 +55,8 @@ export class LiveFeed {
     // a signature of everything the card renders — cheap change detection
     return [s.headline, s.category, s.source_count, s.member_count, s.confidence,
             s.has_historical_link ? 1 : 0, Math.round((s.corroboration || 0) * 100),
-            s.conflict_id || "", s.conflict_name || "", s.last_updated_at].join("|");
+            s.conflict_id || "", s.conflict_name || "", s.last_updated_at,
+            (s.impact_chips || []).map((c) => c.name).join(",")].join("|");
   }
   _buildCard(s) {
     const card = document.createElement("div");
@@ -64,6 +76,29 @@ export class LiveFeed {
         <span>${when}</span>
       </div>`;
     card.querySelector("h3").textContent = s.headline || "(untitled story)";
+    // v8.16 — 1-2 literally-named country/bloc chips with real flags (owner:
+    // "display like 1-2 country chips nested in the event panels in the live
+    // feed"; a NATO chip flies the NATO flag just like a country's)
+    if (s.impact_chips && s.impact_chips.length) {
+      const meta = card.querySelector(".card-meta");
+      for (const ch of s.impact_chips.slice(0, 2)) {
+        const chip = document.createElement("span");
+        chip.className = "chip chip-impact";
+        chip.title = ch.name;
+        if (ch.flag) {
+          const img = document.createElement("img");
+          img.src = ch.flag; img.alt = ""; img.className = "chip-flag";
+          img.addEventListener("error", () => img.remove());
+          chip.appendChild(img);
+        }
+        chip.appendChild(document.createTextNode(ch.name));
+        chip.addEventListener("click", (ev) => {
+          ev.stopPropagation();
+          this.onOpenCountry(ch);
+        });
+        meta.insertBefore(chip, meta.firstChild);
+      }
+    }
     const cchip = card.querySelector(".chip-conflict");
     if (cchip) cchip.addEventListener("click", (ev) => {
       ev.stopPropagation();
@@ -73,9 +108,20 @@ export class LiveFeed {
     return card;
   }
   _render(flashId = null) {
-    const sorted = [...this.stories.values()].sort(
-      (a, b) => (b.last_updated_at || "").localeCompare(a.last_updated_at || ""))
-      .slice(0, 100);
+    // v8.16 — STABLE top-pile ordering (owner: "new events in the live feed
+    // should pile in from the TOP fluidly … not be glitchy or move around").
+    // A card the feed has never shown enters at the TOP; every card already
+    // on screen KEEPS its position (an update pulses in place, it does not
+    // re-sort the list) — so nothing ever jumps into the middle. Only a full
+    // reset (setStories clears _order) re-sorts by recency.
+    if (!this._order) this._order = [];
+    const have = new Set(this._order);
+    const incoming = [...this.stories.values()]
+      .filter((s) => !have.has(s.id))
+      .sort((a, b) => (a.last_updated_at || "").localeCompare(b.last_updated_at || ""));
+    for (const s of incoming) this._order.unshift(s.id);   // newest ends on top
+    this._order = this._order.filter((id) => this.stories.has(id));
+    const sorted = this._order.map((id) => this.stories.get(id)).slice(0, 100);
     if (!this._cards) this._cards = new Map();   // id -> {el, key}
     if (!sorted.length) {
       this._cards.clear();

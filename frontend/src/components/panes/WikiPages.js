@@ -208,11 +208,21 @@ function oneChamber(cham, fallbackLabel) {
     }
   }
   seats.sort((a, b) => a.t - b.t);   // left (t=0) → right (t=1): fill by column
-  const dots = seats.map((s, idx) =>
-    `<circle cx="${s.x.toFixed(1)}" cy="${s.y.toFixed(1)}" r="3.3" fill="${colors[idx] || "#888"}"><title>${esc(seatOwner(parties, idx))}</title></circle>`);
+  // v8.16 — the SEATS themselves are clickable too (owner: "clicking on a
+  // party's seats in the graphic should take you to that party's page"): each
+  // dot carries its party name and the same .party-dossier-open hook the
+  // legend chips use, so one wiring pass covers both.
+  const _skip = /^(other|vacant|independent|independent\/other)/i;
+  const dots = seats.map((s, idx) => {
+    const pn = seatParty(parties, idx);
+    const clickable = pn && !_skip.test(pn);
+    return `<circle cx="${s.x.toFixed(1)}" cy="${s.y.toFixed(1)}" r="3.3"`
+      + ` fill="${colors[idx] || "#888"}"`
+      + (clickable ? ` class="seat-dot party-dossier-open" data-party="${esc(pn)}"` : "")
+      + `><title>${esc(seatOwner(parties, idx))}</title></circle>`;
+  });
   // v7.4.2 — every party in the seat arc is a CLICKABLE chip that opens its
   // full professional dossier (owner). Skip non-party buckets like Other/Vacant.
-  const _skip = /^(other|vacant|independent|independent\/other)/i;
   const legend = parties.map((p) => {
     const clickable = p.name && !_skip.test(p.name);
     return `<span class="seat-legend${clickable ? " party-dossier-open" : ""}"${clickable ? ` data-party="${esc(p.name)}" role="button" tabindex="0"` : ""}><i style="background:${p.color}"></i>${esc(p.name)} <b>${p.seats}</b></span>`;
@@ -242,6 +252,67 @@ function seatOwner(parties, idx) {
   let acc = 0;
   for (const p of parties) { acc += p.seats; if (idx < acc) return `${p.name} — ${p.seats} seats`; }
   return "";
+}
+
+function seatParty(parties, idx) {   // v8.16 — the owning party's bare name
+  let acc = 0;
+  for (const p of parties) { acc += p.seats; if (idx < acc) return p.name; }
+  return "";
+}
+
+// v8.16 — the country-page horizontal tab bar. Panes are .ctab-pane divs with
+// a data-ctab label; the first becomes active. Panes whose content is entirely
+// empty are dropped so the bar only shows tabs with something behind them.
+function wireCountryTabs(el) {
+  const bar = el.querySelector(".ctab-bar");
+  const panes = [...el.querySelectorAll(".ctab-pane")];
+  if (!bar || !panes.length) return;
+  panes.forEach((pane, i) => {
+    const btn = document.createElement("button");
+    btn.className = "ctab-btn" + (i === 0 ? " active" : "");
+    btn.setAttribute("role", "tab");
+    btn.textContent = pane.dataset.ctab;
+    btn.addEventListener("click", () => {
+      bar.querySelectorAll(".ctab-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      panes.forEach((pp) => pp.classList.toggle("active", pp === pane));
+      el.scrollTop = 0;
+    });
+    bar.appendChild(btn);
+    pane.classList.toggle("active", i === 0);
+  });
+}
+
+// v8.16 — lazy fill for the country page's Trade tab (curated year+source
+// figures + resources + the live trade-news trail).
+async function fillCountryTrade(host, iso3, ctx) {
+  if (!host) return;
+  try {
+    const d = await api.tradeCountry(iso3);
+    const t = d.trade, r = d.resources;
+    const usdB = (n) => (n == null ? "—"
+      : "$" + (n >= 1000 ? (n / 1000).toFixed(2) + "T" : Math.round(n) + "B"));
+    host.innerHTML = `
+      ${t ? `<div class="stat-grid">
+        <div class="stat-cell"><span class="stat-k">Exports (${esc(t.year)})</span><span class="stat-v">${usdB(t.exports_usd_b)}</span></div>
+        <div class="stat-cell"><span class="stat-k">Imports (${esc(t.year)})</span><span class="stat-v">${usdB(t.imports_usd_b)}</span></div>
+      </div>
+      <p><b>Top exports:</b> ${esc((t.top_exports || []).join(", "))}</p>
+      <p><b>Top imports:</b> ${esc((t.top_imports || []).join(", "))}</p>
+      <p><b>Main partners:</b> ${esc((t.partners || []).join(", "))}</p>
+      <p class="cp-meta">${esc(t.src || "")}</p>` : `<p class="cp-meta">${esc(d.note || "No curated trade profile yet.")}</p>`}
+      ${r ? `<h4>⛏ Resources &amp; industry</h4>
+        <p><b>Key resources:</b> ${esc((r.resources || []).join(", "))}</p>
+        ${r.production ? `<p><b>Headline production:</b> ${esc(r.production)}</p>` : ""}
+        ${r.industry ? `<p><b>Industrial base:</b> ${esc(r.industry)}</p>` : ""}
+        <p class="cp-meta">${esc(r.src || "")}</p>` : ""}
+      ${(d.live_trade_news || []).length ? `<h4>📰 Live trade coverage</h4>` +
+        d.live_trade_news.map((s) => `<button class="ap-chip story-link" data-id="${esc(s.id)}">⌕ ${esc(s.headline).slice(0, 64)}</button>`).join(" ") : ""}`;
+    host.querySelectorAll(".story-link").forEach((b) =>
+      b.addEventListener("click", () => ctx.openStory(b.dataset.id)));
+  } catch {
+    host.innerHTML = '<p class="cp-meta">Trade profile unavailable right now.</p>';
+  }
 }
 
 export async function renderCountry(el, iso3, ctx) {
@@ -402,44 +473,67 @@ export async function renderCountry(el, iso3, ctx) {
         <p class="cp-meta">${trade}${pop ? " · " + pop : ""}</p>
       </div>
     </div>
-    ${statCells ? `<section><h4>Key statistics</h4><div class="stat-grid">${statCells}</div></section>` : ""}
-    ${knowledgeSection(p.knowledge, "Country intelligence")}
-    ${territories}
-    ${freshness(p.last_updated_at)}
-    ${backgroundSection(p.background)}
-    <section><h4>Leadership</h4>${leadership}</section>
-    <section><h4>Member of</h4>${memberships}</section>
-    ${(p.legislature && p.legislature.seats)
-      ? `<section><h4>Legislature</h4>${parliamentGraphic(p.legislature)}</section>`
-      : (p.legislature && p.legislature.composition_summary
-          ? `<section><h4>Legislature</h4><p>${esc(p.legislature.chamber_name || "")}</p><p class="cp-meta">${esc(p.legislature.composition_summary)}</p></section>`
-          : (p.legislature_note   /* v6.6.2 — explain absence, don't leave blank */
-              ? `<section><h4>Legislature</h4><p class="cp-meta">${esc(p.legislature_note)}</p></section>`
-              : ""))}
-    <section><h4>Political parties</h4>${parties}</section>
-    <section><h4>Agendas & stances <span class="cp-meta">(AI-synthesized, source-linked)</span></h4>
-      <div class="narrative-grid">${agenda}</div>
-      ${p.agenda && p.agenda.source_story_ids
-        ? `<p class="cp-meta">synthesized from ${p.agenda.source_story_ids.length} tracked stories · ${esc(p.agenda.generated_at || "")}</p>` : ""}
-    </section>
-    <section><h4>Bilateral relations</h4>${relations}</section>
-    <section><h4>Border disputes</h4>${disputes}</section>
-    <section><h4>Conflicts</h4>${conflicts}</section>
-    ${pastConflicts ? `<section><h4>Past conflicts</h4>${pastConflicts}</section>` : ""}
-    <section><h4>Sanctions targeting</h4>${sanctions}</section>
-    <section><h4>Treaties</h4>${treaties}</section>
-    <section><h4>Notable persons</h4>${persons}</section>
-    <section><h4>Elections</h4>${elections}</section>
-    ${(p.autonomous_zones || []).length ? `<section><h4>🏛 Autonomous regions</h4>
-      ${p.autonomous_zones.map((z) =>
-        `<button class="ap-chip az-open" data-id="${esc(z.id)}">🏛 ${esc(z.name)}</button>`).join(" ")}</section>` : ""}
-    <section id="admin-units-section"><h4>◇ Provinces &amp; states <span class="cp-meta">(V8 · click one to open)</span></h4>
-      <div class="admin-units-host"><p class="cp-meta">loading administrative units…</p></div></section>
-    <section id="country-cities-section"><h4>◍ Cities <span class="cp-meta">(largest first · click to open)</span></h4>
-      <div class="country-cities-host"><p class="cp-meta">loading cities…</p></div></section>
-    <section id="admin-history-section" style="display:none"><h4>🕰 Border &amp; sovereignty history <span class="cp-meta">(since 1950)</span></h4>
-      <div class="admin-history-host"></div></section>
-    <section><h4>Recent tracked coverage ${thinBadge(p.coverage)}</h4>${storyChips(p.recent_stories)}</section>`;
+    <div class="ctab-bar" role="tablist"></div>
+    <div class="ctab-pane" data-ctab="📌 Overview">
+      ${statCells ? `<section><h4>Key statistics</h4><div class="stat-grid">${statCells}</div></section>` : ""}
+      ${knowledgeSection(p.knowledge, "Country intelligence")}
+      ${territories}
+      ${freshness(p.last_updated_at)}
+      ${backgroundSection(p.background)}
+    </div>
+    <div class="ctab-pane" data-ctab="🏛 Government">
+      <section><h4>Leadership</h4>${leadership}</section>
+      ${(p.legislature && p.legislature.seats)
+        ? `<section><h4>Legislature${p.legislature.stale ? ' <span class="chip" title="composition not refreshed in over 15 months — an election may have happened since">⏳ may be outdated</span>' : ""}</h4>${parliamentGraphic(p.legislature)}</section>`
+        : (p.legislature && p.legislature.composition_summary
+            ? `<section><h4>Legislature</h4><p>${esc(p.legislature.chamber_name || "")}</p><p class="cp-meta">${esc(p.legislature.composition_summary)}</p></section>`
+            : (p.legislature_note   /* v6.6.2 — explain absence, don't leave blank */
+                ? `<section><h4>Legislature</h4><p class="cp-meta">${esc(p.legislature_note)}</p></section>`
+                : ""))}
+      <section><h4>Political parties</h4>${parties}</section>
+      <section><h4>Notable persons</h4>${persons}</section>
+      <section><h4>Elections</h4>${elections}</section>
+    </div>
+    <div class="ctab-pane" data-ctab="🌐 Diplomacy">
+      <section><h4>Member of</h4>${memberships}</section>
+      <section><h4>Agendas & stances <span class="cp-meta">(AI-synthesized, source-linked)</span></h4>
+        <div class="narrative-grid">${agenda}</div>
+        ${p.agenda && p.agenda.source_story_ids
+          ? `<p class="cp-meta">synthesized from ${p.agenda.source_story_ids.length} tracked stories · ${esc(p.agenda.generated_at || "")}</p>` : ""}
+      </section>
+      <section><h4>Bilateral relations</h4>${relations}</section>
+      <section><h4>Treaties</h4>${treaties}</section>
+      <section><h4>Sanctions targeting</h4>${sanctions}</section>
+    </div>
+    <div class="ctab-pane" data-ctab="⚔ Conflicts">
+      <section><h4>Conflicts</h4>${conflicts}</section>
+      ${pastConflicts ? `<section><h4>Past conflicts</h4>${pastConflicts}</section>` : ""}
+      <section><h4>Border disputes</h4>${disputes}</section>
+    </div>
+    <div class="ctab-pane" data-ctab="🚢 Trade">
+      <section><h4>Trade &amp; resources</h4>
+        <div class="country-trade-host"><p class="cp-meta">loading trade profile…</p></div></section>
+    </div>
+    <div class="ctab-pane" data-ctab="◇ Divisions">
+      ${(p.autonomous_zones || []).length ? `<section><h4>🏛 Autonomous regions</h4>
+        ${p.autonomous_zones.map((z) =>
+          `<button class="ap-chip az-open" data-id="${esc(z.id)}">🏛 ${esc(z.name)}</button>`).join(" ")}</section>` : ""}
+      <section id="admin-units-section"><h4>◇ Provinces &amp; states <span class="cp-meta">(click one to open)</span></h4>
+        <div class="admin-units-host"><p class="cp-meta">loading administrative units…</p></div></section>
+      <section id="country-cities-section"><h4>◍ Cities <span class="cp-meta">(largest first · click to open)</span></h4>
+        <div class="country-cities-host"><p class="cp-meta">loading cities…</p></div></section>
+      <section id="admin-history-section" style="display:none"><h4>🕰 Border &amp; sovereignty history <span class="cp-meta">(since 1950)</span></h4>
+        <div class="admin-history-host"></div></section>
+    </div>
+    <div class="ctab-pane" data-ctab="📰 Coverage">
+      <section><h4>Recent tracked coverage ${thinBadge(p.coverage)}</h4>${storyChips(p.recent_stories)}</section>
+    </div>`;
+
+  // v8.16 — the country page is now horizontal browser-like TABS under the
+  // header (owner: "nest sections into tabs … so users don't have to scroll
+  // endlessly"). Every section stays in the DOM (async fills keep working);
+  // the bar just switches which pane is visible.
+  wireCountryTabs(el);
 
   // v8 §3 — the country's ADM1 units (provinces/states), each a clickable chip
   // that opens its own page. Lazy-loaded so the country panel paints instantly.
@@ -464,6 +558,8 @@ export async function renderCountry(el, iso3, ctx) {
   // v8.8 — the country's biggest cities, largest population first, each a
   // clickable chip that opens the city's own page.
   fillCitiesSection(el.querySelector(".country-cities-host"), api.citiesInCountry(iso3, 40), ctx);
+  // v8.16 — the Trade tab (curated + live layers)
+  fillCountryTrade(el.querySelector(".country-trade-host"), iso3, ctx);
   // v8 §Q3 — the country's border & sovereignty lineage since 1950 (curated
   // timeline). Shown only when there's something to show for this country.
   (async () => {
@@ -818,6 +914,11 @@ export async function renderAlliance(el, id, ctx) {
     const cham = { chamber: "European Parliament", total: a.parliament.total,
                    parties: a.parliament.groups.map(([abbr, , seats, color]) => [abbr, seats, color]) };
     host.innerHTML = `<h4>Parliament breakdown</h4>${oneChamber(cham, "European Parliament")}`;
+    // v8.16 — EU parliament groups + their seats open the party dossier too
+    // (owner: "same for eu parliament, the parties should be clickable")
+    host.querySelectorAll(".party-dossier-open[data-party]").forEach((b) =>
+      b.addEventListener("click", () => ctx.openPartyDossier
+        && ctx.openPartyDossier(b.dataset.party, null)));
   }
   // conflicts members are party to
   const cf = el.querySelector(".bloc-conflicts");
@@ -1491,7 +1592,6 @@ export async function renderAdminUnit(el, uid, ctx) {
         ${cell("Type", u.unit_type)}
         ${cell("Center", (u.centroid_lat != null && u.centroid_lon != null) ? `${u.centroid_lat.toFixed(2)}, ${u.centroid_lon.toFixed(2)}` : "")}
         ${cell("Tracked events here", d.event_count != null ? String(d.event_count) : "")}
-        ${cell("Boundary source", u.source)}
       </div>
       <button class="ap-chip admin-fly" title="fly the map to this unit">⌖ Pan to this area</button>
     </section>`;
@@ -1615,7 +1715,8 @@ export async function renderCity(el, id, ctx) {
 
   // breadcrumb: country › (admin ancestry…) › admin unit › city
   const crumbs = [];
-  if (c) crumbs.push(`<button class="ap-chip country-link" data-id="${esc(c.id)}">${flagInline(c)} ${esc(c.name)}</button>`);
+  // v8.16 — no flags on city pages (owner): the country crumb is text-only
+  if (c) crumbs.push(`<button class="ap-chip country-link" data-id="${esc(c.id)}">${esc(c.name)}</button>`);
   for (const an of (d.ancestry || [])) crumbs.push(`<button class="ap-chip admin-open" data-uid="${esc(an.admin_uid)}">${esc(an.name)}</button>`);
   if (a) crumbs.push(`<button class="ap-chip admin-open" data-uid="${esc(a.admin_uid)}">${esc(a.name)}</button>`);
   crumbs.push(`<b>${esc(city.name)}</b>`);
@@ -1624,7 +1725,6 @@ export async function renderCity(el, id, ctx) {
     ? `#${d.national_rank}${c ? " in " + esc(c.name) : ""}` : "";
   el.innerHTML = `
     <div class="wiki-header">
-      <div class="wiki-flag">${c ? flagInline(c, 64) : "◍"}</div>
       <div class="wiki-head-meta">
         <h1>◍ ${esc(city.name)}</h1>
         ${city.ascii_name && city.ascii_name !== city.name ? `<p class="official-name">${esc(city.ascii_name)}</p>` : ""}
@@ -1997,8 +2097,6 @@ export async function renderSettings(el, ctx) {
           <option value="condensed">Condensed</option>
           <option value="rounded">Rounded</option>
         </select></label>
-      <label class="settings-row">Interface language
-        <select id="lang-select"></select></label>
       <label class="settings-row">Night-side city lights
         <input type="checkbox" id="citylights-toggle"></label>
       <label class="settings-row">Breaking-event pop-up alerts
@@ -2047,15 +2145,10 @@ export async function renderSettings(el, ctx) {
     fontSel.value = ctx.font ? ctx.font() : "sans";
     fontSel.addEventListener("change", () => ctx.setFont && ctx.setFont(fontSel.value));
   }
-  // v5 §2 — interface language selector
-  const langSel = el.querySelector("#lang-select");
-  for (const l of ctx.languages()) {
-    const o = document.createElement("option");
-    o.value = l.code; o.textContent = l.name + (l.rtl ? " (RTL)" : "");
-    langSel.appendChild(o);
-  }
-  langSel.value = localStorage.getItem("tdl_lang") || "en";
-  langSel.addEventListener("change", () => ctx.setLanguage(langSel.value));
+  // v8.15.1 — the duplicate Settings-panel language picker is GONE (owner
+  // request): it was a second, independent control for the same state that
+  // showed a stale value whenever the language changed elsewhere. The header
+  // picker (#lang-btn) is the single language control.
   // v6 §24 — night-side city lights on/off
   const cl = el.querySelector("#citylights-toggle");
   cl.checked = ctx.cityLights ? ctx.cityLights() : true;

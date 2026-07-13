@@ -76,10 +76,10 @@ COUNTRY_SECT = {
     "THA": "Theravada Buddhist", "MMR": "Theravada Buddhist",
     "KHM": "Theravada Buddhist", "LKA": "Theravada Buddhist",
     "LAO": "Theravada Buddhist", "BTN": "Vajrayana Buddhist",
-    "MNG": "Vajrayana Buddhist", "JPN": "Mahayana Buddhist",
+    "MNG": "Vajrayana Buddhist", "JPN": "Shinto",  # v8.16 — owner: Japan reads Shinto
     "ISR": "Judaism (Rabbinic)",
     "CHN": "Chinese folk / Buddhist", "VNM": "Mahayana Buddhist",
-    "KOR": "Protestant", "PRK": "Irreligious",
+    "KOR": "Mahayana Buddhist", "PRK": "Irreligious",  # v8.16 — Korea's Buddhist tradition
     # v8.12 — fill the NA / Europe / Middle East gaps.
     "SLV": "Catholic", "HTI": "Catholic", "LUX": "Catholic",
     "JAM": "Protestant", "BHS": "Protestant", "BRB": "Protestant",
@@ -268,8 +268,8 @@ SUBNATIONAL = {
     ("LBN", "nabatieh"): _S(religion="Islam", sect="Twelver Shia"),
     ("LBN", "south"): _S(religion="Islam", sect="Twelver Shia"),
     ("LBN", "beqaa"): _S(religion="Islam", sect="Twelver Shia"),
-    ("SYR", "latakia"): _S(sect="Alawite Shia"),
-    ("SYR", "tartus"): _S(sect="Alawite Shia"),
+    ("SYR", "latakia"): _S(sect="Alawite"),   # v8.16 — distinct sect, not a Shia shade
+    ("SYR", "tartus"): _S(sect="Alawite"),
     ("SYR", "al-hasakah"): _S(language="Kurdish", dialect="Kurmanji Kurdish"),
     # --- Pakistan: Sindhi / Pashto / Balochi / Shia Gilgit ------------------
     ("PAK", "sindh"): _S(language="Sindhi", dialect="Sindhi"),
@@ -560,7 +560,6 @@ SUBNATIONAL = {
     ("KEN", "north eastern"): _S(religion="Islam", sect="Sunni", language="Somali"),
     # Georgia — Adjara has a large Muslim minority; the south-east is Azeri.
     ("GEO", "adjara"): _S(religion="Islam", sect="Sunni", language="Georgian"),
-    ("GEO", "kvemo kartli"): _S(language="Azerbaijani", dialect="Azerbaijani"),
     # Tanzania mainland vs Zanzibar covered above; add the Swahili coast label.
     # Nepal — the mountainous north is Tibetan-Buddhist. (Atlas uses the old
     # zone names, so Karnali keys "karnali zone".)
@@ -611,6 +610,63 @@ _REGION_ALIASES = [
 for _iso3, _val, _names in _REGION_ALIASES:
     for _n in _names:
         SUBNATIONAL.setdefault((_iso3, _n), _val)
+
+
+# v8.16 — Telugu dialect regions (owner request): the Andhra districts split
+# into the three classic dialect belts, Telangana keeps its own variety. Keyed
+# by the atlas's district names (div2), which unit_value tries before the ADM1
+# parent, so the dialect map paints them at the district tier.
+_TELUGU_DIALECTS = [
+    ("Uttarandhra Telugu", ["srikakulam", "vizianagaram", "visakhapatnam"]),
+    ("Kosta (Coastal) Telugu", ["east godavari", "west godavari", "krishna",
+                                "guntur", "prakasam",
+                                "sri potti sriramulu nellore"]),
+    ("Rayalaseema Telugu", ["chittoor", "kadapa(ysr)", "anantapur", "kurnool"]),
+]
+for _dia, _districts in _TELUGU_DIALECTS:
+    for _d in _districts:
+        SUBNATIONAL.setdefault(("IND", _d), _S(language="Telugu", dialect=_dia))
+SUBNATIONAL.setdefault(("IND", "telangana"),
+                       _S(language="Telugu", dialect="Telangana Telugu"))
+
+
+# v8.16 — majority-share table for the RELATIVE-percentage shading of the
+# religion/sect map modes (owner: "shade by relative percentage"): the share
+# of the population the DOMINANT tradition holds (Pew Global Religious
+# Landscape / national censuses, rounded). The fill opacity on the map IS this
+# share; countries not listed default to 0.85 (a clear majority).
+RELIGION_SHARE = {
+    # near-uniform
+    "SAU": 0.97, "SOM": 0.99, "AFG": 0.99, "IRN": 0.99, "MAR": 0.99,
+    "DZA": 0.98, "TUN": 0.99, "YEM": 0.99, "MDV": 0.99, "PAK": 0.96,
+    "TUR": 0.98, "AZE": 0.97, "IRQ": 0.96, "JOR": 0.97, "EGY": 0.90,
+    "POL": 0.85, "ROU": 0.99, "GRC": 0.90, "ARM": 0.93, "GEO": 0.89,
+    "PHL": 0.92, "MEX": 0.94, "BRA": 0.88, "COL": 0.92, "PER": 0.95,
+    "ITA": 0.83, "ESP": 0.78, "PRT": 0.85, "IRL": 0.78, "HRV": 0.86,
+    "RUS": 0.71, "UKR": 0.78, "SRB": 0.85, "BGR": 0.77, "ISR": 0.74,
+    "IND": 0.79, "NPL": 0.81, "THA": 0.93, "MMR": 0.88, "KHM": 0.97,
+    "LKA": 0.70, "IDN": 0.87, "MYS": 0.61, "BGD": 0.90,
+    # plural / contested landscapes (the map fades accordingly)
+    "USA": 0.63, "GBR": 0.46, "FRA": 0.47, "DEU": 0.52, "NLD": 0.41,
+    "CAN": 0.53, "AUS": 0.44, "NZL": 0.37, "CHE": 0.62, "AUT": 0.64,
+    "CZE": 0.34, "EST": 0.28, "SWE": 0.57, "NOR": 0.68, "DNK": 0.72,
+    "JPN": 0.62, "KOR": 0.44, "CHN": 0.52, "TWN": 0.44, "VNM": 0.45,
+    "HKG": 0.49, "SGP": 0.31, "PRK": 0.71, "CUB": 0.59, "URY": 0.42,
+    "NGA": 0.53, "TZA": 0.61, "ETH": 0.67, "CIV": 0.42, "GHA": 0.71,
+    "BIH": 0.51, "LBN": 0.32, "ALB": 0.59, "KAZ": 0.70, "KGZ": 0.88,
+    "CMR": 0.69, "TGO": 0.48, "BEN": 0.53, "MUS": 0.49, "SUR": 0.48,
+    "GUY": 0.63, "TTO": 0.55, "FJI": 0.64, "MKD": 0.65, "MNE": 0.72,
+    "LVA": 0.36, "LTU": 0.77, "HUN": 0.54, "SVK": 0.66, "SVN": 0.73,
+    "BLR": 0.73, "MDA": 0.92, "FIN": 0.67, "ISL": 0.67, "BEL": 0.57,
+    "LUX": 0.70, "ARG": 0.66, "CHL": 0.55, "VEN": 0.79, "ECU": 0.80,
+    "BOL": 0.77, "PRY": 0.89, "ZAF": 0.81, "KEN": 0.85, "UGA": 0.84,
+    "ZWE": 0.87, "ZMB": 0.95, "MOZ": 0.57, "AGO": 0.90, "COD": 0.93,
+}
+_DEFAULT_SHARE = 0.85
+
+
+def religion_share(iso3):
+    return RELIGION_SHARE.get(iso3, _DEFAULT_SHARE)
 
 
 def country_sect(iso3):

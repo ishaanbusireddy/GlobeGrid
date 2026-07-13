@@ -33,6 +33,8 @@ import hashlib
 import json
 import logging
 import re
+import threading
+import time
 
 from ..db.models import meta_get, meta_set
 from ..i18n_names import LANGUAGE_NAMES
@@ -43,6 +45,28 @@ log = logging.getLogger("i18n2")
 # from v6.6.11's fix: bound by BOTH count and characters
 MAX_BATCH_COUNT = 20
 MAX_BATCH_CHARS = 900
+
+# v8.15.1 — THE FLOOD FIX. Translation may never have more than ONE real
+# generation chain in flight, period. Without this gate, a page with ~100
+# unique strings unfolded into 5+ sequential LLM calls per request, and the
+# MutationObserver's rescans stacked overlapping requests on top — starving
+# every other LLM feature (the analyst timed out waiting behind the pile).
+# Semantics, mirroring llm.py's proven v6.4.2 interactive/background split
+# one layer up:
+#   - interactive (the user's own explicit language switch): WAITS its turn,
+#     bounded by _GATE_WAIT_INTERACTIVE.
+#   - background (an observer-triggered rescan): try-acquire; if translation
+#     is already running, SKIP — the strings come back as `deferred` and the
+#     next pass picks them up. Nothing is lost, nothing piles up.
+_GATE = threading.Lock()
+_GATE_WAIT_INTERACTIVE = 20.0
+# Wall-clock budget per call: once spent, no NEW batch is started — what's
+# done is returned, the rest comes back as `deferred` so the frontend fills
+# the page progressively instead of one call monopolizing the model for the
+# whole page. At least one batch always runs when the gate was acquired, so
+# every call makes progress (no livelock).
+_BUDGET_INTERACTIVE = 10.0
+_BUDGET_BACKGROUND = 6.0
 
 _SYSTEM = (
     "You are a professional translator. You will receive a numbered list of "
@@ -140,21 +164,34 @@ def _looks_echoed(src: str, dst: str) -> bool:
     return len(src.split()) >= 3 and src.strip().lower() == dst.strip().lower()
 
 
-def translate_strings(lang: str, texts: list[str],
-                      interactive: bool = True) -> dict:
+def translate_strings(lang: str, texts: list[str], interactive: bool = True,
+                      budget_seconds: float | None = None) -> dict:
     """Translate `texts` into `lang`. Returns
-    {"translations": [...], "untranslated": [indices]} — the honesty
-    guarantee: an index in `untranslated` means that string is STILL ENGLISH
-    after the batch attempt and the per-string retry, and it was NOT cached
-    (so the next request retries it). Never raises; with no provider up,
-    every index is reported untranslated."""
+    {"translations": [...], "untranslated": [indices], "deferred": [indices]}.
+
+    The two failure lists mean DIFFERENT things and the caller must treat
+    them differently:
+      - `untranslated` (the honesty guarantee): the string WAS attempted this
+        call and the model failed/echoed — it stays English, is never cached,
+        and the UI marks it visibly. Not auto-retried in a tight loop.
+      - `deferred` (v8.15.1): the string was NOT attempted this call — the
+        gate was busy or the wall-clock budget ran out first. The caller
+        should simply try again shortly; the frontend's progressive-fill
+        pass does exactly that.
+
+    Never raises; with no provider up, every attempted index lands in
+    `untranslated`. Only one caller at a time ever reaches the model (see
+    _GATE above) — an interactive call waits its turn, a background call
+    defers instantly."""
     lang_name = LANGUAGE_NAMES.get(lang, lang)
     if lang == "en" or not texts:
-        return {"translations": list(texts), "untranslated": []}
+        return {"translations": list(texts), "untranslated": [], "deferred": []}
     system = _SYSTEM.format(lang=lang_name)
     result: dict[int, str] = {}
 
-    # cache-first (only genuine translations were ever written)
+    # cache-first (only genuine translations were ever written) — needs no
+    # gate and no model, so a fully-cached request returns instantly even
+    # while another translation is running.
     misses: list[int] = []
     for i, s in enumerate(texts):
         cached = meta_get(_cache_key(lang, s))
@@ -163,34 +200,60 @@ def translate_strings(lang: str, texts: list[str],
         else:
             misses.append(i)
 
-    # batch pass
-    for batch in _batches([texts[i] for i in misses]):
-        idxs = [misses[j] for j in batch]
-        strs = [texts[i] for i in idxs]
-        raw = llm.complete(system,
-                           [{"role": "user", "content": _numbered(strs)}],
-                           max_tokens=220 + 3 * sum(len(s) for s in strs),
-                           timeout=40, json_mode=False,   # NEVER True (§3.2)
-                           interactive=interactive)
-        parsed = parse_reply(raw or "", len(strs))
-        for local_n, translated in parsed.items():
-            src = strs[local_n - 1]
-            if _looks_echoed(src, translated):
-                continue   # an echo is a failure, not a result — retry below
-            result[idxs[local_n - 1]] = translated
+    deferred: set[int] = set()
+    if misses:
+        budget = budget_seconds if budget_seconds is not None else (
+            _BUDGET_INTERACTIVE if interactive else _BUDGET_BACKGROUND)
+        acquired = (_GATE.acquire(timeout=_GATE_WAIT_INTERACTIVE) if interactive
+                    else _GATE.acquire(blocking=False))
+        if not acquired:
+            deferred.update(misses)
+        else:
+            try:
+                start = time.monotonic()
+                # batch pass — batch 0 ALWAYS runs (guaranteed progress);
+                # later batches only start while budget remains.
+                groups = _batches([texts[i] for i in misses])
+                for bn, group in enumerate(groups):
+                    idxs = [misses[j] for j in group]
+                    if bn > 0 and time.monotonic() - start >= budget:
+                        deferred.update(idxs)
+                        continue
+                    strs = [texts[i] for i in idxs]
+                    raw = llm.complete(
+                        system,
+                        [{"role": "user", "content": _numbered(strs)}],
+                        max_tokens=220 + 3 * sum(len(s) for s in strs),
+                        timeout=40, json_mode=False,   # NEVER True (§3.2)
+                        interactive=interactive)
+                    parsed = parse_reply(raw or "", len(strs))
+                    for local_n, translated in parsed.items():
+                        src = strs[local_n - 1]
+                        if _looks_echoed(src, translated):
+                            continue   # an echo is a failure — retry below
+                        result[idxs[local_n - 1]] = translated
 
-    # straggler pass — one at a time (small isolated calls are reliable per
-    # the v6.6.11 finding; this is the safety net, not the common path)
-    stragglers = [i for i in range(len(texts)) if i not in result]
-    for i in stragglers:
-        raw = llm.complete(system,
-                           [{"role": "user", "content": f"1. {texts[i]}"}],
-                           max_tokens=120 + 3 * len(texts[i]),
-                           timeout=30, json_mode=False,
-                           interactive=interactive)
-        single = parse_reply(raw or "", 1).get(1)
-        if single and not _looks_echoed(texts[i], single):
-            result[i] = single
+                # straggler pass — one at a time (small isolated calls are
+                # reliable per the v6.6.11 finding). Out of budget → the
+                # straggler is DEFERRED (never attempted solo this call),
+                # not marked as a model failure.
+                for i in misses:
+                    if i in result or i in deferred:
+                        continue
+                    if time.monotonic() - start >= budget:
+                        deferred.add(i)
+                        continue
+                    raw = llm.complete(
+                        system,
+                        [{"role": "user", "content": f"1. {texts[i]}"}],
+                        max_tokens=120 + 3 * len(texts[i]),
+                        timeout=30, json_mode=False,
+                        interactive=interactive)
+                    single = parse_reply(raw or "", 1).get(1)
+                    if single and not _looks_echoed(texts[i], single):
+                        result[i] = single
+            finally:
+                _GATE.release()
 
     # persist ONLY genuine translations; assemble the honest response
     untranslated: list[int] = []
@@ -199,7 +262,8 @@ def translate_strings(lang: str, texts: list[str],
         dst = result.get(i)
         if dst is None:
             out.append(s)              # last resort: keep English…
-            untranslated.append(i)     # …and SAY SO — never silent success
+            if i not in deferred:
+                untranslated.append(i)  # …attempted and failed — SAY SO
         else:
             out.append(dst)
             if dst != s:
@@ -207,10 +271,12 @@ def translate_strings(lang: str, texts: list[str],
                     meta_set(_cache_key(lang, s), dst)
                 except Exception:  # noqa: BLE001 — cache write is best-effort
                     log.exception("i18n_cache_write_failed")
-    if untranslated:
+    if untranslated or deferred:
         log.info("i18n_partial", extra={"data": {
-            "lang": lang, "total": len(texts), "untranslated": len(untranslated)}})
-    return {"translations": out, "untranslated": untranslated}
+            "lang": lang, "total": len(texts),
+            "untranslated": len(untranslated), "deferred": len(deferred)}})
+    return {"translations": out, "untranslated": untranslated,
+            "deferred": sorted(deferred)}
 
 
 def diagnostics(lang: str = "sq") -> dict:
@@ -218,7 +284,13 @@ def diagnostics(lang: str = "sq") -> dict:
     paths against whatever model is configured and return the exact prompt,
     the model's RAW reply, and the parsed result — the owner runs this
     against their own Ollama and reads the output (roadmap §3.5 Layer 2's
-    'a human reads the raw output' rule, as an endpoint)."""
+    'a human reads the raw output' rule, as an endpoint).
+
+    DELIBERATELY not behind _GATE: this is the ground-truth probe, and it
+    must answer even while a translation chain is running (or stuck) — it
+    was exactly this endpoint that diagnosed the v8.15.0 flood, precisely
+    because it bypassed the congested path. Its cost is two small bounded
+    calls, owner-triggered."""
     lang_name = LANGUAGE_NAMES.get(lang, lang)
     system = _SYSTEM.format(lang=lang_name)
     sample = ["Live feed", "Settings",

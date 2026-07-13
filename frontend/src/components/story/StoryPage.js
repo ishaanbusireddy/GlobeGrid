@@ -301,26 +301,9 @@ export class StoryPage {
       ev.target.parentElement.innerHTML = "✓ noted — thresholds will tighten";
     });
 
-    // v3 §15 — suggested conflict tag confirm step
-    if (s.suggested_conflict) {
-      const el = page.querySelector(".tag-suggest");
-      el.classList.remove("hidden");
-      el.innerHTML = `suggested: part of <b></b> `;
-      el.querySelector("b").textContent = s.suggested_conflict.name;
-      const yes = document.createElement("button");
-      yes.textContent = "confirm";
-      const no = document.createElement("button");
-      no.textContent = "dismiss";
-      yes.addEventListener("click", async () => {
-        await api.confirmConflictTag(s.id, true);
-        el.innerHTML = `✓ tagged: ${s.suggested_conflict.name}`;
-      });
-      no.addEventListener("click", async () => {
-        await api.confirmConflictTag(s.id, false);
-        el.remove();
-      });
-      el.append(yes, no);
-    }
+    // v8.16 — the suggested-conflict confirm UI is REMOVED (owner: "it
+    // misidentifies the conflict too often for it to be useful"). Auto-tagging
+    // now only fires on strong matches; nothing is suggested for confirmation.
 
     // v3 §3 — the counter-reading, plainly labeled, right under the narrative
     if (s.counter_argument) {

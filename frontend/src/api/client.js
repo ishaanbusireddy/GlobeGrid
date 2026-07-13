@@ -209,4 +209,12 @@ export const api = {
     get(`/api/leader-portrait?name=${encodeURIComponent(name)}`, { timeout: 10000 }),
   translateContent: (language, items) =>                                 // §11
     post("/api/translate/content", { language, items }, { timeout: 60000 }),
+  // --- v8.16 — live tracking windows ---
+  military: (limit) => get(`/api/military${limit ? "?limit=" + limit : ""}`),
+  tradeWorld: () => get("/api/trade"),
+  tradeCountry: (iso3) => get(`/api/trade/${encodeURIComponent(iso3)}`),
+  marketsLive: () => get("/api/markets/live"),
+  predMarkets: (q_) => get(`/api/predmarkets${q_ ? "?q=" + encodeURIComponent(q_) : ""}`, { timeout: 20000 }),
+  diplomacy: (a, b) => get(`/api/diplomacy?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`),
+  ideologies: () => get("/api/ideologies"),
 };

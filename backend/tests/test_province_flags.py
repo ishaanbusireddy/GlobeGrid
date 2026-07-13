@@ -28,14 +28,21 @@ class TestFlagChain(unittest.TestCase):
 
     def test_suppressed_countries_have_no_flags(self):
         # India / China have no official subdivision flags; Pakistan is
-        # curated-only. Both chain slots must be None so nothing renders.
+        # curated-only; v8.16 adds IRN/TUR/SYR/IRQ/AZE (owner: no separatist
+        # Khuzestan / Kurdistan / "South Azerbaijan" flags — official only).
+        # Both chain slots must be None so nothing renders.
         for name, iso3 in (("Telangana", "IND"), ("Tibet", "CHN"),
-                           ("Balochistan", "PAK")):
+                           ("Islamabad", "PAK"), ("Khuzestan", "IRN"),
+                           ("Kurdistan", "IRN"), ("East Azerbaijan", "IRN"),
+                           ("Diyarbakir", "TUR"), ("Erbil", "IRQ")):
             self.assertIsNone(flag_url(name, iso3), f"{name} primary")
             self.assertIsNone(flag_url_alt(name, iso3), f"{name} alt")
 
     def test_curated_pakistan_provinces_stay(self):
-        for name in ("Punjab", "Sindh"):
+        # v8.16 — ALL Pakistani provinces now carry a curated OFFICIAL flag
+        # (the provincial-government flags, never separatist ones)
+        for name in ("Punjab", "Sindh", "Khyber Pakhtunkhwa", "Balochistan",
+                     "Gilgit-Baltistan", "Azad Kashmir"):
             self.assertIsNotNone(flag_url(name, "PAK"), f"PAK {name} is curated")
 
     def test_georgia_collision_uses_us_state_file(self):

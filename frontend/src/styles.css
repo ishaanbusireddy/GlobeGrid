@@ -554,6 +554,17 @@ button.active { border-color: var(--accent); color: var(--accent); }
   width: 26px; height: 17px; object-fit: cover; border-radius: 2px;
   box-shadow: 0 0 0 1px rgba(255,255,255,.18); flex: 0 0 auto;
 }
+/* v8.16 — literal country/bloc chips nested in the live-feed cards */
+.chip-impact {
+  display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
+  background: rgba(120,180,255,.10); border: 1px solid rgba(120,180,255,.25);
+  color: var(--text);
+}
+.chip-impact:hover { background: rgba(120,180,255,.22); }
+.chip-impact .chip-flag {
+  width: 18px; height: 12px; object-fit: cover; border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.15); flex: 0 0 auto;
+}
 /* §8.2 stories directory */
 .dir-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0 14px; }
 .dir-card h3 { font-size: 13.5px; margin: 6px 0 4px; }
@@ -1167,3 +1178,44 @@ body.theme-light       #war-glow { --war-glow: rgba(220, 40, 10, 0.22); }
   border-bottom: 1px dotted rgba(160, 160, 160, 0.55);
   cursor: help;
 }
+
+/* v8.16 — tracking windows */
+.tracker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.tracker-card {
+  display: flex; flex-direction: column; gap: 6px; text-align: left;
+  background: var(--bg-card); border: 1px solid var(--line); border-radius: 10px;
+  color: var(--text); padding: 14px; cursor: pointer; font: inherit; font-size: 13px;
+}
+.tracker-card:hover { border-color: var(--accent); box-shadow: 0 0 12px rgba(120,180,255,.18); }
+.tracker-card span { color: var(--text-dim); font-size: 12px; }
+.trk-evt { display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+  width: 100%; text-align: left; margin: 4px 0; }
+.trk-evt-t { font-weight: 600; }
+.pred-row { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+.pred-row:hover { background: rgba(120,180,255,.08); }
+.pred-odds {
+  min-width: 46px; text-align: center; font-weight: 700; font-size: 14px;
+  color: var(--accent); background: rgba(120,180,255,.12); border-radius: 6px; padding: 4px 6px;
+}
+#war-sentiment { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 8px; }
+.seat-dot { cursor: pointer; }
+.seat-dot:hover { stroke: #fff; stroke-width: 1.2; }
+
+/* v8.16 — country-page horizontal tabs */
+.ctab-bar {
+  display: flex; gap: 4px; flex-wrap: wrap; margin: 10px 0 12px;
+  border-bottom: 1px solid var(--line); padding-bottom: 6px;
+  position: sticky; top: 0; background: var(--bg-panel); z-index: 3;
+}
+.ctab-btn {
+  background: var(--bg-card); border: 1px solid var(--line);
+  border-radius: 8px 8px 0 0; color: var(--text-dim); padding: 6px 11px;
+  cursor: pointer; font: inherit; font-size: 12.5px;
+}
+.ctab-btn:hover { color: var(--text); border-color: var(--accent); }
+.ctab-btn.active {
+  color: var(--text); border-color: var(--accent);
+  background: rgba(120,180,255,.12); font-weight: 600;
+}
+.ctab-pane { display: none; }
+.ctab-pane.active { display: block; }

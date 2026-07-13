@@ -156,6 +156,18 @@ def country_profile(params, q, body):
                 profile["legislature"]["seats_json"])
         except (json.JSONDecodeError, TypeError):
             pass
+    # v8.16 — legislature staleness flag (same honesty rule as leadership):
+    # a composition not refreshed in >450 days is marked so the UI can say
+    # "an election may have happened since" instead of implying currency.
+    if profile["legislature"] and profile["legislature"].get("last_refreshed_at"):
+        try:
+            import datetime as _dt
+            ref = _dt.datetime.fromisoformat(
+                profile["legislature"]["last_refreshed_at"].replace("Z", "+00:00"))
+            age = (_dt.datetime.now(_dt.timezone.utc) - ref).days
+            profile["legislature"]["stale"] = age > 450
+        except (ValueError, TypeError):
+            pass
     # v6.1 — currency, always present (owner: no gaps). Prefer the seeded row,
     # fall back to the vendored table so even a partially-migrated DB shows it.
     if not profile.get("currency_code"):
@@ -478,6 +490,10 @@ MAP_MODES = {
     "government": {"label": "Government type", "kind": "categorical", "column": None,
                    "field": "government", "icon": "⚖",
                    "source": "Curated (Democracy Index / V-Dem / Freedom House bands)"},
+    # v8.16 — ruling-party ideology (categorical), per country (owner request).
+    "ideology": {"label": "Ruling ideology", "kind": "categorical", "column": None,
+                 "field": "ideology", "icon": "🜃",
+                 "source": "Curated — governing party/coalition/regime, mid-2026"},
 }
 
 
@@ -529,9 +545,9 @@ def _unit_level_values(mode_id, mode, level):
                 values[u["uid"]] = e
         nums = sorted(values.values())
         return values, (nums[0] if nums else None, nums[-1] if nums else None)
-    if mode_id == "government":
-        # v8.13.6 — government type is a country-level attribute; admin units just
-        # inherit the country choropleth, so no per-unit values are emitted.
+    if mode_id in ("government", "ideology"):
+        # country-level attributes; admin units just inherit the country
+        # choropleth, so no per-unit values are emitted.
         return {}, []
     if mode["kind"] == "categorical":
         field = mode["field"]
@@ -607,6 +623,11 @@ def mapmode_values(params, q, body):
         rows = query("SELECT id, government_type FROM countries")
         values = {r["id"]: gov_types.government_category(r["id"], r["government_type"])
                   for r in rows}
+    elif params["mode"] == "ideology":
+        # v8.16 — ruling-party/regime ideology per country (curated, mid-2026)
+        from ..geopolitics import ideology as _ideo
+        rows = query("SELECT id FROM countries WHERE status != 'territory'")
+        values = {r["id"]: _ideo.ideology_for(r["id"]) for r in rows}
     elif params["mode"] == "population_density":
         rows = query("SELECT id, population * 1.0 / area_km2 AS v FROM countries"
                      " WHERE population IS NOT NULL AND area_km2 > 0")
@@ -631,6 +652,13 @@ def mapmode_values(params, q, body):
     out = {"mode": params["mode"], "kind": mode["kind"], "label": mode["label"],
            "source": mode["source"], "values": values,
            "log_scale": bool(mode.get("log_scale"))}
+    # v8.16 — relative-share shading for religion/sect (owner: "shade the
+    # religion/sect maps by relative percentage"): the dominant tradition's
+    # population share per country rides along; the frontend renders the fill
+    # opacity from it (95% majority ≈ solid, a plural 40% ≈ faint).
+    if params["mode"] in ("religion", "religious_sect"):
+        from ..geopolitics import admin_thematic as _at
+        out["shares"] = {iso3: _at.religion_share(iso3) for iso3 in values}
     if mode["kind"] == "numeric":
         nums = sorted(values.values())
         out["min"] = nums[0] if nums else None

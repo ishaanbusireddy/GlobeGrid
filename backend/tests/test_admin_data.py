@@ -23,14 +23,24 @@ def _adm1_names(lower=False):
     return by_iso
 
 
+def _all_names_lower():
+    """v8.16 — SUBNATIONAL may now key DEEPER-tier units too (unit_value tries
+    the unit's OWN name before its ADM1 parent — the Telugu dialect districts
+    use this), so key integrity is checked against every atlas level."""
+    by_iso = {}
+    for u in units():
+        by_iso.setdefault(u["country"], set()).add(u["name"].lower())
+    return by_iso
+
+
 class TestSubnationalKeys(unittest.TestCase):
     def test_every_override_resolves(self):
-        adm1 = _adm1_names(lower=True)
+        names = _all_names_lower()
         dead = [k for k in admin_thematic.SUBNATIONAL
-                if k[1] not in adm1.get(k[0], set())]
+                if k[1] not in names.get(k[0], set())]
         self.assertEqual(dead, [],
                          f"{len(dead)} SUBNATIONAL overrides are silently dead "
-                         f"(no matching atlas ADM1 unit): {dead[:10]}")
+                         f"(no matching atlas unit at any level): {dead[:10]}")
 
 
 class TestDemographicsKeys(unittest.TestCase):

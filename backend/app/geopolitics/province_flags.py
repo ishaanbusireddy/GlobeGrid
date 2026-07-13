@@ -57,6 +57,13 @@ CURATED = {
     ("Sindh", "PAK"): "Flag of Sindh.svg",
     ("Gilgit-Baltistan", "PAK"): "Flag of Gilgit-Baltistan.svg",
     ("Azad Kashmir", "PAK"): "Flag of Azad Kashmir.svg",
+    # v8.16 — the remaining Pakistani provinces (owner: "make sure ALL of the
+    # pakistani admin divs get their official flags"): the provincial-
+    # GOVERNMENT flags, never the ethnic/separatist ones. A 404 (naming drift)
+    # degrades to nothing via the standard two-candidate chain — never wrong.
+    ("Khyber Pakhtunkhwa", "PAK"): "Flag of Khyber Pakhtunkhwa.svg",
+    ("Baluchistan", "PAK"): "Flag of Balochistan, Pakistan.svg",
+    ("Balochistan", "PAK"): "Flag of Balochistan, Pakistan.svg",
 }
 
 # v8.13.4 — countries whose first-level subdivisions must NOT get the blind
@@ -70,7 +77,15 @@ CURATED = {
 # provinces have no official flags, and the Tibetan snow-lion flag is a banned
 # pro-independence symbol, NOT an official flag — so all Chinese provinces
 # (incl. Tibet/Xizang) resolve to the national flag.
-NO_SUBDIVISION_FLAGS = {"IND", "PAK", "CHN"}
+# v8.16 — Iran, Turkey, Syria, Iraq and Azerbaijan added (owner: "flags like
+# the khuzestan flag, kurdistan flag, and south azerbaijan flag should NOT
+# appear — official flags only"). None of these states' first-level divisions
+# carry an official flag, and the blind "Flag of {name}.svg" guess resolves to
+# separatist/ethnic-movement flags there (Khuzestan, the Kurdish regions,
+# "South Azerbaijan") — exactly the class the owner banned. Iraq's Kurdistan
+# REGION flag is official but is rendered by the autonomous-zone layer, not
+# the per-governorate guess.
+NO_SUBDIVISION_FLAGS = {"IND", "PAK", "CHN", "IRN", "TUR", "SYR", "IRQ", "AZE"}
 
 # Subdivision names that collide with a sovereign state name — suppress the blind
 # guess (fall through to a generated seal) unless CURATED has an entry.

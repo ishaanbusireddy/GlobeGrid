@@ -487,6 +487,44 @@ SOURCES += [
     ("World Health Organization (alerts)", "rss", "https://www.who.int/rss-feeds/news-english.xml", "n/a", "official"),
     ("UN Environment (UNEP)", "rss", "https://www.unep.org/rss.xml", "n/a", "official"),
     ("International Court of Justice", "rss", "https://www.icj-cij.org/rss/news", "n/a", "official"),
+    # ------------------------------------------------------------------
+    # v8.16 — regional-breadth batch (owner: "more African, South American,
+    # South/Southeast/Central Asian, Oceanian sources; Arab, Turkish,
+    # Georgian, Armenian, Azeri, Iranian; more tech worldwide").
+    # Africa
+    ("Daily Maverick (South Africa)", "rss", "https://www.dailymaverick.co.za/dmrss/", "center", "reported"),
+    ("Nation (Kenya)", "rss", "https://nation.africa/kenya/rss.xml", "center", "reported"),
+    ("Egypt Independent", "rss", "https://www.egyptindependent.com/feed/", "center", "reported"),
+    ("Addis Standard (Ethiopia)", "rss", "https://addisstandard.com/feed/", "center", "reported"),
+    ("The Herald (Zimbabwe)", "rss", "https://www.herald.co.zw/feed/", "right", "reported"),
+    # South America
+    ("Brazil Reports", "rss", "https://brazilreports.com/feed/", "center", "reported"),
+    ("Peru Reports", "rss", "https://perureports.com/feed/", "center", "reported"),
+    # South Asia
+    ("The Hindu (India)", "rss", "https://www.thehindu.com/news/international/feeder/default.rss", "center", "reported"),
+    ("Indian Express World", "rss", "https://indianexpress.com/section/world/feed/", "center", "reported"),
+    ("Daily Mirror (Sri Lanka)", "rss", "https://www.dailymirror.lk/RSS_Feeds/breaking-news", "center", "reported"),
+    # Southeast Asia
+    ("Jakarta Globe", "rss", "https://jakartaglobe.id/feed", "center", "reported"),
+    ("Philippine Daily Inquirer", "rss", "https://www.inquirer.net/fullfeed", "center", "reported"),
+    ("The Star (Malaysia)", "rss", "https://www.thestar.com.my/rss/News/", "center", "reported"),
+    # Central Asia
+    ("The Times of Central Asia", "rss", "https://timesca.com/feed/", "center", "reported"),
+    ("Kazinform (Kazakhstan)", "rss", "https://en.inform.kz/rss/", "right", "reported"),
+    # Oceania
+    ("RNZ Pacific", "rss", "https://www.rnz.co.nz/rss/pacific.xml", "center", "reported"),
+    ("PNG Post-Courier", "rss", "https://www.postcourier.com.pg/feed/", "center", "reported"),
+    # Arab world / Turkey / Iran / Caucasus
+    ("Arab News (Saudi Arabia)", "rss", "https://www.arabnews.com/rss.xml", "right", "reported"),
+    ("L'Orient Today (Lebanon)", "rss", "https://today.lorientlejour.com/rss", "center", "reported"),
+    ("Hurriyet Daily News (Turkey)", "rss", "https://www.hurriyetdailynews.com/rss", "center", "reported"),
+    ("Duvar English (Turkey)", "rss", "https://www.duvarenglish.com/export/rss", "left", "reported"),
+    ("Civil.ge (Georgia)", "rss", "https://civil.ge/feed", "center", "reported"),
+    ("Armenpress (Armenia)", "rss", "https://armenpress.am/en/rss", "right", "reported"),
+    ("APA (Azerbaijan)", "rss", "https://en.apa.az/rss", "right", "reported"),
+    # Tech, worldwide
+    ("Rest of World (global tech)", "rss", "https://restofworld.org/feed/latest/", "center", "reported"),
+    ("TechCabal (Africa tech)", "rss", "https://techcabal.com/feed/", "center", "reported"),
 ]
 
 # v6 §2 — sources removed from the product entirely. Their rows persist for

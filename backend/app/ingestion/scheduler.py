@@ -81,9 +81,12 @@ def _assign_threads() -> int:
 
 
 def _accuracy_refresh() -> int:
-    """v6 §30 — deferred import, same pattern."""
+    """v6 §30 — deferred import, same pattern. v8.16 — runs at double the old
+    cadence with a bigger batch (owner: "make a dynamic system to update the
+    leaders constantly, stop hardcoding") — the curated seed remains only the
+    day-one floor; live verification + the weekly Wikidata sync keep it moving."""
     from ..processing.accuracy import refresh_stale_leadership
-    return refresh_stale_leadership()
+    return refresh_stale_leadership(limit=5)
 
 
 def _store_items(source_id: str, items: list[dict]) -> int:
@@ -198,6 +201,12 @@ def _pipeline_loop() -> None:
             from ..processing import geoplace
             for mv in geoplace.correct_recent():
                 hub.broadcast("event_relocated", mv)
+            # v8.16 — the LLM wire editor: review a few recent event titles
+            # (grammar/translation/de-linking/specificity) + their categories
+            # against the normative category_defs. Self-limiting (flags each
+            # event once) and a cheap deterministic cleanup with no provider.
+            from ..processing import curate
+            curate.review_recent()
             # v7 §5 — text + physical signal agreeing: re-score recent
             # conflict-zone stories against sensor-sourced events
             from ..processing import corroborate
@@ -336,7 +345,7 @@ def _v3_jobs_loop() -> None:
         ("story_threads", lambda: 0.25, _assign_threads),
         # v6 §30 — live-search verification of the most-stale leadership rows,
         # ahead of (and independent of) the weekly Wikidata sync
-        ("accuracy_refresh", lambda: 1.0, _accuracy_refresh),
+        ("accuracy_refresh", lambda: 0.5, _accuracy_refresh),   # v8.16 2×/hour
         ("prognosis", lambda: float(cfg("prognosis", "refresh_interval_hours")),
          forecast.generate_prognoses),                    # §10
         # --- v5 jobs ---
@@ -416,6 +425,11 @@ def start_all() -> list[threading.Thread]:
         corroborate.ensure_columns()
     except Exception:  # noqa: BLE001
         log.exception("corroborate_column_init_failed")
+    try:   # v8.16 — title_reviewed flag column (additive migration)
+        from ..processing import curate
+        curate.ensure_column()
+    except Exception:  # noqa: BLE001
+        log.exception("curate_column_init_failed")
     # v6 §2 — retired sources (is_active=0) and types with no registered
     # fetcher never get a polling thread
     for row in query("SELECT id, name, type, url FROM sources WHERE type != 'synthetic'"

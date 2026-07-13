@@ -23,9 +23,32 @@ const nodeLang = new WeakMap();    // Text node → language it currently shows
 const lastWritten = new WeakMap(); // Text node → the value WE last wrote
                                    // (distinguishes our swaps from the app's
                                    // own re-renders in the observer)
+// v8.15.1 — strings currently out for translation: overlapping passes must
+// never fire a second request for text that's already awaiting a reply.
+const pendingStrings = new Set();
 let activeLang = "en";
 let observer = null;
 let debounceTimer = null;
+let followUpTimer = null;          // progressive-fill pass for `deferred`
+
+// v8.15.1 — one HTTP call now maps to ~1-2 real model batches (server-side
+// batches are 20 strings), instead of the old 200-string chunk that chained
+// 10 sequential generations inside a single request.
+const CHUNK = 40;
+
+function scheduleFollowUp(lang, opts) {
+  if (followUpTimer || activeLang !== lang) return;
+  // the follow-up keeps the caller's interactive priority but NEVER retries
+  // known-failed strings — those are only re-attempted by an explicit user
+  // switch, so a persistent model failure can't be re-hammered every pass
+  const next = { interactive: !!(opts && opts.interactive), retryMissed: false };
+  followUpTimer = setTimeout(() => {
+    followUpTimer = null;
+    if (activeLang === lang) {
+      translateNodes(collectNodes(document.body), lang, next);
+    }
+  }, 1500);
+}
 
 const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "TEXTAREA", "CODE"]);
 
@@ -73,33 +96,52 @@ function markMissed(el, missed) {
   }
 }
 
-async function translateNodes(nodes, lang) {
+async function translateNodes(nodes, lang, opts = {}) {
+  const interactive = !!opts.interactive;
+  const retryMissed = !!opts.retryMissed;
   // group nodes by their ORIGINAL trimmed string (originals, not the current
   // nodeValue, which may already be a translation)
   const byString = new Map();
   for (const n of nodes) {
-    if (nodeLang.get(n) === lang) continue;   // already showing this language
+    const tag = nodeLang.get(n);
+    if (tag === lang) continue;               // already showing this language
+    // a string the model genuinely FAILED on is only retried by an explicit
+    // user switch, never in a background loop (that would hammer the model
+    // with a known-bad string on every feed tick)
+    if (!retryMissed && tag === lang + ":missed") continue;
     const orig = originals.has(n) ? originals.get(n) : n.nodeValue;
     const key = orig.trim();
     if (!key || key.length < 2) continue;
+    if (pendingStrings.has(key)) continue;    // already out for translation
     if (!byString.has(key)) byString.set(key, []);
     byString.get(key).push(n);
   }
   const texts = [...byString.keys()];
-  for (let off = 0; off < texts.length && activeLang === lang; off += 200) {
-    const slice = texts.slice(off, off + 200);
+  let anyDeferred = false;
+  for (let off = 0; off < texts.length && activeLang === lang; off += CHUNK) {
+    const slice = texts.slice(off, off + CHUNK);
+    slice.forEach((s) => pendingStrings.add(s));
     let resp = null;
     try {
       const r = await fetch("/api/i18n/translate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lang, texts: slice }),
+        body: JSON.stringify({ lang, texts: slice, interactive }),
       });
       if (r.ok) resp = await r.json();
-    } catch { /* backend unreachable — nodes stay English, retried later */ }
-    if (!resp || activeLang !== lang) return;
+    } catch { /* backend unreachable — retried by the follow-up pass */
+    } finally {
+      slice.forEach((s) => pendingStrings.delete(s));
+    }
+    if (!resp) { scheduleFollowUp(lang, opts); return; }
+    if (activeLang !== lang) return;
     const missedIdx = new Set(resp.untranslated || []);
+    const deferredIdx = new Set(resp.deferred || []);
+    if (deferredIdx.size) anyDeferred = true;
     slice.forEach((src, i) => {
+      // deferred = not attempted this call (gate busy / budget spent):
+      // leave the node completely untouched — the follow-up pass retries it
+      if (deferredIdx.has(i)) return;
       const tr = resp.translations[i];
       for (const node of byString.get(src) || []) {
         if (!node.isConnected) continue;
@@ -109,35 +151,47 @@ async function translateNodes(nodes, lang) {
         const trail = (orig.match(/\s*$/) || [""])[0];
         // splice whitespace by hand — never String.replace (correction #1)
         writeNode(node, lead + tr + trail);
-        // a missed string keeps a distinct tag so a later full pass retries
-        // it instead of considering it done
         nodeLang.set(node, missedIdx.has(i) ? lang + ":missed" : lang);
         markMissed(node.parentElement, missedIdx.has(i));
       }
     });
   }
+  // progressive fill: while anything came back deferred, keep one (and only
+  // one) queued follow-up pass alive until the page is fully translated
+  if (anyDeferred) scheduleFollowUp(lang, opts);
 }
 
 function startObserver(lang) {
   stopObserver();
   observer = new MutationObserver((muts) => {
     if (activeLang !== lang) return;
+    // v8.15.1 — only mutations we actually care about schedule a rescan:
+    // added nodes, or text the APP rewrote (not our own swaps, which would
+    // otherwise self-trigger a wasted full-page walk after every batch).
+    let relevant = false;
     for (const m of muts) {
       if (m.type === "characterData") {
         const t = m.target;
-        // the APP rewrote this node (not us): its stored original is stale —
-        // forget it so the new content translates fresh instead of being
-        // clobbered by an old translation
         if (lastWritten.get(t) !== t.nodeValue) {
+          // the app rewrote this node: its stored original is stale — forget
+          // it so the new content translates fresh instead of being
+          // clobbered by an old translation
           originals.delete(t);
           nodeLang.delete(t);
+          relevant = true;
         }
+      } else if (m.type === "childList" && m.addedNodes && m.addedNodes.length) {
+        relevant = true;
       }
     }
+    if (!relevant) return;
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
       if (activeLang === lang) {
-        translateNodes(collectNodes(document.body), lang);
+        // background pass: yields instantly server-side if translation is
+        // already running; never re-hammers known-failed strings
+        translateNodes(collectNodes(document.body), lang,
+                       { interactive: false, retryMissed: false });
       }
     }, 350);
   });
@@ -148,18 +202,24 @@ function startObserver(lang) {
 function stopObserver() {
   if (observer) { observer.disconnect(); observer = null; }
   clearTimeout(debounceTimer);
+  clearTimeout(followUpTimer);
+  followUpTimer = null;
 }
 
 export async function translatePage(lang) {
   if (!lang || lang === "en") { restoreEnglish(); return; }
   activeLang = lang;
   startObserver(lang);
-  await translateNodes(collectNodes(document.body), lang);
+  // the user's own explicit switch: interactive (waits its turn at the
+  // gate) and retries even previously-failed strings once
+  await translateNodes(collectNodes(document.body), lang,
+                       { interactive: true, retryMissed: true });
 }
 
 export function restoreEnglish() {
   activeLang = "en";
   stopObserver();
+  pendingStrings.clear();
   for (const n of collectNodes(document.body, /* forRestore */ true)) {
     if (originals.has(n)) {
       writeNode(n, originals.get(n));   // byte-identical original back

@@ -27,6 +27,7 @@ Writes stories + story_members with linked_via = 'same_window' |
 
 import json
 import logging
+import re
 import threading
 import time
 from datetime import datetime, timedelta, timezone
@@ -372,6 +373,41 @@ def reclassify_untagged_conflicts(limit: int = 2000) -> int:
     return n
 
 
+# v8.16 — generic words that never identify a conflict by themselves; what
+# remains of a conflict's name ("Transnistria", "Cyprus", "Kashmir", "Yemen")
+# is its literal signature in text.
+_CONFLICT_NAME_STOPWORDS = {
+    "war", "wars", "conflict", "dispute", "crisis", "insurgency", "civil",
+    "standoff", "the", "and", "of", "in", "on", "second", "first", "frozen",
+    "border", "territorial", "sea", "south", "north", "east", "west",
+}
+
+
+def _conflict_name_tokens(name: str) -> set:
+    """Distinctive lowercase tokens of a conflict's name (the literal-mention
+    gate for frozen conflicts — owner: 'transnistria news only if transnistria
+    is mentioned')."""
+    toks = set()
+    for w in re.findall(r"[A-Za-zÀ-ÿ'-]+", (name or "").lower()):
+        if len(w) >= 4 and w not in _CONFLICT_NAME_STOPWORDS:
+            toks.add(w)
+    # multi-word signature phrases beat token soup where they exist
+    lowered = (name or "").lower()
+    for phrase in ("south china sea", "western sahara", "nagorno-karabakh",
+                   "line of control"):
+        if phrase in lowered:
+            toks.add(phrase)
+    return toks
+
+
+def _story_text(story_id: str) -> str:
+    row = query_one("SELECT headline, summary FROM stories WHERE id = ?",
+                    (story_id,))
+    if not row:
+        return ""
+    return f"{row['headline'] or ''} {row['summary'] or ''}".lower()
+
+
 def _conflict_party_entities() -> dict:
     """canonical-entity-id set per conflict, from registered parties (v3 §15).
     NSAs carry a canonical id directly; countries resolve theirs by name.
@@ -394,15 +430,21 @@ def _conflict_party_entities() -> dict:
     out: dict = {}
     for row in query(
             "SELECT cp.conflict_id, cp.country_id, n.canonical_entity_id,"
-            " c.name AS country_name, cf.name AS conflict_name FROM conflict_parties cp"
+            " c.name AS country_name, cf.name AS conflict_name, cf.status"
+            " FROM conflict_parties cp"
             " JOIN conflicts cf ON cf.id = cp.conflict_id"
             " LEFT JOIN non_state_actors n ON n.id = cp.non_state_actor_id"
             " LEFT JOIN countries c ON c.id = cp.country_id"
             " WHERE cf.status NOT IN ('resolved', 'ended')"):
         rec = out.setdefault(row["conflict_id"], {
             "all": set(), "distinctive": set(),
+            "status": row["status"],
+            "name_tokens": _conflict_name_tokens(row["conflict_name"]),
+            "party_names": set(),
             "is_insurgency": (row["conflict_name"] in INSURGENCY_NAMES
                               or "insurgency" in (row["conflict_name"] or "").lower())})
+        if row["country_name"]:
+            rec["party_names"].add(row["country_name"].lower())
         if row["canonical_entity_id"]:
             # a non-state actor (Naxalites, PKK, Houthis…) — the DISTINCTIVE
             # signal for a conflict, especially an intra-state one.
@@ -458,6 +500,17 @@ def _suggest_conflict_tag(story_id: str) -> None:
     # country funnels into that country's own insurgency (the owner's Naxalite
     # bug: India is a party to the Naxalite–Maoist insurgency, so an India match
     # wrongly qualified).
+    # v8.16 — the FROZEN-conflict gate (owner: "kadyrov news wrongly tagging
+    # into transnistria conflict, NATO summit news into cyprus dispute … only
+    # allow the news to be part of a frozen conflict if it reactivates or the
+    # conflict is literally mentioned"). A frozen conflict now requires its
+    # NAME SIGNATURE ("transnistria", "cyprus", "kashmir"…) literally present
+    # in the story text — shared belligerents (Russia, Turkey, Greece…) no
+    # longer qualify by themselves. Active conflicts additionally get a
+    # literal-text boost: a story naming BOTH principal parties in its own
+    # words counts even if entity extraction missed one (owner: "more of the
+    # news about the ukraine war should be part of the ukraine war conflict").
+    text = _story_text(story_id)
     best_cid, best_matches, best_distinct, best_insurgency = None, 0, 0, False
     for cid, rec in _conflict_party_entities().items():
         matches = len(story_ents & rec["all"])
@@ -465,6 +518,13 @@ def _suggest_conflict_tag(story_id: str) -> None:
         # an insurgency with NO distinctive (NSA) match doesn't count at all
         if rec["is_insurgency"] and distinct == 0:
             continue
+        if rec["status"] == "frozen" and not any(
+                t in text for t in rec["name_tokens"]):
+            continue  # frozen + no literal mention of the conflict = never
+        # literal both-parties boost (active conflicts only)
+        if (rec["status"] != "frozen" and matches < 2
+                and sum(1 for p in rec["party_names"] if p in text) >= 2):
+            matches = max(matches, 2)
         if matches > best_matches:
             best_cid, best_matches, best_distinct = cid, matches, distinct
             best_insurgency = rec["is_insurgency"]
@@ -478,17 +538,18 @@ def _suggest_conflict_tag(story_id: str) -> None:
     strong = best_matches >= 2 or (best_matches >= 1 and has_conflict_dev)
     if best_insurgency:
         strong = strong and best_distinct >= 1
+    # v8.16 — the weak-match "suggested conflict" path is REMOVED (owner: "it
+    # misidentifies the conflict too often for it to be useful"). Either the
+    # match is strong enough to tag outright, or nothing happens.
+    if not strong:
+        return
     with write_tx() as conn:
-        if strong:
-            conn.execute("UPDATE stories SET conflict_id = ?,"
-                         " suggested_conflict_id = NULL WHERE id = ?",
-                         (best_cid, story_id))
-            log.info("conflict_auto_tagged",
-                     extra={"data": {"story_id": story_id, "conflict_id": best_cid,
-                                     "party_matches": best_matches}})
-        elif not existing["suggested_conflict_id"]:
-            conn.execute("UPDATE stories SET suggested_conflict_id = ? WHERE id = ?",
-                         (best_cid, story_id))
+        conn.execute("UPDATE stories SET conflict_id = ?,"
+                     " suggested_conflict_id = NULL WHERE id = ?",
+                     (best_cid, story_id))
+        log.info("conflict_auto_tagged",
+                 extra={"data": {"story_id": story_id, "conflict_id": best_cid,
+                                 "party_matches": best_matches}})
 
 
 def correlate_new_events(event_ids: list[str]) -> list[dict]:

@@ -416,6 +416,20 @@ LEGISLATURES = {
     "TWN": {"chamber": "Legislative Yuan", "total": 113, "note": "2024 election",
             "parties": [("KMT", 52, "#000095"), ("DPP", 51, "#1b9431"),
                         ("TPP", 8, "#28c8c8"), ("Independent", 2, "#888888")]},
+    # v8.16 — limited-recognition states with real elected legislatures get the
+    # graphic too (owner: "if taiwan or another limited recognition state has a
+    # legislature, the graphic should be shown"). Each sums to its total.
+    "XKX": {"chamber": "Assembly of Kosovo", "total": 120, "note": "Feb 2025 election",
+            "parties": [("Vet\u00ebvendosje", 48, "#d52b1e"), ("PDK", 24, "#1560bd"),
+                        ("LDK", 20, "#003893"), ("AAK\u2013Nisma", 8, "#e2001a"),
+                        ("Srpska Lista", 10, "#c00000"), ("Other minorities", 10, "#888888")]},
+    "CYN": {"chamber": "Assembly of the Republic", "total": 50, "note": "2022 election",
+            "parties": [("UBP", 24, "#e30a17"), ("CTP", 18, "#ef7d00"),
+                        ("DP", 3, "#0f7bc4"), ("YDP", 3, "#00a651"),
+                        ("HP", 2, "#5b2d8e")]},
+    "SOL": {"chamber": "House of Representatives", "total": 82, "note": "2021 election",
+            "parties": [("Waddani", 31, "#f7a800"), ("Kulmiye", 30, "#009a44"),
+                        ("UCID", 21, "#0072c6")]},
     "SGP": {"chamber": "Parliament of Singapore", "total": 97, "note": "2025 election (elected seats)",
             "parties": [("PAP", 87, "#0032a0"), ("Workers' Party", 10, "#00a5e5")]},
     "SRB": {"chamber": "National Assembly", "total": 250, "note": "Dec 2023 election",
@@ -446,6 +460,13 @@ LEGISLATURES = {
 # leaving the panel blank (owner: "explain to the user why the country doesn't
 # have one and if it used to ever have one and why it was abolished").
 LEGISLATURE_NOTES = {
+    # v8.16 — limited-recognition states without a functioning party graphic
+    "PSE": "The Palestinian Legislative Council has been suspended since 2007; "
+           "no functioning elected legislature to chart.",
+    "ABK": "35-seat People's Assembly — elections are largely non-partisan "
+           "(single-member districts), so there is no party seat-arc to chart.",
+    "OST": "34-seat Parliament — recognized by very few states; recent "
+           "compositions are contested, so no seat-arc is charted.",
     "SAU": "No elected legislature. The appointed Consultative Assembly (Majlis "
            "al-Shura, 150 members) advises the King but cannot pass laws; Saudi "
            "Arabia is an absolute monarchy where the King and Council of "
@@ -660,7 +681,10 @@ COUNTRY_CAMP = {
     # Assad in Dec 2024 is hostile to Assad's backers (Russia, Iran) and warming
     # to Türkiye/Qatar/Gulf and cautiously the West → nonaligned, not east.
     "SYR":"nonaligned",
-    "ARM":"east","SSD":"east","CAF":"east",
+    # v8.16 — ARM moved east→nonaligned (owner: "armenia is moving away from
+    # russia/csto after the artsakh betrayal" — CSTO participation frozen,
+    # 2025 EU-accession law; a hard Russia-bloc label is no longer honest)
+    "ARM":"nonaligned","SSD":"east","CAF":"east",
     # --- China-aligned ---
     "CHN":"china","PAK":"china","KHM":"china","LAO":"china","MMR":"china",
     # --- Non-aligned / hedging ---

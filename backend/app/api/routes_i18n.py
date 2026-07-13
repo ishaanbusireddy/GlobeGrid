@@ -2,14 +2,15 @@
 
 Exactly one primitive plus one diagnostics view:
 
-  POST /api/i18n/translate {lang, texts:[…]}
-      → {lang, translations:[…], untranslated:[indices]}
-      The `untranslated` list is the honesty guarantee made visible on the
-      wire (roadmap §3.2): those indices are STILL ENGLISH after both the
-      batch attempt and the per-string retry — the frontend marks them, the
-      cache skips them, and the next request retries them. A response with
-      untranslated=[] is a genuine full success; nothing is ever silently
-      passed through as translated.
+  POST /api/i18n/translate {lang, texts:[…], interactive:bool}
+      → {lang, translations:[…], untranslated:[indices], deferred:[indices]}
+      `untranslated` is the honesty guarantee made visible on the wire
+      (roadmap §3.2): those indices were ATTEMPTED and are still English —
+      the frontend marks them and the cache skips them. `deferred` (v8.15.1)
+      means NOT attempted this call (the single-flight gate was busy or the
+      per-call budget ran out) — the frontend simply retries them shortly,
+      filling the page progressively. A response with both lists empty is a
+      genuine full success; nothing is ever silently passed through.
 
   GET /api/i18n/diagnostics?lang=sq
       → the exact prompt, the model's RAW reply, and the parsed result for
@@ -30,7 +31,13 @@ def i18n_translate(params, q, body):
         return 400, {"error": "texts must be a list of strings"}
     if len(texts) > 400:
         return 400, {"error": "at most 400 strings per request"}
-    res = i18n2.translate_strings(lang, texts, interactive=True)
+    # v8.15.1 — the caller says whether a human is actively waiting (their
+    # explicit language switch) or this is an observer-triggered background
+    # rescan. Background calls yield instantly when translation is already
+    # running or a provider cooldown is open, instead of stampeding the
+    # model and starving the analyst (the v8.15.0 regression).
+    interactive = bool(body.get("interactive", True))
+    res = i18n2.translate_strings(lang, texts, interactive=interactive)
     return 200, {"lang": lang, **res}
 
 

@@ -183,6 +183,15 @@ def _gazetteer_ready() -> bool:
 # still geocodes precisely. Consulted BEFORE the gazetteer so the precise point
 # wins over any collision.
 NOTABLE_PLACES = {
+    # v8.16 — capital cities the owner flagged as mis-placed to the country
+    # centroid; pin them to their real coordinates + a big population so they
+    # win over any incidental country match (owner: "astana events keep
+    # showing in northern kazakhstan").
+    "astana": ("Astana", 51.13, 71.43, 1350000),
+    "nur-sultan": ("Astana", 51.13, 71.43, 1350000),
+    "almaty": ("Almaty", 43.24, 76.92, 2000000),
+    "tashkent": ("Tashkent", 41.31, 69.24, 2900000),
+    "baku": ("Baku", 40.41, 49.87, 2300000),
     "ayodhya": ("Ayodhya", 26.80, 82.20, 250000),
     "pahalgam": ("Pahalgam", 34.01, 75.32, 120000),
     "sudzha": ("Sudzha", 51.19, 35.27, 120000),

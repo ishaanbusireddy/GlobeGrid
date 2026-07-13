@@ -81,6 +81,24 @@ def curated_agenda(iso3, profile=None):
         return None
     name = (profile or {}).get("name") or iso3
     camp = COUNTRY_CAMP.get(iso3)
+    # v8.16 — do NOT force a bloc on countries in genuine realignment (owner:
+    # "the agenda shouldn't force alignment picks unless the country is
+    # strongly aligned — armenia is moving away from russia/csto after the
+    # artsakh betrayal"). Curated transitional lines override the camp text.
+    _TRANSITIONAL = {
+        "ARM": "is actively REALIGNING: after Russia's non-intervention over "
+               "Nagorno-Karabakh it froze CSTO participation, passed an "
+               "EU-accession law and is deepening ties with France, the US and "
+               "India — while still economically entangled with Russia (EAEU, "
+               "energy). Its alignment is in motion, not fixed",
+        "GEO": "is internally split on alignment: formally an EU candidate with "
+               "a pro-European public, governed by a party that has drifted "
+               "toward accommodation with Moscow — its trajectory is contested, "
+               "not settled",
+        "SRB": "hedges deliberately: an EU candidate that refuses sanctions on "
+               "Russia, buys Chinese investment and weapons, and plays all "
+               "sides — a balancing act, not a bloc commitment",
+    }
     camp_line = {
         "west": "aligns with the US-led Western bloc (NATO/EU orbit), prioritizing "
                 "security ties, sanctions coordination and market integration with the West",
@@ -91,6 +109,8 @@ def curated_agenda(iso3, profile=None):
         "nonaligned": "hedges between the major powers, courting investment and arms "
                       "from all sides while avoiding a hard bloc commitment",
     }.get(camp, "pursues a pragmatic, interest-driven foreign policy without a fixed bloc")
+    if iso3 in _TRANSITIONAL:
+        camp_line = _TRANSITIONAL[iso3]
     al = derive_alignments(iso3) or {}
     rivals = (al.get("rival") or [])[:4]
     friends = (al.get("strong") or [])[:4]

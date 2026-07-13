@@ -106,6 +106,40 @@ AUTONOMOUS_ZONES = [
      "full independence by referendum. Denmark retains foreign and defense policy. "
      "Its rare-earth and strategic-Arctic value has made it a subject of great-"
      "power interest."),
+    # v8.16 — the UK's devolved nations (owner: "add the autonomous zones of
+    # the UK — Wales, Scotland, and Northern Ireland")
+    ("scotland", "Scotland", "United Kingdom", "Edinburgh",
+     "Devolved nation with its own parliament, government and legal system; "
+     "independence remains a live political question.",
+     56.5, -4.2,
+     "Scotland has been part of the United Kingdom since the 1707 Acts of Union "
+     "but kept its own legal system, church and education. Since 1999 it has a "
+     "devolved Scottish Parliament at Holyrood with power over health, education, "
+     "justice and (since 2016) significant taxation. The SNP has governed since "
+     "2007; a 2014 independence referendum failed 45-55, and the constitutional "
+     "question \u2014 sharpened by Brexit, which Scotland voted against \u2014 remains the "
+     "central axis of its politics."),
+    ("wales", "Wales (Cymru)", "United Kingdom", "Cardiff",
+     "Devolved nation with its own Senedd and government; the Welsh language "
+     "is co-official and resurgent.",
+     52.3, -3.7,
+     "Wales was annexed to England in the 16th century but retained a distinct "
+     "language and identity. Devolution since 1999 built the Senedd (Welsh "
+     "Parliament) and a Welsh Government responsible for health, education and "
+     "the economy. Welsh Labour has led every administration; Plaid Cymru "
+     "presses for independence, a minority but growing position. The Welsh "
+     "language, spoken by ~18%, is co-official and a policy priority."),
+    ("northern_ireland", "Northern Ireland", "United Kingdom", "Belfast",
+     "Devolved power-sharing government under the Good Friday Agreement; "
+     "constitutional status contested between unionism and Irish nationalism.",
+     54.6, -6.7,
+     "Northern Ireland was created in 1921 when Ireland was partitioned. Three "
+     "decades of the Troubles ended with the 1998 Good Friday Agreement, which "
+     "built mandatory power-sharing between unionists and nationalists in the "
+     "Stormont Assembly and gives the population the right to vote on unifying "
+     "with Ireland. Sinn F\u00e9in became the largest party in 2022; Brexit's sea "
+     "border (the Windsor Framework) remains a unionist grievance, and a border "
+     "poll is the long-horizon question."),
 ]
 
 
@@ -123,6 +157,56 @@ def _flag(name: str) -> str:
 # agenda, headline stats, and an approximate boundary ring ([lon,lat]) drawn as
 # an always-on DOTTED border on the map (like territories, but dashed).
 ZONE_EXTRA = {
+    # v8.16 — UK devolved nations
+    "scotland": {
+        "official_name": "Scotland", "established": "1999 (devolution)",
+        "flag_url": _flag("Flag of Scotland.svg"),
+        "leader": {"name": "John Swinney", "title": "First Minister", "party": "SNP"},
+        "legislature": {"chamber": "Scottish Parliament (Holyrood)", "total": 129,
+                        "parties": [["SNP", 64, "#fdf38e"], ["Conservative", 31, "#0087dc"],
+                                    ["Labour", 22, "#e4003b"], ["Green", 8, "#00b140"],
+                                    ["Lib Dem", 4, "#faa61a"]]},
+        "agenda": "Govern within devolution while keeping independence on the agenda, "
+                  "contest fiscal transfers with Westminster, and position Scotland for "
+                  "EU re-entry in any future constitutional change.",
+        "stats": {"population": "~5.4 million", "area_km2": "~77,933",
+                  "languages": "English, Scots, Scottish Gaelic",
+                  "currency": "Pound sterling (GBP)"},
+    },
+    "wales": {
+        "official_name": "Wales (Cymru)", "established": "1999 (devolution)",
+        "flag_url": _flag("Flag of Wales.svg"),
+        "leader": {"name": "Eluned Morgan", "title": "First Minister", "party": "Welsh Labour"},
+        "legislature": {"chamber": "Senedd (Welsh Parliament)", "total": 60,
+                        "parties": [["Labour", 30, "#e4003b"], ["Conservative", 16, "#0087dc"],
+                                    ["Plaid Cymru", 13, "#008142"], ["Lib Dem", 1, "#faa61a"]]},
+        "agenda": "Expand devolved powers (justice, broadcasting), revive the Welsh "
+                  "language toward the 'Cymraeg 2050' million-speaker goal, and manage "
+                  "post-industrial economic renewal.",
+        "stats": {"population": "~3.1 million", "area_km2": "~20,779",
+                  "languages": "English, Welsh (co-official)",
+                  "currency": "Pound sterling (GBP)"},
+    },
+    "northern_ireland": {
+        "official_name": "Northern Ireland", "established": "1998 (Good Friday Agreement)",
+        # deliberately NO flag: Northern Ireland has no official flag of its own
+        # (the Ulster Banner lapsed in 1972 and is a contested symbol) — the
+        # owner's official-flags-only rule applies here too.
+        "leader": {"name": "Michelle O'Neill", "title": "First Minister", "party": "Sinn F\u00e9in"},
+        "leader2": {"name": "Emma Little-Pengelly", "title": "deputy First Minister", "party": "DUP"},
+        "legislature": {"chamber": "Northern Ireland Assembly (Stormont)", "total": 90,
+                        "parties": [["Sinn F\u00e9in", 27, "#326760"], ["DUP", 25, "#d46a4c"],
+                                    ["Alliance", 17, "#f6cb2f"], ["UUP", 9, "#48a5ee"],
+                                    ["SDLP", 8, "#2aa82c"], ["TUV", 1, "#0c3a6a"],
+                                    ["Others", 3, "#888888"]]},
+        "agenda": "Keep power-sharing functioning, manage the Windsor Framework's "
+                  "sea-border economics, and navigate the long-horizon question of a "
+                  "border poll on Irish unification.",
+        "stats": {"population": "~1.9 million", "area_km2": "~14,130",
+                  "languages": "English, Irish, Ulster Scots",
+                  "currency": "Pound sterling (GBP)"},
+    },
+
     "iraqi_kurdistan": {
         "official_name": "Kurdistan Region of Iraq", "established": "1970 / 2005 (federal region)",
         "flag_url": _flag("Flag of Kurdistan.svg"),

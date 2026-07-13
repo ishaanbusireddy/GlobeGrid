@@ -18,6 +18,176 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v8.16.0)
+
+**v8.16.0 (2026-07-13, the huge ~60-item update):** a very large owner batch
+spanning new tracking windows, categorization/conflict-tagging overhaul, a
+country-panel rework, map-data corrections, a UI/UX pass, and four new
+conflicts. Verified in-sandbox: **35/35 tests green**, fresh boot clean
+(216 countries, 71,959 admin units, 4 new conflicts seeded, all leanings
+valid), every new endpoint 200 over HTTP, headless Chromium badge v8.16.0
+with 5 tracker cards and **0 non-network console errors**.
+
+- **Live tracking windows (new `📊 trackers` header hub → `Trackers.js`,
+  backend `routes_tracking.py` + `trade_data.py` + `ideology.py` +
+  `predmarkets.py`).** Each window states its data layer honestly:
+  - **Military tracker** (`/api/military`): LIVE military/conflict events
+    with precise coordinates + LIVE physical-sensor tracks (OpenSky/AIS/
+    FIRMS/USGS, key-gated ones labelled) + a curated `FORCE_POSTURE` context
+    layer (mid-2026, clearly not-live). No public real-time missile feed
+    exists — missile EVENTS ride the extracted layer.
+  - **Trade & resources** (`/api/trade`, `/api/trade/{iso3}`): 21 curated
+    country trade profiles (exports/imports/partners/top-goods, every figure
+    year+source labelled), world totals + chokepoints, `RESOURCES` table, and
+    a LIVE trade-news trail. Also surfaced as the country page's **Trade tab**.
+  - **Markets** (`/api/markets/live`): live market/finance events + the hourly
+    market briefing.
+  - **Prediction markets** (`/api/predmarkets` → Polymarket + Kalshi public
+    APIs, 60s cache, no keys): real-money geopolitics odds; degrades to
+    `live:false` + an honest note when the venues are unreachable (as in the
+    sandbox). Also a **War Mode public-sentiment strip** (this conflict's odds).
+  - **Diplomatic window** (`/api/diplomacy?a=&b=`): any two countries' current
+    stance (derived alignments), background briefs, and their shared live
+    coverage trail.
+- **Categorization + conflict-tagging overhaul.** New
+  `geopolitics/category_defs.py` is the single normative paragraph-per-category
+  contract, injected into the LLM title/category reviewer and shown in the ?
+  guide. `extract.py` retuned: **domestic** is now "random national news"
+  (sports/entertainment/local — the macro-financial and national-election
+  words were REMOVED and the tie-break priority puts finance+geopolitics ABOVE
+  domestic); geopolitics widened so cross-border stories stop falling to
+  'other'. **Conflict tagging tightened** (`correlate.py`): a FROZEN conflict
+  now requires its literal name signature in the text (Transnistria only tags
+  Transnistria news, not shared-belligerent Kadyrov/NATO-summit stories); an
+  active conflict gets a both-parties-literally-named boost (more Ukraine-war
+  news lands on the Ukraine war); the weak "suggested conflict" confirm-UI is
+  **removed** entirely (owner: it misidentified too often). New
+  `processing/curate.py` — an LLM **wire editor** that reviews recent event
+  titles (grammar/translation/de-linking/specificity, deterministic cleanup
+  first) and re-checks each category against `category_defs`
+  (`title_reviewed` column, scheduler-driven, degrades cleanly with no model).
+- **Impacted-country chips, precise.** `routes_stories._literal_impact_chips`
+  scans a story's own text for LITERALLY-named countries/blocs (word-boundary,
+  acronym+alias aware), so an Iran story shows Iran/Israel and NEVER Greenland
+  (the owner's false-positive). 1-2 chips render nested in each live-feed card;
+  a **NATO chip carries the real NATO flag** like a country.
+- **Live feed piles from the TOP.** `LiveFeed` now keeps a stable display
+  `_order`: a never-seen story enters at the top, on-screen cards keep their
+  position (an update pulses in place, no re-sort/jump); only a full reset
+  re-sorts by recency.
+- **Country panel = horizontal browser-like TABS** (owner: stop endless
+  scrolling): Overview / Government / Diplomacy / Conflicts / Trade / Divisions
+  / Coverage, under the flag+leader header. Legislature graphic **seats are
+  clickable** → the party dossier (plus the legend chips), and the same for the
+  **EU parliament**. Limited-recognition states with real elected chambers get
+  the graphic (Kosovo/N.Cyprus/Somaliland seeded; Palestine/Abkhazia/S.Ossetia
+  get honest notes). City pages lost their flag; the "Boundary source" row (a
+  "Natural Earth" internal string) is hidden.
+- **Map data.** New **Ideology map mode** (ruling-party ideology per country,
+  `ideology.py` + `ideologyInfo` colors). Religion/sect redone for East Asia
+  (Japan → Shinto, Korea → Buddhism, China/Vietnam/HK → folk/Buddhist, not
+  "Unaffiliated"); **Alawite** is its own sect (own hue, not a Shia shade);
+  religion/sect maps **shade by the dominant tradition's population share**
+  (`RELIGION_SHARE`, opacity = share); the government-mode tooltip no longer
+  leaks the previous mode's per-unit values. **Telugu dialect regions**
+  (Uttarandhra / Kosta / Rayalaseema) split at the district tier; **Kvemo
+  Kartli** reads Georgian (the blanket Azeri override was wrong). Abkhazia &
+  South Ossetia stay `de_facto` (limited recognition), force-corrected each boot.
+- **UI/UX pass.** Shortcuts rebound: **F** = command palette (was Ctrl/Cmd+K),
+  **N** = feed, **L** = list view, **Shift+L** = next language, **?** = the
+  startup guide; **right-click-drag** is an alternative to shift-drag for the
+  rectangle select. **Map/globe labels follow the Settings font** (both
+  renderers gained a real `setLabelFont`; the call used to be a no-op).
+  **Borders no longer phase out on deep zoom** (the globe line shader's limb
+  fade was widened over the frame under close-zoom perspective — now hugs the
+  true limb). **Breaking-news alerts fire instantly** (the story card carries
+  its peak `severity`, so the toast+fanfare no longer wait for a map refresh).
+  **Autonomous zones draw REAL admin-unit geometry only** (the crude rectangle
+  fallback is deleted); **Wales/Scotland/Northern Ireland added** as devolved
+  zones with full profiles + real boundaries. **War Mode**: a distinctive war
+  drum+horn **entry cue**, belligerents vs supporters get slightly different
+  outlining with a **⚑ supporters toggle** to hide/show backer outlines, and
+  the conflict **audio briefing reads ONLY that conflict's** own feed.
+- **Flags.** Separatist-flag suppression extended to Iran/Turkey/Syria/Iraq/
+  Azerbaijan (owner: no Khuzestan / Kurdistan / "South Azerbaijan" flags —
+  official only); **all Pakistani provinces** now carry a curated official
+  flag; tests pinned.
+- **Data breadth + honesty.** Four new conflicts — **Israel–Hezbollah**,
+  **Yemen Civil War**, **Libyan Civil War**, **South China Sea Dispute** (each
+  with correct parties/backers). **26 new regional news sources** (Africa/
+  S.America/S+SE+C.Asia/Oceania/Arab/Turkey/Caucasus/Iran + worldwide tech;
+  duplicates of already-seeded outlets pruned). The country **agenda stops
+  forcing a bloc** on countries in genuine realignment (Armenia moved
+  east→nonaligned with a curated transitional line after the Artsakh betrayal;
+  Georgia/Serbia too). **Dynamic leader refresh** runs 2×/hour with a bigger
+  batch; legislature compositions carry a **staleness flag** (>450 days). War
+  Mode thread breakdowns **link to the real thread page**.
+
+## Status (v8.15.1)
+
+**v8.15.1 (2026-07-13, the translation-flood regression fix):** the owner
+tested v8.15.0 on their real machine and reported BOTH (a) nothing translating
+and (b) "all llm driven features are timing out and not working anymore" —
+while `GET /api/i18n/diagnostics` showed the model reachable, fast, and
+translating perfectly in isolation. The deep-scan root cause was
+self-inflicted concurrency, not the protocol: the frontend chunked 200
+strings per request, the backend chained those into 5-10 SEQUENTIAL LLM
+generations inside one request handler, the MutationObserver re-fired a
+full-page rescan on ANY DOM mutation (including the live feed's own ticks
+and the translator's OWN swaps) with no in-flight guard, and
+`routes_i18n.py` hardcoded `interactive=True` so every one of those calls
+competed as "a user is waiting" — an unbounded stampede that monopolized the
+model and starved the analyst (whose client-side abort read as "timing
+out"). v8.15.0's tests never caught it because the simulator resolved
+instantly and the headless run drove one switch on a quiet page — no
+latency, no churn, no competing request. The fix, layer by layer:
+
+- **A single-flight gate (`i18n2._GATE`).** Translation may never have more
+  than ONE generation chain in flight, period. An interactive call (the
+  user's own explicit switch) waits its turn (bounded, 20s); a background
+  call (observer rescan) try-acquires and, if translation is already
+  running, returns instantly with its strings in a NEW `deferred` list —
+  llm.py's proven v6.4.2 interactive/background split applied one layer up,
+  to translation's own self-generated concurrency.
+- **A wall-clock budget per call** (10s interactive / 6s background): once
+  spent, no NEW batch starts — what's done returns, the rest comes back
+  `deferred`. Batch 0 always runs when the gate was acquired, so every call
+  makes progress (no livelock). `deferred` ("not attempted — retry soon")
+  is a THIRD state, deliberately distinct from `untranslated` ("attempted
+  and failed — honesty marker, never auto-retried in a loop"): budget
+  exhaustion must never be mislabelled a model failure.
+- **The frontend fills the page progressively.** Chunk 200 → 40 (one HTTP
+  call ≈ 1-2 real model batches); a `pendingStrings` set stops overlapping
+  passes from re-requesting text already out for translation; deferred
+  strings are left untouched and ONE queued follow-up pass (1.5s) keeps
+  running until the page is fully translated — so on a slow local model the
+  UI visibly fills in over a few passes instead of blocking on one
+  monolithic request. Observer passes send `interactive:false` and never
+  re-hammer known-failed strings; only an explicit user switch retries
+  those. The observer also now ignores irrelevant mutations (its own swaps
+  included), so a translation pass no longer schedules its own echo rescan.
+- **The duplicate Settings-panel language picker is REMOVED** (owner
+  request): it was a second, independent control for the same state that
+  showed a stale value whenever the language changed elsewhere. The header
+  picker is the single language control.
+- **The test category that was missing now exists.** The simulated Ollama
+  gained real per-generation latency (400ms) + concurrency instrumentation,
+  and the verification run drives the true failure condition: a
+  continuously-mutating DOM (feed churn every 400ms) + a competing
+  interactive LLM call mid-storm. Measured with the fix: the whole page +
+  60s of churn cost **20 total generations** (was: unbounded stacking),
+  model concurrency never exceeded the expected 2 (1 gated translation
+  chain + the 1 competing call), the competing call finished in **0.8s**
+  during the storm, 176 nodes translated progressively, churn content
+  translated live, English restore byte-clean, 0 console errors. Four new
+  unit tests pin the gate + budget + deferred semantics (suite now 35).
+
+Phase-B honesty unchanged: translation QUALITY against a real model is
+still gated on the owner running `scripts/verify_translation_live.py`
+(now deferral-aware — it loops slices exactly like the frontend). What
+v8.15.1 verifies is the CONCURRENCY contract, in-sandbox, against a
+latency-realistic simulator.
+
 ## Status (v8.15.0)
 
 **v8.15.0 (2026-07-12, Roadmap Update 3 — Live AI Translation, full rebuild):**

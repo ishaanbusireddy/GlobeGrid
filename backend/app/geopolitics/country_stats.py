@@ -50,7 +50,7 @@ COUNTRY_STATS = {
     "CAF": ("Central African Republic", 622984, 2.6, 0.387, ["French", "Sango"], "Christianity", "Sango"),
     "TCD": ("Republic of Chad", 1284000, 13.1, 0.394, ["French", "Arabic"], "Islam", "Arabic"),
     "CHL": ("Republic of Chile", 756102, 335.0, 0.860, ["Spanish"], "Christianity", "Spanish"),
-    "CHN": ("People's Republic of China", 9596961, 17790.0, 0.788, ["Mandarin Chinese"], "Unaffiliated", "Mandarin Chinese"),
+    "CHN": ("People's Republic of China", 9596961, 17790.0, 0.788, ["Mandarin Chinese"], "Chinese folk religion", "Mandarin Chinese"),  # v8.16
     "COL": ("Republic of Colombia", 1141748, 363.0, 0.758, ["Spanish"], "Christianity", "Spanish"),
     "COM": ("Union of the Comoros", 2235, 1.35, 0.586, ["Comorian", "Arabic", "French"], "Islam", "Comorian"),
     "COG": ("Republic of the Congo", 342000, 15.3, 0.593, ["French"], "Christianity", "French"),
@@ -99,13 +99,13 @@ COUNTRY_STATS = {
     "ISR": ("State of Israel", 20770, 510.0, 0.915, ["Hebrew"], "Judaism", "Hebrew"),
     "ITA": ("Italian Republic", 301340, 2250.0, 0.906, ["Italian"], "Christianity", "Italian"),
     "JAM": ("Jamaica", 10991, 19.4, 0.706, ["English"], "Christianity", "English"),
-    "JPN": ("Japan", 377975, 4210.0, 0.920, ["Japanese"], "Unaffiliated", "Japanese"),
+    "JPN": ("Japan", 377975, 4210.0, 0.920, ["Japanese"], "Shinto", "Japanese"),  # v8.16 - Shinto/Buddhist practice
     "JOR": ("Hashemite Kingdom of Jordan", 89342, 50.8, 0.736, ["Arabic"], "Islam", "Arabic"),
     "KAZ": ("Republic of Kazakhstan", 2724900, 261.0, 0.802, ["Kazakh", "Russian"], "Islam", "Kazakh"),
     "KEN": ("Republic of Kenya", 580367, 107.0, 0.601, ["Swahili", "English"], "Christianity", "Swahili"),
     "KIR": ("Republic of Kiribati", 811, 0.25, 0.628, ["English", "Gilbertese"], "Christianity", "Gilbertese"),
     "PRK": ("Democratic People's Republic of Korea", 120538, None, None, ["Korean"], "Unaffiliated", "Korean"),
-    "KOR": ("Republic of Korea", 100210, 1710.0, 0.929, ["Korean"], "Unaffiliated", "Korean"),
+    "KOR": ("Republic of Korea", 100210, 1710.0, 0.929, ["Korean"], "Buddhism", "Korean"),  # v8.16 - owner: Korea reads Buddhism
     "KWT": ("State of Kuwait", 17818, 162.0, 0.847, ["Arabic"], "Islam", "Arabic"),
     "KGZ": ("Kyrgyz Republic", 199951, 14.0, 0.701, ["Kyrgyz", "Russian"], "Islam", "Kyrgyz"),
     "LAO": ("Lao People's Democratic Republic", 236800, 15.8, 0.620, ["Lao"], "Buddhism", "Lao"),
@@ -204,7 +204,7 @@ COUNTRY_STATS = {
     "UZB": ("Republic of Uzbekistan", 447400, 90.9, 0.727, ["Uzbek"], "Islam", "Uzbek"),
     "VUT": ("Republic of Vanuatu", 12189, 1.1, 0.614, ["Bislama", "English", "French"], "Christianity", "Bislama"),
     "VEN": ("Bolivarian Republic of Venezuela", 912050, 102.0, 0.699, ["Spanish"], "Christianity", "Spanish"),
-    "VNM": ("Socialist Republic of Viet Nam", 331212, 430.0, 0.726, ["Vietnamese"], "Unaffiliated", "Vietnamese"),
+    "VNM": ("Socialist Republic of Viet Nam", 331212, 430.0, 0.726, ["Vietnamese"], "Buddhism", "Vietnamese"),  # v8.16 - folk/Buddhist practice
     "YEM": ("Republic of Yemen", 527968, 21.0, 0.424, ["Arabic"], "Islam", "Arabic"),
     "ZMB": ("Republic of Zambia", 752618, 28.2, 0.569, ["English", "Bemba"], "Christianity", "Bemba"),
     "ZWE": ("Republic of Zimbabwe", 390757, 26.5, 0.550, ["Shona", "Ndebele", "English"], "Christianity", "Shona"),
@@ -223,7 +223,7 @@ COUNTRY_STATS = {
     "GUM": ("Guam", 544, 6.9, None, ["English", "Chamorro"], "Christianity", "English"),
     "BMU": ("Bermuda", 54, 7.8, None, ["English"], "Christianity", "English"),
     "FRO": ("Faroe Islands", 1393, 3.6, None, ["Faroese", "Danish"], "Christianity", "Faroese"),
-    "HKG": ("Hong Kong Special Administrative Region", 1104, 382.0, 0.956, ["Cantonese", "English"], "Unaffiliated", "Cantonese"),
+    "HKG": ("Hong Kong Special Administrative Region", 1104, 382.0, 0.956, ["Cantonese", "English"], "Chinese folk religion", "Cantonese"),  # v8.16
     "MAC": ("Macao Special Administrative Region", 33, 47.0, None, ["Cantonese", "Portuguese"], "Buddhism", "Cantonese"),
     "ASM": ("American Samoa", 199, 0.7, None, ["Samoan", "English"], "Christianity", "Samoan"),
     "VIR": ("United States Virgin Islands", 347, 4.4, None, ["English"], "Christianity", "English"),

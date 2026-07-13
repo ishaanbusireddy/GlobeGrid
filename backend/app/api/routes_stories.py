@@ -68,6 +68,98 @@ def _connected_history(story_id: str) -> list[dict]:
              "source": {"name": r["src_name"], "url": r["src_url"]}} for r in rows]
 
 
+# ---------------------------------------------------------------------------
+# v8.16 — literal country-mention scan (owner: "scrape the title/articles of
+# events for the country names literally mentioned and add those as impacted
+# countries … display like 1-2 country chips nested in the event panels in the
+# live feed"). High-precision by construction: only a word-boundary match of
+# the country's actual name (or a curated unambiguous alias) counts, which is
+# also the tightening fix for spurious NER chips (the Greenland-on-an-Iran-
+# story bug — Greenland is never literally in that text, so it can't rank).
+import re as _re2
+
+# case-SENSITIVE acronyms/short forms (lowercase "us" is a pronoun) + common
+# case-insensitive alternate names, each mapping to the DB country name.
+_CHIP_ACRONYMS = {"US": "United States", "U.S.": "United States",
+                  "USA": "United States", "UK": "United Kingdom",
+                  "UAE": "United Arab Emirates", "DPRK": "North Korea",
+                  "DRC": "Democratic Republic of the Congo"}
+_CHIP_ALIASES = {"america": "United States", "britain": "United Kingdom",
+                 "russian": "Russia", "ukrainian": "Ukraine",
+                 "iranian": "Iran", "israeli": "Israel", "chinese": "China",
+                 "turkish": "Turkey", "türkiye": "Turkey",
+                 "north korean": "North Korea", "south korean": "South Korea",
+                 "saudi": "Saudi Arabia", "burma": "Myanmar"}
+# alliance/bloc chips that should read like countries, flag included (owner:
+# "when NATO is affected, it should display the NATO flag just like a country")
+_CHIP_BLOCS = ("NATO", "European Union", "African Union", "ASEAN",
+               "Arab League", "BRICS", "OPEC", "Mercosur")
+
+_chip_cache: dict = {}
+
+
+def _chip_tables():
+    """Build (case-insensitive regex, case-sensitive regex, name→row map) once."""
+    if _chip_cache:
+        return _chip_cache
+    rows = query("SELECT id, name, status, flag_image_url FROM countries")
+    by_name = {}
+    ci_terms, cs_terms = [], []
+    for r in rows:
+        by_name[r["name"].lower()] = {"type": ("territory" if r["status"] == "territory"
+                                               else "country"),
+                                      "id": r["id"], "name": r["name"],
+                                      "flag": r["flag_image_url"]}
+        ci_terms.append(_re2.escape(r["name"]))
+    for alias, target in _CHIP_ALIASES.items():
+        if target.lower() in by_name:
+            ci_terms.append(_re2.escape(alias))
+    for acro in _CHIP_ACRONYMS:
+        cs_terms.append(_re2.escape(acro))
+    from ..geopolitics.country_extra import ALLIANCE_EMBLEMS
+    for bloc in _CHIP_BLOCS:
+        a = query_one("SELECT id, name FROM alliances WHERE name = ?", (bloc,))
+        if a:
+            by_name[bloc.lower()] = {"type": "alliance", "id": a["id"],
+                                     "name": a["name"],
+                                     "flag": ALLIANCE_EMBLEMS.get(bloc)}
+            if bloc not in ("NATO",):        # NATO stays case-sensitive
+                ci_terms.append(_re2.escape(bloc))
+            else:
+                cs_terms.append(_re2.escape(bloc))
+    # longest-first so "South Korea" beats "Korea"-less partials
+    ci_terms.sort(key=len, reverse=True)
+    cs_terms.sort(key=len, reverse=True)
+    _chip_cache["ci"] = _re2.compile(r"\b(" + "|".join(ci_terms) + r")\b",
+                                     _re2.IGNORECASE)
+    _chip_cache["cs"] = _re2.compile(r"\b(" + "|".join(cs_terms) + r")\b")
+    _chip_cache["map"] = by_name
+    return _chip_cache
+
+
+def _literal_impact_chips(text: str, limit: int = 2) -> list[dict]:
+    """Country/bloc chips literally named in `text`, first-mention order."""
+    if not text:
+        return []
+    t = _chip_tables()
+    found, seen = [], set()
+    hits = []
+    for m in t["ci"].finditer(text):
+        hits.append((m.start(), m.group(1)))
+    for m in t["cs"].finditer(text):
+        hits.append((m.start(), m.group(1)))
+    for _, raw in sorted(hits, key=lambda h: h[0]):
+        low = raw.lower()
+        name = (_CHIP_ACRONYMS.get(raw) or _CHIP_ALIASES.get(low) or raw).lower()
+        row = t["map"].get(name)
+        if row and row["name"] not in seen:
+            seen.add(row["name"])
+            found.append(dict(row))
+            if len(found) >= limit:
+                break
+    return found
+
+
 def _story_card(row) -> dict:
     d = row_to_dict(row, json_fields=("causal_narrative",), drop=("embedding",
                                                                   "needs_causal_refresh"))
@@ -96,6 +188,14 @@ def _story_card(row) -> dict:
     d["member_count"] = stats["n_events"] or 0
     d["source_count"] = stats["n_sources"] or 0
     d["category"] = cats[0]["category"] if cats else "other"
+    # v8.16 — carry the story's peak severity on the card so a breaking-news
+    # toast + fanfare can fire the INSTANT the socket pushes it (owner: "no
+    # delay, right when they enter feed") instead of waiting for the map to
+    # refresh and then looking the severity up from the event list.
+    sev = query_one(
+        "SELECT MAX(e.severity) AS s FROM story_members m"
+        " JOIN events e ON e.id = m.event_id WHERE m.story_id = ?", (row["id"],))
+    d["severity"] = (sev["s"] if sev else None) or 0
     d["has_historical_link"] = bool(query_one(
         "SELECT 1 FROM story_members WHERE story_id = ? AND linked_via = 'historical_chain'"
         " LIMIT 1", (row["id"],)))
@@ -124,6 +224,9 @@ def _story_card(row) -> dict:
     if d.get("conflict_id"):
         c = query_one("SELECT name FROM conflicts WHERE id = ?", (row["conflict_id"],))
         d["conflict_name"] = c["name"] if c else None
+    # v8.16 — 1-2 literally-mentioned country/bloc chips for the feed card
+    d["impact_chips"] = _literal_impact_chips(
+        f"{d.get('headline') or ''} {d.get('summary') or ''}")
     return d
 
 
@@ -223,6 +326,9 @@ def _story_cards(rows) -> list:
                 c["is_historical"] = False
         if c.get("conflict_id"):
             c["conflict_name"] = conf_names.get(c["conflict_id"])
+        # v8.16 — literal country/bloc chips (pure in-memory regex, no query)
+        c["impact_chips"] = _literal_impact_chips(
+            f"{c.get('headline') or ''} {c.get('summary') or ''}")
     # preserve the incoming row order (already sorted by the SQL ORDER BY)
     return [cards[i] for i in ids]
 
@@ -526,22 +632,46 @@ def _impacted_entities(story_id: str) -> list[dict]:
                 item["flag"] = flag
             out.append(item)
 
+    # v8.16 — the literal-mention tightening (owner: "greenland was struck as
+    # an affected country for iran related news … make that better"). The
+    # story's own text (headline + summary + member event titles) is the
+    # ground truth: a COUNTRY chip must be literally named there, or it's
+    # dropped as an NER/alias artifact. Non-country chips (NSAs, zones) keep
+    # the entity path — their names rarely appear verbatim but are distinctive.
+    st = query_one("SELECT headline, summary FROM stories WHERE id = ?", (story_id,))
+    text_parts = [st["headline"] or "", st["summary"] or ""] if st else []
+    for ev in query(
+            "SELECT e.title FROM story_members m JOIN events e ON e.id = m.event_id"
+            " WHERE m.story_id = ? LIMIT 30", (story_id,)):
+        text_parts.append(ev["title"] or "")
+    story_text = " ".join(text_parts)
+    literal = {c["name"] for c in _literal_impact_chips(story_text, limit=12)}
+    from ..geopolitics.country_extra import ALLIANCE_EMBLEMS
+
     for nm in list(names)[:60]:
         low = nm.lower()
         c = query_one("SELECT id, name, status, flag_image_url FROM countries WHERE lower(name) = ?", (low,))
         if c:
-            _add("territory" if (c["status"] == "territory") else "country", c["id"], c["name"],
-                 c["flag_image_url"])
+            if c["name"] in literal:
+                _add("territory" if (c["status"] == "territory") else "country",
+                     c["id"], c["name"], c["flag_image_url"])
             continue
         a = query_one("SELECT id, name FROM alliances WHERE lower(name) = ?", (low,))
         if a:
-            _add("alliance", a["id"], a["name"]); continue
+            # v8.16 — bloc chips carry their real flag (NATO like a country)
+            _add("alliance", a["id"], a["name"], ALLIANCE_EMBLEMS.get(a["name"]))
+            continue
         nsa = query_one("SELECT id, name FROM non_state_actors WHERE lower(name) = ?", (low,))
         if nsa:
             _add("non_state_actor", nsa["id"], nsa["name"]); continue
         ml = query_one("SELECT id, name FROM marked_locations WHERE lower(name) = ?", (low,))
         if ml:
             _add("zone", ml["id"], ml["name"]); continue
+    # any literally-named country the entity path missed still gets its chip
+    for chip in _literal_impact_chips(story_text, limit=12):
+        _add(chip["type"], chip["id"], chip["name"], chip.get("flag"))
+    # literal chips first, then the rest, capped
+    out.sort(key=lambda i: 0 if i["name"] in literal else 1)
     return out[:16]
 
 

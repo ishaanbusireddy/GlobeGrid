@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat)",
+      "Bash(mkdir -p backend/app/db backend/app/ingestion/sources backend/app/processing backend/app/api backend/app/websocket frontend/src/components/map frontend/src/components/feed frontend/src/components/story frontend/src/api frontend/src/data scripts docs logs backend/data)",
+      "Bash(cp /root/.claude/uploads/eec53548-3ca5-53d0-be19-4760a146a891/16370342-talkdiplomacy_live_v1_build_manual.pdf docs/talkdiplomacy_live_v1_build_manual.pdf)",
+      "Bash(touch logs/.gitkeep backend/data/.gitkeep)",
+      "Bash(git add *)",
+      "Bash(cp /root/.claude/uploads/eec53548-3ca5-53d0-be19-4760a146a891/8092031b-globegrid_v3_legendary_manual.pdf docs/globegrid_v3_legendary_manual.pdf && echo ok)",
+      "Bash(cp \"/root/.claude/uploads/eec53548-3ca5-53d0-be19-4760a146a891/8c703b83-globegrid_v4_build_manual.pdf\" docs/globegrid_v4_build_manual.pdf && ls -la docs/)",
+      "Bash(cp \"/root/.claude/uploads/eec53548-3ca5-53d0-be19-4760a146a891/941b208f-globegrid_v5_build_manual.pdf\" docs/globegrid_v5_build_manual.pdf && ls docs/ | grep v5)",
+      "Bash(cd /home/user/GlobeGrid *)"
+    ]
+  }
+}

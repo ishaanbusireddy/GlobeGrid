@@ -12,6 +12,10 @@ import { BOUNDARIES_50M_ENC } from "../../data/boundaries50m.js";
 import { DISPUTED_BOUNDARIES_ENC } from "../../data/disputedBoundaries.js";
 import { decodeBoundaries } from "../../data/boundaryCodec.js";
 
+// v8.16 — map label font follows the Settings font (owner). App.js calls
+// setLabelFont(family) whenever the font changes; the render loops read this.
+let _LABEL_FAM = "system-ui";
+
 const CATEGORY_COLORS = {
   geopolitics: "#4da3ff", finance: "#ffd166", technology: "#b26bff",   // v6.6.2 tech
   disaster: "#ff6b6b", conflict: "#ff8c42", military: "#4acc73", other: "#93a1b8",
@@ -167,6 +171,8 @@ export class Tier2Map {
   setSatellites(sats) { this.satellites = sats || []; this.draw(); }
   setZoomSensitivity(s) { this.zoomSensitivity = Math.max(0.2, Math.min(4, +s || 1)); }   // v8.9
   setPanSensitivity(s) { this.panSensitivity = Math.max(0.2, Math.min(4, +s || 1)); }     // v8.13
+  // v8.16 — the 2D map labels follow the Settings font (owner)
+  setLabelFont(fam) { if (fam) { _LABEL_FAM = fam; this.draw(); } }
   setCities(cities) { this.cities = cities || []; this.draw(); }
   // v6.1.1 — dynamic country labels, revealed by apparent on-screen size
   setCountryLabels(labels) { this.countryLabels = labels || []; this.draw(); }
@@ -753,7 +759,7 @@ export class Tier2Map {
           if (collide) continue;
           placedC.push([xx, y]);
           const fs = Math.max(10, Math.min(16, apparentPx / 9));
-          ctx.font = `600 ${fs}px system-ui`;
+          ctx.font = `600 ${fs}px ${_LABEL_FAM}`;
           ctx.lineWidth = 3;
           ctx.strokeStyle = `rgba(6,10,18,${(alpha * 0.7).toFixed(2)})`;
           ctx.fillStyle = `rgba(225,232,246,${alpha.toFixed(2)})`;
@@ -788,7 +794,7 @@ export class Tier2Map {
           if (collide) continue;
           placedA.push([xx, y]);
           const fs = Math.max(9, Math.min(13, apparentPx / 12));
-          ctx.font = `500 ${fs}px system-ui`;
+          ctx.font = `500 ${fs}px ${_LABEL_FAM}`;
           ctx.lineWidth = 2.5;
           ctx.strokeStyle = `rgba(6,10,18,${(alpha * 0.7).toFixed(2)})`;
           ctx.fillStyle = `rgba(196,214,230,${alpha.toFixed(2)})`;
@@ -804,7 +810,7 @@ export class Tier2Map {
     if (this.cities.length && this.zoom >= 1.2) {
       const minPop = this.zoom < 2.4 ? 5000000 : this.zoom < 4 ? 500000 : 50000;
       const placed = [];
-      ctx.font = "10.5px system-ui";
+      ctx.font = `10.5px ${_LABEL_FAM}`;
       ctx.textAlign = "left";
       ctx.textBaseline = "middle";
       for (const c of this.cities) {
@@ -884,7 +890,7 @@ export class Tier2Map {
           ctx.fillStyle = "#4da3ff";
           ctx.beginPath(); ctx.arc(xx, y, 11, 0, 7); ctx.fill();
           ctx.fillStyle = "#081120";
-          ctx.font = "bold 11px system-ui";
+          ctx.font = `bold 11px ${_LABEL_FAM}`;
           ctx.textAlign = "center"; ctx.textBaseline = "middle";
           ctx.fillText(String(c.members.length), xx, y);
         } else {

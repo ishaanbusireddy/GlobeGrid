@@ -78,14 +78,30 @@ CATEGORY_KEYWORDS = {
     # international geopolitics (owner: "add a domestic events category"). Deliberately
     # everyday-governance vocabulary so ordinary national news stops landing in
     # geopolitics or, worse, being conflict-tagged.
+    # v8.16 — retuned per geopolitics/category_defs.py: domestic is "random
+    # national news" — local crime/courts, SPORTS, entertainment/culture, civic
+    # life. Macro-financial words and national-election words were REMOVED from
+    # this list (they belong to finance/geopolitics), and the tie-break priority
+    # now puts finance+geopolitics ABOVE domestic, per the owner: "not finance
+    # related things or large level political news".
     "domestic": ["crime", "murder", "homicide", "shooting", "robbery", "arrest", "police",
-                 "court ruling", "supreme court", "verdict", "lawsuit", "corruption",
-                 "scandal", "bribery", "resignation", "cabinet reshuffle", "budget bill",
-                 "immigration", "healthcare bill", "welfare", "pension", "labor strike",
+                 "court ruling", "verdict", "lawsuit",
+                 "scandal", "bribery", "cabinet reshuffle",
+                 "healthcare bill", "welfare", "pension", "labor strike",
                  "teachers strike", "railway strike", "school", "university", "housing",
                  "wildfire evacuation", "local election", "by-election", "governor",
-                 "mayor", "legislation", "referendum on", "civil unrest", "riot",
-                 "demonstration", "curfew", "public sector", "national holiday"],
+                 "mayor", "civil unrest", "riot",
+                 "demonstration", "curfew", "public sector", "national holiday",
+                 # sports — squarely domestic (owner)
+                 "football", "soccer", "cricket", "olympics", "championship",
+                 "tournament", "premier league", "world cup", "cup final", "nba",
+                 "nfl", "mlb", "grand slam", "tennis", "golf", "formula 1", "f1 ",
+                 "athlete", "stadium", "playoff", "medal", "goalkeeper", "striker",
+                 "innings", "wicket", "derby win", "relegation", "transfer window",
+                 # entertainment / culture / human interest
+                 "box office", "film festival", "movie", "celebrity", "singer",
+                 "album", "concert", "museum", "art exhibition", "heritage",
+                 "lottery", "zoo", "theme park", "restaurant", "tourism boom"],
     # v8.13 — HEALTH: disease/pandemic/public-health (distinct from acute disaster).
     "health": ["pandemic", "epidemic", "outbreak", "virus", "covid", "influenza", "flu",
                "measles", "ebola", "cholera", "malaria", "vaccine", "vaccination",
@@ -94,7 +110,14 @@ CATEGORY_KEYWORDS = {
     "geopolitics": ["election", "president", "prime minister", "parliament", "treaty", "summit",
                     "diplomat", "embassy", "united nations", "nato", "coalition", "vote",
                     "referendum", "foreign policy", "talks", "agreement", "border dispute",
-                    "sanctions", "alliance", "bilateral", "ambassador", "state visit"],
+                    "sanctions", "alliance", "bilateral", "ambassador", "state visit",
+                    # v8.16 — widen so cross-border stories stop falling to 'other'
+                    "foreign minister", "minister", "opposition leader", "president-elect",
+                    "peace deal", "peacekeeping", "annex", "sovereignty", "extradition",
+                    "asylum", "refugee", "migrants", "deportation", "visa", "aid package",
+                    "humanitarian aid", "war crimes", "icc", "geneva", "security council",
+                    "european union", "brussels", "kremlin", "white house", "beijing",
+                    "downing street", "delegation", "accord", "memorandum", "ratif"],
 }
 
 # v5 §3 — split the conflict bucket. 'military' = posturing/drills/deals
@@ -146,8 +169,14 @@ import re as _re
 # technology and finance won on both count and priority — now technology wins the
 # tie). health/domestic slot above finance/geopolitics so a disease outbreak or
 # an internal-affairs story isn't swept into the catch-all geopolitics bucket.
-_CAT_PRIORITY = ["disaster", "conflict", "health", "technology", "domestic",
-                 "finance", "geopolitics"]
+# v8.16 — domestic moved BELOW finance and geopolitics (owner: domestic must
+# be "random national news … not finance related things or large level
+# political news" — on a tie, the macro category wins; sports/culture words
+# only ever hit the domestic list, so real domestic stories still land there).
+# The full normative definition of every category lives in
+# geopolitics/category_defs.py — that file wins any dispute.
+_CAT_PRIORITY = ["disaster", "conflict", "health", "technology",
+                 "finance", "geopolitics", "domestic"]
 # a small compiled word-boundary matcher cache for short single-word keywords
 _WB_CACHE: dict[str, "_re.Pattern"] = {}
 

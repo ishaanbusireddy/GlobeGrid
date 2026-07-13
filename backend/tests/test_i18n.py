@@ -118,7 +118,76 @@ class TestAdversarialRuns(unittest.TestCase):
             res = i18n2.translate_strings("fr", ["one two three", "four five six"])
             self.assertEqual(res["translations"], ["one two three", "four five six"])
             self.assertEqual(res["untranslated"], [0, 1])
+            self.assertEqual(res["deferred"], [],
+                             "attempted-and-failed is untranslated, not deferred")
         finally:
+            self._restore(orig)
+
+    def test_gate_busy_background_defers_without_calling_llm(self):
+        # v8.15.1 — THE flood fix: while any translation call is running, a
+        # background (observer-triggered) call must yield instantly — zero
+        # LLM calls, everything returned as deferred, nothing marked failed.
+        calls = []
+        orig, _ = self._patched(lambda *a, **k: calls.append(1))
+        i18n2._GATE.acquire()
+        try:
+            res = i18n2.translate_strings("fr", ["alpha beta gamma",
+                                                 "delta epsilon zeta"],
+                                          interactive=False)
+            self.assertEqual(calls, [], "background call hit the LLM while busy")
+            self.assertEqual(res["deferred"], [0, 1])
+            self.assertEqual(res["untranslated"], [])
+            self.assertEqual(res["translations"],
+                             ["alpha beta gamma", "delta epsilon zeta"])
+        finally:
+            i18n2._GATE.release()
+            self._restore(orig)
+
+    def test_gate_busy_interactive_waits_its_turn(self):
+        import threading as _t
+        sim = AdversarialSimulator("fr", seed=11)
+        orig, _ = self._patched(sim)
+        i18n2._GATE.acquire()
+        _t.Timer(0.3, i18n2._GATE.release).start()
+        try:
+            res = i18n2.translate_strings("fr", ["the quick brown fox waits"],
+                                          interactive=True)
+            self.assertEqual(res["deferred"], [],
+                             "interactive call must wait, not defer")
+            self.assertNotEqual(res["translations"][0],
+                                "the quick brown fox waits")
+        finally:
+            self._restore(orig)
+
+    def test_budget_runs_first_batch_and_defers_the_rest(self):
+        # budget_seconds=0: batch 0 is GUARANTEED to run (progress on every
+        # call), every later batch + all stragglers come back deferred —
+        # never mislabelled as model failures.
+        sim = AdversarialSimulator("fr", seed=3)
+        orig, _ = self._patched(sim)
+        try:
+            texts = [f"short label number {i} here" for i in range(45)]
+            res = i18n2.translate_strings("fr", texts, budget_seconds=0)
+            translated = [i for i, (s, d) in enumerate(
+                zip(texts, res["translations"])) if d != s]
+            self.assertGreaterEqual(len(translated), 15,
+                                    "first batch must still run at budget 0")
+            self.assertGreaterEqual(len(res["deferred"]), 20,
+                                    "later batches must defer at budget 0")
+            self.assertEqual(res["untranslated"], [],
+                             "budget exhaustion is deferral, never failure")
+            self.assertEqual(len(translated) + len(res["deferred"]), len(texts))
+        finally:
+            self._restore(orig)
+
+    def test_deferred_strings_are_never_cached(self):
+        orig, cache = self._patched(AdversarialSimulator("fr", seed=5))
+        i18n2._GATE.acquire()
+        try:
+            i18n2.translate_strings("fr", ["hello wide world"], interactive=False)
+            self.assertEqual(cache, {}, "a deferred string was cached")
+        finally:
+            i18n2._GATE.release()
             self._restore(orig)
 
     def test_failures_are_never_cached(self):

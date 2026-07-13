@@ -66,9 +66,28 @@ def main(langs: list[str]) -> int:
         print("=" * 72)
         print(f"TARGET LANGUAGE: {lang}")
         print("=" * 72)
+        # v8.15.1 — translate_strings now works in budgeted slices (the
+        # `deferred` list), exactly like the frontend's progressive fill.
+        # Loop until nothing is deferred: successes are cached, so each round
+        # only spends model time on the remainder.
         res = i18n2.translate_strings(lang, FIXED_SET, interactive=True)
+        rounds = 1
+        while res["deferred"] and rounds < 30:
+            res = i18n2.translate_strings(lang, FIXED_SET, interactive=True)
+            rounds += 1
+        if res["deferred"]:
+            print(f"✗ {lang}: {len(res['deferred'])} strings STILL deferred "
+                  f"after {rounds} rounds — the model may be unreachable or "
+                  "pathologically slow.")
+            overall_fail += len(res["deferred"])
+        deferred_left = set(res["deferred"])
         for i, (src, dst) in enumerate(zip(FIXED_SET, res["translations"])):
-            mark = "✗ ENGLISH" if i in res["untranslated"] else "✓"
+            if i in res["untranslated"]:
+                mark = "✗ ENGLISH (attempted, model failed)"
+            elif i in deferred_left:
+                mark = "✗ DEFERRED (never attempted — gate/budget)"
+            else:
+                mark = "✓"
             print(f"[{i:02d}] {mark}")
             print(f"     EN: {src[:100]}")
             print(f"     {lang}: {dst[:100]}")
@@ -81,7 +100,7 @@ def main(langs: list[str]) -> int:
                   "diagnostics at GET /api/i18n/diagnostics it contains "
                   "everything needed.")
             overall_fail += n_fail
-        else:
+        elif not deferred_left:
             print(f"\n✓ {lang}: all {len(FIXED_SET)} strings translated.")
     print("=" * 72)
     if overall_fail:

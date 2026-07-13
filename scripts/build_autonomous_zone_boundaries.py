@@ -26,6 +26,31 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "backend"))
 from app.geopolitics import admin_atlas as A   # noqa: E402
 
 # zone id -> (iso3, [exact atlas ADM1 names]) — the units that make up the zone.
+# v8.16 — the UK devolved nations join (owner): their member lists are the SAME
+# local-authority name sets admin_thematic's language/sect overrides use, so
+# the two stay in lockstep by construction.
+_WALES_LAS = [
+    "anglesey", "blaenau gwent", "bridgend", "caerphilly", "cardiff",
+    "carmarthenshire", "ceredigion", "conwy", "denbighshire", "flintshire",
+    "gwynedd", "merthyr tydfil", "monmouthshire", "neath port talbot",
+    "newport", "pembrokeshire", "powys", "rhondda cynon taf", "swansea",
+    "torfaen", "vale of glamorgan", "wrexham"]
+_SCOTLAND_LAS = [
+    "aberdeen", "aberdeenshire", "angus", "argyll and bute",
+    "clackmannanshire", "dumfries and galloway", "dundee", "east ayrshire",
+    "east dunbartonshire", "east lothian", "east renfrewshire", "edinburgh",
+    "falkirk", "fife", "glasgow", "highland", "inverclyde", "midlothian",
+    "moray", "north ayrshire", "north lanarkshire", "orkney islands",
+    "outer hebrides", "perth and kinross", "renfrewshire",
+    "scottish borders", "shetland islands", "south ayrshire",
+    "south lanarkshire", "stirling", "west dunbartonshire", "west lothian"]
+_NI_LAS = [
+    "antrim", "ards", "armagh", "ballymena", "ballymoney", "banbridge",
+    "belfast", "carrickfergus", "castlereagh", "coleraine", "craigavon",
+    "derry", "down", "dungannon and south tyrone", "fermanagh", "larne",
+    "limavady", "lisburn", "magherafelt", "mid ulster", "moyle",
+    "newry and mourne", "newtownabbey", "north down", "omagh", "strabane"]
+
 ZONE_MEMBERS = {
     "iraqi_kurdistan": ("IRQ", ["Erbil", "Duhok", "Sulaymaniyah"]),
     "rojava": ("SYR", ["Al-Hasakah", "Al-Raqqah", "Deir ez-Zor"]),
@@ -35,6 +60,9 @@ ZONE_MEMBERS = {
                           "Sadarak", "Shahbuz", "Sharur"]),
     "bougainville": ("PNG", ["of Bougainville"]),
     "catalonia": ("ESP", ["Barcelona", "Girona", "Lleida", "Tarragona"]),
+    "scotland": ("GBR", _SCOTLAND_LAS),
+    "wales": ("GBR", _WALES_LAS),
+    "northern_ireland": ("GBR", _NI_LAS),
 }
 
 SNAP = 1e-4   # ~11 m — coordinate snap for the edge-dissolve union
