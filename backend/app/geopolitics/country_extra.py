@@ -875,7 +875,21 @@ def derive_alignments(iso3):
             base = {"strong": [], "partner": ["USA", "CHN", "RUS", "EU"], "rival": []}
         else:
             return None
-    return _apply_overrides(iso3, base)
+    out = _apply_overrides(iso3, base)
+    # v8.17 — a country must never appear in its OWN alignment buckets (the
+    # hardcoded nonaligned/fallback partner lists — USA/CHN/RUS/IND/BRA/SAU —
+    # put e.g. India in India's own partners, which then self-colored on the
+    # alignment map). Strip self + de-dupe while preserving order. Caught by
+    # test_data_integrity.test_alignment_buckets_are_disjoint_valid_iso3.
+    for bucket in ("strong", "partner", "rival"):
+        seen, cleaned = set(), []
+        for code in out.get(bucket) or []:
+            if code == iso3 or code in seen:
+                continue
+            seen.add(code)
+            cleaned.append(code)
+        out[bucket] = cleaned
+    return out
 
 
 # v6.6.2 — rich bloc-profile metadata for the full bloc panels (owner wanted

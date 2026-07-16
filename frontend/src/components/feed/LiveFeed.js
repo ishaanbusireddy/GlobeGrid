@@ -70,9 +70,9 @@ export class LiveFeed {
         <span class="chip cat-${s.category || "other"}">${s.category || "other"}</span>
         <span class="badge-src">${s.source_count || 0} src · ${s.member_count || 0} ev</span>
         <span class="conf conf-${conf}">${conf}</span>
-        ${s.has_historical_link ? '<span class="badge-chain" title="linked to the historical fact chain">⛓ chain</span>' : ""}
-        ${s.corroboration ? `<span class="badge-corrob" title="corroborated by physical sensors (thermal/air-traffic/seismic) agreeing with the reporting — score ${Math.round(s.corroboration * 100)}%">📡 corroborated ${Math.round(s.corroboration * 100)}%</span>` : ""}
-        ${s.conflict_id && s.conflict_name ? `<span class="chip chip-conflict" data-cid="${s.conflict_id}" title="part of this conflict — open War Mode">⚔ ${s.conflict_name}</span>` : ""}
+        ${s.has_historical_link ? '<span class="badge-chain" title="linked to the historical fact chain">chain</span>' : ""}
+        ${s.corroboration ? `<span class="badge-corrob" title="corroborated by physical sensors (thermal/air-traffic/seismic) agreeing with the reporting — score ${Math.round(s.corroboration * 100)}%">corroborated ${Math.round(s.corroboration * 100)}%</span>` : ""}
+        ${s.conflict_id && s.conflict_name ? `<span class="chip chip-conflict" data-cid="${s.conflict_id}" title="part of this conflict — open War Mode">${s.conflict_name}</span>` : ""}
         <span>${when}</span>
       </div>`;
     card.querySelector("h3").textContent = s.headline || "(untitled story)";

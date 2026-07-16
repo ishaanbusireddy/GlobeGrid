@@ -40,7 +40,7 @@ function branchCard(b, ctx) {
       <p class="cfx-mech">${esc(b.mechanism || "")}</p>
       ${b.precedent ? `<p class="cp-meta">precedent: ${esc(b.precedent)}</p>` : ""}
       <p class="cp-meta">
-        ${b.chain_support ? `⛓ ${b.chain_support} related events in GlobeGrid's own archive` : ""}
+        ${b.chain_support ? `${b.chain_support} related events in GlobeGrid's own archive` : ""}
         ${chips ? ` · affects ${chips}` : ""}</p>
       <div class="cfx-branch-actions">
         <button class="ap-chip cfx-deepen" data-id="${esc(b.id)}">↳ deepen — what follows from this?</button>
@@ -62,7 +62,7 @@ function renderScenario(host, sc, ctx) {
   host.innerHTML = `
     <div class="cfx-scenario">
       <div class="cfx-divergence">
-        <span class="cfx-real">◉ real timeline</span>
+        <span class="cfx-real">Real timeline</span>
         <span class="cfx-arrow">⤳ divergence: <b>${esc(sc.perturbation)}</b></span>
         ${sc.ai === false ? '<span class="chip">structural fallback — configure AI for the full simulation</span>'
                           : '<span class="chip">AI simulation · grounded in the fact chain</span>'}
@@ -109,7 +109,7 @@ function renderScenario(host, sc, ctx) {
 
 export async function renderWhatIf(el, ctx) {
   el.innerHTML = `
-    <h1>🔮 What-If — Counterfactual Engine</h1>
+    <h1>What-If — Counterfactual Engine</h1>
     <p class="cp-meta">Perturb the world and watch the consequence tree diverge
       from the real timeline — every branch mechanism-scored and checked
       against GlobeGrid's own permanent fact chain.</p>
@@ -147,7 +147,7 @@ export async function renderWhatIf(el, ctx) {
     rec.innerHTML = (r.scenarios || []).length
       ? `<p class="cp-meta">recent: ${r.scenarios.slice(0, 5).map((s) =>
           `<button class="ap-chip cfx-re">${esc(s.perturbation.slice(0, 48))}</button>`).join(" ")}
-          <button class="ap-chip cfx-clear" title="Clear the what-if history">✕ clear history</button></p>`
+          <button class="ap-chip cfx-clear" title="Clear the what-if history">Clear history</button></p>`
       : "";
     rec.querySelectorAll(".cfx-re").forEach((b, i) =>
       b.addEventListener("click", () => run(r.scenarios[i].perturbation)));

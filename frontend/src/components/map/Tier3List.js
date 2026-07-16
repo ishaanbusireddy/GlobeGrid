@@ -27,8 +27,8 @@ function regionOf(lat, lon) {
   return "Other / polar";
 }
 
-const CAT_ICON = { geopolitics: "🏛", finance: "💹", disaster: "🌪",
-                   conflict: "⚔", military: "🪖", other: "•" };
+const CAT_ICON = { geopolitics: "", finance: "", disaster: "",
+                   conflict: "", military: "", other: "•" };
 
 export class Tier3List {
   constructor(host, { onSelectEvent } = {}) {

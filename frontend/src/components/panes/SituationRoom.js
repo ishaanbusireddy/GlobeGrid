@@ -24,7 +24,7 @@ function msg(p, text, cites, ctx, extraClass = "") {
 }
 
 export async function renderSituationRoom(el, cid, ctx) {
-  el.innerHTML = `<h1>🎙 Situation Room</h1>
+  el.innerHTML = `<h1>Situation Room</h1>
     <p class="cp-meta sr-loading">convening the analysts — each writes a
       doctrine-true reading of the live source chain (first open can take a
       minute on a local model)…</p>

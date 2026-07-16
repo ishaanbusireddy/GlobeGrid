@@ -2,7 +2,7 @@
 // Prediction Markets and the Diplomatic Window. Every window states its data
 // layering honestly: LIVE (extracted events, sensors, real prediction-market
 // odds) vs CURATED (year+source-labelled statistics). Opened from the header
-// 📊 trackers button; each window is its own pane page.
+// trackers button; each window is its own pane page.
 import { api } from "../../api/client.js";
 import { formatDateTime } from "../../data/timefmt.js";
 
@@ -12,19 +12,19 @@ const usdB = (n) => (n == null ? "—" : "$" + (n >= 1000 ? (n / 1000).toFixed(2
 
 export function renderTrackers(el, ctx) {
   el.innerHTML = `
-    <h1>📊 Tracking windows</h1>
+    <h1>Tracking Windows</h1>
     <p class="cp-meta">Live, focused monitors over the same event chain the map runs on —
        plus curated statistical context (every curated figure carries its year + source).</p>
     <div class="tracker-grid">
-      <button class="tracker-card" data-w="military">🪖 <b>Military tracker</b>
-        <span>Live military & conflict events with coordinates, physical-sensor tracks, standing force posture</span></button>
-      <button class="tracker-card" data-w="trade">🚢 <b>Trade & resources</b>
+      <button class="tracker-card" data-w="military"><b>Military Tracker</b>
+        <span>Live Military & Conflict Events with coordinates, physical-sensor tracks, standing force posture</span></button>
+      <button class="tracker-card" data-w="trade"><b>Trade & Resources</b>
         <span>Exports/imports, partners, chokepoints, resources & industry by country + live trade news</span></button>
-      <button class="tracker-card" data-w="markets">📈 <b>Markets</b>
+      <button class="tracker-card" data-w="markets"><b>Markets</b>
         <span>Live market & finance events off the wire + the hourly market briefing</span></button>
-      <button class="tracker-card" data-w="pred">🎲 <b>Prediction markets</b>
+      <button class="tracker-card" data-w="pred"><b>Prediction Markets</b>
         <span>Real-money geopolitics odds from Polymarket & Kalshi, refreshed live</span></button>
-      <button class="tracker-card" data-w="diplomacy">🤝 <b>Diplomatic window</b>
+      <button class="tracker-card" data-w="diplomacy"><b>Diplomatic Window</b>
         <span>Any two countries: current stance, background briefs, and their shared live coverage</span></button>
     </div>`;
   el.querySelectorAll(".tracker-card").forEach((b) => b.addEventListener("click", () => {
@@ -38,25 +38,25 @@ export function renderTrackers(el, ctx) {
 }
 
 export async function renderMilitary(el, ctx) {
-  el.innerHTML = `<h1>🪖 Military tracker</h1><p class="cp-meta">loading…</p>`;
+  el.innerHTML = `<h1>Military Tracker</h1><p class="cp-meta">loading…</p>`;
   const d = await api.military(120).catch(() => null);
-  if (!d) { el.innerHTML = "<h1>🪖 Military tracker</h1><p>Unavailable right now.</p>"; return; }
+  if (!d) { el.innerHTML = "<h1>Military Tracker</h1><p>Unavailable right now.</p>"; return; }
   const evRow = (e, sensor) => `
     <button class="ap-chip trk-evt" data-lat="${e.lat}" data-lon="${e.lon}">
-      <span class="chip cat-${esc(e.category || "conflict")}">${sensor ? "📡 " + esc(e.source_type) : esc(e.development_type || e.category)}</span>
+      <span class="chip cat-${esc(e.category || "conflict")}">${sensor ? "" + esc(e.source_type) : esc(e.development_type || e.category)}</span>
       <span class="trk-evt-t">${esc(e.title)}</span>
       <span class="cp-meta">${e.lat != null ? e.lat.toFixed(2) + ", " + e.lon.toFixed(2) : ""} · ${esc(formatDateTime(e.occurred_at))}</span>
     </button>`;
   el.innerHTML = `
-    <h1>🪖 Military tracker</h1>
+    <h1>Military Tracker</h1>
     <p class="cp-meta">${esc(d.layers_note)}</p>
-    <section><h4>⚔ Live military & conflict events <span class="cp-meta">(extracted from the wire, precise coordinates)</span></h4>
+    <section><h4>Live Military & Conflict Events <span class="cp-meta">(extracted from the wire, precise coordinates)</span></h4>
       ${d.events.length ? d.events.map((e) => evRow(e, false)).join("") : "<p class='cp-meta'>No live military events in the chain right now — they stream in as sources report.</p>"}
     </section>
-    <section><h4>📡 Physical-sensor tracks <span class="cp-meta">(air traffic / shipping / thermal / seismic — key-gated feeds say so)</span></h4>
+    <section><h4>Physical-sensor Tracks <span class="cp-meta">(air traffic / shipping / thermal / seismic — key-gated feeds say so)</span></h4>
       ${d.sensors.length ? d.sensors.map((e) => evRow(e, true)).join("") : "<p class='cp-meta'>No sensor tracks in-window (AIS/FIRMS/OpenSky keys or live reach required).</p>"}
     </section>
-    <section><h4>🗺 Standing force posture <span class="cp-meta">(curated context, mid-2026 — not live tracks)</span></h4>
+    <section><h4>Standing Force Posture <span class="cp-meta">(curated context, mid-2026 — not live tracks)</span></h4>
       ${d.posture.map((p) => `
         <button class="ap-chip trk-evt" data-lat="${p.lat}" data-lon="${p.lon}">
           <b>${esc(p.actor)}</b> <span class="trk-evt-t">${esc(p.what)}</span>
@@ -70,7 +70,7 @@ export async function renderMilitary(el, ctx) {
 }
 
 export async function renderTrade(el, ctx, iso3) {
-  el.innerHTML = `<h1>🚢 Trade & resources</h1><p class="cp-meta">loading…</p>`;
+  el.innerHTML = `<h1>Trade & Resources</h1><p class="cp-meta">loading…</p>`;
   const world = await api.tradeWorld().catch(() => null);
   const opts = (world?.countries_covered || []).map((c) =>
     `<option value="${c}"${c === iso3 ? " selected" : ""}>${c}</option>`).join("");
@@ -78,14 +78,14 @@ export async function renderTrade(el, ctx, iso3) {
   if (iso3) country = await api.tradeCountry(iso3).catch(() => null);
   const w = world?.world || {};
   el.innerHTML = `
-    <h1>🚢 Trade & resources</h1>
-    <section><h4>🌐 World trade</h4>
+    <h1>Trade & Resources</h1>
+    <section><h4>World Trade</h4>
       <div class="stat-grid">
         <div class="stat-cell"><span>World exports</span><b>${usdB(w.world_exports_usd_b)}</b></div>
         <div class="stat-cell"><span>Year</span><b>${esc(w.year || "")}</b></div>
       </div>
       <p class="cp-meta">${esc(w.src || "")}</p>
-      ${(w.chokepoints || []).length ? `<h4>⚓ Chokepoints</h4>` + w.chokepoints.map((c) =>
+      ${(w.chokepoints || []).length ? `<h4>Chokepoints</h4>` + w.chokepoints.map((c) =>
         `<div class="src-row"><b>${esc(c.name)}</b> — ${esc(c.share)} <span class="cp-meta">${esc(c.note || "")}</span></div>`).join("") : ""}
     </section>
     <section><h4>Country profile</h4>
@@ -104,12 +104,12 @@ export async function renderTrade(el, ctx, iso3) {
       <p><b>Top imports:</b> ${esc((t.top_imports || []).join(", "))}</p>
       <p><b>Main partners:</b> ${esc((t.partners || []).join(", "))}</p>
       <p class="cp-meta">${esc(t.src || "")}</p>` : `<p class="cp-meta">${esc(country.note)}</p>`}
-      ${r ? `<h4>⛏ Resources & industry</h4>
+      ${r ? `<h4>Resources & Industry</h4>
         <p><b>Key resources:</b> ${esc((r.resources || []).join(", "))}</p>
         ${r.production ? `<p><b>Headline production:</b> ${esc(r.production)}</p>` : ""}
         ${r.industry ? `<p><b>Industrial base:</b> ${esc(r.industry)}</p>` : ""}
         <p class="cp-meta">${esc(r.src || "")}</p>` : ""}
-      ${(country.live_trade_news || []).length ? `<h4>📰 Live trade coverage</h4>` +
+      ${(country.live_trade_news || []).length ? `<h4>Live Trade Coverage</h4>` +
         country.live_trade_news.map((s) => `<button class="ap-chip trk-story" data-id="${esc(s.id)}">${esc(s.headline)}</button>`).join("") : ""}`;
     body.querySelectorAll(".trk-story").forEach((b) =>
       b.addEventListener("click", () => ctx.openStory && ctx.openStory(b.dataset.id)));
@@ -120,11 +120,11 @@ export async function renderTrade(el, ctx, iso3) {
 }
 
 export async function renderMarketsLive(el, ctx) {
-  el.innerHTML = `<h1>📈 Markets</h1><p class="cp-meta">loading…</p>`;
+  el.innerHTML = `<h1>Markets</h1><p class="cp-meta">loading…</p>`;
   const d = await api.marketsLive().catch(() => null);
-  if (!d) { el.innerHTML = "<h1>📈 Markets</h1><p>Unavailable right now.</p>"; return; }
+  if (!d) { el.innerHTML = "<h1>Markets</h1><p>Unavailable right now.</p>"; return; }
   el.innerHTML = `
-    <h1>📈 Markets</h1>
+    <h1>Markets</h1>
     <p class="cp-meta">${esc(d.note)}</p>
     ${d.market_briefing ? `<section><h4>Market briefing</h4>
       <div class="briefing-text">${esc(d.market_briefing.content).replace(/\n/g, "<br>")}</div>
@@ -138,11 +138,11 @@ export async function renderMarketsLive(el, ctx) {
 }
 
 export async function renderPredMarkets(el, ctx, q) {
-  el.innerHTML = `<h1>🎲 Prediction markets</h1><p class="cp-meta">loading live odds…</p>`;
+  el.innerHTML = `<h1>Prediction Markets</h1><p class="cp-meta">loading live odds…</p>`;
   const d = await api.predMarkets(q).catch(() => null);
-  if (!d) { el.innerHTML = "<h1>🎲 Prediction markets</h1><p>Unavailable right now.</p>"; return; }
+  if (!d) { el.innerHTML = "<h1>Prediction Markets</h1><p>Unavailable right now.</p>"; return; }
   el.innerHTML = `
-    <h1>🎲 Prediction markets</h1>
+    <h1>Prediction Markets</h1>
     <p class="cp-meta">${esc(d.note)}</p>
     <div class="feed-tools"><input id="trk-pred-q" placeholder="filter markets… (e.g. ukraine, taiwan)" value="${esc(q || "")}">
       <button id="trk-pred-r" class="ap-chip">↻ refresh</button></div>
@@ -165,7 +165,7 @@ export async function renderDiplomacy(el, ctx, a, b) {
   const opts = (sel) => list.map((c) =>
     `<option value="${c.id}"${c.id === sel ? " selected" : ""}>${esc(c.name)}</option>`).join("");
   el.innerHTML = `
-    <h1>🤝 Diplomatic window</h1>
+    <h1>Diplomatic Window</h1>
     <p class="cp-meta">Pick any two countries for their current stance, background briefs, and shared live coverage.</p>
     <div class="feed-tools">
       <select id="dip-a"><option value="">country A</option>${opts(a)}</select>
@@ -191,7 +191,7 @@ export async function renderDiplomacy(el, ctx, a, b) {
     </section>
     <section><h4>${esc(d.a.name)} — background</h4><p>${esc(d.a.brief) || "<i>no curated brief</i>"}</p></section>
     <section><h4>${esc(d.b.name)} — background</h4><p>${esc(d.b.brief) || "<i>no curated brief</i>"}</p></section>
-    <section><h4>📰 Shared live coverage <span class="cp-meta">— stories naming both</span></h4>
+    <section><h4>Shared Live Coverage <span class="cp-meta">— stories naming both</span></h4>
       ${(d.shared_coverage || []).length ? d.shared_coverage.map((s) =>
         `<button class="ap-chip dip-story" data-id="${esc(s.id)}">${esc(s.headline)}
          <span class="cp-meta">${esc(formatDateTime(s.last_updated_at))}</span></button>`).join("")
@@ -213,7 +213,7 @@ export async function renderDiplomacy(el, ctx, a, b) {
 export async function predMarketStrip(el, conflictName) {
   const d = await api.predMarkets(conflictName).catch(() => null);
   if (!d || !(d.markets || []).length) { el.innerHTML = ""; return; }
-  el.innerHTML = `<h4>🎲 Public sentiment — live odds</h4>` + d.markets.slice(0, 4).map((m) => `
+  el.innerHTML = `<h4>Public Sentiment — Live Odds</h4>` + d.markets.slice(0, 4).map((m) => `
     <a class="src-row pred-row" href="${esc(m.url)}" target="_blank" rel="noopener">
       <span class="pred-odds">${m.yes_price != null ? Math.round(m.yes_price * 100) + "%" : "—"}</span>
       <span>${esc(m.title)}</span>

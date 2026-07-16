@@ -97,14 +97,14 @@ export class StoryPage {
       <ul class="summary-bullets"></ul>
       <div class="full-summary-row">
         <button class="full-summary-btn">≡ full summary</button>
-        <button class="full-summary-btn pan-to-event" hidden>⌖ pan to event</button>
+        <button class="full-summary-btn pan-to-event" hidden>Pan to Event</button>
         <p class="summary hidden"></p></div>
-      <div class="read-more-row"><button class="read-more-btn">☰ read more — deeper synthesis</button>
+      <div class="read-more-row"><button class="read-more-btn">Read more — deeper synthesis</button>
         <div class="deep-summary hidden"></div></div>
       <div class="v3-toprow">
         <span class="feedback-row">was this really the same story?
-          <button class="fb-up" title="yes — correctly linked">👍</button>
-          <button class="fb-down" title="no — wrongly linked">👎</button></span>
+          <button class="fb-up" title="Yes — correctly linked">Yes</button>
+          <button class="fb-down" title="No — wrongly linked">No</button></span>
         <span class="tag-suggest hidden"></span>
       </div>
       <section class="sec-narrative"><h4>Causal storyline</h4><div class="narrative-grid"></div>
@@ -124,8 +124,8 @@ export class StoryPage {
         <div class="trace-body hidden"></div></section>
       <section class="sec-sources"><h4>All sources</h4><div class="srcs"></div></section>
       <div class="watch-row">
-        <button class="watch-cat">☆ watch category</button>
-        <button class="watch-region">☆ watch region</button>
+        <button class="watch-cat">Watch category</button>
+        <button class="watch-region">Watch region</button>
       </div>`;
 
     page.querySelector("h1").textContent = s.headline || "(untitled story)";
@@ -134,8 +134,8 @@ export class StoryPage {
     const impactedRow = page.querySelector(".impacted-row");
     const impacted = s.impacted || [];
     if (impacted.length && this.onOpenEntity) {
-      const icon = { country: "🏳", territory: "🏝", alliance: "🤝",
-                     non_state_actor: "⚑", zone: "⚑" };
+      const icon = { country: "", territory: "", alliance: "",
+                     non_state_actor: "", zone: "" };
       // v8.13.4 — a country/territory chip leads with its REAL flag image
       // (owner: "the country chip … should have the ACTUAL FLAG OF THE COUNTRY
       // and a bit larger than it is now"); a broken flag falls back to the glyph.
@@ -214,7 +214,7 @@ export class StoryPage {
           body.dataset.loaded = "1";
           const rows = (t.members || []).map((m) => `
             <div class="trace-row">
-              <span class="via-${m.linked_via}">${m.linked_via === "historical_chain" ? "⛓" : "◆"}</span>
+              <span class="via-${m.linked_via}">${m.linked_via === "historical_chain" ? "" : "◆"}</span>
               <span class="trace-title">${(m.title || "(fact-only member)").replace(/</g, "&lt;")}</span>
               <span class="cp-meta">${m.linked_via.replace("_", " ")}${
                 m.similarity_to_previous != null
@@ -243,12 +243,12 @@ export class StoryPage {
       if (typeof det === "string") { try { det = JSON.parse(det); } catch { det = null; } }
       const pct = Math.round(s.corroboration * 100);
       const types = (det?.sensor_types || []).map((t) => ({
-        firms: "🔥 thermal", opensky: "✈ air-traffic", usgs: "地 seismic",
-        acled: "⚔ ACLED" }[t] || t)).join(" · ");
+        firms: "thermal", opensky: "air-traffic", usgs: "seismic",
+        acled: "ACLED" }[t] || t)).join(" · ");
       const hits = (det?.hits || []).slice(0, 4).map((h) =>
         `<li>${esc(h.title || h.type)} <span class="cp-meta">(${esc(h.type)}, ${h.km} km away)</span></li>`).join("");
       cbanner.innerHTML = `
-        <div class="corrob-head">📡 <b>Corroborated ${pct}%</b>
+        <div class="corrob-head"><b>Corroborated ${pct}%</b>
           <span class="cp-meta">physical sensors agree with the reporting</span></div>
         ${types ? `<p class="cp-meta">signals: ${types}</p>` : ""}
         ${hits ? `<ul class="corrob-hits">${hits}</ul>` : ""}
@@ -294,11 +294,11 @@ export class StoryPage {
     // v3 §5 — correlation feedback thumbs
     page.querySelector(".fb-up").addEventListener("click", async (ev) => {
       await api.storyFeedback(s.id, "correct");
-      ev.target.parentElement.innerHTML = "✓ thanks — feeds threshold tuning";
+      ev.target.parentElement.innerHTML = "Thanks — feeds threshold tuning";
     });
     page.querySelector(".fb-down").addEventListener("click", async (ev) => {
       await api.storyFeedback(s.id, "incorrect");
-      ev.target.parentElement.innerHTML = "✓ noted — thresholds will tighten";
+      ev.target.parentElement.innerHTML = "Noted — thresholds will tighten";
     });
 
     // v8.16 — the suggested-conflict confirm UI is REMOVED (owner: "it
@@ -325,11 +325,11 @@ export class StoryPage {
         const high = s.disagreement_score >= 0.35;
         badge.className = "disagreement-badge " + (high ? "dis-high" : "dis-low");
         badge.textContent = high
-          ? `⚡ analysts disagree (${(s.disagreement_score * 100).toFixed(0)}%)`
+          ? `analysts disagree (${(s.disagreement_score * 100).toFixed(0)}%)`
           : `analysts broadly agree (${(s.disagreement_score * 100).toFixed(0)}% divergence)`;
       }
       const cols = page.querySelector(".debate-cols");
-      const ICONS = { skeptic: "🔍", historian: "📜", optimist: "🌅" };
+      const ICONS = { skeptic: "", historian: "", optimist: "" };
       for (const persona of ["skeptic", "historian", "optimist"]) {
         const n = debate[persona];
         if (!n) continue;
@@ -398,7 +398,7 @@ export class StoryPage {
     for (const p of s.predictions || []) {
       const div = document.createElement("div");
       div.className = "pred-item pred-" + p.status;
-      const icon = p.status === "confirmed" ? "✔" : p.status === "refuted" ? "✘" : "…";
+      const icon = p.status === "confirmed" ? "" : p.status === "refuted" ? "" : "…";
       div.innerHTML = `<span class="pred-status">${icon} ${p.status}</span> <span></span>`;
       div.querySelector("span:last-child").textContent = p.consequence_text;
       preds.appendChild(div);
@@ -418,7 +418,7 @@ export class StoryPage {
         ? ' <span class="chip chip-official">official</span>' : "";
       const dup = m.is_duplicate ? ' <span class="cp-meta">(wire copy)</span>' : "";
       item.innerHTML = `<time>${when}</time>
-        <span class="via-${m.linked_via}" title="${m.linked_via}">${m.linked_via === "historical_chain" ? "⛓" : "◆"}</span>
+        <span class="via-${m.linked_via}" title="${m.linked_via}">${m.linked_via === "historical_chain" ? "" : "◆"}</span>
         <span class="tl-body"></span>`;
       const body = item.querySelector(".tl-body");
       body.textContent = `${m.source?.name || "?"} — ${m.title}`;
@@ -438,7 +438,7 @@ export class StoryPage {
       const div = document.createElement("div");
       div.className = "history-item";
       div.innerHTML = `<b></b> <span></span>
-        <button class="ap-chip lineage-btn" title="everything this fact fed into">🦋 lineage</button>
+        <button class="ap-chip lineage-btn" title="everything this fact fed into">Lineage</button>
         <br><small style="color:var(--text-dim)"></small>`;
       div.querySelector("b").textContent = f.who;
       div.querySelector("span").textContent = `${f.what} (${f.where || "n/a"})`;
@@ -526,7 +526,7 @@ export class StoryPage {
     // §6.2 quick-pin watch buttons
     page.querySelector(".watch-cat").addEventListener("click", async (ev) => {
       await api.watchlistAdd("category", s.category || "other");
-      ev.target.textContent = "★ watching category";
+      ev.target.textContent = "Watching category";
       this.onWatch();
     });
     const region = (s.members || []).map((m) => m.location_name).find(Boolean);
@@ -534,7 +534,7 @@ export class StoryPage {
     if (region) {
       regionBtn.addEventListener("click", async (ev) => {
         await api.watchlistAdd("region", region);
-        ev.target.textContent = `★ watching ${region}`;
+        ev.target.textContent = `Watching ${region}`;
         this.onWatch();
       });
     } else regionBtn.style.display = "none";

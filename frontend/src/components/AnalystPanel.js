@@ -40,8 +40,8 @@ export class AnalystPanel {
         <label class="ap-autonav" title="jump the UI to the answer's subject automatically">
           <input type="checkbox" ${this.autoNav ? "checked" : ""}> auto-navigate
         </label>
-        <button class="ap-clear" title="clear conversation history">🗑 clear</button>
-        <button class="ap-close">✕</button>
+        <button class="ap-clear" title="Clear conversation history">Clear</button>
+        <button class="ap-close" aria-label="Close">×</button>
       </div>
       <div class="ap-messages"></div>
       <form class="ap-form">
@@ -162,7 +162,7 @@ export class AnalystPanel {
     } catch (err) {
       const stopped = this.inflight && this.inflight.signal.aborted;
       thinking.textContent = stopped
-        ? "⏹ stopped."
+        ? "Stopped."
         : (/timeout/i.test(err.message)
             ? "the analyst took too long and was stopped — try a narrower "
               + "question, or check your AI key in Settings."
@@ -256,7 +256,7 @@ export class AnalystPanel {
       for (const c of (linked.conflicts || [])) {
         const chip = document.createElement("button");
         chip.className = "ap-chip ap-nav";
-        chip.textContent = "⚔ " + c.name;
+        chip.textContent = c.name;
         chip.addEventListener("click", () =>
           this.onNavigate && this.onNavigate({ type: "conflict", id: c.id, name: c.name }));
         wrap.appendChild(chip);
@@ -264,14 +264,14 @@ export class AnalystPanel {
       for (const t of (linked.threads || [])) {
         const chip = document.createElement("button");
         chip.className = "ap-chip";
-        chip.textContent = "🧵 " + t.name;
+        chip.textContent = t.name;
         chip.addEventListener("click", () => this.onOpenThread(t.id));
         wrap.appendChild(chip);
       }
       for (const st of (linked.recent_stories || []).slice(0, 5)) {
         const chip = document.createElement("button");
         chip.className = "ap-chip";
-        chip.textContent = "⌕ " + (st.headline || "").slice(0, 44);
+        chip.textContent = (st.headline || "").slice(0, 44);
         chip.addEventListener("click", () => this.onOpenStory(st.id));
         wrap.appendChild(chip);
       }
@@ -289,7 +289,7 @@ export class AnalystPanel {
       for (const c of citations) {
         const chip = document.createElement("button");
         chip.className = "ap-chip";
-        chip.textContent = "⌕ " + (c.headline || c.id).slice(0, 44);
+        chip.textContent = (c.headline || c.id).slice(0, 44);
         chip.title = c.headline || c.id;
         chip.addEventListener("click", () => this.onOpenStory(c.id));
         chips.appendChild(chip);

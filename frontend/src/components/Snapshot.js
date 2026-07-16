@@ -33,7 +33,7 @@ export async function exportSnapshot({ mapHost, stories, instability }) {
 
   ctx.fillStyle = "#4da3ff";
   ctx.font = "bold 34px system-ui";
-  ctx.fillText("◉ GLOBEGRID", 48, SIZE - 300);
+  ctx.fillText("GLOBEGRID", 48, SIZE - 300);
   if (instability != null) {
     ctx.fillStyle = "#ffd166";
     ctx.font = "bold 30px system-ui";

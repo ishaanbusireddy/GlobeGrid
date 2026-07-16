@@ -18,6 +18,88 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v8.17.0)
+
+**v8.17.0 (2026-07-16, the professional-polish + infrastructure batch):** the
+owner asked to "start capitalizing buttons/titles properly and stop using
+emojis — it shouldn't look like some teenager's Clauded project," plus build out
+the structural gaps from the roadmap brainstorm (everything except a public
+scorecard page). Delivered as one update.
+
+- **The whole UI is de-emojified and Title-Cased.** Every one of the ~444
+  pictographic emoji across the frontend (📊 ⚔ 🌍 🎙 🔮 🎯 📡 🔥 🧵 📍 🎧 …) was
+  removed and the header/panels reworded to clean Title Case: the top bar now
+  reads **Find · Stories · Conflicts · Trackers · What-If · UN · Briefing ·
+  Audio · Graph · Watchlist · Saved · Borders · Disputed · Zones · Hotspots ·
+  Names · Spin · Map Modes · Non-state Actors · Strategic Sites · Satellites ·
+  Sensors · Blocs ▾ · Screenshot · Settings · Sources · Help**. The 🌐 emoji
+  favicon became a clean monochrome globe/grid SVG. Removal was done with a
+  reviewed script (verified 0 emoji in any comparison/logic — display-only) that
+  strips the emoji + one adjacent space and never touches other spacing;
+  geometric UI marks (▾ caret, × close, ⌘ in the shortcuts table) are kept as
+  functional icons. Every emoji-only button that would have gone blank was given
+  a real text label (Yes/No feedback, Pan to Event, Watch category, Play/Pause,
+  Close ×, …), and the strip also surfaced — and I fixed — several toggles whose
+  two states had collapsed to identical text (the war-mode Supporters toggle,
+  the alignment/recognition buttons).
+- **Accessibility pass.** Header controls carry `aria-label`/`aria-pressed`; a
+  keyboard **Skip to map** link is the first tab stop; `role` landmarks on
+  banner/main/complementary/map; a consistent `:focus-visible` ring for
+  keyboard users; the alt-text on the decorative UN flag image is now empty +
+  `aria-hidden`. The emoji removal itself is an a11y win — screen readers no
+  longer read out "chart increasing" for a button labelled "Trackers".
+- **Touch + responsive.** `touch-action: none` on the map host lets single-
+  finger drags reach the renderers' pointer handlers (touch pan now works on
+  tablets/phones — both renderers already use unified pointer events); a
+  responsive pass makes the dense header horizontally scroll and the docked
+  panels go full-width below tablet width, with a phone breakpoint that hides
+  the translit/instability widgets to stay compact. (Custom pinch-zoom gesture
+  handling is the honest next step; wheel-zoom + drag-pan work on touch today.)
+- **Data-integrity test sweep (`backend/tests/test_data_integrity.py`).** The
+  huge hand-curated tables (legislatures, currencies, alignments, category
+  contract) were only ever validated by one-off checks during a build session —
+  the exact way v8.14's 30 dead SUBNATIONAL keys and v8.16's missing Russia
+  flags slipped through. The new sweep pins each table's invariants (every
+  legislature's seats sum ≤ its chamber total; currencies keyed by iso3; a
+  country is never simultaneously its own ally/partner/rival and never appears
+  in its own buckets; every category has a definition). **It caught a real bug
+  on its first run** — several countries (IND/BRA/ISR/SAU/UKR/KOR) listed
+  *themselves* in their own partner alignment, from the hardcoded nonaligned/
+  fallback partner lists; `derive_alignments` now strips self + de-dupes.
+- **Source-health alerting.** `/api/sources/status` now flags a source that has
+  gone persistently dead (status `down` + zero recent uptime, excluding key-
+  gated feeds whose error just names a missing key) with a per-source `alert`
+  flag and a top-level `alerts` roll-up, so a silently-dead source surfaces
+  loudly instead of hiding in the list.
+- **Nightly provenance re-audit.** `verify_provenance.py` was a one-shot manual
+  tool; the daily scheduler loop now runs `verify_all()` on a cadence, stamps
+  `provenance_last_audit_at`/`_ok` into `app_meta`, and logs at ERROR if the
+  hash chain is ever broken — so tampering is caught automatically.
+- **Load harness (`scripts/load_test.py`, owner-run).** A stdlib concurrent
+  hammer over the hot read endpoints reporting p50/p95/p99 latency + error rate,
+  so the next latency regression (the class that produced every analyst-timeout/
+  translation-flood/lock-contention fix) shows up as a p95 spike before it
+  ships instead of in a bug report.
+- **In-app changelog ("What's New").** Clicking the version badge opens a modal
+  that lists the release history, parsed from CLAUDE.md's own `## Status`
+  sections by a new `/api/changelog` endpoint — the detailed history is now
+  visible from inside the app, not just the repo doc.
+
+Consciously **not** built here (each needs a decision, not a one-shot code
+change, and is documented as such): the public confidence/scorecard page (owner
+excluded it); a **multi-user / auth** architecture (the app is single-user local
+by design — turning it into a shared service is a product decision that reshapes
+the session/DB model, not a drop-in); and the network/compute-blocked data items
+(China prefectures, historical sub-national geometry) that remain owner-run per
+the standing sandbox limitation.
+
+Verified in-sandbox: **42/42 tests green** (was 36 — added the data-integrity
+sweep, which found + fixed the self-alignment bug); fresh DB boots clean;
+`/api/config` = 8.17.0; `/api/changelog` returns 30 parsed entries;
+`/api/sources/status` carries the new `alerts` roll-up; headless Chromium shows
+the badge v8.17.0, a fully de-emojified Title-Case header, the changelog opening
+from the version badge, and **0 non-network console errors**.
+
 ## Status (v8.16.1)
 
 **v8.16.1 (2026-07-14, the translation-reach + Russia-flags follow-up):** the

@@ -31,7 +31,7 @@ export class LineageView {
     page.innerHTML = `
       <div class="close-row">
         <h3>Butterfly effect — everything this fact fed into</h3>
-        <button class="close-btn">✕ close</button>
+        <button class="close-btn">Close</button>
       </div>
       <canvas class="graph-canvas"></canvas>
       <p class="graph-hint">left = the origin fact · each column is one correlation hop
@@ -53,7 +53,7 @@ export class LineageView {
       seen.add(e.via_story_id);
       const chip = document.createElement("button");
       chip.className = "ap-chip";
-      chip.textContent = "⌕ " + (e.headline || e.via_story_id).slice(0, 64);
+      chip.textContent = (e.headline || e.via_story_id).slice(0, 64);
       chip.addEventListener("click", () => this.onOpenStory(e.via_story_id));
       storiesEl.appendChild(chip);
     }

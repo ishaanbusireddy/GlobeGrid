@@ -16,7 +16,7 @@ export class GraphExplorer {
       <div class="graph-page">
         <div class="close-row">
           <h3>Fact-chain graph — entities linked by shared stories</h3>
-          <button class="close-btn">✕ close</button>
+          <button class="close-btn">Close</button>
         </div>
         <canvas class="graph-canvas"></canvas>
         <p class="graph-hint">drag nodes · scroll to zoom · size = story count</p>

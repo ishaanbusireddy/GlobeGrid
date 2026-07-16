@@ -30,9 +30,9 @@ export class SlidePane {
         <button class="pane-next hidden" title="next entry">⟩</button>
         <span class="pane-title"></span>
         <span class="pane-actions"></span>
-        <button class="pane-bookmark hidden" title="bookmark this page">☆</button>
-        <button class="pane-full" title="fullscreen">⛶</button>
-        <button class="pane-close" title="close">✕</button>
+        <button class="pane-bookmark hidden" title="Bookmark this page">Save</button>
+        <button class="pane-full" title="Fullscreen">Full</button>
+        <button class="pane-close" title="Close" aria-label="Close">×</button>
       </div>
       <div class="pane-content"></div>
       ${resizable ? '<div class="pane-resize" title="drag to resize"></div>' : ""}`;
@@ -169,9 +169,9 @@ export class SlidePane {
         const data = await api.bookmarks();
         const isB = (data.bookmarks || []).some((b) =>
           b.target_type === entry.targetType && b.target_id === entry.targetId);
-        bm.textContent = isB ? "★" : "☆";
+        bm.textContent = isB ? "Saved" : "Save";
         bm.classList.toggle("bookmarked", isB);
-      } catch { bm.textContent = "☆"; }
+      } catch { bm.textContent = "Save"; }
     } else {
       bm.classList.add("hidden");
     }
@@ -205,7 +205,7 @@ export class SlidePane {
     try {
       const res = await api.bookmarkToggle(bmType, entry.targetId);
       const bm = this.host.querySelector(".pane-bookmark");
-      bm.textContent = res.bookmarked ? "★" : "☆";
+      bm.textContent = res.bookmarked ? "Saved" : "Save";
       bm.classList.toggle("bookmarked", !!res.bookmarked);
     } catch { /* backend unavailable */ }
   }
@@ -231,7 +231,7 @@ export class SlidePane {
         row.className = "annot-item";
         row.innerHTML = `<span class="annot-text"></span>
           <span class="cp-meta">${(a.updated_at || "").slice(0, 16).replace("T", " ")}</span>
-          <button class="cp-del" title="delete note">✕</button>`;
+          <button class="cp-del" title="Delete note" aria-label="Delete">×</button>`;
         row.querySelector(".annot-text").textContent = a.note_text;
         row.querySelector(".cp-del").addEventListener("click", async () => {
           await api.annotationDelete(a.id);

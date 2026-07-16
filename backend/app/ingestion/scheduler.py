@@ -262,6 +262,24 @@ def _daily_loop() -> None:
                 from ..processing import backtest
                 backtest.run_backtest()
                 done["backtest"] = today
+            # v8.17 — nightly provenance re-audit. verify_provenance.py was a
+            # one-shot manual tool; running verify_all() on a cadence means a
+            # tampered/corrupted fact chain is caught automatically (logged at
+            # ERROR so it surfaces in the health drawer) instead of only when a
+            # human happens to run the script. Result is stamped into app_meta
+            # so /api/provenance can show WHEN it was last verified.
+            if done.get("provenance_audit") != today:
+                from ..processing.provenance import verify_all
+                from ..db.models import meta_set, now_iso
+                res = verify_all()
+                meta_set("provenance_last_audit_at", now_iso())
+                meta_set("provenance_last_audit_ok", "1" if res.get("ok") else "0")
+                if not res.get("ok"):
+                    log.error("provenance_audit_failed", extra={"data": res})
+                else:
+                    log.info("provenance_audit_ok", extra={"data": {
+                        "chains": len(res.get("chains", []))}})
+                done["provenance_audit"] = today
         except Exception:  # noqa: BLE001
             log.exception("daily_tick_failed")
         stop_event.wait(600)

@@ -5,10 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GlobeGrid</title>
 <link rel="stylesheet" href="/src/styles.css">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌐</text></svg>">
+<!-- v8.17 — clean monochrome globe/grid mark, not an emoji favicon -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='13' fill='none' stroke='%234ea3ff' stroke-width='2'/><ellipse cx='16' cy='16' rx='6' ry='13' fill='none' stroke='%234ea3ff' stroke-width='1.5'/><line x1='3' y1='16' x2='29' y2='16' stroke='%234ea3ff' stroke-width='1.5'/><line x1='16' y1='3' x2='16' y2='29' stroke='%234ea3ff' stroke-width='1.5'/></svg>">
 </head>
 <body>
-<header id="topbar">
+<!-- v8.17 — accessibility: first tab stop skips the dense header straight to the map -->
+<a id="skip-link" href="#map-panel">Skip to map</a>
+<header id="topbar" role="banner">
   <div id="brand">
     <span id="brand-mark">◉</span>
     <!-- v8.16.1 — the wordmark is a BRAND NAME, never sent to the live
@@ -25,97 +28,100 @@
     <canvas id="instability-spark" width="120" height="28"></canvas>
   </div>
   <div id="topbar-controls">
-    <button id="palette-btn" title="search everything (press F)">🔎 find</button>
-    <button id="stories-btn" title="stories directory — threads, alliances, patterns, agendas (v4 §8, v6 §27)">stories</button>
-    <button id="conflicts-btn" title="Conflicts — pick one to enter War Mode (v6 §8-9)">conflicts</button>
-    <button id="trackers-btn" title="live tracking windows — military, trade & resources, markets, prediction markets, diplomacy (v8.16)">📊 trackers</button>
-    <button id="whatif-btn" title="Counterfactual Engine — simulate a what-if scenario against the live world state (v7)">🔮 what-if</button>
-    <button id="un-btn" title="United Nations — councils, resolutions & how countries voted (v6.1)"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Flag_of_the_United_Nations.svg/40px-Flag_of_the_United_Nations.svg.png" alt="UN" style="height:12px;vertical-align:-2px"> UN</button>
-    <button id="briefing-btn" title="daily briefing">briefing</button>
-    <button id="audio-briefing-btn" title="spoken personal briefing — a ~3-minute narrated digest of the stories you follow while the globe flies along (v7)">🎧</button>
-    <button id="graph-btn" title="fact-chain graph explorer">graph</button>
-    <button id="watchlist-btn" title="watchlist">watch</button>
-    <button id="bookmarks-btn" title="bookmarks / reading list (v4 §21)">☆</button>
+    <!-- v8.17 — professional pass: plain Title-Case labels, no decorative
+         emoji or geometric bling. aria-label carries the description for
+         screen readers; the title= tooltip stays for sighted hover. -->
+    <button id="palette-btn" aria-label="Search everything (press F)" title="Search everything (press F)">Find</button>
+    <button id="stories-btn" title="Stories directory — threads, alliances, patterns, agendas">Stories</button>
+    <button id="conflicts-btn" title="Conflicts — pick one to enter War Mode">Conflicts</button>
+    <button id="trackers-btn" title="Live tracking windows — military, trade & resources, markets, prediction markets, diplomacy">Trackers</button>
+    <button id="whatif-btn" title="Counterfactual Engine — simulate a what-if scenario against the live world state">What-If</button>
+    <button id="un-btn" title="United Nations — councils, resolutions & how countries voted"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Flag_of_the_United_Nations.svg/40px-Flag_of_the_United_Nations.svg.png" alt="" aria-hidden="true" style="height:12px;vertical-align:-2px"> UN</button>
+    <button id="briefing-btn" title="Daily briefing">Briefing</button>
+    <button id="audio-briefing-btn" title="Spoken personal briefing — a ~3-minute narrated digest of the stories you follow while the globe flies along" aria-label="Audio briefing">Audio</button>
+    <button id="graph-btn" title="Fact-chain graph explorer">Graph</button>
+    <button id="watchlist-btn" title="Watchlist">Watchlist</button>
+    <button id="bookmarks-btn" title="Bookmarks / reading list" aria-label="Bookmarks">Saved</button>
     <!-- v6.1 — heatmap toggle removed (owner: unclear/unhelpful overlay) -->
-    <button id="heatmap-toggle" class="hidden" title="heatmap density overlay">heat</button>
-    <button id="borders-toggle" class="active" title="country borders — on by default">borders</button>
-    <button id="disputes-toggle" title="disputed boundaries — dashed, distinct from settled borders (v4 §5.3)">disputed</button>
-    <button id="az-toggle" class="active" title="autonomous regions — dotted borders on the map (on by default)">⌁ zones</button>
-    <select id="admin-div-select" title="V8.9 — Administrative divisions. Pick a tier; zoom in and click a unit to open it. One tier shows at a time so borders never overplot.">
-      <option value="0">◇ divisions: off</option>
-      <option value="1">◇ div 1 · states / provinces</option>
-      <option value="2">◇ div 2 · counties / districts</option>
-      <option value="3">◇ div 3 · sub-districts / communes</option>
+    <button id="heatmap-toggle" class="hidden" title="Heatmap density overlay">Heat</button>
+    <button id="borders-toggle" class="active" aria-pressed="true" title="Country borders — on by default">Borders</button>
+    <button id="disputes-toggle" aria-pressed="false" title="Disputed boundaries — dashed, distinct from settled borders">Disputed</button>
+    <button id="az-toggle" class="active" aria-pressed="true" title="Autonomous regions — dotted borders on the map (on by default)">Zones</button>
+    <select id="admin-div-select" aria-label="Administrative divisions tier" title="Administrative divisions. Pick a tier; zoom in and click a unit to open it. One tier shows at a time so borders never overplot.">
+      <option value="0">Divisions: Off</option>
+      <option value="1">Div 1 · States / Provinces</option>
+      <option value="2">Div 2 · Counties / Districts</option>
+      <option value="3">Div 3 · Sub-districts / Communes</option>
     </select>
-    <button id="activity-toggle" title="V8.3 Hotspots — light up the administrative units with the most tracked activity right now (heat map + ranking)">◉ hotspots</button>
+    <button id="activity-toggle" aria-pressed="false" title="Hotspots — light up the administrative units with the most tracked activity right now (heat map + ranking)">Hotspots</button>
     <!-- v6.2 — terrain removed entirely (owner). v6.2 — country-name toggle -->
-    <button id="names-toggle" class="active" title="country name labels on the map — toggle on/off">names</button>
-    <button id="spin-toggle" title="auto-spin the globe — toggle on/off (v6.6.6)">⟳ spin</button>
-    <button id="modes-btn" title="thematic data maps — HDI, GDP, population, religion, language (v6 §16)">modes</button>
-    <button id="actors-toggle" title="non-state actors layer (v4 §5.4)">NSA</button>
-    <button id="marked-toggle" title="strategic locations & infrastructure layer">◈</button>
-    <button id="sat-toggle" title="live satellite overlay">🛰</button>
-    <button id="sensors-toggle" title="physical-sensor ground truth — thermal (FIRMS), air-traffic (OpenSky), seismic (USGS), ACLED, maritime (AIS), nighttime-lights (VIIRS) — the layer corroboration is scored against (v7)">📡</button>
+    <button id="names-toggle" class="active" aria-pressed="true" title="Country name labels on the map — toggle on/off">Names</button>
+    <button id="spin-toggle" aria-pressed="false" title="Auto-spin the globe — toggle on/off">Spin</button>
+    <button id="modes-btn" title="Thematic data maps — HDI, GDP, population, religion, language">Map Modes</button>
+    <button id="actors-toggle" aria-pressed="false" title="Non-state actors layer">Non-state Actors</button>
+    <button id="marked-toggle" aria-pressed="false" title="Strategic locations & infrastructure layer">Strategic Sites</button>
+    <button id="sat-toggle" aria-pressed="false" title="Live satellite overlay">Satellites</button>
+    <button id="sensors-toggle" aria-pressed="false" title="Physical-sensor ground truth — thermal (FIRMS), air-traffic (OpenSky), seismic (USGS), ACLED, maritime (AIS), nighttime-lights (VIIRS) — the layer corroboration is scored against">Sensors</button>
     <!-- v6.1.1 — multi-select blocs: toggle several alliances at once -->
     <span id="bloc-wrap">
-      <button id="blocs-btn" title="tint boundaries by bloc membership — toggle several at once">blocs ▾</button>
+      <button id="blocs-btn" aria-haspopup="true" aria-expanded="false" title="Tint boundaries by bloc membership — toggle several at once">Blocs ▾</button>
       <div id="bloc-panel" class="hidden"></div>
     </span>
-    <button id="snapshot-btn" title="export a shareable snapshot of the current view (v4 §23)">screenshot</button>
+    <button id="snapshot-btn" title="Export a shareable snapshot of the current view">Screenshot</button>
     <!-- v6.2 — timezone picker in the header (was buried in Settings) -->
-    <select id="tz-header" title="display timezone for all timestamps"></select>
-    <button id="help-btn" title="what is GlobeGrid? how to use it (v6.1)">?</button>
+    <select id="tz-header" aria-label="Display timezone" title="Display timezone for all timestamps"></select>
+    <button id="help-btn" title="What is GlobeGrid? How to use it" aria-label="Help">Help</button>
     <!-- v6.2 — VR button removed entirely (owner) -->
-    <button id="xr-btn" class="hidden" style="display:none" title="enter room-scale VR">VR</button>
-    <select id="quality-select" title="graphics quality (v2 §5)">
-      <option value="standard">standard</option>
-      <option value="high">high</option>
-      <option value="ultra">ultra</option>
+    <button id="xr-btn" class="hidden" style="display:none" title="Enter room-scale VR">VR</button>
+    <select id="quality-select" aria-label="Graphics quality" title="Graphics quality">
+      <option value="standard">Standard</option>
+      <option value="high">High</option>
+      <option value="ultra">Ultra</option>
     </select>
-    <select id="tier-select" title="Graphics tier — auto-detected, manually overridable">
-      <option value="auto">Tier: auto</option>
-      <option value="1">Tier 1 · 3D globe</option>
-      <option value="2">Tier 2 · 2D map</option>
-      <option value="3">Tier 3 · list</option>
+    <select id="tier-select" aria-label="Graphics tier" title="Graphics tier — auto-detected, manually overridable">
+      <option value="auto">Tier: Auto</option>
+      <option value="1">Tier 1 · 3D Globe</option>
+      <option value="2">Tier 2 · 2D Map</option>
+      <option value="3">Tier 3 · List</option>
     </select>
     <span id="sound-cluster">
-      <button id="sound-toggle" title="generative music">🔇</button>
-      <input id="volume-slider" type="range" min="0" max="100" title="volume (v4 §12.1)">
-      <select id="preset-select" title="music preset (v4 §12.2-12.3)"></select>
+      <button id="sound-toggle" aria-pressed="false" title="Generative music">Sound</button>
+      <input id="volume-slider" type="range" min="0" max="100" aria-label="Volume" title="Volume">
+      <select id="preset-select" aria-label="Music preset" title="Music preset"></select>
     </span>
     <!-- v6.6.9 — language names are endonyms (each written in its own script,
          e.g. "Français", "日本語") and must NEVER be translated — a picker
          showing every entry re-worded into the current language would be
          unreadable/unrecognizable. data-no-translate opts the whole select out. -->
-    <select id="lang-btn" data-no-translate title="site-wide language — every panel and story translates instantly (v6 §11)"></select>
-    <button id="settings-btn" title="settings & API keys (v4 §14)">⚙</button>
-    <button id="status-toggle" title="Source health">sources</button>
+    <select id="lang-btn" data-no-translate aria-label="Site language" title="Site-wide language — every panel and story translates instantly"></select>
+    <button id="settings-btn" title="Settings & API keys" aria-label="Settings">Settings</button>
+    <button id="status-toggle" title="Source health">Sources</button>
   </div>
 </header>
 
-<main id="layout">
-  <div id="slide-pane"></div>
-  <section id="map-panel">
+<main id="layout" role="main">
+  <div id="slide-pane" role="complementary" aria-label="Detail panel"></div>
+  <section id="map-panel" aria-label="World map">
     <div id="map-host"></div>
     <div id="war-glow"></div>
     <div id="map-filters"></div>
     <div id="modes-bar" class="hidden"></div>
     <div id="mode-legend" class="hidden"></div>
-    <div id="conn-badge" class="conn-live">live</div>
+    <div id="conn-badge" class="conn-live">Live</div>
     <div id="scrubber-host"></div>
     <div id="alerts-host"></div>
   </section>
   <aside id="feed-panel">
     <div id="conflict-tabs"></div>
-    <div id="feed-header"><h2>Live feed</h2><div id="feed-tools"></div><button id="feed-close" title="hide the live feed (Esc)">✕</button></div>
+    <div id="feed-header"><h2>Live Feed</h2><div id="feed-tools"></div><button id="feed-close" aria-label="Hide the live feed (Esc)" title="Hide the live feed (Esc)">×</button></div>
     <div id="feed-list"></div>
   </aside>
   <!-- v7.5 — War Mode replaces the global live feed with a conflict-only feed
        (stories tab + events tab). Hidden until War Mode opens. -->
   <aside id="war-feed-panel" style="display:none">
     <div id="war-feed-header">
-      <h2 id="war-feed-title">⚔ war feed</h2>
-      <button id="war-feed-exit" title="exit war mode (Esc)">✕ exit</button>
+      <h2 id="war-feed-title">War Feed</h2>
+      <button id="war-feed-exit" title="Exit War Mode (Esc)">Exit</button>
     </div>
     <div id="war-feed-tabs"></div>
     <div id="war-feed-list"></div>

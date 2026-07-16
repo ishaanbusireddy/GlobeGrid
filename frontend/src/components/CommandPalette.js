@@ -22,7 +22,7 @@ export class CommandPalette {
         <input class="cp-input" placeholder="Search stories, entities, places…  (Esc to close)">
         <div class="cp-results"></div>
         <div class="cp-footer">
-          <button class="cp-save-cam">★ bookmark camera</button>
+          <button class="cp-save-cam">Bookmark camera</button>
           <span class="cp-hint">↵ open · Ctrl/Cmd+K toggle</span>
         </div>
       </div>`;
@@ -85,10 +85,10 @@ export class CommandPalette {
     const marks = this._bookmarks();
     if (marks.length) {
       for (const [i, m] of marks.entries()) {
-        const row = this._row(`★ ${m.name}`, "camera bookmark",
+        const row = this._row(`${m.name}`, "camera bookmark",
           () => this.setCamera && this.setCamera(m.camera));
         const del = document.createElement("button");
-        del.className = "cp-del"; del.textContent = "✕";
+        del.className = "cp-del"; del.textContent = "×";
         del.addEventListener("click", (ev) => {
           ev.stopPropagation();
           marks.splice(i, 1);

@@ -516,7 +516,7 @@ function applyHistoricalBoundaries(asOf) {
   r.setHistoricalSubnational?.(subRings.length ? subRings : null);
   if (state.histEpoch !== pick.year) {
     state.histEpoch = pick.year;
-    alerts.toast?.(`⏳ Borders shown as of ${pick.year} (nearest historical epoch)`
+    alerts.toast?.(`Borders shown as of ${pick.year} (nearest historical epoch)`
       + (subRings.length ? " · internal republics approximated from present-day lines" : ""));
   }
 }
@@ -984,7 +984,7 @@ function openClusterList(cluster) {
       el.innerHTML = `<h1>${members.length} events in this cluster</h1>
         <p class="cp-meta">Too many overlapping points to separate by zoom — browse them
           all here. Sorted by severity, then recency.</p>
-        <button class="full-summary-btn pan-cluster">⌖ Pan to this area</button>
+        <button class="full-summary-btn pan-cluster">Pan to this area</button>
         <div class="cluster-list"></div>`;
       // v7.4.1 — a panel-level Pan-to-Event control (owner: "pan event button
       // should be available from within the event panel as well"). Flies to the
@@ -1013,7 +1013,7 @@ function openClusterList(cluster) {
             ${devType ? `<span class="chip">${devType}</span>` : ""}
             <span class="cp-meta" style="margin-left:auto">${(ev.occurred_at || "").slice(0, 16).replace("T", " ")}</span>
           </div><h3></h3><p class="cp-meta"></p>
-          <button class="ap-chip pan-to-event">⌖ Pan to Event</button>`;
+          <button class="ap-chip pan-to-event">Pan to Event</button>`;
         row.querySelector("h3").textContent = ev.title || "(untitled event)";
         row.querySelector("p").textContent = ev.location_name || "";
         // v6.6.7 — Pan to Event: fly the map to wherever the event was placed
@@ -1048,7 +1048,7 @@ function openClusterList(cluster) {
 // each row clickable (its story, or fly-to for a standalone). The map only shows
 // recent/placed events, so this is the "see everything" view (owner item 31).
 function renderAllEvents(el) {
-  el.innerHTML = `<h1>📍 All events</h1>
+  el.innerHTML = `<h1>All events</h1>
     <p class="cp-meta">Every ingested event, newest first. Click a row to open its
       story, or fly the map to a standalone event.</p>
     <div class="ae-controls" style="display:flex;gap:8px;align-items:center;margin:8px 0">
@@ -1113,12 +1113,12 @@ function openSourceStories(src) {
     render: async (el) => {
       // v7.6 — the source's LOGO next to its name (owner: "Al Jazeera logo next
       // to Al Jazeera"). Derived from the outlet's own domain via a favicon
-      // service; degrades to a 📰 glyph if it can't load.
-      let logo = "📰";
+      // service; degrades to a glyph if it can't load.
+      let logo = "";
       try {
         const host = new URL(src.url).hostname.replace(/^www\./, "");
         logo = `<img class="src-logo" src="https://icons.duckduckgo.com/ip3/${host}.ico"
-          alt="" onerror="this.outerHTML='📰'">`;
+          alt="" onerror="this.outerHTML=''">`;
       } catch { /* no url → glyph */ }
       el.innerHTML = `<h1 class="src-title">${logo} <span>${src.name}</span></h1>
         <p class="cp-meta">${src.type || ""}${src.reliability_tier ? " · " + src.reliability_tier + " reliability" : ""} — stories and events sourced from this outlet.</p>
@@ -1258,8 +1258,8 @@ const alerts = new Alerts(els.alertsHost, {
 function setConn(mode) {
   els.connBadge.className = `conn-${mode}`;
   els.connBadge.textContent =
-    mode === "live" ? "live" : mode === "polling" ? "polling (15s)"
-    : mode === "capsule" ? "time capsule" : "offline";
+    mode === "live" ? "Live" : mode === "polling" ? "Polling (15s)"
+    : mode === "capsule" ? "Time Capsule" : "Offline";
 }
 
 // ---------- story deep links (§5.3) ----------
@@ -1496,7 +1496,7 @@ contSel.className = "filter-chip";
 contSel.title = "continent filter (feed + map + stories, one state)";
 for (const c of CONTINENTS) {
   const o = document.createElement("option");
-  o.value = c; o.textContent = c || "🌐 all regions";
+  o.value = c; o.textContent = c || "All regions";
   contSel.appendChild(o);
 }
 contSel.addEventListener("change", () => {
@@ -1605,7 +1605,19 @@ async function loadReal() {
   // running the right patch"); sourced from the backend's APP_VERSION.
   if (cfgData && cfgData.app_version) {
     const v = document.getElementById("brand-version");
-    if (v) v.textContent = "v" + cfgData.app_version;
+    if (v) {
+      v.textContent = "v" + cfgData.app_version;
+      // v8.17 — the version badge opens the in-app changelog ("What's New")
+      v.style.cursor = "pointer";
+      v.setAttribute("role", "button");
+      v.setAttribute("tabindex", "0");
+      v.setAttribute("title", "What's new — release history");
+      const openCL = () => showChangelog();
+      v.addEventListener("click", openCL);
+      v.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openCL(); }
+      });
+    }
   }
   if (!localStorage.getItem(QUALITY_KEY)) {
     els.qualitySelect.value = state.clientConfig.graphics.quality_tier;
@@ -1758,7 +1770,7 @@ async function checkOnboarding() {
   banner.className = "onboard-banner";
   // v6.5 — Ollama-first: local AI is the primary provider (free forever, no
   // rate limits); a Groq key stays available as the cloud alternative.
-  banner.innerHTML = `<span>⚙ <b>First run:</b> install <b>Ollama</b> (ollama.com) and run
+  banner.innerHTML = `<span><b>First run:</b> install <b>Ollama</b> (ollama.com) and run
       <code>ollama pull llama3.1</code> to switch on the AI features locally — free,
       unlimited, private. (Or add a free Groq key in Settings instead.)</span>
     <button class="ob-open">open settings</button><button class="ob-skip">later</button>`;
@@ -1797,7 +1809,7 @@ async function loadSynthetic() {
       warn.style.cssText = "position:absolute;top:8px;left:50%;transform:translateX(-50%);"
         + "z-index:9999;background:#b45309;color:#fff;padding:8px 16px;border-radius:6px;"
         + "font-size:13px;box-shadow:0 2px 10px rgba(0,0,0,.5);max-width:90%;text-align:center;";
-      warn.innerHTML = "⚠ Backend not reachable — the live feed is offline. "
+      warn.innerHTML = "Backend not reachable — the live feed is offline. "
         + "Start the server (<code>python run.py</code>) and reload.";
       document.getElementById("map-panel").appendChild(warn);
     }
@@ -1819,7 +1831,7 @@ els.qualitySelect.addEventListener("change", () => {
 });
 
 function paintSoundBtn() {
-  els.soundToggle.textContent = sound.isEnabled() ? "🔊" : "🔇";
+  els.soundToggle.textContent = "Sound";
   els.soundToggle.classList.toggle("active", sound.isEnabled());
 }
 els.soundToggle.addEventListener("click", () => { sound.toggle(); paintSoundBtn(); });
@@ -1837,7 +1849,7 @@ const HELP_SEEN_KEY = "tdl_help_seen";
 // setup. Self-contained; no network.
 const HELP_TABS = [
   ["Overview", `
-    <h2>🌍 Welcome to GlobeGrid</h2>
+    <h2>Welcome to GlobeGrid</h2>
     <p>GlobeGrid is a live <b>global-events intelligence system</b> on a 3-D world map.
        It continuously ingests news (hundreds of RSS wires), USGS earthquakes, market
        data, Reddit and physical sensors; extracts the <b>who / what / where / when</b> of
@@ -1867,20 +1879,20 @@ const HELP_TABS = [
       <li><b>⟳ spin</b> toggles a slow auto-rotation; <b>names</b> toggles country labels.</li>
       <li><b>Shift-drag</b> or <b>right-click-drag</b> box-selects a region and lists every event inside it.</li>
       <li><b>Pan to Event</b> buttons (on story pages and event panels) fly the camera to the spot.</li>
-      <li>The <b>📡 sensor</b> toggle overlays physical ground truth (fires, flights, quakes, ships, blackouts).</li>
+      <li>The <b>sensor</b> toggle overlays physical ground truth (fires, flights, quakes, ships, blackouts).</li>
     </ul>`],
   ["Feed & stories", `
     <h3>Live feed &amp; story pages</h3>
     <ul>
       <li>The <b>live feed</b> streams correlated <b>stories</b> (clusters of related events) —
           new arrivals pile in fluidly from the TOP, each showing its source and event
-          counts plus the countries it names. Close it with <kbd>N</kbd> or the ✕.</li>
+          counts plus the countries it names. Close it with <kbd>N</kbd> or the.</li>
       <li>Filter by <b>category</b> chips; <b>sort</b> newest / oldest / most-active.</li>
       <li>Click a card to open the <b>story page</b>: a one-line takeaway, bulleted deep
           summary (AI), the full event timeline, every source link, a <b>bias view</b>, and
           <b>connected history</b> reaching back decades.</li>
-      <li><b>full summary</b> expands the analysis; <b>⌖ pan to event</b> flies the map there.</li>
-      <li>A <b>📡 corroboration</b> badge means physical sensors agree with the reporting.</li>
+      <li><b>full summary</b> expands the analysis; <b>pan to event</b> flies the map there.</li>
+      <li>A <b>corroboration</b> badge means physical sensors agree with the reporting.</li>
       <li>The <b>history / archive</b> view browses the entire permanent fact chain by date &amp; category.</li>
       <li>Historical landmark events (1945→present) are seeded into the chain and marked <i>(historical)</i>.</li>
     </ul>
@@ -1905,11 +1917,11 @@ const HELP_TABS = [
           legislature seat-arc, currency, population/GDP/HDI (clickable for breakdowns),
           languages + <b>other languages</b>, alliances, conflicts, and a deep-background dossier.</li>
       <li><b>Leader / party</b> names open rich profile pages (ideology, career, policies).</li>
-      <li>The <b>🇺🇳 UN</b> button opens the United Nations panel — Security Council,
+      <li>The <b>UN</b> button opens the United Nations panel — Security Council,
           resolutions with recorded votes, every principal organ as a tab, and a <b>live UN news feed</b>.</li>
       <li><b>Bloc / alliance</b> chips (NATO, EU, BRICS, ASEAN…) open full panels like the UN page.</li>
       <li><b>Disputed territories</b> and <b>Antarctica</b> claims render on the map and open breakdowns.</li>
-      <li><b>Compare</b> two countries side by side; <b>bookmark</b> ★ anything for later.</li>
+      <li><b>Compare</b> two countries side by side; <b>bookmark</b> anything for later.</li>
     </ul>`],
   ["Conflicts & War Mode", `
     <h3>Conflicts &amp; War Mode</h3>
@@ -1918,9 +1930,9 @@ const HELP_TABS = [
       <li>Pick one to enter <b>War Mode</b>: side-colored countries, belligerents vs backers,
           an approximate front line, and a feed filtered to that conflict
           (military / civilian / diplomatic / economic tabs).</li>
-      <li>In a conflict panel, the <b>🎙 Situation Room</b> puts four AI analysts
+      <li>In a conflict panel, the <b>Situation Room</b> puts four AI analysts
           (realist, economist, humanitarian, military) into a threaded argument over the war.</li>
-      <li>The <b>🎧 audio briefing</b> button narrates a detailed spoken rundown of the conflict.</li>
+      <li>The <b>audio briefing</b> button narrates a detailed spoken rundown of the conflict.</li>
       <li><b>Order of battle</b> gives an AI-structured breakdown of forces, offensives and tactics.</li>
       <li>Opening any entity auto-exits War Mode and restores your feed.</li>
     </ul>`],
@@ -1929,13 +1941,13 @@ const HELP_TABS = [
     <ul>
       <li><b>Analyst orb</b> (bottom-right): a conversational geopolitics assistant. It reads
           the same fact chain, is aware of the panel you have open, cites clickable stories,
-          and can navigate the map for you. Clear the chat with 🗑.</li>
-      <li><b>🔮 Counterfactual</b> (header): perturb the world ("What if the Strait of Hormuz
+          and can navigate the map for you. Clear the chat with.</li>
+      <li><b>Counterfactual</b> (header): perturb the world ("What if the Strait of Hormuz
           closes?") for an AI branching consequence tree — each branch scored, probability-weighted,
           and expandable with <b>↳ deepen</b>.</li>
-      <li><b>🎯 Forecasting scorecard</b>: a public "how right were we?" Brier backtest —
+      <li><b>Forecasting scorecard</b>: a public "how right were we?" Brier backtest —
           a category only shows live forecasts once it earns calibration.</li>
-      <li><b>🎧 Morning briefing</b>: a ~3-minute personalized spoken digest while the globe
+      <li><b>Morning briefing</b>: a ~3-minute personalized spoken digest while the globe
           auto-flies between story locations.</li>
       <li>Daily / weekly / monthly <b>briefings</b> and a <b>market briefing</b> summarize the world.</li>
     </ul>
@@ -1965,7 +1977,7 @@ const HELP_TABS = [
       <li><b>Data sonification</b> turns live event arrivals into sound — the feed becomes audible.</li>
       <li>New stories ping softly; mass-update alerts use a gentle chime.</li>
     </ul>`],
-  ["⌨ Shortcuts", `
+  ["Shortcuts", `
     <h3>Keyboard shortcuts</h3>
     <table class="help-keys">
       <tr><td><kbd>drag</kbd></td><td>rotate the globe</td></tr>
@@ -1996,7 +2008,7 @@ const HELP_TABS = [
       <li>Install Ollama from <b>ollama.com</b> (Windows/Mac/Linux — one installer).</li>
       <li>In a terminal run <code>ollama pull llama3.1</code> (~4.9&nbsp;GB, one time).</li>
       <li>Done — Ollama runs in the background and GlobeGrid finds it automatically.
-          Verify at <a href="/api/diagnostics" target="_blank">/api/diagnostics</a> (all rows ✅).</li>
+          Verify at <a href="/api/diagnostics" target="_blank">/api/diagnostics</a> (all rows).</li>
     </ol>
     <p class="help-foot">Slow on an older PC? Use the smaller model
        <code>ollama pull llama3.2:3b</code> and set <code>llm_provider.ollama_model</code>
@@ -2013,7 +2025,7 @@ function showHelp() {
       `<button class="help-tab${i === 0 ? " active" : ""}" data-i="${i}">${t[0]}</button>`).join("");
     ov.innerHTML = `
       <div class="help-card">
-        <button class="help-close" title="close">✕</button>
+        <button class="help-close" title="Close" aria-label="Close">×</button>
         <div class="help-tabs">${tabsBar}</div>
         <div class="help-body">${HELP_TABS[0][1]}</div>
       </div>`;
@@ -2032,6 +2044,41 @@ function showHelp() {
   }
   ov.classList.remove("hidden");
 }
+// v8.17 — in-app changelog ("What's New"), opened from the version badge.
+// Reuses the help-overlay styling for a consistent modal look.
+async function showChangelog() {
+  let ov = document.getElementById("changelog-overlay");
+  if (!ov) {
+    ov = document.createElement("div");
+    ov.id = "changelog-overlay";
+    ov.className = "help-overlay-like";
+    ov.innerHTML = `
+      <div class="help-card">
+        <button class="help-close" title="Close" aria-label="Close">×</button>
+        <h2 style="margin-top:0">What's New</h2>
+        <div class="changelog-body"><p class="cp-meta">Loading release history…</p></div>
+      </div>`;
+    document.body.appendChild(ov);
+    const close = () => ov.classList.add("hidden");
+    ov.querySelector(".help-close").addEventListener("click", close);
+    ov.addEventListener("click", (e) => { if (e.target === ov) close(); });
+  }
+  ov.classList.remove("hidden");
+  const body = ov.querySelector(".changelog-body");
+  try {
+    const data = await api.changelog();
+    const rows = (data.entries || []).map((e) => `
+      <div class="changelog-entry">
+        <div class="changelog-ver">v${(e.version || "").replace(/</g, "&lt;")}${
+          e.date ? ` <span class="cp-meta">${(e.date || "").replace(/</g, "&lt;")}</span>` : ""}</div>
+        <div class="changelog-sum">${(e.summary || "").replace(/</g, "&lt;")}</div>
+      </div>`).join("");
+    body.innerHTML = rows || "<p class='cp-meta'>No release notes available.</p>";
+  } catch {
+    body.innerHTML = "<p class='cp-meta'>Release history is unavailable right now.</p>";
+  }
+}
+
 els.helpBtn.addEventListener("click", showHelp);
 if (!localStorage.getItem(HELP_SEEN_KEY)) {
   localStorage.setItem(HELP_SEEN_KEY, "1");
@@ -2059,7 +2106,7 @@ const activePresets = () =>
 for (const [name, p] of Object.entries(PRESETS)) {
   if (!activePresets().includes(name)) continue;
   const o = document.createElement("option");
-  o.value = name; o.textContent = "♪ " + p.label;
+  o.value = name; o.textContent = "" + p.label;
   els.presetSelect.appendChild(o);
 }
 els.presetSelect.value = sound.presetName;
@@ -2259,7 +2306,7 @@ document.addEventListener("click", (ev) => {
 // v6.1 — daily / weekly / monthly briefings, switchable in the overlay.
 // v6.6.2 — a right-aligned Market briefing tab (global markets + tentative
 // story-driven forecasts).
-const BRIEFING_LABELS = { day: "Daily", week: "Weekly", month: "Monthly", market: "📈 Market" };
+const BRIEFING_LABELS = { day: "Daily", week: "Weekly", month: "Monthly", market: "Market" };
 async function showBriefing(period = "day") {
   els.briefingOverlay.classList.remove("hidden");
   els.briefingOverlay.innerHTML =
@@ -2275,7 +2322,7 @@ async function showBriefing(period = "day") {
           `<button class="brief-tab ${p === period ? "active" : ""}" data-p="${p}">${BRIEFING_LABELS[p]}</button>`).join("")}
         <button class="brief-tab brief-tab-market ${period === "market" ? "active" : ""}" data-p="market">${BRIEFING_LABELS.market}</button>
       </div>
-      <button class="close-btn">✕ close</button></div>
+      <button class="close-btn">close</button></div>
     <h3>${BRIEFING_LABELS[period]} briefing${b ? " — " + b.briefing_date : ""}</h3>
     <div class="briefing-body"></div>`;
   page.querySelector(".briefing-body").textContent =
@@ -2323,7 +2370,7 @@ const watchlist = {
       const row = document.createElement("div");
       row.className = "src-row";
       row.innerHTML = `<span class="chip">${it.kind}</span> <b></b>
-        <button class="cp-del" style="margin-left:auto">✕</button>`;
+        <button class="cp-del" style="margin-left:auto"></button>`;
       row.querySelector("b").textContent = it.value;
       row.querySelector("button").addEventListener("click", async () => {
         await api.watchlistDelete(it.id);
@@ -2371,7 +2418,7 @@ els.feedTools.appendChild(sortSel);
 // v5 §1 — History / archive view (paginated, date+category filterable)
 const histBtn = document.createElement("button");
 histBtn.className = "filter-chip";
-histBtn.textContent = "🕑 history";
+histBtn.textContent = "History";
 histBtn.title = "browse the full fact-chain archive by date";
 histBtn.addEventListener("click", () => openHistory());
 els.feedTools.appendChild(histBtn);
@@ -2399,14 +2446,14 @@ function renderConflictTabs() {
   // v6 §9 — the redundant all-conflicts listing above the feed is REMOVED;
   // browsing conflicts now lives in the top-level Conflicts tab (War Mode
   // entry). What remains here is only the war-mode sub-filter row, or a
-  // small "filtered ✕" chip when a conflict filter is active outside it.
+  // small "filtered" chip when a conflict filter is active outside it.
   els.conflictTabs.innerHTML = "";
   if (state.warMode) { renderWarTabs(); return; }
   if (!state.conflictId) return;
   const active = state.conflicts.find((c) => c.id === state.conflictId);
   const chip = document.createElement("button");
   chip.className = "conflict-tab active";
-  chip.innerHTML = `${(active ? active.name : "conflict").replace(/</g, "&lt;")} ✕`;
+  chip.innerHTML = `${(active ? active.name : "conflict").replace(/</g, "&lt;")}`;
   chip.title = "clear the conflict filter";
   chip.addEventListener("click", () => {
     state.conflictId = null;
@@ -2579,13 +2626,13 @@ els.xrBtn.addEventListener("click", async () => {
 // v3 §10.1 timelapse export (MediaRecorder/webm — deviation noted in CLAUDE.md)
 const tlBtn = document.createElement("button");
 tlBtn.className = "ts-play";
-tlBtn.textContent = "⏺";
+tlBtn.textContent = "";
 tlBtn.title = "export the last 24h as a video timelapse";
 els.scrubberHost.querySelector("#time-scrubber").appendChild(tlBtn);
 tlBtn.addEventListener("click", async () => {
   const canvas = els.mapHost.querySelector("canvas");
   if (!canvas || !window.MediaRecorder) { tlBtn.title = "capture unsupported here"; return; }
-  tlBtn.textContent = "⏺…";
+  tlBtn.textContent = "…";
   tlBtn.disabled = true;
   const stream = canvas.captureStream(30);
   const rec = new MediaRecorder(stream, { mimeType: "video/webm" });
@@ -2610,7 +2657,7 @@ tlBtn.addEventListener("click", async () => {
   a.download = `globegrid-last24h-${new Date().toISOString().slice(0, 10)}.webm`;
   a.click();
   URL.revokeObjectURL(a.href);
-  tlBtn.textContent = "⏺";
+  tlBtn.textContent = "";
   tlBtn.disabled = false;
 });
 
@@ -2798,10 +2845,10 @@ els.conflictsBtn.addEventListener("click", () => {
       // intensity / separatist struggles that haven't become full-scale wars)
       el.innerHTML = `<h1>Conflicts</h1>
         <div class="conflict-tabs" style="margin-bottom:10px">
-          <button class="conflict-tab cdir-tab active" data-k="ongoing">⚔ Ongoing</button>
-          <button class="conflict-tab cdir-tab" data-k="frozen">❄ Frozen</button>
-          <button class="conflict-tab cdir-tab" data-k="resolved">🏳 Resolved</button>
-          <button class="conflict-tab cdir-tab" data-k="insurgencies">🔥 Insurgencies</button>
+          <button class="conflict-tab cdir-tab active" data-k="ongoing">Ongoing</button>
+          <button class="conflict-tab cdir-tab" data-k="frozen">Frozen</button>
+          <button class="conflict-tab cdir-tab" data-k="resolved">Resolved</button>
+          <button class="conflict-tab cdir-tab" data-k="insurgencies">Insurgencies</button>
         </div>
         <p class="cp-meta cdir-note"></p>
         <div class="conflict-dir"></div>`;
@@ -2843,7 +2890,7 @@ els.conflictsBtn.addEventListener("click", () => {
           row.querySelector(".war-sides").textContent =
             [sides.a.length ? sides.a.join(", ") : null,
              sides.b.length ? sides.b.join(", ") : null]
-              .filter(Boolean).join("  ⚔  ");
+              .filter(Boolean).join("   ");
           // v7 Part 6 — the curated explainer, right in the directory, so
           // someone who has never heard of this conflict learns it in place
           const kb = (c.knowledge || {}).brief;
@@ -2869,7 +2916,7 @@ els.conflictsBtn.addEventListener("click", () => {
           // without first entering War Mode
           const sr = document.createElement("button");
           sr.className = "ap-chip cdir-sitroom";
-          sr.textContent = "🎙 situation room";
+          sr.textContent = "Situation Room";
           sr.title = "Four AI analysts argue this conflict from the same sources";
           sr.addEventListener("click", (ev) => {
             ev.stopPropagation();
@@ -2978,10 +3025,10 @@ async function openResolvedConflict(conflictId, data) {
   pane.push({
     key: `conflict-view:${conflictId}`, title: "conflict (historical)",
     actions: [
-      { icon: "🎙", title: "Situation Room — four AI analysts", onClick: () =>
+      { icon: "", title: "Situation Room — four AI analysts", onClick: () =>
           pane.push({ key: `sitroom:${conflictId}`, title: "situation room",
             render: (el) => renderSituationRoom(el, conflictId, ctx) }) },
-      { icon: "🎧", title: "Audio briefing", onClick: () => conflictBriefing.toggle(data) },
+      { icon: "", title: "Audio briefing", onClick: () => conflictBriefing.toggle(data) },
     ],
     render: (el) => Wiki.renderWarMode(el, data, ctx),
   });
@@ -3050,10 +3097,10 @@ async function enterWarMode(conflictId) {
     key: `war:${conflictId}`, title: "war mode",
     focus: { type: "conflict", name: data.conflict.name },
     actions: [
-      { icon: "🎙", title: "Situation Room — four AI analysts argue this conflict",
+      { icon: "", title: "Situation Room — four AI analysts argue this conflict",
         onClick: () => pane.push({ key: `sitroom:${conflictId}`, title: "situation room",
           render: (el) => renderSituationRoom(el, conflictId, ctx) }) },
-      { icon: "🎧", title: "Audio briefing — a detailed spoken rundown of this conflict",
+      { icon: "", title: "Audio briefing — a detailed spoken rundown of this conflict",
         onClick: () => conflictBriefing.toggle(data) },
     ],
     render: (el) => Wiki.renderWarMode(el, data, ctx),
@@ -3065,7 +3112,7 @@ async function enterWarMode(conflictId) {
 // v8.16 — build + apply the war-mode border rings from the current conflict:
 // belligerents in the full side color, supporters in a dimmed desaturated
 // shade of the same side (visually "with, but not in, the fight"), and
-// supporters removable via the ⚑ button in the war feed panel.
+// supporters removable via the button in the war feed panel.
 function applyWarRings() {
   const data = state.warMode;
   if (!data) return;
@@ -3117,12 +3164,12 @@ function renderWarTabs() {
   els.conflictTabs.innerHTML = "";
   const name = document.createElement("span");
   name.className = "war-name";
-  name.textContent = "⚔ " + (state.warMode.conflict.name || "");
+  name.textContent = state.warMode.conflict.name || "";
   els.conflictTabs.appendChild(name);
-  for (const [id, label] of [["", "all"], ["military", "⚔ military"],
-                             ["civilian", "🏥 civilian"],
-                             ["diplomatic", "🕊 diplomatic"],
-                             ["economic", "📈 economic"]]) {
+  for (const [id, label] of [["", "All"], ["military", "Military"],
+                             ["civilian", "Civilian"],
+                             ["diplomatic", "Diplomatic"],
+                             ["economic", "Economic"]]) {
     const tab = document.createElement("button");
     tab.className = "conflict-tab" + (state.warTab === id ? " active" : "");
     tab.textContent = label;
@@ -3135,7 +3182,7 @@ function renderWarTabs() {
   }
   const exit = document.createElement("button");
   exit.className = "conflict-tab war-exit";
-  exit.textContent = "✕ exit war mode";
+  exit.textContent = "Exit War Mode";
   exit.addEventListener("click", exitWarMode);
   els.conflictTabs.appendChild(exit);
 }
@@ -3296,7 +3343,7 @@ const warFeed = {
   async open(cid, name) {
     this.cid = cid; this.tab = "stories"; this.data = null;
     const panel = document.getElementById("war-feed-panel");
-    document.getElementById("war-feed-title").textContent = "⚔ " + (name || "war feed");
+    document.getElementById("war-feed-title").textContent = name || "War Feed";
     panel.style.display = "";
     document.getElementById("war-feed-list").innerHTML =
       `<p class="cp-meta">Loading the conflict feed…</p>`;
@@ -3322,14 +3369,14 @@ const warFeed = {
         exitBtn.parentElement.insertBefore(sup, exitBtn);
       sup.addEventListener("click", () => {
         state.warShowBackers = state.warShowBackers === false;
-        sup.textContent = state.warShowBackers ? "⚑ supporters ✓" : "⚑ supporters ✗";
+        sup.textContent = state.warShowBackers ? "Supporters: on" : "Supporters: off";
         sup.title = state.warShowBackers
           ? "supporting states outlined (dimmer shade) — click to hide"
           : "supporting states hidden — click to show";
         applyWarRings();
       });
     }
-    sup.textContent = state.warShowBackers === false ? "⚑ supporters ✗" : "⚑ supporters ✓";
+    sup.textContent = state.warShowBackers === false ? "Supporters: off" : "Supporters: on";
     sup.title = "toggle the supporting states' (dimmer) outlines";
     await this._load();
   },
@@ -3368,8 +3415,8 @@ const warFeed = {
       b.addEventListener("click", () => { this.tab = id; this._renderTabs(); this._renderList(); });
       tabs.appendChild(b);
     };
-    mk("stories", `🧵 threads${tc !== "" ? " (" + tc + ")" : ""}`);
-    mk("events", `📍 events${ec !== "" ? " (" + ec + ")" : ""}`);
+    mk("stories", `Threads${tc !== "" ? " (" + tc + ")" : ""}`);
+    mk("events", `Events${ec !== "" ? " (" + ec + ")" : ""}`);
   },
   _renderList() {
     this._renderTabs();
@@ -3384,7 +3431,7 @@ const warFeed = {
       const threads = this.data.threads || [];
       if (!threads.length) {
         list.innerHTML = `<p class="cp-meta">No threads tracked for this conflict yet — ` +
-          `patterns emerge as coverage is correlated to it. Try the 📍 events tab.</p>`;
+          `patterns emerge as coverage is correlated to it. Try the events tab.</p>`;
         return;
       }
       for (const th of threads) {
@@ -3431,7 +3478,7 @@ const warFeed = {
           <span class="chip cat-${e.category || "other"}">${e.category || "other"}</span>
           <span class="we-loc"></span><span class="we-when"></span></div>`;
         row.querySelector("h4").textContent = e.title || "(event)";
-        row.querySelector(".we-loc").textContent = e.location_name ? "📍 " + e.location_name : "";
+        row.querySelector(".we-loc").textContent = e.location_name ? "" + e.location_name : "";
         row.querySelector(".we-when").textContent = formatDateTime(e.occurred_at);
         row.addEventListener("click", () => {
           if (e.story_id) openStory(e.story_id);
@@ -3581,7 +3628,7 @@ els.modesBtn.addEventListener("click", async () => {
     els.modesBar.innerHTML = "";
     const off = document.createElement("button");
     off.className = "mode-chip";
-    off.textContent = "✕ off";
+    off.textContent = "Off";
     off.addEventListener("click", () => applyMapMode(null));
     els.modesBar.appendChild(off);
     for (const m of mapModesCache) {

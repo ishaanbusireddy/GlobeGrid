@@ -15,7 +15,7 @@ export class StatusPanel {
     });
     // v5 §19 — standard drawer dismissal that was missing: Escape closes,
     // and a click anywhere outside the drawer (or its toggle) closes. The
-    // in-drawer ✕ button is wired in refresh() to this same close(), not a
+    // in-drawer button is wired in refresh() to this same close(), not a
     // separate no-op, which was the root cause of "can't close once opened".
     this._onKey = (ev) => {
       if (ev.key === "Escape" && !this.drawer.classList.contains("hidden")) this.close();
@@ -47,7 +47,7 @@ export class StatusPanel {
       const data = await api.sourcesStatus();
       this.drawer.innerHTML =
         '<div class="sp-head"><h3>Source health</h3>'
-        + '<button class="sp-close" title="close (Esc)">✕</button></div>';
+        + '<button class="sp-close" title="Close (Esc)" aria-label="Close">×</button></div>';
       this.drawer.querySelector(".sp-close").addEventListener("click", () => this.close());
       for (const s of data.sources || []) {
         const row = document.createElement("div");
@@ -64,7 +64,7 @@ export class StatusPanel {
           <span class="up-bars" title="last checks${uptime}">${bars}</span>
           <span class="err" style="margin-left:auto"></span>`;
         row.querySelector("b").textContent =
-          s.name + (s.kind === "official" ? " ◆" : "");
+          s.name + (s.kind === "official" ? " (official)" : "");
         row.querySelector(".err").textContent =
           s.health_status === "ok"
             ? `${uptime || ""} last: ${(s.last_fetched_at || "").slice(11, 19) || "–"}`
@@ -86,8 +86,8 @@ export class StatusPanel {
         row.className = "prov-row " + (prov.ok ? "prov-ok" : "prov-bad");
         const checked = (prov.chains || []).reduce((s, c) => s + (c.checked || 0), 0);
         row.textContent = prov.ok
-          ? `⛓ provenance chain verified ✓ (${checked} hashed rows) · ${prov.verified_at || ""}`
-          : "⛓ PROVENANCE CHAIN BROKEN — records were altered after writing";
+          ? `provenance chain verified (${checked} hashed rows) · ${prov.verified_at || ""}`
+          : "PROVENANCE CHAIN BROKEN — records were altered after writing";
         row.title = prov.scope_note || "";
         this.drawer.appendChild(row);
       } catch { /* provenance endpoint unavailable */ }

@@ -55,7 +55,7 @@ export class TimeScrubber {
   _togglePlay() {
     if (this.playTimer) { this._stopPlay(); return; }
     if (parseInt(this.range.value, 10) >= 1000) this.range.value = "0";
-    this.playBtn.textContent = "⏸";
+    this.playBtn.textContent = "Pause";   // just started playing
     this.playTimer = setInterval(() => {
       const step = 1000 / this.windowHours;   // one hour per tick
       const next = Math.min(1000, parseInt(this.range.value, 10) + Math.max(1, Math.round(step)));
@@ -68,6 +68,6 @@ export class TimeScrubber {
   _stopPlay() {
     if (this.playTimer) clearInterval(this.playTimer);
     this.playTimer = null;
-    this.playBtn.textContent = "▶";
+    this.playBtn.textContent = "Play";
   }
 }

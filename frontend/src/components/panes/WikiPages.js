@@ -126,7 +126,7 @@ export function knowledgeSection(k, title = "Deep background") {
   const briefHtml = k.brief
     ? _paras(k.brief).map((p) => `<p class="knowledge-text">${esc(p)}</p>`).join("")
     : "";
-  return `<section class="knowledge-sec"><h4>🌍 ${esc(title)} ${tag}</h4>
+  return `<section class="knowledge-sec"><h4>${esc(title)} ${tag}</h4>
     ${briefHtml}
     ${k.region_brief ? `<div class="knowledge-region">
       <h5>Regional context${k.region ? ` — ${esc(k.region)}` : ""}</h5>
@@ -154,7 +154,7 @@ function storyChips(stories, ctx) {
     return '<span class="cp-meta">no tracked coverage yet</span>';
   }
   return stories.map((s) =>
-    `<button class="ap-chip story-link" data-id="${esc(s.id)}">⌕ ${esc(s.headline).slice(0, 64)}</button>`
+    `<button class="ap-chip story-link" data-id="${esc(s.id)}">${esc(s.headline).slice(0, 64)}</button>`
   ).join(" ");
 }
 
@@ -166,7 +166,7 @@ function wireStoryChips(el, ctx) {
 function thinBadge(coverage) {   // §15.1 — honest thin-coverage indicator
   if (!coverage || !coverage.thin) return "";
   return `<span class="thin-badge" title="fewer than ${coverage.floor} tracked stories back
- this profile — treat synthesized fields with corresponding caution">⚠ thin coverage</span>`;
+ this profile — treat synthesized fields with corresponding caution">thin coverage</span>`;
 }
 
 // ---------- §6.1 country profile (left-docked, formal header block) ----------
@@ -301,13 +301,13 @@ async function fillCountryTrade(host, iso3, ctx) {
       <p><b>Top imports:</b> ${esc((t.top_imports || []).join(", "))}</p>
       <p><b>Main partners:</b> ${esc((t.partners || []).join(", "))}</p>
       <p class="cp-meta">${esc(t.src || "")}</p>` : `<p class="cp-meta">${esc(d.note || "No curated trade profile yet.")}</p>`}
-      ${r ? `<h4>⛏ Resources &amp; industry</h4>
+      ${r ? `<h4>Resources &amp; industry</h4>
         <p><b>Key resources:</b> ${esc((r.resources || []).join(", "))}</p>
         ${r.production ? `<p><b>Headline production:</b> ${esc(r.production)}</p>` : ""}
         ${r.industry ? `<p><b>Industrial base:</b> ${esc(r.industry)}</p>` : ""}
         <p class="cp-meta">${esc(r.src || "")}</p>` : ""}
-      ${(d.live_trade_news || []).length ? `<h4>📰 Live trade coverage</h4>` +
-        d.live_trade_news.map((s) => `<button class="ap-chip story-link" data-id="${esc(s.id)}">⌕ ${esc(s.headline).slice(0, 64)}</button>`).join(" ") : ""}`;
+      ${(d.live_trade_news || []).length ? `<h4>Live trade coverage</h4>` +
+        d.live_trade_news.map((s) => `<button class="ap-chip story-link" data-id="${esc(s.id)}">${esc(s.headline).slice(0, 64)}</button>`).join(" ") : ""}`;
     host.querySelectorAll(".story-link").forEach((b) =>
       b.addEventListener("click", () => ctx.openStory(b.dataset.id)));
   } catch {
@@ -327,7 +327,7 @@ export async function renderCountry(el, iso3, ctx) {
   const leaderTitle = p.paramount_title
     || (leader ? leader.role.replace(/_/g, " ") : "");
   const rulingParty = (leader && leader.party) || "—";
-  // safe portrait: a wrong/stale URL swaps to the 👤 placeholder rather than
+  // safe portrait: a wrong/stale URL swaps to the placeholder rather than
   // showing a broken-image icon, so vendored + synced photos both degrade well
   // v6.6.7 — the portrait AND the placeholder are ALWAYS clickable (open the
   // leader profile), regardless of whether a photo loaded.
@@ -335,8 +335,8 @@ export async function renderCountry(el, iso3, ctx) {
   const photo = (leader && leader.image_url)
     ? `<img class="leader-photo leader-open" data-leader="${leaderName}" title="open leader profile"
         src="${esc(leader.image_url)}" alt="${esc(leader.name)}"
-        onerror="this.outerHTML='<div class=\\'leader-photo leader-photo-empty leader-open\\' data-leader=\\'${leaderName}\\'>👤</div>'">`
-    : `<div class="leader-photo leader-photo-empty leader-open" data-leader="${leaderName}" title="open leader profile · fetching portrait…">👤</div>`;
+        onerror="this.outerHTML='<div class=\\'leader-photo leader-photo-empty leader-open\\' data-leader=\\'${leaderName}\\'></div>'">`
+    : `<div class="leader-photo leader-photo-empty leader-open" data-leader="${leaderName}" title="open leader profile · fetching portrait…"></div>`;
 
   // v6.6.8 — a ceremonial head of state (a monarch in a constitutional/
   // parliamentary monarchy, where the PM is paramount) is clearly labeled as
@@ -349,7 +349,7 @@ export async function renderCountry(el, iso3, ctx) {
     const isLead = l.role === p.paramount_role;   // v6.1 — mark who actually leads
     const ceremonial = ceremonialMonarch && l.role === "head_of_state";
     return `<div class="src-row"><span class="leaning">${esc(l.role.replace(/_/g, " "))}</span>
-      <b class="leader-open" data-leader="${esc(l.name)}" style="cursor:pointer" title="open leader profile">${esc(l.name)}</b>${isLead ? ' <span class="chip" style="font-size:10px">★ leads</span>' : ""}${ceremonial ? ' <span class="chip" style="font-size:10px">ceremonial</span>' : ""}${l.party ? " · " + esc(l.party) : ""}
+      <b class="leader-open" data-leader="${esc(l.name)}" style="cursor:pointer" title="open leader profile">${esc(l.name)}</b>${isLead ? ' <span class="chip" style="font-size:10px">leads</span>' : ""}${ceremonial ? ' <span class="chip" style="font-size:10px">ceremonial</span>' : ""}${l.party ? " · " + esc(l.party) : ""}
       <span class="cp-meta" style="margin-left:auto">${src}</span></div>`;
   }).join("") || '<p class="cp-meta">no leadership data yet (fills in from Wikidata)</p>';
 
@@ -390,7 +390,7 @@ export async function renderCountry(el, iso3, ctx) {
   ).join("") || '<p class="cp-meta">no registered border disputes</p>';
 
   const sanctions = (p.sanctions_targeting || []).map((s) =>
-    `<div class="src-row">⛔ <span>${esc(s.reason)}</span>
+    `<div class="src-row"><span>${esc(s.reason)}</span>
      <span class="cp-meta" style="margin-left:auto">${esc(s.imposed_at || "")}</span></div>`
   ).join("") || '<p class="cp-meta">no active sanctions tracked against this country</p>';
 
@@ -474,17 +474,17 @@ export async function renderCountry(el, iso3, ctx) {
       </div>
     </div>
     <div class="ctab-bar" role="tablist"></div>
-    <div class="ctab-pane" data-ctab="📌 Overview">
+    <div class="ctab-pane" data-ctab="Overview">
       ${statCells ? `<section><h4>Key statistics</h4><div class="stat-grid">${statCells}</div></section>` : ""}
       ${knowledgeSection(p.knowledge, "Country intelligence")}
       ${territories}
       ${freshness(p.last_updated_at)}
       ${backgroundSection(p.background)}
     </div>
-    <div class="ctab-pane" data-ctab="🏛 Government">
+    <div class="ctab-pane" data-ctab="Government">
       <section><h4>Leadership</h4>${leadership}</section>
       ${(p.legislature && p.legislature.seats)
-        ? `<section><h4>Legislature${p.legislature.stale ? ' <span class="chip" title="composition not refreshed in over 15 months — an election may have happened since">⏳ may be outdated</span>' : ""}</h4>${parliamentGraphic(p.legislature)}</section>`
+        ? `<section><h4>Legislature${p.legislature.stale ? ' <span class="chip" title="composition not refreshed in over 15 months — an election may have happened since">may be outdated</span>' : ""}</h4>${parliamentGraphic(p.legislature)}</section>`
         : (p.legislature && p.legislature.composition_summary
             ? `<section><h4>Legislature</h4><p>${esc(p.legislature.chamber_name || "")}</p><p class="cp-meta">${esc(p.legislature.composition_summary)}</p></section>`
             : (p.legislature_note   /* v6.6.2 — explain absence, don't leave blank */
@@ -494,7 +494,7 @@ export async function renderCountry(el, iso3, ctx) {
       <section><h4>Notable persons</h4>${persons}</section>
       <section><h4>Elections</h4>${elections}</section>
     </div>
-    <div class="ctab-pane" data-ctab="🌐 Diplomacy">
+    <div class="ctab-pane" data-ctab="Diplomacy">
       <section><h4>Member of</h4>${memberships}</section>
       <section><h4>Agendas & stances <span class="cp-meta">(AI-synthesized, source-linked)</span></h4>
         <div class="narrative-grid">${agenda}</div>
@@ -505,27 +505,27 @@ export async function renderCountry(el, iso3, ctx) {
       <section><h4>Treaties</h4>${treaties}</section>
       <section><h4>Sanctions targeting</h4>${sanctions}</section>
     </div>
-    <div class="ctab-pane" data-ctab="⚔ Conflicts">
+    <div class="ctab-pane" data-ctab="Conflicts">
       <section><h4>Conflicts</h4>${conflicts}</section>
       ${pastConflicts ? `<section><h4>Past conflicts</h4>${pastConflicts}</section>` : ""}
       <section><h4>Border disputes</h4>${disputes}</section>
     </div>
-    <div class="ctab-pane" data-ctab="🚢 Trade">
+    <div class="ctab-pane" data-ctab="Trade">
       <section><h4>Trade &amp; resources</h4>
         <div class="country-trade-host"><p class="cp-meta">loading trade profile…</p></div></section>
     </div>
-    <div class="ctab-pane" data-ctab="◇ Divisions">
-      ${(p.autonomous_zones || []).length ? `<section><h4>🏛 Autonomous regions</h4>
+    <div class="ctab-pane" data-ctab="Divisions">
+      ${(p.autonomous_zones || []).length ? `<section><h4>Autonomous regions</h4>
         ${p.autonomous_zones.map((z) =>
-          `<button class="ap-chip az-open" data-id="${esc(z.id)}">🏛 ${esc(z.name)}</button>`).join(" ")}</section>` : ""}
-      <section id="admin-units-section"><h4>◇ Provinces &amp; states <span class="cp-meta">(click one to open)</span></h4>
+          `<button class="ap-chip az-open" data-id="${esc(z.id)}">${esc(z.name)}</button>`).join(" ")}</section>` : ""}
+      <section id="admin-units-section"><h4>Provinces &amp; states <span class="cp-meta">(click one to open)</span></h4>
         <div class="admin-units-host"><p class="cp-meta">loading administrative units…</p></div></section>
-      <section id="country-cities-section"><h4>◍ Cities <span class="cp-meta">(largest first · click to open)</span></h4>
+      <section id="country-cities-section"><h4>Cities <span class="cp-meta">(largest first · click to open)</span></h4>
         <div class="country-cities-host"><p class="cp-meta">loading cities…</p></div></section>
-      <section id="admin-history-section" style="display:none"><h4>🕰 Border &amp; sovereignty history <span class="cp-meta">(since 1950)</span></h4>
+      <section id="admin-history-section" style="display:none"><h4>Border &amp; sovereignty history <span class="cp-meta">(since 1950)</span></h4>
         <div class="admin-history-host"></div></section>
     </div>
-    <div class="ctab-pane" data-ctab="📰 Coverage">
+    <div class="ctab-pane" data-ctab="Coverage">
       <section><h4>Recent tracked coverage ${thinBadge(p.coverage)}</h4>${storyChips(p.recent_stories)}</section>
     </div>`;
 
@@ -598,11 +598,11 @@ export async function renderCountry(el, iso3, ctx) {
     const btn = document.createElement("button");
     btn.className = "ap-chip align-btn";
     const on = ctx.alignmentActive && ctx.alignmentActive() === p.id;
-    btn.textContent = on ? "🗺 alignments ✓" : "🗺 alignments";
+    btn.textContent = on ? "Hide alignments" : "Alignments";
     btn.title = "toggle allies (green), partners (light green) and rivals (red) on the map";
     btn.addEventListener("click", () => {
       const active = ctx.showAlignments && ctx.showAlignments(p.id, p.alignments);
-      btn.textContent = active ? "🗺 alignments ✓" : "🗺 alignments";
+      btn.textContent = active ? "Hide alignments" : "Alignments";
     });
     meta.appendChild(btn);
     // v6.6.2 — if alignment mode is already ON for a DIFFERENT country, opening
@@ -610,7 +610,7 @@ export async function renderCountry(el, iso3, ctx) {
     // country's alignments, not the previous country's").
     if (ctx.alignmentActive && ctx.alignmentActive() && ctx.alignmentActive() !== p.id) {
       ctx.showAlignments(p.id, p.alignments);
-      btn.textContent = "🗺 alignments ✓";
+      btn.textContent = "Hide alignments";
     }
   }
   // v7.4.1 — recognition map mode: for a partially-recognized state (Kosovo,
@@ -622,11 +622,11 @@ export async function renderCountry(el, iso3, ctx) {
     const rbtn = document.createElement("button");
     rbtn.className = "ap-chip recog-btn";
     const on = ctx.recognitionActive && ctx.recognitionActive() === p.id;
-    rbtn.textContent = on ? "🏳 recognition ✓" : "🏳 recognition";
+    rbtn.textContent = on ? "Hide recognition" : "Recognition";
     rbtn.title = "who recognizes this state (green) vs who doesn't (red)";
     rbtn.addEventListener("click", async () => {
       const active = await ctx.showRecognition(p.id);
-      rbtn.textContent = active ? "🏳 recognition ✓" : "🏳 recognition";
+      rbtn.textContent = active ? "Hide recognition" : "Recognition";
     });
     meta.appendChild(rbtn);
   }
@@ -697,14 +697,14 @@ function paintParty(el, id, p, ctx) {
     <div class="stat-cell"><span class="cp-meta">Position</span><b>${esc(s0.ideology || (p.ideology_tags || "").split(";")[0] || "—")}</b></div>
     </div></section>`;
   el.innerHTML = `
-    <div class="wiki-header"><div class="wiki-flag">🏛</div>
+    <div class="wiki-header"><div class="wiki-flag"></div>
       <div class="wiki-head-meta"><h1>${esc(p.name)}</h1>
         <p class="cp-meta">${esc(p.country_name || "")} · founded ${esc(p.founded_date || "?")}</p>
         <p class="cp-meta">ideology: ${esc((p.ideology_tags || "").replace(/;/g, " · "))}</p>
       </div></div>
     ${freshness(p.last_updated_at)}
     ${statGrid}
-    ${(p.synth_pending && !p.synthesis) ? `<p class="cp-meta">✨ generating a detailed profile with AI… (updates in a moment)</p>` : ""}
+    ${(p.synth_pending && !p.synthesis) ? `<p class="cp-meta">generating a detailed profile with AI… (updates in a moment)</p>` : ""}
     ${(() => { const s = p.synthesis; const b = (a) => (a || []).map((x) => `<li>${esc(x)}</li>`).join("");
       if (!s) return "";
       return `${s.summary ? `<section><p>${esc(s.summary)}</p></section>` : ""}
@@ -749,8 +749,8 @@ export async function renderPerson(el, id, ctx) {
   // v6 §5 — Wikimedia-sourced portrait when available, placeholder otherwise
   const portrait = p.portrait_image_url
     ? `<img class="leader-photo" src="${esc(p.portrait_image_url)}" alt="${esc(p.name)}"
-         onerror="this.outerHTML='<div class=\'wiki-flag\'>👤</div>'">`
-    : `<div class="wiki-flag">👤</div>`;
+         onerror="this.outerHTML='<div class=\'wiki-flag\'></div>'">`
+    : `<div class="wiki-flag"></div>`;
   el.innerHTML = `
     <div class="wiki-header">${portrait}
       <div class="wiki-head-meta"><h1>${esc(p.name)}</h1>
@@ -774,8 +774,8 @@ export async function renderActor(el, id, ctx) {
   // v7 — NSAs get a real flag/emblem + full official name, like a country
   const flag = a.flag_image_url
     ? `<img class="wiki-flag-img" src="${esc(a.flag_image_url)}" alt=""
-         onerror="this.outerHTML='<div class=&quot;wiki-flag&quot;>◈</div>'">`
-    : '<div class="wiki-flag">◈</div>';
+         onerror="this.outerHTML='<div class=&quot;wiki-flag&quot;></div>'">`
+    : '<div class="wiki-flag"></div>';
   el.innerHTML = `
     <div class="wiki-header">${flag}
       <div class="wiki-head-meta"><h1>${esc(a.name)}</h1>
@@ -800,7 +800,7 @@ export async function renderOrg(el, id, ctx) {
   if (!o) { el.innerHTML = "<p>organization not registered</p>"; return; }
   const bg = await api.background("org", id).catch(() => ({ background: [] }));
   el.innerHTML = `
-    <div class="wiki-header"><div class="wiki-flag">🏢</div>
+    <div class="wiki-header"><div class="wiki-flag"></div>
       <div class="wiki-head-meta"><h1>${esc(o.name)}</h1>
         <p class="cp-meta">${esc(o.org_type)} · HQ ${esc(o.hq_location || "?")} · founded ${esc(o.founded_date || "?")}</p>
       </div></div>
@@ -835,10 +835,10 @@ export async function renderAlliance(el, id, ctx) {
   // of the blocs … not random ahh emojis"). Falls back to the emoji on load
   // error so a bloc without a hosted flag still shows something sensible.
   const BLOC_EMBLEM = {
-    "NATO": "🛡️", "European Union": "🇪🇺", "CSTO": "🛡️", "Arab League": "🕌",
-    "ASEAN": "🌏", "African Union": "🌍", "BRICS": "🧱", "OPEC": "🛢️",
-    "Five Eyes": "👁️", "QUAD": "🀫", "AUKUS": "⚓", "G7": "7️⃣", "OECD": "📊",
-    "SCO": "🌏", "Mercosur": "🌎", "GCC": "🕌", "ECOWAS": "🌍",
+    "NATO": "", "European Union": "", "CSTO": "", "Arab League": "",
+    "ASEAN": "", "African Union": "", "BRICS": "", "OPEC": "",
+    "Five Eyes": "", "QUAD": "", "AUKUS": "", "G7": "7", "OECD": "",
+    "SCO": "", "Mercosur": "", "GCC": "", "ECOWAS": "",
   };
   const BLOC_FLAG_FILE = {
     "NATO": "Flag of NATO.svg", "European Union": "Flag of Europe.svg",
@@ -850,7 +850,7 @@ export async function renderAlliance(el, id, ctx) {
     "GCC": "Flag of the Cooperation Council for the Arab States of the Gulf.svg",
     "OPEC": "Flag of OPEC.svg", "OECD": "OECD logo.svg", "AUKUS": "AUKUS logo.svg",
   };
-  const emblemChar = BLOC_EMBLEM[a.name] || "⬡";
+  const emblemChar = BLOC_EMBLEM[a.name] || "";
   // v7.6 — prefer the backend's data-driven emblem_url (broader bloc coverage),
   // then the local file map, then the emoji fallback on load error.
   const flagFile = BLOC_FLAG_FILE[a.name];
@@ -869,7 +869,7 @@ export async function renderAlliance(el, id, ctx) {
       </div></div>
     ${freshness(a.last_updated_at)}
     ${a.leader ? `<section><h4>Leadership</h4>
-      <div class="wiki-header"><div class="leader-photo leader-photo-empty" data-leader="${esc(a.leader[0])}">👤</div>
+      <div class="wiki-header"><div class="leader-photo leader-photo-empty" data-leader="${esc(a.leader[0])}"></div>
       <div><b class="leader-link" data-leader="${esc(a.leader[0])}" style="cursor:pointer">${esc(a.leader[0])}</b>
         <p class="cp-meta">${esc(a.leader[1])} · since ${esc(a.leader[2])}</p></div></div>
     </section>` : ""}
@@ -1017,9 +1017,9 @@ export async function renderBookmarks(el, ctx) {
     const row = document.createElement("div");
     row.className = "src-row bm-row";
     row.innerHTML = `<span class="chip">${esc(b.target_type.replace(/_/g, " "))}</span>
-      <button class="ap-chip bm-open"></button>
+      <button class="ap-chip bm-open">Open</button>
       <span class="cp-meta" style="margin-left:auto">${esc((b.bookmarked_at || "").slice(0, 10))}</span>
-      <button class="cp-del">✕</button>`;
+      <button class="cp-del" aria-label="Delete">×</button>`;
     row.querySelector(".bm-open").textContent = b.label || b.target_id;
     row.querySelector(".bm-open").addEventListener("click", () =>
       (BOOKMARK_OPEN[b.target_type] || (() => {}))(ctx, b.target_id));
@@ -1030,7 +1030,7 @@ export async function renderBookmarks(el, ctx) {
     list.appendChild(row);
   }
   if (!(data.bookmarks || []).length) {
-    list.innerHTML = '<p class="cp-meta">Nothing saved yet — use the ☆ in the pane header'
+    list.innerHTML = '<p class="cp-meta">Nothing saved yet — use the in the pane header'
       + " on any story, country, or wiki page.</p>";
   }
 }
@@ -1038,12 +1038,12 @@ export async function renderBookmarks(el, ctx) {
 // ---------- §8.2 stories directory ----------
 
 const TYPE_META = {
-  acute_event: ["⚡", "Acute events", "tight clusters of recent correlated events"],
-  ongoing_conflict: ["⚔", "Ongoing conflicts", "long-running, continuously updated"],
-  alliance_development: ["⬡", "Alliance developments", "bloc membership & posture over time"],
-  recurring_pattern: ["🔁", "Recurring patterns", "history rhyming — lineage & shared root causes"],
-  diplomatic_push: ["🕊", "Diplomatic pushes", "sustained national agendas"],
-  economic_push: ["📈", "Economic pushes", "trade, sanctions & economic agendas"],
+  acute_event: ["", "Acute events", "tight clusters of recent correlated events"],
+  ongoing_conflict: ["", "Ongoing conflicts", "long-running, continuously updated"],
+  alliance_development: ["", "Alliance developments", "bloc membership & posture over time"],
+  recurring_pattern: ["", "Recurring patterns", "history rhyming — lineage & shared root causes"],
+  diplomatic_push: ["", "Diplomatic pushes", "sustained national agendas"],
+  economic_push: ["", "Economic pushes", "trade, sanctions & economic agendas"],
 };
 
 // v5 §20 — region summary page: every country in the region + aggregated
@@ -1054,7 +1054,7 @@ export async function renderRegion(el, region, ctx) {
     `<button class="ap-chip country-link" data-id="${esc(c.id)}">
       ${flagInline(c)} ${esc(c.name)}</button>`).join(" ");
   const conflicts = (d.conflicts || []).map((c) =>
-    `<button class="ap-chip conflict-link" data-id="${esc(c.id)}">⚔ ${esc(c.name)} (${esc(c.status)})</button>`
+    `<button class="ap-chip conflict-link" data-id="${esc(c.id)}">${esc(c.name)} (${esc(c.status)})</button>`
   ).join(" ") || '<span class="cp-meta">no tracked conflicts with a party in this region</span>';
   el.innerHTML = `
     <h1>${esc(d.region)} <span class="cp-meta">region</span></h1>
@@ -1084,7 +1084,7 @@ export function renderWarMode(el, data, ctx) {
   }
   const partyChip = (pt) => pt.country_id
     ? `<button class="ap-chip country-link" data-id="${esc(pt.country_id)}">${flagInline({ id: pt.country_id, name: pt.country_name, flag_image_url: pt.flag_image_url })} ${esc(pt.country_name)}</button>`
-    : `<button class="ap-chip actor-link" data-id="${esc(pt.actor_id)}">◈ ${esc(pt.actor_name)}</button>`;
+    : `<button class="ap-chip actor-link" data-id="${esc(pt.actor_id)}">${esc(pt.actor_name)}</button>`;
   // v6.1 — within each side, list BELLIGERENTS first, then BACKERS/supporters
   const sideBlock = (k) => {
     const belligs = bySide[k].filter((p) => p.role === "belligerent");
@@ -1105,7 +1105,7 @@ export function renderWarMode(el, data, ctx) {
     ? Math.floor((Date.now() - new Date(c.started_at).getTime()) / 86400000) : null;
   el.innerHTML = `
     <div class="war-infobox">
-      <h1>⚔ ${esc(c.name)}</h1>
+      <h1>${esc(c.name)}</h1>
       <div class="stat-grid">
         <div class="stat-cell"><span class="stat-k">Status</span><span class="stat-v">${esc(c.status)}</span></div>
         <div class="stat-cell"><span class="stat-k">Began</span><span class="stat-v">${esc(c.started_at || "?")}</span></div>
@@ -1268,8 +1268,8 @@ function unResolutionsHtml(resList) {
         <p>${esc(r.summary)}</p>
         ${voteArc(r.tally)}
         <div class="vote-tally">
-          <span class="vote-yes">✔ ${r.tally.yes} for</span>
-          <span class="vote-no">✘ ${r.tally.no} against</span>
+          <span class="vote-yes">${r.tally.yes} for</span>
+          <span class="vote-no">${r.tally.no} against</span>
           <span class="vote-abstain">◦ ${r.tally.abstain} abstain</span>
           <span class="cp-meta">— ${esc(r.result)}</span>
         </div>
@@ -1289,7 +1289,7 @@ function unMainHtml(d) {
   const sc = d.security_council || {};
   return `
     <div class="wiki-header"><div class="wiki-head-meta">
-      <h1>🇺🇳 United Nations</h1>
+      <h1>United Nations</h1>
       <p class="cp-meta">Security Council, recent resolutions and how members voted.</p>
     </div></div>
     ${knowledgeSection(d.knowledge, "UN intelligence")}
@@ -1299,7 +1299,7 @@ function unMainHtml(d) {
       ${sc.elected ? sc.elected.map(memberChip).join(" ") : ""}</section>
     <section><h4>Other principal organs</h4>
       ${(d.other_councils || []).map((c) => `<div class="src-row"><b>${esc(c.name)}</b> <span class="cp-meta">${esc(c.note)}</span></div>`).join("")}</section>
-    <section class="un-news-section"><h4>📰 Live UN news</h4>
+    <section class="un-news-section"><h4>Live UN news</h4>
       <p class="cp-meta">Stories from UN-family sources and reporting that mentions the UN.</p>
       <div class="un-news-feed"><p class="cp-meta">loading…</p></div></section>
     <section><h4>Notable resolutions & recorded votes</h4>${unResolutionsHtml(d.resolutions)}</section>`;
@@ -1377,7 +1377,7 @@ export async function renderAntarctica(el, ctx) {
   el.innerHTML = `<div class="wiki-header">
       <div class="wiki-flag"><img src="${treatyFlag}" alt="Antarctic Treaty flag"
         style="height:60px;width:auto;box-shadow:0 0 0 1px rgba(255,255,255,.18)"
-        onerror="this.replaceWith(document.createTextNode('🧊'))"></div>
+        onerror="this.replaceWith(document.createTextNode(''))"></div>
       <div class="wiki-head-meta"><h1>Antarctica</h1>
         <p class="cp-meta">The southern polar continent · no permanent population · governed by the Antarctic Treaty System</p></div>
     </div>`;
@@ -1398,7 +1398,7 @@ export async function renderAntarctica(el, ctx) {
     <section><h4>Territorial claims (frozen)</h4>
       <p class="cp-meta">Seven claimant states — click a claim for its full breakdown.</p>
       <div class="disp-list">${claims.map((z) =>
-        `<button class="ap-chip disp-open" data-id="${esc(z.id)}">⚑ ${esc(z.name)}
+        `<button class="ap-chip disp-open" data-id="${esc(z.id)}">${esc(z.name)}
           <span class="cp-meta">${esc((z.claimants || [])[0] || "")}</span></button>`).join(" ")
         || '<p class="cp-meta">Enable disputed mode to see the claims on the map.</p>'}</div></section>
     <section><h4>Key facts</h4>
@@ -1416,7 +1416,7 @@ export async function renderAntarctica(el, ctx) {
 
 // directory of all disputed zones; each opens its own breakdown
 export async function renderDisputedZones(el, ctx) {
-  el.innerHTML = `<h1>⚑ Disputed territories</h1>
+  el.innerHTML = `<h1>Disputed territories</h1>
     <p class="cp-meta">Contested regions with rival claims — click one for the full breakdown.</p>
     <div class="disp-list"><p class="cp-meta">loading…</p></div>`;
   const d = await api.disputedZones().catch(() => ({ zones: [] }));
@@ -1435,7 +1435,7 @@ export async function renderDisputedZone(el, zid, ctx) {
   const z = (d.zones || []).find((x) => x.id === zid);
   if (!z) { el.innerHTML = "<p>disputed zone not found</p>"; return; }
   el.innerHTML = `
-    <div class="wiki-header"><div class="wiki-flag">⚑</div>
+    <div class="wiki-header"><div class="wiki-flag"></div>
       <div class="wiki-head-meta"><h1>${esc(z.name)}</h1>
         <p class="cp-meta">${esc(z.status)}</p></div></div>
     <section><h4>Control &amp; claims</h4>
@@ -1449,7 +1449,7 @@ export async function renderDisputedZone(el, zid, ctx) {
 // v7.4.1 — autonomous regions directory + per-zone page (a new entity type:
 // self-governing regions inside a sovereign parent).
 export async function renderAutonomousZones(el, ctx) {
-  el.innerHTML = `<h1>🏛 Autonomous regions</h1>
+  el.innerHTML = `<h1>Autonomous regions</h1>
     <p class="cp-meta">Self-governing regions with real autonomy inside a sovereign state —
       click one for its full breakdown.</p>
     <div class="az-list"><p class="cp-meta">loading…</p></div>`;
@@ -1481,7 +1481,7 @@ export async function renderAutonomousZone(el, zid, ctx) {
     ? `<div class="stat-cell"><span class="cp-meta">${esc(label)}</span><b>${esc(val)}</b></div>` : "";
   let html = `
     <div class="wiki-header">
-      <div class="wiki-flag">${z.flag_url ? flagImg({ flag_image_url: z.flag_url, name: z.name }) : "🏛"}</div>
+      <div class="wiki-flag">${z.flag_url ? flagImg({ flag_image_url: z.flag_url, name: z.name }) : ""}</div>
       <div class="wiki-head-meta"><h1>${esc(z.name)}</h1>
         <p class="cp-meta">Autonomous region of <b class="az-parent" data-name="${esc(z.parent)}" style="cursor:pointer">${esc(z.parent)}</b>${z.official_name ? " · " + esc(z.official_name) : ""}</p>
         ${z.leader ? `<p class="cp-meta">${leaderChip(z.leader)}</p>` : ""}
@@ -1546,7 +1546,7 @@ export async function renderAdminUnit(el, uid, ctx) {
   // country chip AND the zone chip (owner: "in Erbil, the Iraq chip and Iraqi
   // Kurdistan chip should both be present").
   const az = d.autonomous_zone || null;
-  if (az) crumbs.push(`<button class="ap-chip zone-link" data-id="${esc(az.id)}">◇ ${esc(az.name)}</button>`);
+  if (az) crumbs.push(`<button class="ap-chip zone-link" data-id="${esc(az.id)}">${esc(az.name)}</button>`);
   for (const a of (d.ancestry || [])) crumbs.push(`<button class="ap-chip admin-open" data-uid="${esc(a.admin_uid)}">${esc(a.name)}</button>`);
   crumbs.push(`<b>${esc(u.name)}</b>`);
 
@@ -1593,7 +1593,7 @@ export async function renderAdminUnit(el, uid, ctx) {
         ${cell("Center", (u.centroid_lat != null && u.centroid_lon != null) ? `${u.centroid_lat.toFixed(2)}, ${u.centroid_lon.toFixed(2)}` : "")}
         ${cell("Tracked events here", d.event_count != null ? String(d.event_count) : "")}
       </div>
-      <button class="ap-chip admin-fly" title="fly the map to this unit">⌖ Pan to this area</button>
+      <button class="ap-chip admin-fly" title="fly the map to this unit">Pan to this area</button>
     </section>`;
 
   // v8.5 — the unit's OWN figures: real polygon area for every unit, plus
@@ -1639,7 +1639,7 @@ export async function renderAdminUnit(el, uid, ctx) {
     const cats = (act.top_categories || []).map((c) =>
       `<span class="chip">${esc(c.category)} · ${esc(String(c.count))}</span>`).join(" ")
       || '<span class="cp-meta">—</span>';
-    html += `<section><h4>◉ Local activity <span class="cp-meta">(last ${esc(String(act.window_days))} days)</span></h4>
+    html += `<section><h4>Local activity <span class="cp-meta">(last ${esc(String(act.window_days))} days)</span></h4>
       <div class="stat-grid">
         ${cell("Recent events here", String(act.recent_events))}
         ${cell("Severity load", String(act.severity_sum))}
@@ -1686,7 +1686,7 @@ export function cityChips(cities, ctx) {
     : p >= 1e3 ? Math.round(p / 1e3) + "k" : String(p);
   return cities.map((c) =>
     `<button class="ap-chip city-open" data-id="${esc(c.id)}" data-lat="${esc(c.lat)}" data-lon="${esc(c.lon)}">`
-    + `◍ ${esc(c.name)}${c.population ? ` <span class="cp-meta">${fmtP(c.population)}</span>` : ""}</button>`).join(" ");
+    + `${esc(c.name)}${c.population ? ` <span class="cp-meta">${fmtP(c.population)}</span>` : ""}</button>`).join(" ");
 }
 async function fillCitiesSection(host, promise, ctx) {
   if (!host) return;
@@ -1726,7 +1726,7 @@ export async function renderCity(el, id, ctx) {
   el.innerHTML = `
     <div class="wiki-header">
       <div class="wiki-head-meta">
-        <h1>◍ ${esc(city.name)}</h1>
+        <h1>${esc(city.name)}</h1>
         ${city.ascii_name && city.ascii_name !== city.name ? `<p class="official-name">${esc(city.ascii_name)}</p>` : ""}
         <p class="cp-meta">${crumbs.join(' <span class="cp-meta">›</span> ')}</p>
         <p class="cp-meta">city / populated place</p>
@@ -1740,7 +1740,7 @@ export async function renderCity(el, id, ctx) {
         ${cell("National rank", rankStr ? esc(rankStr) : "")}
         ${cell("Coordinates", `${city.lat.toFixed(3)}, ${city.lon.toFixed(3)}`)}
       </div>
-      <button class="ap-chip city-fly" title="fly the map to this city">⌖ Pan to this city</button>
+      <button class="ap-chip city-fly" title="fly the map to this city">Pan to this city</button>
     </section>
     ${c ? `<section><h4>About</h4><p class="cp-meta">${esc(city.name)} is a city in
       ${a ? esc(a.name) + ", " : ""}${esc(c.name)}${city.population ? `, with a population of about ${fmtP(city.population)}` : ""}.
@@ -1758,7 +1758,7 @@ export async function renderCity(el, id, ctx) {
 // v8.3 — the Hotspots ranking: the administrative units with the most tracked
 // activity right now, each a heat-scored, clickable row into its unit page.
 export async function renderHotspots(el, ctx) {
-  el.innerHTML = `<h1>◉ Hotspots</h1>
+  el.innerHTML = `<h1>Hotspots</h1>
     <p class="cp-meta">The administrative units with the most tracked coverage
       right now — down to the province, county and district. The map lights each
       one by its activity while this is open.</p>
@@ -1814,11 +1814,11 @@ export async function renderPartyDossier(el, name, iso, ctx) {
     ? `<section><h4>${esc(label)}</h4><ul class="deep-summary">${arr.map((s) => `<li>${esc(s)}</li>`).join("")}</ul></section>` : "";
   const sect = (label, val) => val ? `<section><h4>${esc(label)}</h4><p>${esc(val)}</p></section>` : "";
   // v7.6 — real party logo/emblem when curated (owner: "add logos for every
-  // political party"), else the 🏛 glyph.
+  // political party"), else the glyph.
   const plogo = dos.logo_url
     ? `<img class="wiki-flag-img" src="${esc(dos.logo_url)}" alt="${esc(name)} logo"
-         onerror="this.outerHTML='<div style=&quot;font-size:44px&quot;>🏛</div>'">`
-    : "🏛";
+         onerror="this.outerHTML='<div style=&quot;font-size:44px&quot;></div>'">`
+    : "";
   let html = `<div class="wiki-header"><div class="wiki-flag">${plogo}</div>
     <div class="wiki-head-meta"><h1>${esc(dos.full_name || name)}</h1>
       <p class="cp-meta">${esc(dos.ideology || "Political party")}${dos.country ? " · " + esc(dos.country) : ""}</p></div></div>`;
@@ -1878,7 +1878,7 @@ export async function renderCountryStat(el, iso3, metric, countryName, ctx) {
     // v6.6.6 — the breakdown generates in the background; if pending, re-fetch.
     if (d && d.detail_pending) {
       el.innerHTML = `<h1>${esc(countryName || iso3)} — ${esc(STAT_LABEL[metric] || metric)}</h1>
-        <p class="cp-meta">✨ generating a detailed breakdown with AI… (updates in a moment).
+        <p class="cp-meta">generating a detailed breakdown with AI… (updates in a moment).
         Headline figure: ${esc(String(d.headline || "—"))}.</p>`;
       setTimeout(() => { if (el.isConnected) renderCountryStat(el, iso3, metric, countryName, ctx); }, 5500);
       return;
@@ -1940,7 +1940,7 @@ export async function renderStoriesDirectory(el, ctx, activeType) {
   // normal directory list (owner request).
   const tabDefs = ["", ...Object.keys(TYPE_META), "chains"];
   const tabs = tabDefs.map((t) => {
-    const label = t === "chains" ? "🔗 chains"
+    const label = t === "chains" ? "chains"
       : t ? TYPE_META[t][0] + " " + TYPE_META[t][1] : "all";
     return `<button class="conflict-tab dir-tab ${((activeType || "") === t) ? "active" : ""}"
       data-type="${t}">${label}</button>`;
@@ -1962,7 +1962,7 @@ export async function renderStoriesDirectory(el, ctx, activeType) {
         const card = document.createElement("div");
         card.className = "story-card dir-card";
         card.style.cursor = "pointer";
-        card.innerHTML = `<div class="card-meta"><span class="chip">🔗 chain</span>
+        card.innerHTML = `<div class="card-meta"><span class="chip">chain</span>
             <span class="cp-meta">${ch.chain_len} linked facts</span>
             <span class="cp-meta" style="margin-left:auto">${esc((ch.last_updated_at || "").slice(0, 10))}</span></div>
           <h3></h3>
@@ -1981,7 +1981,7 @@ export async function renderStoriesDirectory(el, ctx, activeType) {
   el.innerHTML = `<h1>Stories</h1>
     <p class="cp-meta">The browsing surface for slower-moving story shapes — the live feed stays
       chronological; this is where threads, wars, alliances, patterns and agendas live (§8, v6 §27).</p>
-    <p><button class="ap-chip dir-all-events">📍 Browse ALL events</button></p>
+    <p><button class="ap-chip dir-all-events">Browse ALL events</button></p>
     <div class="dir-threads"></div>
     <div class="dir-tabs">${tabs}</div><div class="dir-list"></div>`;
   // v8.13.2 — a link into the full all-events browser (owner: every event viewable)
@@ -1994,7 +1994,7 @@ export async function renderStoriesDirectory(el, ctx, activeType) {
     const card = document.createElement("div");
     card.className = "story-card dir-card thread-card";
     card.innerHTML = `<div class="card-meta">
-        <span class="chip">🧵 thread</span>
+        <span class="chip">thread</span>
         <span class="cp-meta">${t.story_count || 0} stories</span>
         <span class="cp-meta" style="margin-left:auto">${esc((t.last_updated_at || "").slice(0, 10))}</span>
       </div><h3></h3><p class="cp-meta dir-sub"></p><div class="thread-members"></div>`;
@@ -2004,7 +2004,7 @@ export async function renderStoriesDirectory(el, ctx, activeType) {
     for (const m of (t.members || []).slice(0, 4)) {
       const chip = document.createElement("button");
       chip.className = "ap-chip";
-      chip.textContent = "⌕ " + (m.headline || m.id).slice(0, 52);
+      chip.textContent = "" + (m.headline || m.id).slice(0, 52);
       chip.addEventListener("click", (ev) => { ev.stopPropagation(); ctx.openStory(m.id); });
       mHost.appendChild(chip);
     }
@@ -2056,14 +2056,14 @@ export async function renderSettings(el, ctx) {
   const ol = data.ollama || {};
   let olStatus;
   if (ol.reachable && ol.model_pulled) {
-    olStatus = `<span class="conf-high">✅ running</span> — model <b>${esc(ol.model)}</b> ready
+    olStatus = `<span class="conf-high">running</span> — model <b>${esc(ol.model)}</b> ready
       at <code>${esc(ol.host)}</code>. All AI features are live, free and private.`;
   } else if (ol.reachable) {
-    olStatus = `<span class="conf-medium">⚠ server running, model missing</span> — run
+    olStatus = `<span class="conf-medium">server running, model missing</span> — run
       <code>ollama pull ${esc(ol.model)}</code> in a terminal (one time).
       Installed: ${esc((ol.installed_models || []).join(", ") || "none")}`;
   } else {
-    olStatus = `<span class="conf-low">❌ not detected</span> — install from
+    olStatus = `<span class="conf-low">not detected</span> — install from
       <a href="https://ollama.com" target="_blank" rel="noopener">ollama.com</a>, then run
       <code>ollama pull ${esc(ol.model || "llama3.1")}</code>. GlobeGrid finds it
       automatically; no key needed. (Or add a Groq key below instead.)`;
@@ -2076,12 +2076,12 @@ export async function renderSettings(el, ctx) {
     </div>
     <div class="settings-tab-display"></div>
     <div class="settings-tab-ai hidden">
-    <section><h4>🖥 Local AI — Ollama (primary)</h4>
+    <section><h4>Local AI — Ollama (primary)</h4>
       <p class="ollama-status">${olStatus}</p>
       <p class="cp-meta">Verify everything end-to-end on the
         <a href="/api/diagnostics" target="_blank">diagnostics page</a>.</p>
     </section>
-    <h4>☁ Cloud keys (optional fallback)</h4>
+    <h4>Cloud keys (optional fallback)</h4>
     <p class="cp-meta">Keys are written straight to <code>${esc(data.env_path)}</code> — no manual
       file editing. Each save runs a live test call so you know the key actually works (§14).</p>
     <div class="keys-list"></div>
@@ -2213,7 +2213,7 @@ export async function renderSettings(el, ctx) {
       <h4>${esc(k.label)} ${k.required ? '<span class="chip chip-official">required for AI features</span>'
                                         : '<span class="chip">optional</span>'}
         <span class="key-state ${k.configured ? "conf-high" : "conf-low"}">
-          ${k.configured ? "✓ configured (" + esc(k.masked) + ")" : "not set"}</span></h4>
+          ${k.configured ? "configured (" + esc(k.masked) + ")" : "not set"}</span></h4>
       <p class="cp-meta">${esc(k.enables)}</p>
       <p class="cp-meta">How to get it: ${esc(k.signup)}</p>
       <div class="key-input"><input type="password" placeholder="paste key…" autocomplete="off">
@@ -2224,16 +2224,16 @@ export async function renderSettings(el, ctx) {
       if (!input.value.trim()) return;
       out.textContent = "testing…";
       const res = await api.keySave(k.name, input.value.trim()).catch((e) => ({ ok: false, detail: e.message }));
-      out.textContent = (res.ok ? "✓ " : "✗ ") + (res.detail || "");
+      out.textContent = (res.ok ? "Saved — " : "") + (res.detail || "");
       out.className = "key-result " + (res.ok ? "conf-high" : "conf-low");
       if (res.ok) {
         input.value = "";
-        row.querySelector(".key-state").textContent = "✓ configured";
+        row.querySelector(".key-state").textContent = "configured";
         row.querySelector(".key-state").className = "key-state conf-high";
         // v6.2 — INSTANT PING: the backend just kicked an AI warm-up; tell the
         // app so it re-reads ai_available and re-renders the feed, and show a
         // reassuring note that the system is lighting up.
-        out.textContent = "✓ key live — warming up AI features across the system…";
+        out.textContent = "key live — warming up AI features across the system…";
         if (ctx.onAiKeySaved) ctx.onAiKeySaved();
       }
     });
@@ -2276,10 +2276,10 @@ function paintLeader(el, name, d, ctx) {
   const bio = d.bio || {};
   const s = d.synthesis || null;
   const pendingNote = (d.synth_pending && !s)
-    ? `<p class="cp-meta">✨ generating a detailed profile with AI… (updates in a moment)</p>` : "";
+    ? `<p class="cp-meta">generating a detailed profile with AI… (updates in a moment)</p>` : "";
   const img = bio.image_url
     ? `<img class="leader-photo leader-photo-lg" src="${esc(bio.image_url)}">`
-    : `<div class="leader-photo leader-photo-lg leader-photo-empty">👤</div>`;
+    : `<div class="leader-photo leader-photo-lg leader-photo-empty"></div>`;
   const bullets = (arr) => (arr || []).map((x) => `<li>${esc(x)}</li>`).join("");
   const flag = (d.roles || []).find((r) => r.flag_image_url);
   el.innerHTML = `

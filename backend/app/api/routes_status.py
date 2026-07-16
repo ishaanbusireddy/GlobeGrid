@@ -91,14 +91,35 @@ def sources_status(params, q, body):
     except Exception:  # noqa: BLE001 — window functions unavailable → skip sparkline
         recent_by_src = {}
     sources = []
+    alerting = []
     for r in rows:
         d = dict(r)
         st = uptime.get(r["id"])
         d["uptime_24h_pct"] = (round(100.0 * st["ok_count"] / st["total"], 1)
                                if st and st["total"] else None)
-        d["recent_history"] = recent_by_src.get(r["id"], [])
+        recent = recent_by_src.get(r["id"], [])
+        d["recent_history"] = recent
+        # v8.17 — source-health alerting: a source that has gone persistently
+        # dead (status 'down' — the scheduler sets this after 3+ consecutive
+        # failures — AND no successful check in the recent window) is a silent
+        # coverage gap for that source's region/leaning. Flag it loudly so the
+        # health drawer surfaces it instead of burying it in the list. A
+        # key-gated feed with no key never counts (its error names the key).
+        needs_key = bool(d.get("last_error") and "not set" in str(d["last_error"]))
+        recent_all_bad = bool(recent) and all(s != "ok" for s in recent)
+        zero_uptime = d["uptime_24h_pct"] == 0 or (
+            d["uptime_24h_pct"] is None and recent_all_bad)
+        d["alert"] = bool(
+            d.get("health_status") == "down" and zero_uptime and not needs_key)
+        if d["alert"]:
+            alerting.append({"id": r["id"], "name": r["name"],
+                             "reliability_tier": r["reliability_tier"],
+                             "last_error": d.get("last_error")})
         sources.append(d)
-    return 200, {"sources": sources, "attribution": [GEONAMES_ATTRIBUTION]}
+    return 200, {"sources": sources, "attribution": [GEONAMES_ATTRIBUTION],
+                 # top-level roll-up so the frontend can show a banner without
+                 # re-scanning every row
+                 "alerts": {"count": len(alerting), "sources": alerting}}
 
 
 @route("GET", "/api/sources/{sid}/stories")
@@ -130,6 +151,43 @@ def source_stories(params, q, body):
         " ORDER BY e.occurred_at DESC LIMIT 40", (sid,))
     return 200, {"source": dict(src), "stories": stories,
                  "uncorrelated_events": [dict(r) for r in loose]}
+
+
+@route("GET", "/api/changelog")
+def changelog(params, q, body):
+    """v8.17 — in-app changelog. CLAUDE.md already carries a detailed,
+    version-by-version history; parse its `## Status (vX)` sections into a
+    condensed timeline so a user can see WHAT CHANGED in each release from
+    inside the app (the version badge opens this) instead of reading the repo
+    doc. Best-effort: an empty list if the file isn't present."""
+    import re
+    from ..config import REPO_ROOT
+    md = REPO_ROOT / "CLAUDE.md"
+    entries = []
+    try:
+        text = md.read_text(encoding="utf-8")
+    except OSError:
+        return 200, {"entries": []}
+    # split on the status headers; capture the version and the first sentence.
+    parts = re.split(r"\n##\s+Status\s+\(v([0-9][0-9A-Za-z.\-]*)\)\s*\n", text)
+    # parts[0] is the preamble; then (version, body) pairs
+    for i in range(1, len(parts) - 1, 2):
+        version = parts[i].strip()
+        bodytext = parts[i + 1]
+        # first bolded lead line: "**vX (date, title):** ..."
+        m = re.search(r"\*\*(v[^*]+?)\*\*\s*(.+?)(?:\n\n|\Z)", bodytext, re.S)
+        date = None
+        summary = ""
+        if m:
+            lead = m.group(1)
+            dm = re.search(r"\(([^,)]+)", lead)
+            if dm:
+                date = dm.group(1).strip()
+            summary = re.sub(r"\s+", " ", m.group(2)).strip()[:400]
+        entries.append({"version": version, "date": date, "summary": summary})
+        if len(entries) >= 30:
+            break
+    return 200, {"entries": entries}
 
 
 @route("GET", "/api/config")

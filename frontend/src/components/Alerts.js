@@ -24,7 +24,7 @@ export class Alerts {
     const toast = document.createElement("div");
     toast.className = "breaking-toast";
     toast.innerHTML =
-      `<span class="bt-badge">⚡ breaking</span> <span class="bt-head"></span>` +
+      `<span class="bt-badge">breaking</span> <span class="bt-head"></span>` +
       `<span class="bt-timer"></span>`;
     toast.querySelector(".bt-head").textContent =
       (story.headline || "high-severity story").slice(0, 90);

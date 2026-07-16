@@ -81,6 +81,7 @@ export const api = {
     return get(`/api/instability?${q}`);
   },
   sourcesStatus: () => get("/api/sources/status"),
+  changelog: () => get("/api/changelog"),   // v8.17 — in-app "What's New"
   sourceStories: (sid) => get(`/api/sources/${encodeURIComponent(sid)}/stories`),
   config: () => get("/api/config"),
   search: (term) => get(`/api/search?q=${encodeURIComponent(term)}`),
