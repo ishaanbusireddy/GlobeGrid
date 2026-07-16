@@ -568,9 +568,31 @@ def _prior_turns(session_id: str) -> list[dict]:
     return turns
 
 
-def _answer_with_llm(question: str, bundle: dict, session_id: str):
+def _language_system(lang: str | None) -> str:
+    """v8.16.1 — when the user's UI is in a non-English language, tell the model
+    to compose its WHOLE answer natively in that language (owner: "analyst in
+    the mode of a different language should be preset to respond … in that
+    language"). Native generation is one call — faster and far more natural than
+    generating English then machine-translating it after the fact. The JSON
+    envelope stays English (keys + enum values the code parses); only the human
+    prose in `answer`/`deep_dive` switches language."""
+    if not lang or lang == "en":
+        return ANSWER_PROMPT
+    from ..i18n_names import LANGUAGE_NAMES
+    name = LANGUAGE_NAMES.get(lang, lang)
+    return ANSWER_PROMPT + (
+        f"\n\nLANGUAGE (v8.16.1): the user's interface language is {name}. Write the "
+        f"ENTIRE human-readable prose — the \"answer\" and \"deep_dive\" string values, "
+        f"including the \"### \" section headers — in fluent, natural {name}. The user "
+        f"may also write to you in {name}; understand it and reply in {name}. Keep the "
+        f"JSON structure itself and the \"confidence\" enum in English; translate only "
+        f"the prose the user reads. Never mix English sentences into a {name} answer.")
+
+
+def _answer_with_llm(question: str, bundle: dict, session_id: str, lang: str = "en"):
     """Route the analyst turn through the provider abstraction (Groq/Claude/…)
     with the conversation history for real multi-turn context."""
+    system_prompt = _language_system(lang)
     messages = _prior_turns(session_id)
     messages.append({"role": "user", "content": json.dumps(
         {"question": question, "context_bundle": bundle})})
@@ -591,7 +613,7 @@ def _answer_with_llm(question: str, bundle: dict, session_id: str):
     # SALVAGE it as the answer instead of failing the whole turn.
     # v6.4.2 — interactive: a user is waiting, so a short Groq rate-limit
     # window is waited out + retried instead of failing the turn
-    text = llm.complete(ANSWER_PROMPT, messages, max_tokens=max_tokens,
+    text = llm.complete(system_prompt, messages, max_tokens=max_tokens,
                         timeout=timeout, json_mode=True, interactive=True)
     if text is None:
         # some models/providers reject response_format — retry once in plain
@@ -603,7 +625,7 @@ def _answer_with_llm(question: str, bundle: dict, session_id: str):
         # client's 60s abort. Bounding the retry keeps the TOTAL worst case
         # close to the original single-call ceiling.
         retry_timeout = max(8, timeout // 2)
-        text = llm.complete(ANSWER_PROMPT, messages, max_tokens=max_tokens,
+        text = llm.complete(system_prompt, messages, max_tokens=max_tokens,
                             timeout=retry_timeout, json_mode=False,
                             interactive=True)
     if text is None:
@@ -652,6 +674,8 @@ def ask(params, q, body):
     question = body["question"].strip()[:800]
     session_id = _session(body.get("session_id"))
     focused = body.get("focused_entity")  # §24.1 context-aware opening
+    # v8.16.1 — the active UI language, so the answer is composed natively in it
+    lang = (body.get("lang") or "en") if isinstance(body.get("lang"), str) else "en"
 
     with write_tx() as conn:
         conn.execute("INSERT INTO analyst_messages (id, session_id, role, content,"
@@ -671,7 +695,7 @@ def ask(params, q, body):
                 out = _bounded_or_raise(lambda: _answer_with_llm(question, {
                     "note": "The user sent a greeting or a meta question about you."
                             " Respond conversationally and briefly; no GlobeGrid data"
-                            " was retrieved for this turn."}, session_id), 35,
+                            " was retrieved for this turn."}, session_id, lang), 35,
                     "the AI provider took too long to respond", "smalltalk_answer")
                 return _store_answer(session_id, out["answer"],
                                      out.get("confidence", "high"), [], None)

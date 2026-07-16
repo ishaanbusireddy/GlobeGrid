@@ -66,6 +66,109 @@ CURATED = {
     ("Balochistan", "PAK"): "Flag of Balochistan, Pakistan.svg",
 }
 
+# v8.16.1 — Russia's 85 federal subjects, keyed by the EXACT Natural-Earth atlas
+# name (see admin_atlas). Owner report: "some flags show in russia … other times
+# don't … buryatia no flag … jewish AR no flag." Root cause: Russia was NOT
+# curated and NOT suppressed, so every subject's flag was the blind
+# `Flag of {name}.svg` guess — which matches for a few (the atlas name happens
+# to equal the Commons filename) and 404s for the rest (Commons uses
+# "…Oblast" / "…Republic" / a short endonym the atlas name doesn't carry), and
+# a 404 shows NOTHING under the v8.13.9 no-fallback rule. Almost every Russian
+# subject DOES have a real official flag, so this maps each to its canonical
+# Commons filename. The primary URL (Special:FilePath) FOLLOWS REDIRECTS, so a
+# canonical name that is itself a Commons redirect still resolves to the file.
+_RUS_SUBJECT_FLAGS = {
+    "Altai Republic": "Flag of the Altai Republic.svg",
+    "Amur": "Flag of Amur Oblast.svg",
+    "Arkhangelsk": "Flag of Arkhangelsk Oblast.svg",
+    "Astrakhan": "Flag of Astrakhan Oblast.svg",
+    "Autonomous Republic of Crimea": "Flag of Crimea.svg",
+    "Bashkortostan": "Flag of Bashkortostan.svg",
+    "Belgorod": "Flag of Belgorod Oblast.svg",
+    "Bryansk": "Flag of Bryansk Oblast.svg",
+    "Chechen Republic": "Flag of the Chechen Republic.svg",
+    "Chelyabinsk": "Flag of Chelyabinsk Oblast.svg",
+    "Chukotka Autonomous Okrug": "Flag of Chukotka.svg",
+    "Chuvash Republic": "Flag of Chuvashia.svg",
+    "Irkutsk": "Flag of Irkutsk Oblast.svg",
+    "Ivanovo": "Flag of Ivanovo Oblast.svg",
+    "Jewish": "Flag of the Jewish Autonomous Oblast.svg",
+    "Kabardino-Balkaria": "Flag of Kabardino-Balkaria.svg",
+    "Kaliningrad": "Flag of Kaliningrad Oblast.svg",
+    "Kaluga": "Flag of Kaluga Oblast.svg",
+    "Kamchatka Krai": "Flag of Kamchatka Krai.svg",
+    "Karachay-Cherkess Republic": "Flag of Karachay-Cherkessia.svg",
+    "Karelia": "Flag of Karelia.svg",
+    "Kemerovo": "Flag of Kemerovo Oblast.svg",
+    "Khabarovsk Krai": "Flag of Khabarovsk Krai.svg",
+    "Khanty-Mansi Autonomous Okrug": "Flag of Yugra.svg",
+    "Kirov": "Flag of Kirov Oblast.svg",
+    "Komi Republic": "Flag of Komi.svg",
+    "Kostroma": "Flag of Kostroma Oblast.svg",
+    "Krasnodar Krai": "Flag of Krasnodar Krai.svg",
+    "Krasnoyarsk Krai": "Flag of Krasnoyarsk Krai.svg",
+    "Kurgan": "Flag of Kurgan Oblast.svg",
+    "Kursk": "Flag of Kursk Oblast.svg",
+    "Leningrad": "Flag of Leningrad Oblast.svg",
+    "Lipetsk": "Flag of Lipetsk Oblast.svg",
+    "Magadan": "Flag of Magadan Oblast.svg",
+    "Mari El Republic": "Flag of Mari El.svg",
+    # Moscow appears twice in the atlas (federal city + oblast) — indistinguishable
+    # by name, so both resolve to the city flag (the entity a user is far more
+    # likely to click); the oblast's own Saint-George flag can't be targeted
+    # without an area hint, so we accept the city flag over showing nothing.
+    "Moscow": "Flag of Moscow, Russia.svg",
+    "Murmansk": "Flag of Murmansk Oblast.svg",
+    "Nenets Autonomous Okrug": "Flag of Nenets Autonomous Okrug.svg",
+    "Nizhny Novgorod": "Flag of Nizhny Novgorod Oblast.svg",
+    "Novgorod": "Flag of Novgorod Oblast.svg",
+    "Novosibirsk": "Flag of Novosibirsk oblast.svg",
+    "Omsk": "Flag of Omsk Oblast.svg",
+    "Orenburg": "Flag of Orenburg Oblast.svg",
+    "Oryol": "Flag of Oryol Oblast.svg",
+    "Penza": "Flag of Penza Oblast.svg",
+    "Perm Krai": "Flag of Perm Krai.svg",
+    "Primorsky Krai": "Flag of Primorsky Krai.svg",
+    "Pskov": "Flag of Pskov Oblast.svg",
+    "Republic of Adygea": "Flag of Adygea.svg",
+    "Republic of Buryatia": "Flag of Buryatia.svg",
+    "Republic of Dagestan": "Flag of Dagestan.svg",
+    "Republic of Ingushetia": "Flag of Ingushetia.svg",
+    "Republic of Kalmykia": "Flag of Kalmykia.svg",
+    "Republic of Khakassia": "Flag of Khakassia.svg",
+    "Republic of Mordovia": "Flag of Mordovia.svg",
+    "Republic of North Ossetia-Alania": "Flag of North Ossetia.svg",
+    "Republic of Tatarstan": "Flag of Tatarstan.svg",
+    "Rostov": "Flag of Rostov Oblast.svg",
+    "Ryazan": "Flag of Ryazan Oblast.svg",
+    "Saint Petersburg": "Flag of Saint Petersburg.svg",
+    "Sakha Republic": "Flag of Sakha.svg",
+    "Sakhalin": "Flag of Sakhalin Oblast.svg",
+    "Samara": "Flag of Samara Oblast.svg",
+    "Saratov": "Flag of Saratov Oblast.svg",
+    "Sevastopol": "Flag of Sevastopol.svg",
+    "Smolensk": "Flag of Smolensk Oblast.svg",
+    "Stavropol Krai": "Flag of Stavropol Krai.svg",
+    "Sverdlovsk": "Flag of Sverdlovsk Oblast.svg",
+    "Tambov": "Flag of Tambov Oblast.svg",
+    "Tomsk": "Flag of Tomsk Oblast.svg",
+    "Tula": "Flag of Tula Oblast.svg",
+    "Tuva Republic": "Flag of Tuva.svg",
+    "Tver": "Flag of Tver Oblast.svg",
+    "Tyumen": "Flag of Tyumen Oblast.svg",
+    "Udmurt Republic": "Flag of Udmurtia.svg",
+    "Ulyanovsk": "Flag of Ulyanovsk Oblast.svg",
+    "Vladimir": "Flag of Vladimir Oblast.svg",
+    "Volgograd": "Flag of Volgograd Oblast.svg",
+    "Vologda": "Flag of Vologda Oblast.svg",
+    "Voronezh": "Flag of Voronezh Oblast.svg",
+    "Yamalo-Nenets Autonomous Okrug": "Flag of Yamal-Nenets Autonomous Okrug.svg",
+    "Yaroslavl": "Flag of Yaroslavl Oblast.svg",
+    "Zabaykalsky Krai": "Flag of Zabaykalsky Krai.svg",
+}
+for _n, _f in _RUS_SUBJECT_FLAGS.items():
+    CURATED[(_n, "RUS")] = _f
+
 # v8.13.4 — countries whose first-level subdivisions must NOT get the blind
 # "Flag of {name}.svg" guess (owner: "dont use fake flags or proposed flags for
 # india, such as the proposed telangana flag"). India has NO official state

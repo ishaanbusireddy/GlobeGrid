@@ -34,7 +34,33 @@ let followUpTimer = null;          // progressive-fill pass for `deferred`
 // v8.15.1 — one HTTP call now maps to ~1-2 real model batches (server-side
 // batches are 20 strings), instead of the old 200-string chunk that chained
 // 10 sequential generations inside a single request.
-const CHUNK = 40;
+// v8.16.1 — bumped 40→72: fewer HTTP round-trips means fewer visible "waves"
+// of the page filling in (owner: "each piece slowly translates … half one
+// language and half another for a bit"). The server's own wall-clock budget +
+// `deferred` still bound the work per call, so a bigger chunk can't monopolize
+// the model — it just cuts request overhead.
+const CHUNK = 72;
+
+// v8.16.1 — is this text node currently in the viewport? Used to translate what
+// the user is actually LOOKING AT first, so the visible page reaches one
+// language fast while off-screen feed items catch up in later passes (where the
+// mixed-language moment isn't seen).
+function inViewport(node) {
+  const el = node.parentElement;
+  if (!el || !el.getBoundingClientRect) return false;
+  const r = el.getBoundingClientRect();
+  const vh = window.innerHeight || 800, vw = window.innerWidth || 1200;
+  return r.bottom > 0 && r.top < vh && r.right > 0 && r.left < vw;
+}
+
+// v8.16.1 — mark a node's element as mid-translation so a mixed-language page
+// reads as "loading" (a faint pulse) rather than "half broken". Removed the
+// instant the node is written or the string resolves.
+function markPending(node, on) {
+  const el = node.parentElement;
+  if (!el || !el.classList) return;
+  el.classList.toggle("i18n-pending", !!on);
+}
 
 function scheduleFollowUp(lang, opts) {
   if (followUpTimer || activeLang !== lang) return;
@@ -117,10 +143,22 @@ async function translateNodes(nodes, lang, opts = {}) {
     byString.get(key).push(n);
   }
   const texts = [...byString.keys()];
+  // v8.16.1 — translate what's ON SCREEN first. Precompute a viewport flag per
+  // string once (one layout read each) so the sort itself is cheap; in-view
+  // strings (0) sort ahead of off-screen ones (1), stable within each group so
+  // document order is otherwise preserved.
+  const vpFlag = new Map();
+  for (const k of texts) {
+    vpFlag.set(k, (byString.get(k) || []).some(inViewport) ? 0 : 1);
+  }
+  texts.sort((a, b) => vpFlag.get(a) - vpFlag.get(b));
   let anyDeferred = false;
   for (let off = 0; off < texts.length && activeLang === lang; off += CHUNK) {
     const slice = texts.slice(off, off + CHUNK);
-    slice.forEach((s) => pendingStrings.add(s));
+    slice.forEach((s) => {
+      pendingStrings.add(s);
+      for (const node of byString.get(s) || []) markPending(node, true);   // faint pulse
+    });
     let resp = null;
     try {
       const r = await fetch("/api/i18n/translate", {
@@ -131,7 +169,11 @@ async function translateNodes(nodes, lang, opts = {}) {
       if (r.ok) resp = await r.json();
     } catch { /* backend unreachable — retried by the follow-up pass */
     } finally {
-      slice.forEach((s) => pendingStrings.delete(s));
+      slice.forEach((s) => {
+        pendingStrings.delete(s);
+        // clear the pulse; a deferred string re-adds it on its next pass
+        for (const node of byString.get(s) || []) markPending(node, false);
+      });
     }
     if (!resp) { scheduleFollowUp(lang, opts); return; }
     if (activeLang !== lang) return;
@@ -220,6 +262,8 @@ export function restoreEnglish() {
   activeLang = "en";
   stopObserver();
   pendingStrings.clear();
+  // v8.16.1 — clear any lingering mid-translation pulse
+  document.querySelectorAll(".i18n-pending").forEach((el) => el.classList.remove("i18n-pending"));
   for (const n of collectNodes(document.body, /* forRestore */ true)) {
     if (originals.has(n)) {
       writeNode(n, originals.get(n));   // byte-identical original back

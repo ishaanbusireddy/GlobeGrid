@@ -372,9 +372,12 @@ function adminLabelsForTier(tier) {
     // tiny units (raions, communes) only appear when you've zoomed in a lot.
     const lat = (b[1] + b[3]) / 2, lon = (b[0] + b[2]) / 2;
     const span = Math.max((b[2] - b[0]) * Math.cos(lat * Math.PI / 180), b[3] - b[1]);
-    labels.push({ name: u.n, lat, lon, span });
+    labels.push({ name: u.n, name_en: u.n, lat, lon, span });
   }
   ADMIN_LABELS[i] = labels;
+  // v8.16.1 — a freshly-built tier inherits the active language's cached label
+  // translations so newly-shown admin names aren't stuck in English.
+  applyLabelCache(state.lang);
   return labels;
 }
 // Which admin tier is actually drawn (and thus clickable) given toggle + zoom:
@@ -535,7 +538,7 @@ const COUNTRY_LABELS = BOUNDARIES_50M.map((c) => {
     mnLon = Math.min(mnLon, lon); mxLon = Math.max(mxLon, lon);
     mnLat = Math.min(mnLat, lat); mxLat = Math.max(mxLat, lat);
   }
-  return { iso3: c.i, name: c.n, lat: (mnLat + mxLat) / 2, lon: (mnLon + mxLon) / 2,
+  return { iso3: c.i, name: c.n, name_en: c.n, lat: (mnLat + mxLat) / 2, lon: (mnLon + mxLon) / 2,
            span: Math.max(mxLon - mnLon, mxLat - mnLat) };
 }).filter(Boolean);
 const ISO3_NAME = {};
@@ -1399,6 +1402,9 @@ function mountRenderer(tier) {
   else if (state.activityOn) applyActivityHeat();   // v8.3 — re-apply Hotspots heat
   if (state.asOf) applyHistoricalBoundaries(state.asOf);   // v8.4 — re-apply era borders
   state.renderer.setCountryLabels?.(COUNTRY_LABELS);   // v6.1.1 dynamic labels
+  // v8.16.1 — re-apply the active language's cached label translations so a
+  // globe↔map switch keeps the map's country/admin names in-language.
+  if (state.lang && state.lang !== "en") applyLabelCache(state.lang);
   if (state.renderer && state.renderer.onSelectRegion !== undefined)
     state.renderer.onSelectRegion = (region) => ctx.openRegion(region);  // v6.6
   applyBlocOverlay();
@@ -3150,6 +3156,80 @@ const WORDMARK_TRANSLIT = {
   my: "ဂလုဘ်ဂရစ်", km: "គ្លូបគ្រីដ", lo: "ໂກລບກຣິດ", am: "ግሎብግሪድ",
 };
 
+// v8.16.1 — MAP/GLOBE LABEL translation. Labels drawn onto the WebGL globe or
+// the 2D canvas are painted PIXELS from data strings, not DOM text nodes, so
+// the DOM-walker translator (i18n_translate.js) structurally cannot reach them
+// (owner: "it doesn't translate map objects"). We route the bounded label set
+// through the SAME /api/i18n/translate cache the DOM walker uses, then push the
+// translated names back to the renderer. Country names are a small stable set;
+// admin labels are already LOD-gated to the visible tier, so the set stays
+// small. Per-language in-memory cache → instant on a re-switch; a background
+// (interactive:false) call so it yields to the user's own DOM translation.
+const LABEL_I18N = {};   // lang -> Map(englishName -> displayName)
+let labelLangSeq = 0;    // guards against a language change mid-fetch
+
+function applyLabelCache(lang) {
+  const r = state.renderer;
+  if (!lang || lang === "en") {
+    for (const l of COUNTRY_LABELS) l.name = l.name_en;
+    for (const arr of ADMIN_LABELS) if (arr) for (const l of arr) l.name = l.name_en;
+  } else {
+    const cache = LABEL_I18N[lang];
+    if (!cache) return;
+    for (const l of COUNTRY_LABELS) l.name = cache.get(l.name_en) || l.name_en;
+    for (const arr of ADMIN_LABELS) if (arr) for (const l of arr) l.name = cache.get(l.name_en) || l.name_en;
+  }
+  r?.setCountryLabels?.(COUNTRY_LABELS);
+  if (state.adminTier && ADMIN_LABELS[state.adminTier - 1]) {
+    r?.setAdminLabels?.(ADMIN_LABELS[state.adminTier - 1]);
+  }
+}
+
+async function translateMapLabels(lang) {
+  const seq = ++labelLangSeq;
+  if (!lang || lang === "en") { applyLabelCache("en"); return; }
+  const cache = (LABEL_I18N[lang] = LABEL_I18N[lang] || new Map());
+  applyLabelCache(lang);   // show whatever's already cached instantly
+  // collect the English strings not yet resolved for this language
+  const need = [], seen = new Set();
+  const pools = [COUNTRY_LABELS];
+  const tierArr = state.adminTier ? ADMIN_LABELS[state.adminTier - 1] : null;
+  if (tierArr) pools.push(tierArr);
+  for (const arr of pools) for (const l of arr) {
+    const en = l.name_en;
+    if (!en || cache.has(en) || seen.has(en)) continue;
+    seen.add(en); need.push(en);
+  }
+  if (!need.length) return;
+  const CH = 60, deferred = [];
+  for (let i = 0; i < need.length; i += CH) {
+    if (seq !== labelLangSeq) return;   // a newer language switch superseded us
+    const slice = need.slice(i, i + CH);
+    let resp = null;
+    try {
+      const rr = await fetch("/api/i18n/translate", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lang, texts: slice, interactive: false }),
+      });
+      if (rr.ok) resp = await rr.json();
+    } catch { /* backend hiccup — retried below */ }
+    if (!resp) { deferred.push(...slice); continue; }
+    const def = new Set(resp.deferred || []);
+    slice.forEach((en, k) => {
+      if (def.has(k)) { deferred.push(en); return; }   // gate busy — retry, don't cache
+      const tr = resp.translations[k];
+      // an untranslated proper noun legitimately == English; still "resolved"
+      cache.set(en, tr || en);
+    });
+    applyLabelCache(lang);   // progressive: labels fill in as chunks return
+  }
+  // only genuinely-deferred strings (gate busy / budget spent) retry; a model
+  // failure lands in `untranslated` (cached as English) and is never re-hammered
+  if (deferred.length && seq === labelLangSeq) {
+    setTimeout(() => { if (seq === labelLangSeq && state.lang === lang) translateMapLabels(lang); }, 2200);
+  }
+}
+
 function setSiteLanguage(code) {
   state.lang = code;
   applyLanguage(code);   // v5 §2 — dir/lang attributes + persistence
@@ -3164,6 +3244,9 @@ function setSiteLanguage(code) {
   import("./i18n_translate.js")
     .then((m) => (code === "en" ? m.restoreEnglish() : m.translatePage(code)))
     .catch(() => {});
+  // v8.16.1 — the on-map country/admin labels (canvas/WebGL, invisible to the
+  // DOM walker) translate through their own cache path.
+  translateMapLabels(code);
 }
 
 // v8.15 — the picker's entries are endonyms that must always render in

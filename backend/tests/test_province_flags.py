@@ -45,6 +45,25 @@ class TestFlagChain(unittest.TestCase):
                      "Gilgit-Baltistan", "Azad Kashmir"):
             self.assertIsNotNone(flag_url(name, "PAK"), f"PAK {name} is curated")
 
+    def test_russia_subjects_curated(self):
+        # v8.16.1 — Russia's federal subjects were the blind-guess casualty
+        # (owner: "buryatia no flag … jewish AR no flag"). Every subject is now
+        # mapped to its canonical Commons filename by its EXACT atlas name.
+        cases = {
+            ("Republic of Buryatia", "RUS"): "Flag%20of%20Buryatia.svg",
+            ("Jewish", "RUS"): "Jewish%20Autonomous%20Oblast",
+            ("Amur", "RUS"): "Amur%20Oblast",
+            ("Chechen Republic", "RUS"): "Chechen%20Republic",
+            ("Republic of Tatarstan", "RUS"): "Flag%20of%20Tatarstan.svg",
+        }
+        for (name, iso3), frag in cases.items():
+            url = flag_url(name, iso3)
+            self.assertIsNotNone(url, f"{name} should be curated")
+            self.assertIn("Special:FilePath", url)
+            self.assertIn(frag, url, f"{name} -> {frag}")
+            # alt (CDN thumb) exists exactly where the primary does
+            self.assertIsNotNone(flag_url_alt(name, iso3), f"{name} alt")
+
     def test_georgia_collision_uses_us_state_file(self):
         # "Georgia" the US state must NEVER resolve to the sovereign's flag.
         url = flag_url("Georgia", "USA") or ""

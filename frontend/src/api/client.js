@@ -127,7 +127,11 @@ export const api = {
   // ceiling and let the caller pass a Stop signal (AbortController).
   analystAsk: (question, sessionId, focusedEntity, screen, signal) =>
     post("/api/analyst/ask", { question, session_id: sessionId,
-                               focused_entity: focusedEntity, screen },
+                               focused_entity: focusedEntity, screen,
+                               // v8.16.1 — the active UI language, so the analyst
+                               // composes its answer natively in it (not English
+                               // then machine-translated after the fact)
+                               lang: localStorage.getItem("tdl_lang") || "en" },
          { timeout: 60000, signal }),   // v6 §29 — screen-aware context
   analystHistory: (sessionId) =>
     get(`/api/analyst/history${sessionId ? "?session_id=" + sessionId : ""}`),

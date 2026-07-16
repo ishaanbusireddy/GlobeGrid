@@ -11,7 +11,12 @@
 <header id="topbar">
   <div id="brand">
     <span id="brand-mark">◉</span>
-    <span id="brand-name">GLOBE<em>GRID</em></span>
+    <!-- v8.16.1 — the wordmark is a BRAND NAME, never sent to the live
+         translator: without this guard the DOM walker sent "GLOBEGRID" to the
+         model, which mistranslated "Globe" as the common noun (e.g. Armenian
+         "Աշխարհագրական գլոբուս") and left "GRID" untouched, garbling it next to
+         the correct curated transliteration in #brand-translit. -->
+    <span id="brand-name" data-no-translate>GLOBE<em>GRID</em></span>
     <span id="brand-version" title="running patch version (from the backend)"></span>
     <span id="brand-translit" title="GlobeGrid in your script (v6 §11)"></span>
   </div>

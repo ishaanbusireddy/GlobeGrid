@@ -18,6 +18,78 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v8.16.1)
+
+**v8.16.1 (2026-07-14, the translation-reach + Russia-flags follow-up):** the
+owner ran v8.16.0 on their real machine ("overall it's working") and reported
+five focused gaps. All five fixed:
+
+- **The wordmark stopped garbling.** Owner saw Armenian render
+  `Աշխարհագրական գլոբուսGRID … ԳլոբԳրիդ` — the live DOM translator was sending
+  the Latin wordmark `#brand-name` to the model, which mistranslated "Globe" as
+  the common noun and left "GRID" alone, sitting next to the CORRECT curated
+  transliteration in `#brand-translit`. Root fix: `#brand-name` now carries
+  **`data-no-translate`** (the same guard the language picker already had), so
+  the brand is never sent to the translator. `WORDMARK_TRANSLIT` was audited
+  against the full `LANGUAGES` list — every non-Latin script already has a
+  curated entry, so the header now reads `◉ GLOBEGRID v8.16.1 ԳլοբԳրիդ`, clean.
+  Verified headless: switching to Armenian keeps `#brand-name` = "GLOBEGRID"
+  (never mangled) with the right translit; English restores byte-clean.
+- **Russia's federal-subject flags are consistent.** Owner: "some flags show in
+  russia … other times don't … buryatia no flag … jewish AR no flag." Root
+  cause: Russia was neither curated nor suppressed, so every subject's flag was
+  the blind `Flag of {name}.svg` guess — which matches for the few whose atlas
+  name happens to equal the Commons filename and 404s for the rest (Commons
+  uses "…Oblast"/"…Republic"/a short endonym), and a 404 shows NOTHING under the
+  v8.13.9 no-fallback rule. Added a **curated table for all 85 federal
+  subjects** (`province_flags._RUS_SUBJECT_FLAGS`, keyed by the exact
+  Natural-Earth atlas name) mapping each to its canonical Commons filename;
+  since the primary URL (`Special:FilePath`) follows redirects, a canonical
+  name that is itself a Commons redirect still resolves. The two-candidate chain
+  is unchanged, so a wrong name still shows nothing — never a wrong flag. Pinned
+  by `test_province_flags.test_russia_subjects_curated` (Buryatia, Jewish AO,
+  Amur, Chechnya, Tatarstan).
+- **The analyst answers natively in the UI language.** Owner: "analyst in the
+  mode of a different language should be preset to respond … in that language."
+  The active language now rides in the `/api/analyst/ask` body
+  (`localStorage.tdl_lang`); `routes_analyst._language_system(lang)` appends a
+  directive telling the model to compose the WHOLE prose answer (and section
+  headers) in that language and to understand the user's own input in it, while
+  the JSON envelope + `confidence` enum stay English. One call — native
+  generation, not English-then-machine-translate. Verified the directive is
+  injected for es/hy and absent for en.
+- **Map/globe objects translate now.** Owner: "it doesn't translate map
+  objects." Canvas/WebGL labels are painted pixels, not DOM text, so the DOM
+  walker structurally can't reach them. New `App.translateMapLabels(lang)`
+  routes the country + active-tier admin label strings through the SAME
+  `/api/i18n/translate` cache the DOM walker uses (background priority so it
+  yields to the user's own UI translation), then pushes translated names back to
+  the renderer via `setCountryLabels`/`setAdminLabels`. A per-language in-memory
+  cache makes a re-switch instant; labels fill progressively as chunks return; a
+  globe↔map remount re-applies the cache. `COUNTRY_LABELS`/admin labels carry a
+  stable `name_en`; switching to English restores it.
+- **Progressive translation reads as "loading", not "half-broken".** Owner:
+  "each piece slowly translates … half one language and half another for a bit."
+  The DOM walker now (a) translates **on-screen strings FIRST** (a cheap
+  per-string viewport flag sorts in-view text ahead of off-screen feed items, so
+  what you're looking at reaches one language fast), (b) uses a **larger 72-string
+  chunk** (was 40) to cut the number of visible fill "waves" — the server's
+  wall-clock budget + `deferred` still bound work per call, so it can't
+  monopolize the model — and (c) marks mid-translation nodes with a faint
+  **`.i18n-pending` pulse** (reduced-motion → steady dim) so the mixed moment
+  reads as loading. The v8.15.1 single-flight gate, budget, and
+  deferred/untranslated honesty are all unchanged.
+
+Verified in-sandbox: **36/36 tests green** (added the Russia-flag pin); fresh DB
+boots clean; `/api/config` = 8.16.1; `/api/i18n/translate` + `/api/analyst/ask`
+(with `lang`) return correct shapes and degrade cleanly with no model reachable
+(honest `untranslated`, exactly as designed); headless Chromium badge v8.16.1,
+wordmark stays "GLOBEGRID" under Armenian with the correct translit, English
+restore clean, **0 non-network console errors**. The actual translated OUTPUT
+(labels, analyst prose) needs a real model, which stays proxy-blocked in the
+sandbox — same standing limitation as every translation release since v8.15.0;
+the plumbing, shapes, and honesty paths are what's verified here.
+
 ## Status (v8.16.0)
 
 **v8.16.0 (2026-07-13, the huge ~60-item update):** a very large owner batch
