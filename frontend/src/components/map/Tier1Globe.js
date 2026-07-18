@@ -2039,11 +2039,14 @@ export class Tier1Globe {
       gl.drawArrays(gl.LINES, 0, this.disputeCount);
     }
 
-    // v7.6 — autonomous regions: always-on dotted light-blue borders
+    // v7.6/v8.18 — autonomous regions: FAINT borders traced along the zone's
+    // constituent admin-division edges (owner: "faint borders aligned to the
+    // admin-division edges, not bright/rectangular"). Low alpha so they read as
+    // a subtle overlay, not a bold territory line.
     if (this.autonomousCount) {
       gl.bindBuffer(gl.ARRAY_BUFFER, this.autonomousBuf);
       gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-      gl.uniform4f(colLoc, 0.47, 0.78, 1.0, 0.8);
+      gl.uniform4f(colLoc, 0.55, 0.82, 1.0, 0.34);
       gl.drawArrays(gl.LINES, 0, this.autonomousCount);
     }
 

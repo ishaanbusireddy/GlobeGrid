@@ -62,6 +62,38 @@ def _country_flag(iso3):
     return _COUNTRY_FLAG.get(iso3)
 
 
+_SOVEREIGN_NAMES = None
+
+
+def _sovereign_names():
+    """v8.18 — lowercased sovereign-country name → (iso3, display name), so an
+    admin unit whose name collides with a country (Georgia the U.S. state vs
+    Georgia the country, Luxembourg the Belgian province, …) can be qualified in
+    the UI. Built once."""
+    global _SOVEREIGN_NAMES
+    if _SOVEREIGN_NAMES is None:
+        _SOVEREIGN_NAMES = {r["name"].lower(): (r["id"], r["name"]) for r in
+                            query("SELECT id, name FROM countries"
+                                  " WHERE status != 'territory'")}
+    return _SOVEREIGN_NAMES
+
+
+def _disambiguated_name(name, country_id):
+    """'Georgia' (a USA state) → 'Georgia (U.S. state)'; None when no collision.
+    A unit named after its OWN country ('Mexico' state of Mexico, 'Distrito
+    Federal' etc.) is left alone — only a cross-sovereign collision qualifies."""
+    if not name:
+        return None
+    hit = _sovereign_names().get(name.lower())
+    if not hit or hit[0] == country_id:
+        return None
+    cname = {r["id"]: r["name"] for r in [query_one(
+        "SELECT id, name FROM countries WHERE id = ?", (country_id,))] if r}
+    parent = cname.get(country_id) or country_id or ""
+    qual = "U.S. state" if country_id == "USA" else f"{parent} subdivision"
+    return f"{name} ({qual})"
+
+
 _AREA_BY_UID = None
 
 
@@ -95,6 +127,12 @@ def _unit_row(r) -> dict:
     d["country_flag_url"] = _country_flag(d.get("country_id"))
     # v8.5 — the unit's own polygon area rides on every unit row.
     d["area_km2"] = _area_of(d.get("admin_uid"))
+    # v8.18 — cross-sovereign name collision → a qualified display name
+    # ("Georgia (U.S. state)"), so the U.S. state is never mistaken for the
+    # country in panels, chips, or search results.
+    dn = _disambiguated_name(d.get("name"), d.get("country_id"))
+    if dn:
+        d["display_name"] = dn
     return d
 
 

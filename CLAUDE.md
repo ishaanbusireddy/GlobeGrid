@@ -18,6 +18,104 @@ Section numbers referenced throughout the code comments refer to that manual.
 Read it before making non-trivial changes; every threshold, schema field, API
 route, and prompt is specified there.
 
+## Status (v8.18.0)
+
+**v8.18.0 (2026-07-17, the 19-item owner batch — classification, threads,
+zones, feed, translation-to-English, sources):** the owner's next update list,
+built in one go. NO scorecard page (owner: "NO SCORECARDING PAGE EVER").
+
+- **Iran War no longer misclassifies as Yemen Civil War (the headline
+  classification fix).** Root cause: Yemen Civil War lists the USA + Iran as
+  *backers*, and `_suggest_conflict_tag` matched on ALL parties — so a US–Iran
+  story overlapped Yemen on {USA,IRN} and got tagged. `_conflict_party_entities`
+  now splits **belligerents vs backers/mediators** via `conflict_parties.role`
+  (NULL role defaults to combatant), and matching keys off BELLIGERENTS only,
+  with a literal name-token bonus and a `(matches, name_hit, distinct)`
+  tie-break — a literally-named conflict beats one merely sharing backers.
+  Verified on the seeded DB: Yemen's belligerent set = {yemen}; the U.S.–Iran
+  War's = {iran, israel, united states}.
+- **Story-thread bleed + recency (the "US-Turkey Relations swallowed Iran &
+  Russia-Ukraine" bug).** `threads.py`: (a) the `shared>=2`-bypasses-cosine
+  branch is REMOVED — the embedding gate is always required (two shared entities
+  only relax the threshold slightly); (b) the thread entity pool is BOUNDED
+  (recent members only, capped 40) and frozen per pass — the old unbounded
+  `t["ents"] |= s["ents"]` made big threads progressively easier to join;
+  (c) a **recency gate**: a thread with no member updated in 21 days can no
+  longer absorb new stories; (d) the stored `story_threads.description` (which
+  existed but was never read back) now acts as a **topical gate** — a candidate
+  sharing none of the thread's name/description tokens needs a much stronger
+  embedding match.
+- **War-mode odds are conflict-specific.** The sentiment strip now passes the
+  conflict's name + party names as `q`, and `predmarkets.markets(q)` strips
+  generic conflict words ("war", "ceasefire"…) so a market must hit a
+  DISTINCTIVE term; nothing matching → an honest "no conflict-specific markets"
+  note, never random Polymarket bets.
+- **War-mode roster + Supporters toggle.** A belligerents-vs-supporters country
+  roster now renders in the war panel with the Supporters toggle sitting beside
+  it (owner: it was on the opposite side of the panel).
+- **Rojava marked historical.** Integrating into the post-Assad Syrian state
+  (March 2025 SDF–Damascus agreement) — flagged `historical`, kept as a page,
+  dropped from the live AZ map layer + hit-test.
+- **Autonomous zones: faint admin-edge borders + click-to-open.** Zone outlines
+  restyled FAINT on both renderers (globe alpha 0.8→0.34; 2D bright 0.95→0.38
+  thin, fill 0.10→0.05) — they trace the constituent admin-division edges, not
+  bold territory lines. And with the AZ layer ON, clicking inside a zone opens
+  the ZONE's country-like page even when an admin tier is active (clicking
+  Scotland used to open the bare admin unit).
+- **Hotspots random-shading fix.** `adminUnitByUid` cached an EMPTY index
+  forever if first called before the atlas decoded, so hotspot uids resolved
+  wrong/not at all; the index now only caches once real data is present.
+- **Live-feed jitter fix.** `last_updated_at` dropped from the card change-key
+  (a re-timestamp no longer rebuilds the card) and the blanket `.story-card`
+  fade-up animation removed — only genuinely-new cards animate (streaming-in).
+- **Reverse translation INTO English.** A new background job
+  (`translate_recent_to_english`, riding the old no-op scheduler slot) renders
+  non-English headlines/summaries into English under `content_translations
+  language='en'`; the feed serves `headline_en` and shows it when the UI
+  language is English (original on hover). Same standing honesty rule: needs the
+  real model — plumbing + shapes verified in-sandbox.
+- **Religion/sect % shading at admin tiers.** `?level=N` now returns per-unit
+  `unit_shares` (the unit's country majority share) and the admin-heat branch
+  applies the same `0.30+0.50*share` opacity as the country choropleth.
+- **Altitude covers all 216 countries.** ~120 new curated mean elevations + a
+  labelled climate-class fallback so no country is blank (curated always wins).
+- **Georgia disambiguation.** Admin-unit rows whose name collides with a
+  sovereign country carry `display_name` ("Georgia (U.S. state)") — rendered in
+  the unit panel, breadcrumbs, sibling/child chips, and search results.
+- **Trackers header dropdown.** The Trackers button is now a dropdown of the 5
+  windows (Military / Trade & Resources / Markets / Prediction Markets /
+  Diplomatic) + the full hub — one click to any window.
+- **Embedded article browser.** Article links open in an on-screen pane
+  (`ArticleViewer.js`); a new `/api/embedcheck` inspects the site's
+  X-Frame-Options/CSP headers — embeddable sites render in an in-app iframe,
+  blocked sites get a clean "this site blocks embedding — open in new tab ↗"
+  card, unknown tries the iframe with the tab link prominent. Ctrl/middle-click
+  still opens a real tab.
+- **Event click glows the affected countries.** Opening a story highlights the
+  literally-named impacted countries' borders via the existing pulsing
+  `setHighlight` path (pan-to-event already in the panel).
+- **Monochrome icons re-added** (tasteful, not emoji): ⟳ Spin, ♪ Audio,
+  ☆ Saved, ◉ Hotspots, ◈ Strategic Sites, ⚙ Settings.
+- **~45 new regional news sources, country by country:** Africa (Nigeria ×2,
+  Kenya ×2, Ghana, South Africa ×2, Ethiopia, Egypt, Morocco, Uganda, Tanzania,
+  Zimbabwe, Senegal), South/Central America (Argentina, MercoPress, Colombia,
+  Chile, Mexico), South Asia (Pakistan ×2, Bangladesh, Nepal, Afghanistan),
+  SE Asia (Thailand, Vietnam, Myanmar, Singapore, Cambodia), Central Asia
+  (Eurasianet, Uzbekistan, Kyrgyzstan), Oceania (Australia ×2, Fiji), Arab world
+  (UAE ×2, Al-Monitor, Jordan, Rudaw, MEE), Turkey ×2, Iran ×2 (Iran
+  International + Tehran Times, both leanings), Caucasus (OC Media, Georgia,
+  Armenia, Azerbaijan). All poll live on a real network; degrade cleanly here.
+- The `?` shortcut → help was verified already bound (v8.16) and working.
+
+Verified in-sandbox: **52/52 tests green** (was 42 — added 10 pins: predmarket
+filtering, thread topic tokens, altitude coverage, Rojava historical); fresh DB
+boots clean with the new sources polling; `/api/config` = 8.18.0; religion
+`?level=1` returns 4,394 unit_values + 4,394 unit_shares; altitude = 216
+countries; admin search returns "Georgia (U.S. state)"; the belligerent/backer
+split verified on the seeded conflicts; headless Chromium — badge v8.18.0,
+icons render, trackers dropdown opens all 5 windows, `?` opens help, article
+viewer opens/closes, **0 non-network console errors**.
+
 ## Status (v8.17.0)
 
 **v8.17.0 (2026-07-16, the professional-polish + infrastructure batch):** the

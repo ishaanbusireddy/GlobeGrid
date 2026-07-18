@@ -27,6 +27,32 @@ log = logging.getLogger("threads")
 JOIN_SIMILARITY = 0.5      # cosine to thread centroid
 PAIR_SIMILARITY = 0.55     # cosine between two unthreaded stories
 MIN_SHARED_ENTITIES = 1
+# v8.18 — a thread is "stale" if none of its members updated within this window;
+# a stale thread must NOT keep vacuuming up new, different-topic stories (owner:
+# Iran–US developments were being absorbed into an old "US-Turkey Relations"
+# thread that had accreted thousands of unrelated events). Recency-gate joins.
+THREAD_STALE_DAYS = 21
+# cap the entity pool a thread matches against so it can't grow without bound
+# (the old code did `t["ents"] |= s["ents"]` on every join, so a big thread got
+# progressively easier to join — the accretion bug). The pool is frozen to the
+# recent members' entities and never grown mid-pass.
+MAX_THREAD_POOL_ENTITIES = 40
+
+
+def _topic_tokens(*texts: str) -> frozenset:
+    """Significant lowercased word tokens from a thread name/description, used as
+    a lightweight topical gate when no LLM is available."""
+    stop = {"the", "and", "for", "with", "amid", "over", "into", "from", "ongoing",
+            "developments", "related", "tracked", "stories", "story", "thread",
+            "grouping", "tensions", "crisis", "relations", "situation", "updates",
+            "news", "between", "after", "before", "talks", "war", "conflict"}
+    toks: set = set()
+    for t in texts:
+        for w in (t or "").lower().replace("-", " ").replace("–", " ").split():
+            w = "".join(ch for ch in w if ch.isalnum())
+            if len(w) >= 4 and w not in stop:
+                toks.add(w)
+    return frozenset(toks)
 
 
 def _entities(story_id: str) -> frozenset:
@@ -100,9 +126,15 @@ def assign_threads(lookback_days: int = 30, max_new_threads: int = 4) -> int:
         s["ents"] = _entities(s["id"])
         s["vec"] = embed_text(s["headline"] or "")
 
-    # existing threads with centroid + entity pool
+    # existing threads with centroid + a FROZEN, bounded entity pool + topic
+    # tokens. Only threads with a member updated within THREAD_STALE_DAYS are
+    # eligible to absorb a new story — a stale thread can no longer vacuum up
+    # newer, unrelated coverage (v8.18 Q). The pool is capped and never grown
+    # during the pass, so a big thread doesn't get progressively easier to join.
     threads = []
-    for t in query("SELECT id, name FROM story_threads"):
+    for t in query(
+            "SELECT id, name, description FROM story_threads"
+            " WHERE last_updated_at >= datetime('now', ?)", (f"-{THREAD_STALE_DAYS} day",)):
         members = query(
             "SELECT s.id, s.headline FROM story_thread_members m"
             " JOIN stories s ON s.id = m.story_id WHERE m.thread_id = ?"
@@ -114,7 +146,11 @@ def assign_threads(lookback_days: int = 30, max_new_threads: int = 4) -> int:
         ents: set = set()
         for m in members:
             ents |= _entities(m["id"])
-        threads.append({"id": t["id"], "centroid": centroid, "ents": ents})
+            if len(ents) >= MAX_THREAD_POOL_ENTITIES:
+                break
+        threads.append({"id": t["id"], "centroid": centroid,
+                        "ents": frozenset(list(ents)[:MAX_THREAD_POOL_ENTITIES]),
+                        "topic": _topic_tokens(t["name"], t["description"])})
 
     written = 0
     still = []
@@ -124,17 +160,33 @@ def assign_threads(lookback_days: int = 30, max_new_threads: int = 4) -> int:
             for t in threads:
                 shared = len(s["ents"] & t["ents"])
                 sim = cosine(s["vec"], t["centroid"])
-                if (shared >= MIN_SHARED_ENTITIES and sim >= JOIN_SIMILARITY) \
-                        or shared >= 2:
-                    conn.execute(
-                        "INSERT OR IGNORE INTO story_thread_members (thread_id, story_id)"
-                        " VALUES (?,?)", (t["id"], s["id"]))
-                    conn.execute("UPDATE story_threads SET last_updated_at = ?"
-                                 " WHERE id = ?", (now_iso(), t["id"]))
-                    t["ents"] |= s["ents"]
-                    written += 1
-                    joined = True
-                    break
+                # v8.18 — the cosine gate is now ALWAYS required (the old
+                # `shared >= 2` bypass let a thread that had accreted many
+                # entities absorb any story sharing two of them, regardless of
+                # topical similarity — the "US-Turkey thread swallows Iran &
+                # Russia-Ukraine" bug). A shared-entity join still needs real
+                # embedding proximity; two shared entities only relaxes the
+                # threshold slightly, it never skips it.
+                if shared < MIN_SHARED_ENTITIES:
+                    continue
+                thresh = JOIN_SIMILARITY if shared < 2 else JOIN_SIMILARITY - 0.07
+                if sim < thresh:
+                    continue
+                # topical gate: if the thread has a specific topic signature and
+                # the story's headline shares NONE of it, require a stronger
+                # embedding match to guard against off-topic accretion.
+                if t["topic"]:
+                    htoks = _topic_tokens(s["headline"] or "")
+                    if not (htoks & t["topic"]) and sim < JOIN_SIMILARITY + 0.12:
+                        continue
+                conn.execute(
+                    "INSERT OR IGNORE INTO story_thread_members (thread_id, story_id)"
+                    " VALUES (?,?)", (t["id"], s["id"]))
+                conn.execute("UPDATE story_threads SET last_updated_at = ?"
+                             " WHERE id = ?", (now_iso(), t["id"]))
+                written += 1
+                joined = True
+                break
             if not joined:
                 still.append(s)
 

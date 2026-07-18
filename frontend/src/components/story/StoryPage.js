@@ -4,6 +4,7 @@
 // panel, the Section 5.7 bias/blindspot view, and Section 5.8
 // display-time translation.
 import { api } from "../../api/client.js";
+import { openArticle } from "../ArticleViewer.js";   // v8.18 — in-app article pane
 
 // v6.2 — render markdown-ish bullet text as a real <ul>, XSS-safe (escape
 // first, then only introduce <li>/<b>). Non-bullet lines become paragraphs.
@@ -424,9 +425,18 @@ export class StoryPage {
       body.textContent = `${m.source?.name || "?"} — ${m.title}`;
       body.insertAdjacentHTML("beforeend", official + dup);
       if (m.source?.article_link) {
+        // v8.18 — the embedded article browser: clicking opens the article in
+        // an on-screen pane (with an honest open-in-tab fallback for sites that
+        // block embedding); middle-click / Ctrl+click still open a real tab.
         const a = document.createElement("a");
         a.href = m.source.article_link; a.target = "_blank"; a.rel = "noopener";
-        a.textContent = " ↗"; body.appendChild(a);
+        a.textContent = " ↗";
+        a.addEventListener("click", (ev) => {
+          if (ev.ctrlKey || ev.metaKey || ev.button === 1) return;
+          ev.preventDefault();
+          openArticle(m.source.article_link, m.title);
+        });
+        body.appendChild(a);
       }
       tl.appendChild(item);
     }
@@ -507,6 +517,13 @@ export class StoryPage {
       const a = document.createElement("a");
       a.href = src.article_link || src.url; a.target = "_blank"; a.rel = "noopener";
       a.textContent = src.article_link ? "article ↗" : "source ↗";
+      // v8.18 — real ARTICLES open in the embedded in-app pane; a source
+      // homepage link keeps its normal tab behavior.
+      if (src.article_link) a.addEventListener("click", (ev) => {
+        if (ev.ctrlKey || ev.metaKey || ev.button === 1) return;
+        ev.preventDefault();
+        openArticle(src.article_link, `${src.name} — article`);
+      });
       row.appendChild(a);
       srcs.appendChild(row);
     }

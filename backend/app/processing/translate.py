@@ -204,6 +204,32 @@ def translate_recent(batch_size: int = 15) -> int:
     return done
 
 
+def translate_recent_to_english(batch_size: int = 15) -> int:
+    """v8.18 — reverse translation (owner: "when English is selected, translate
+    non-English CONTENT into English — Russian/Ukrainian/Japanese feed items").
+
+    Recent stories whose HEADLINE reads as non-English get an English rendering
+    stored under language='en' in content_translations, so the feed can show the
+    English version to an English UI while keeping the original available. Reuses
+    translate_batch (which targets any language, English included). Best-effort:
+    no provider → nothing translated, the original flows through untouched (the
+    standing honest-degradation rule; real output needs the configured model)."""
+    if not llm.available():
+        return 0
+    rows = query(
+        "SELECT id, headline, summary FROM stories s WHERE is_synthetic = 0"
+        " AND last_updated_at >= datetime('now', '-2 day')"
+        " AND NOT EXISTS (SELECT 1 FROM content_translations t WHERE"
+        "   t.content_id = s.id AND t.language = 'en' AND t.field = 'headline')"
+        " ORDER BY last_updated_at DESC LIMIT ?", (batch_size * 3,))
+    todo = [dict(r) for r in rows if looks_non_english(r["headline"] or "")][:batch_size]
+    if not todo:
+        return 0
+    translate_batch(todo, "en")
+    log.info("reverse_translated_to_english", extra={"data": {"items": len(todo)}})
+    return len(todo)
+
+
 # ---------- §10 ingestion-time translation for correlation ----------
 
 _NON_LATIN = re.compile(r"[Ѐ-ӿ֐-׿؀-ۿऀ-ॿ"

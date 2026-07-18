@@ -329,6 +329,16 @@ def _story_cards(rows) -> list:
         # v8.16 — literal country/bloc chips (pure in-memory regex, no query)
         c["impact_chips"] = _literal_impact_chips(
             f"{c.get('headline') or ''} {c.get('summary') or ''}")
+    # v8.18 — reverse translation: attach the English rendering of a non-English
+    # headline/summary (stored under language='en' by the reverse-translate job)
+    # so an English UI reads foreign feed items in English. One set-based query.
+    for t in query(
+            "SELECT content_id AS sid, field, translated_text FROM content_translations"
+            f" WHERE language = 'en' AND content_id IN ({marks})"
+            " AND field IN ('headline','summary')", tuple(ids)):
+        c = cards.get(t["sid"])
+        if c and t["translated_text"]:
+            c["headline_en" if t["field"] == "headline" else "summary_en"] = t["translated_text"]
     # preserve the incoming row order (already sorted by the SQL ORDER BY)
     return [cards[i] for i in ids]
 
@@ -673,6 +683,34 @@ def _impacted_entities(story_id: str) -> list[dict]:
     # literal chips first, then the rest, capped
     out.sort(key=lambda i: 0 if i["name"] in literal else 1)
     return out[:16]
+
+
+@route("GET", "/api/embedcheck")
+def embed_check(params, q, body):
+    """v8.18 — can this article URL be shown in an in-app iframe? Most major
+    news sites send X-Frame-Options / CSP frame-ancestors that BLOCK embedding,
+    and the browser can't observe that from JS — so the backend checks the
+    response headers and the embedded-article pane decides honestly: embed when
+    allowed, show a clean "opens in a new tab" card when blocked. Unknown
+    (network failure / no headers) returns embeddable=null → the pane tries the
+    iframe with the fallback link alongside."""
+    import urllib.request as _ur
+    url = (q.get("url") or "").strip()
+    if not url.startswith(("http://", "https://")):
+        return 400, {"error": "url must be http(s)"}
+    try:
+        req = _ur.Request(url, method="HEAD", headers={
+            "User-Agent": "GlobeGrid/8.18 (embed-check; single-user local app)"})
+        with _ur.urlopen(req, timeout=6) as r:
+            xfo = (r.headers.get("X-Frame-Options") or "").lower()
+            csp = (r.headers.get("Content-Security-Policy") or "").lower()
+            blocked = ("deny" in xfo or "sameorigin" in xfo
+                       or "frame-ancestors" in csp)
+            return 200, {"embeddable": not blocked,
+                         "reason": ("x-frame-options/frame-ancestors present"
+                                    if blocked else "no embed-blocking headers")}
+    except Exception as exc:  # noqa: BLE001 — unknown, let the client try
+        return 200, {"embeddable": None, "reason": f"{type(exc).__name__}"}
 
 
 @route("GET", "/api/chains")

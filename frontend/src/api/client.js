@@ -222,4 +222,6 @@ export const api = {
   predMarkets: (q_) => get(`/api/predmarkets${q_ ? "?q=" + encodeURIComponent(q_) : ""}`, { timeout: 20000 }),
   diplomacy: (a, b) => get(`/api/diplomacy?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`),
   ideologies: () => get("/api/ideologies"),
+  // v8.18 — can this article URL be iframed? (embedded article browser)
+  embedCheck: (url) => get(`/api/embedcheck?url=${encodeURIComponent(url)}`, { timeout: 10000 }),
 };

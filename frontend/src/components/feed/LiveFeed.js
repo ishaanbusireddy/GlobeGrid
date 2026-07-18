@@ -51,11 +51,26 @@ export class LiveFeed {
   // on every arrival. Now cards are reconciled: existing elements are reused +
   // reordered (appendChild MOVES a node, no re-create), only changed cards are
   // rewritten, and departed cards removed. Unchanged cards never touch the DOM.
+  // v8.18 — the display headline: when the UI language is English and a reverse
+  // English rendering of a non-English headline exists (headline_en), show that
+  // (owner: "when English is selected, translate the Russian/Ukrainian/Japanese
+  // feed items INTO English"). The original stays available on hover.
+  _displayHeadline(s) {
+    let lang = "en";
+    try { lang = localStorage.getItem("tdl_lang") || "en"; } catch { /* ignore */ }
+    if (lang === "en" && s.headline_en) return s.headline_en;
+    return s.headline || "(untitled story)";
+  }
   _cardKey(s) {
-    // a signature of everything the card renders — cheap change detection
-    return [s.headline, s.category, s.source_count, s.member_count, s.confidence,
+    // a signature of everything the card renders — cheap change detection.
+    // v8.18 — last_updated_at is DROPPED from the key: a re-timestamp with no
+    // visible change used to rebuild the whole card (replaceWith), which made
+    // the feed jitter. Include headline_en so a late-arriving English rendering
+    // still updates the card.
+    return [s.headline, s.headline_en || "", s.category, s.source_count,
+            s.member_count, s.confidence,
             s.has_historical_link ? 1 : 0, Math.round((s.corroboration || 0) * 100),
-            s.conflict_id || "", s.conflict_name || "", s.last_updated_at,
+            s.conflict_id || "", s.conflict_name || "",
             (s.impact_chips || []).map((c) => c.name).join(",")].join("|");
   }
   _buildCard(s) {
@@ -75,7 +90,10 @@ export class LiveFeed {
         ${s.conflict_id && s.conflict_name ? `<span class="chip chip-conflict" data-cid="${s.conflict_id}" title="part of this conflict — open War Mode">${s.conflict_name}</span>` : ""}
         <span>${when}</span>
       </div>`;
-    card.querySelector("h3").textContent = s.headline || "(untitled story)";
+    const h3 = card.querySelector("h3");
+    h3.textContent = this._displayHeadline(s);
+    if (s.headline_en && s.headline && s.headline_en !== s.headline)
+      h3.title = "Original: " + s.headline;   // v8.18 — original on hover
     // v8.16 — 1-2 literally-named country/bloc chips with real flags (owner:
     // "display like 1-2 country chips nested in the event panels in the live
     // feed"; a NATO chip flies the NATO flag just like a country's)

@@ -7,6 +7,14 @@ autonomy, and a context paragraph so clicking it opens a real breakdown, plus
 an approximate centroid for a map marker.
 """
 
+# v8.18 — zones that are historical / being dissolved (no longer a live
+# self-governing entity). They keep their page (flagged), but are dropped from
+# the live autonomous-zone MAP layer so they don't draw an active border.
+# Rojava/AANES is integrating into the post-Assad Syrian state under the March
+# 2025 SDF–Damascus agreement, so it is no longer treated as a live autonomous
+# administration on the map (owner: "Rojava doesn't even exist anymore").
+HISTORICAL_ZONES = {"rojava"}
+
 # id, name, parent_state, capital, autonomy_basis, lat, lon, context
 AUTONOMOUS_ZONES = [
     ("iraqi_kurdistan", "Kurdistan Region", "Iraq", "Erbil",
@@ -342,7 +350,7 @@ def _zone_base(z):
             "autonomy_basis": z[4], "lat": z[5], "lon": z[6], "context": z[7]}
 
 
-def zones_list():
+def zones_list(include_historical: bool = True):
     out = []
     for z in AUTONOMOUS_ZONES:
         d = _zone_base(z)
@@ -350,6 +358,9 @@ def zones_list():
         d["flag_url"] = ex.get("flag_url")
         d["outline"] = ex.get("outline")
         d["official_name"] = ex.get("official_name")
+        d["historical"] = z[0] in HISTORICAL_ZONES
+        if d["historical"] and not include_historical:
+            continue
         out.append(d)
     return out
 
@@ -359,5 +370,6 @@ def zone_by_id(zid):
         if z[0] == zid:
             d = _zone_base(z)
             d.update(ZONE_EXTRA.get(zid, {}))
+            d["historical"] = zid in HISTORICAL_ZONES
             return d
     return None

@@ -108,12 +108,34 @@ def markets(q: str | None = None, limit: int = 40) -> dict:
                           error="; ".join(errs) if errs else None)
         rows = list(_CACHE["rows"])
         live, error = _CACHE["live"], _CACHE["error"]
+    filtered_note = None
     if q:
-        ql = [w for w in q.lower().split() if len(w) > 2]
-        rows = [r for r in rows
-                if any(w in r["title"].lower() for w in ql)]
+        # v8.18 — the War Mode strip passes a conflict's DISTINCTIVE terms (party
+        # names + conflict name). A market must hit one of those distinctive
+        # terms — generic conflict words ("war", "ceasefire", "conflict"…) are
+        # stripped so we don't return every "will there be a war" bet as if it
+        # were about THIS conflict (owner: "war-mode odds show random Polymarket
+        # bets, not conflict-specific ones").
+        generic = {"war", "conflict", "crisis", "dispute", "standoff", "civil",
+                   "ceasefire", "tensions", "insurgency", "and", "the", "of",
+                   "vs", "allies", "backers", "supporters"}
+        ql = [w for w in q.lower().replace("–", " ").replace("-", " ").split()
+              if len(w) > 2 and w not in generic]
+        if ql:
+            rows = [r for r in rows
+                    if any(w in r["title"].lower() for w in ql)]
+            if not rows:
+                filtered_note = ("No conflict-specific prediction markets are "
+                                 "open right now for this conflict. Only markets "
+                                 "naming its parties are shown — never unrelated "
+                                 "geopolitics bets.")
+        else:
+            rows = []
+            filtered_note = ("No distinctive market terms for this conflict — "
+                             "showing none rather than unrelated bets.")
     return {"live": live, "error": error, "markets": rows[:limit],
-            "note": ("Real-money prediction-market odds (Polymarket + Kalshi "
+            "note": (filtered_note if filtered_note else
+                     "Real-money prediction-market odds (Polymarket + Kalshi "
                      "public APIs), refreshed ≤60s. Prices are crowd "
                      "probabilities, not facts."
                      if live else

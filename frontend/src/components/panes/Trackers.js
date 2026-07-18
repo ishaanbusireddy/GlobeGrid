@@ -27,14 +27,26 @@ export function renderTrackers(el, ctx) {
       <button class="tracker-card" data-w="diplomacy"><b>Diplomatic Window</b>
         <span>Any two countries: current stance, background briefs, and their shared live coverage</span></button>
     </div>`;
-  el.querySelectorAll(".tracker-card").forEach((b) => b.addEventListener("click", () => {
-    const w = b.dataset.w;
-    if (w === "military") ctx.pane.push({ key: "trk:mil", title: "military tracker", render: (e2) => renderMilitary(e2, ctx) });
-    else if (w === "trade") ctx.pane.push({ key: "trk:trade", title: "trade & resources", render: (e2) => renderTrade(e2, ctx) });
-    else if (w === "markets") ctx.pane.push({ key: "trk:mkt", title: "markets", render: (e2) => renderMarketsLive(e2, ctx) });
-    else if (w === "pred") ctx.pane.push({ key: "trk:pred", title: "prediction markets", render: (e2) => renderPredMarkets(e2, ctx) });
-    else if (w === "diplomacy") ctx.pane.push({ key: "trk:dip", title: "diplomatic window", render: (e2) => renderDiplomacy(e2, ctx) });
-  }));
+  el.querySelectorAll(".tracker-card").forEach((b) =>
+    b.addEventListener("click", () => openTracker(ctx, b.dataset.w)));
+}
+
+// v8.18 — one place that opens a tracking window by key, reused by the hub
+// cards AND the header dropdown (owner: "split the tracker windows into their
+// own buttons" → a dropdown of the 5 windows, one click each).
+export const TRACKER_WINDOWS = [
+  ["military", "Military Tracker"],
+  ["trade", "Trade & Resources"],
+  ["markets", "Markets"],
+  ["pred", "Prediction Markets"],
+  ["diplomacy", "Diplomatic Window"],
+];
+export function openTracker(ctx, w) {
+  if (w === "military") ctx.pane.push({ key: "trk:mil", title: "military tracker", render: (e2) => renderMilitary(e2, ctx) });
+  else if (w === "trade") ctx.pane.push({ key: "trk:trade", title: "trade & resources", render: (e2) => renderTrade(e2, ctx) });
+  else if (w === "markets") ctx.pane.push({ key: "trk:mkt", title: "markets", render: (e2) => renderMarketsLive(e2, ctx) });
+  else if (w === "pred") ctx.pane.push({ key: "trk:pred", title: "prediction markets", render: (e2) => renderPredMarkets(e2, ctx) });
+  else if (w === "diplomacy") ctx.pane.push({ key: "trk:dip", title: "diplomatic window", render: (e2) => renderDiplomacy(e2, ctx) });
 }
 
 export async function renderMilitary(el, ctx) {
@@ -212,7 +224,15 @@ export async function renderDiplomacy(el, ctx, a, b) {
 // prediction-market odds, injected into the war feed panel by App.js.
 export async function predMarketStrip(el, conflictName) {
   const d = await api.predMarkets(conflictName).catch(() => null);
-  if (!d || !(d.markets || []).length) { el.innerHTML = ""; return; }
+  if (!d) { el.innerHTML = ""; return; }
+  if (!(d.markets || []).length) {
+    // v8.18 — be honest: show the "no conflict-specific markets" note instead of
+    // silently blanking (which read as broken), never unrelated bets.
+    el.innerHTML = d.note
+      ? `<h4>Public Sentiment — Live Odds</h4><p class="cp-meta">${esc(d.note)}</p>`
+      : "";
+    return;
+  }
   el.innerHTML = `<h4>Public Sentiment — Live Odds</h4>` + d.markets.slice(0, 4).map((m) => `
     <a class="src-row pred-row" href="${esc(m.url)}" target="_blank" rel="noopener">
       <span class="pred-odds">${m.yes_price != null ? Math.round(m.yes_price * 100) + "%" : "—"}</span>

@@ -209,8 +209,11 @@ function zoneRings(z) {
   return [];
 }
 // zones normalized for the renderers: { id, name, rings: [flat ring, …] }.
+// v8.18 — historical/dissolved zones (Rojava, integrating into post-Assad Syria)
+// keep their page but are dropped from the live map layer.
 function zonesForRender() {
   return (state.autonomousZones || [])
+    .filter((z) => !z.historical)
     .map((z) => ({ id: z.id, name: z.name, rings: zoneRings(z) }))
     .filter((z) => z.rings.length);
 }
@@ -218,6 +221,7 @@ function zonesForRender() {
 // each of the zone's real member rings (flat [lon,lat,…]).
 function autonomousZoneAt(lat, lon) {
   for (const z of (state.autonomousZones || [])) {
+    if (z.historical) continue;
     for (const ring of zoneRings(z)) {
       let inside = false;
       for (let i = 0, j = ring.length - 2; i < ring.length; j = i, i += 2) {
@@ -423,7 +427,16 @@ async function applyAdminLayers() {
 // heat can look up an active unit's rings. Decodes all tiers once, lazily.
 let ADMIN_UID_INDEX = null;
 function adminUnitByUid(uid) {
-  if (!ADMIN_UID_INDEX) {
+  // v8.18 — the atlas uids are GLOBALLY unique across tiers (the deeper builder
+  // increments one counter past the ADM1 max), so a single Map is correct. The
+  // bug was that this index was built lazily on the FIRST call — if that call
+  // happened before ensureAdminData() had decoded the tiers, an EMPTY index was
+  // cached forever, so later hotspot lookups either missed (no fill) or, when a
+  // partial index was cached, resolved a uid to whatever stale unit was present
+  // → the "random admin divs get shaded" report. Now the index is only cached
+  // once real data is present, and is rebuilt if it comes back empty.
+  if (!ADMIN_ENC) return undefined;               // data not loaded yet — don't cache
+  if (!ADMIN_UID_INDEX || ADMIN_UID_INDEX.size === 0) {
     ADMIN_UID_INDEX = new Map();
     for (let l = 1; l <= 3; l++)
       for (const u of ensureAdminLevel(l)) ADMIN_UID_INDEX.set(u.i, u);
@@ -1272,6 +1285,17 @@ function openStory(id, { push = true } = {}) {
   // v7.4.4 — the synthetic/demo path was deleted; every story is a real
   // backend story now.
   storyPage.open(id);
+  // v8.18 — glow the affected countries' borders on the map when a story opens
+  // (owner: "clicking an event should highlight the affected countries"). Uses
+  // the literally-named country impact chips (iso3 ids); blocs/territories are
+  // skipped for the country-border glow. Set AFTER open so it isn't cleared by
+  // the pane's own onNavigate.
+  try {
+    const isos = ((st && st.impact_chips) || [])
+      .filter((c) => c && c.type === "country" && /^[A-Za-z]{3}$/.test(c.id || ""))
+      .map((c) => c.id);
+    if (isos.length) setTimeout(() => highlightCountries(isos), 60);
+  } catch { /* best-effort — the story page still opens */ }
 }
 window.addEventListener("popstate", (ev) => {
   if (ev.state && ev.state.storyId) openStory(ev.state.storyId, { push: false });
@@ -1324,6 +1348,16 @@ function mountRenderer(tier) {
     onSelectCity: (id) => ctx.openCity(id),                   // v8.8 — city chip click
 
     onCountryClick: (lat, lon) => {
+      // v8.18 — with the Autonomous Zones layer ON, a click inside a zone opens
+      // the ZONE's full country-like page FIRST, even when an admin tier is
+      // active (owner: "clicking Scotland/UK devolved units only highlighted the
+      // admin unit — they should open proper country-like pages"). With the AZ
+      // layer off, the admin-unit path below wins as before, so the governorate/
+      // county is still reachable.
+      if (state.azOn !== false) {
+        const _azFirst = autonomousZoneAt(lat, lon);
+        if (_azFirst) { setFocus("zone", _azFirst.name); ctx.openAutonomousZone(_azFirst.id); return; }
+      }
       // v8/v8.1 — when the admin layer is on and zoomed in, a click resolves to
       // the smallest visible unit (province at medium zoom, county at deep zoom)
       // before falling back to the country — as clickable as Greenland.
@@ -1332,11 +1366,7 @@ function mountRenderer(tier) {
         const u = adminAt(lat, lon, _lvl);
         if (u && u.i) { ctx.openAdminUnit(u.i); return; }
       }
-      // v8.13.4 — an autonomous zone is now clickable like a territory (owner:
-      // "treat Autonomous Zones exactly like a country or territory, not a crude
-      // dotted line that aint clickable"). With an admin tier active the click
-      // resolves to the subdivision above (whose panel carries the zone chip);
-      // otherwise a click inside a zone's outline opens the zone's full panel.
+      // fall-through (AZ layer off): still allow a zone click to open the zone.
       const _az = autonomousZoneAt(lat, lon);
       if (_az) { setFocus("zone", _az.name); ctx.openAutonomousZone(_az.id); return; }
       let c = countryAt(lat, lon);
@@ -2268,11 +2298,39 @@ els.graphBtn.addEventListener("click", () => graphExplorer.open());
 
 // v4 pane-hosted directories & pages
 els.storiesBtn.addEventListener("click", () => ctx.openDirectory(null));
-// v8.16 — the tracking-windows hub
-els.trackersBtn.addEventListener("click", () => pane.push({
-  key: "trackers", title: "tracking windows",
-  render: (el) => Trackers.renderTrackers(el, ctx),
-}));
+// v8.18 — the Trackers header button is a DROPDOWN of the 5 windows (owner:
+// "split the tracker windows into their own buttons"), each opening its window
+// directly. The full hub ("All tracking windows") stays as the first item.
+{
+  const menu = document.getElementById("trackers-menu");
+  if (menu) {
+    menu.innerHTML =
+      `<button data-w="__hub" class="trk-menu-item">All Tracking Windows…</button>` +
+      Trackers.TRACKER_WINDOWS.map(([w, label]) =>
+        `<button data-w="${w}" class="trk-menu-item">${label}</button>`).join("");
+    const closeMenu = () => { menu.classList.add("hidden"); els.trackersBtn.setAttribute("aria-expanded", "false"); };
+    els.trackersBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const open = menu.classList.toggle("hidden") === false;
+      els.trackersBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    menu.querySelectorAll(".trk-menu-item").forEach((b) => b.addEventListener("click", () => {
+      closeMenu();
+      if (b.dataset.w === "__hub")
+        pane.push({ key: "trackers", title: "tracking windows", render: (el) => Trackers.renderTrackers(el, ctx) });
+      else Trackers.openTracker(ctx, b.dataset.w);
+    }));
+    document.addEventListener("click", (e) => {
+      if (!menu.classList.contains("hidden") && !menu.contains(e.target) && e.target !== els.trackersBtn) closeMenu();
+    });
+  } else {
+    // fallback (older markup): open the hub
+    els.trackersBtn.addEventListener("click", () => pane.push({
+      key: "trackers", title: "tracking windows",
+      render: (el) => Trackers.renderTrackers(el, ctx),
+    }));
+  }
+}
 els.bookmarksBtn.addEventListener("click", () => pane.push({
   key: "bookmarks", title: "bookmarks",
   render: (el) => Wiki.renderBookmarks(el, ctx),
@@ -3357,28 +3415,65 @@ const warFeed = {
       panel.appendChild(strip);
     }
     strip.innerHTML = "";
-    Trackers.predMarketStrip(strip, name || "").catch(() => {});
-    // v8.16 — supporters outline toggle (owner: "a button to hide/re-enable
-    // supporting states' outlines"), next to the exit button.
-    let sup = document.getElementById("war-backers-toggle");
-    if (!sup) {
-      sup = document.createElement("button");
-      sup.id = "war-backers-toggle";
-      const exitBtn = document.getElementById("war-feed-exit");
-      if (exitBtn && exitBtn.parentElement)
-        exitBtn.parentElement.insertBefore(sup, exitBtn);
-      sup.addEventListener("click", () => {
-        state.warShowBackers = state.warShowBackers === false;
-        sup.textContent = state.warShowBackers ? "Supporters: on" : "Supporters: off";
-        sup.title = state.warShowBackers
-          ? "supporting states outlined (dimmer shade) — click to hide"
-          : "supporting states hidden — click to show";
-        applyWarRings();
-      });
+    // v8.18 — pass the conflict's DISTINCTIVE terms (conflict name + party
+    // names) so the odds strip shows markets for THIS conflict, not random
+    // geopolitics bets (owner: "war-mode odds show random Polymarket bets").
+    const _parties = (state.warMode && state.warMode.parties) || [];
+    const _pnames = _parties.map((p) => p.country_name || p.actor_name).filter(Boolean);
+    const _q = [name || "", ..._pnames].join(" ").trim();
+    Trackers.predMarketStrip(strip, _q).catch(() => {});
+    // v8.18 — a belligerents-vs-supporters country roster in the panel, with the
+    // Supporters toggle sitting right beside the countries list (owner: "move
+    // the supporters toggle next to the countries list, not the opposite side").
+    let roster = document.getElementById("war-roster");
+    if (!roster) {
+      roster = document.createElement("div");
+      roster.id = "war-roster";
+      const tabs = document.getElementById("war-feed-tabs");
+      if (tabs && tabs.parentElement) tabs.parentElement.insertBefore(roster, tabs);
+      else document.getElementById("war-feed-panel").appendChild(roster);
     }
-    sup.textContent = state.warShowBackers === false ? "Supporters: off" : "Supporters: on";
-    sup.title = "toggle the supporting states' (dimmer) outlines";
+    this._renderRoster(roster, name);
+    // legacy header toggle (if a prior build left one) is removed in favor of
+    // the roster's own toggle.
+    const oldTog = document.getElementById("war-feed-header")?.querySelector("#war-backers-toggle");
+    if (oldTog) oldTog.remove();
     await this._load();
+  },
+  // v8.18 — render the war-mode country roster + the Supporters toggle beside it.
+  _renderRoster(el, name) {
+    const data = state.warMode;
+    if (!el || !data) { if (el) el.innerHTML = ""; return; }
+    const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g,
+      (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const sn = data.side_names || {};
+    const parties = data.parties || [];
+    const showBackers = state.warShowBackers !== false;
+    const sideBlock = (k) => {
+      const side = parties.filter((p) => (p.side || "") === k);
+      if (!side.length) return "";
+      const bell = side.filter((p) => p.role !== "backer" && p.role !== "mediator")
+        .map((p) => p.country_name || p.actor_name).filter(Boolean);
+      const back = side.filter((p) => p.role === "backer")
+        .map((p) => p.country_name || p.actor_name).filter(Boolean);
+      return `<div class="war-side war-side-${k}">
+        <div class="war-side-name">${esc(sn[k] || (k === "a" ? "Side A" : "Side B"))}</div>
+        <div class="war-belligerents">${bell.map((n) =>
+          `<span class="war-party">${esc(n)}</span>`).join("")}</div>
+        ${back.length ? `<div class="war-backers"${showBackers ? "" : ' style="opacity:.4"'}>
+          <span class="war-backers-label">Supporters:</span> ${back.map((n) =>
+            `<span class="war-party war-backer">${esc(n)}</span>`).join("")}</div>` : ""}
+      </div>`;
+    };
+    el.innerHTML = `<div class="war-roster-sides">${sideBlock("a")}${sideBlock("b")}</div>
+      <button id="war-backers-toggle" class="war-sup-toggle" title="Show or hide the supporting states' (dimmer) outlines">${
+        showBackers ? "Supporters: On" : "Supporters: Off"}</button>`;
+    const tog = el.querySelector("#war-backers-toggle");
+    if (tog) tog.addEventListener("click", () => {
+      state.warShowBackers = state.warShowBackers === false;   // flip
+      this._renderRoster(el, name);
+      applyWarRings();
+    });
   },
   close() {
     this.cid = null; this.data = null;
@@ -3788,9 +3883,19 @@ async function applyModeAdminHeat(mode, countryData, numColor, catColorFor) {
       if (u && u.r) cells.push({ rings: u.r, color: numColor(v, lo, hi) });
     }
   } else {
+    // v8.18 — apply the same majority-share opacity at the admin tier (owner:
+    // religion/sect % shading must work when a division tier is active, not just
+    // at country level). Each unit inherits its country's share via unit_shares.
+    const infoFor = _modeInfoFor(mode);
+    const ushares = d.unit_shares || null;
     for (const [uid, v] of Object.entries(uvals)) {
       const u = adminUnitByUid(+uid);
-      if (u && u.r) cells.push({ rings: u.r, color: catColorFor(v) });
+      if (!u || !u.r) continue;
+      const sh = ushares && ushares[uid] != null ? ushares[uid] : null;
+      const col = (infoFor && sh != null)
+        ? familyColor(infoFor(v), 0.30 + 0.50 * Math.max(0, Math.min(1, sh)))
+        : catColorFor(v);
+      cells.push({ rings: u.r, color: col });
     }
   }
   state.renderer?.setAdminHeat?.(cells);

@@ -678,6 +678,20 @@ def mapmode_values(params, q, body):
             out["unit_min"], out["unit_max"] = meta
         else:
             out["categories"] = sorted(set(out.get("categories", [])) | set(meta))
+        # v8.18 — per-unit relative-share shading for religion/sect at the admin
+        # tier (owner: the % population-share opacity must apply when an admin
+        # tier is active, not only at country level). A unit inherits its
+        # country's majority share (RELIGION_SHARE is iso3-keyed); the frontend
+        # admin-unit branch reads this to set the fill opacity like the country.
+        if params["mode"] in ("religion", "religious_sect"):
+            from ..geopolitics import admin_thematic as _at2, admin_atlas as _aa
+            ushares = {}
+            for u in _aa.units():
+                if u.get("level") == level and u["uid"] in uvals:
+                    sh = _at2.religion_share(u.get("country"))
+                    if sh is not None:
+                        ushares[u["uid"]] = sh
+            out["unit_shares"] = ushares
     return 200, out
 
 

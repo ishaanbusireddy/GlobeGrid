@@ -429,7 +429,7 @@ def _conflict_party_entities() -> dict:
     from ..geopolitics.seed_data import INSURGENCY_NAMES
     out: dict = {}
     for row in query(
-            "SELECT cp.conflict_id, cp.country_id, n.canonical_entity_id,"
+            "SELECT cp.conflict_id, cp.country_id, cp.role, n.canonical_entity_id,"
             " c.name AS country_name, cf.name AS conflict_name, cf.status"
             " FROM conflict_parties cp"
             " JOIN conflicts cf ON cf.id = cp.conflict_id"
@@ -438,22 +438,37 @@ def _conflict_party_entities() -> dict:
             " WHERE cf.status NOT IN ('resolved', 'ended')"):
         rec = out.setdefault(row["conflict_id"], {
             "all": set(), "distinctive": set(),
+            # v8.18 — PRIMARY = belligerents (the actual combatants), tracked
+            # separately from backers/mediators. The Iran→Yemen bug: Yemen Civil
+            # War lists USA + Iran as *backers*, so a US–Iran story overlapped
+            # Yemen's party set on {USA,IRN} and got tagged. Matching now keys off
+            # belligerents, so shared backers alone can no longer tag a conflict.
+            "belligerent": set(), "belligerent_names": set(),
             "status": row["status"],
             "name_tokens": _conflict_name_tokens(row["conflict_name"]),
             "party_names": set(),
             "is_insurgency": (row["conflict_name"] in INSURGENCY_NAMES
                               or "insurgency" in (row["conflict_name"] or "").lower())})
+        # a party is "primary" (a combatant) unless it's explicitly a backer or
+        # mediator — an unset/NULL role defaults to combatant (older seed rows).
+        is_prim = (row["role"] or "belligerent") not in ("backer", "mediator")
         if row["country_name"]:
             rec["party_names"].add(row["country_name"].lower())
+            if is_prim:
+                rec["belligerent_names"].add(row["country_name"].lower())
         if row["canonical_entity_id"]:
             # a non-state actor (Naxalites, PKK, Houthis…) — the DISTINCTIVE
             # signal for a conflict, especially an intra-state one.
             rec["all"].add(row["canonical_entity_id"])
             rec["distinctive"].add(row["canonical_entity_id"])
+            if is_prim:
+                rec["belligerent"].add(row["canonical_entity_id"])
         elif row["country_name"]:
             cent = resolve_entity(row["country_name"])
             if cent:
                 rec["all"].add(cent)
+                if is_prim:
+                    rec["belligerent"].add(cent)
     return out
 
 
@@ -511,31 +526,46 @@ def _suggest_conflict_tag(story_id: str) -> None:
     # words counts even if entity extraction missed one (owner: "more of the
     # news about the ukraine war should be part of the ukraine war conflict").
     text = _story_text(story_id)
-    best_cid, best_matches, best_distinct, best_insurgency = None, 0, 0, False
+    # v8.18 — track a richer score per candidate so ties break sensibly:
+    #   (matches, name_hit, distinct). `matches` counts only BELLIGERENT overlap
+    #   (the combatants), never shared backers — the Iran→Yemen fix: a US–Iran
+    #   story shares USA+Iran with Yemen ONLY as backers, so its belligerent
+    #   overlap with Yemen is 0 and it no longer tags Yemen. `name_hit` is 1 when
+    #   the conflict is literally named in the text (a strong disambiguator: on a
+    #   tie the conflict whose own name appears wins).
+    best_cid, best_score, best_distinct, best_insurgency = None, (0, 0, 0), 0, False
     for cid, rec in _conflict_party_entities().items():
-        matches = len(story_ents & rec["all"])
+        matches = len(story_ents & rec["belligerent"])
         distinct = len(story_ents & rec["distinctive"])
+        name_hit = 1 if any(t in text for t in rec["name_tokens"]) else 0
         # an insurgency with NO distinctive (NSA) match doesn't count at all
         if rec["is_insurgency"] and distinct == 0:
             continue
-        if rec["status"] == "frozen" and not any(
-                t in text for t in rec["name_tokens"]):
+        if rec["status"] == "frozen" and not name_hit:
             continue  # frozen + no literal mention of the conflict = never
-        # literal both-parties boost (active conflicts only)
+        # literal both-BELLIGERENTS boost (active conflicts only): a story naming
+        # both combatants in its own words counts even if extraction missed one.
         if (rec["status"] != "frozen" and matches < 2
-                and sum(1 for p in rec["party_names"] if p in text) >= 2):
+                and sum(1 for p in rec["belligerent_names"] if p in text) >= 2):
             matches = max(matches, 2)
-        if matches > best_matches:
-            best_cid, best_matches, best_distinct = cid, matches, distinct
+        if matches == 0 and not name_hit:
+            continue  # no belligerent overlap AND the conflict isn't named = skip
+        score = (matches, name_hit, distinct)
+        if score > best_score:
+            best_cid, best_score, best_distinct = cid, score, distinct
             best_insurgency = rec["is_insurgency"]
+    best_matches, best_name_hit, _ = best_score
     if not best_cid:
         return
     # strong = ≥2 belligerent entities named (e.g. BOTH Israel & Hamas, or both
-    # Russia & Ukraine), OR ≥1 party + an actual conflict/military development.
-    # For an insurgency the qualifying match MUST include the insurgent group
-    # itself (best_distinct >= 1, already guaranteed above), so "India + a random
-    # clash keyword" no longer tags into the Naxalite insurgency.
-    strong = best_matches >= 2 or (best_matches >= 1 and has_conflict_dev)
+    # Russia & Ukraine), OR ≥1 belligerent + an actual conflict/military
+    # development, OR the conflict is LITERALLY named + a conflict/military
+    # development. For an insurgency the qualifying match MUST include the
+    # insurgent group itself (best_distinct >= 1, already guaranteed above), so
+    # "India + a random clash keyword" no longer tags into the Naxalite insurgency.
+    strong = (best_matches >= 2
+              or (best_matches >= 1 and has_conflict_dev)
+              or (best_name_hit and has_conflict_dev))
     if best_insurgency:
         strong = strong and best_distinct >= 1
     # v8.16 — the weak-match "suggested conflict" path is REMOVED (owner: "it

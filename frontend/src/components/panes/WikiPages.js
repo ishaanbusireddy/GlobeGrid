@@ -1547,8 +1547,8 @@ export async function renderAdminUnit(el, uid, ctx) {
   // Kurdistan chip should both be present").
   const az = d.autonomous_zone || null;
   if (az) crumbs.push(`<button class="ap-chip zone-link" data-id="${esc(az.id)}">${esc(az.name)}</button>`);
-  for (const a of (d.ancestry || [])) crumbs.push(`<button class="ap-chip admin-open" data-uid="${esc(a.admin_uid)}">${esc(a.name)}</button>`);
-  crumbs.push(`<b>${esc(u.name)}</b>`);
+  for (const a of (d.ancestry || [])) crumbs.push(`<button class="ap-chip admin-open" data-uid="${esc(a.admin_uid)}">${esc(a.display_name || a.name)}</button>`);
+  crumbs.push(`<b>${esc(u.display_name || u.name)}</b>`);
 
   // temporal validity (Q3) — present-day unit reads "current"; a historical
   // epoch (when the data pass lands) shows its effective window honestly.
@@ -1571,16 +1571,16 @@ export async function renderAdminUnit(el, uid, ctx) {
     `<div class="stat-cell"><span class="stat-k">${esc(k)}</span><span class="stat-v">${esc(String(v))}</span></div>`).join("") : "";
 
   const siblings = (d.siblings || []).map((s) =>
-    `<button class="ap-chip admin-open" data-uid="${esc(s.admin_uid)}">${adminCrest(s, 18)}${esc(s.name)}</button>`).join(" ")
+    `<button class="ap-chip admin-open" data-uid="${esc(s.admin_uid)}">${adminCrest(s, 18)}${esc(s.display_name || s.name)}</button>`).join(" ")
     || '<span class="cp-meta">none on file</span>';
   const children = (d.children || []).map((s) =>
-    `<button class="ap-chip admin-open" data-uid="${esc(s.admin_uid)}">${adminCrest(s, 18)}${esc(s.name)}</button>`).join(" ");
+    `<button class="ap-chip admin-open" data-uid="${esc(s.admin_uid)}">${adminCrest(s, 18)}${esc(s.display_name || s.name)}</button>`).join(" ");
 
   let html = `
     <div class="wiki-header">
       <div class="wiki-flag">${adminCrest(u, 72, "prov-crest-lg")}</div>
       <div class="wiki-head-meta">
-        <h1>${esc(u.name)} <span class="cp-meta">${esc(u.unit_type || "administrative unit")}</span></h1>
+        <h1>${esc(u.display_name || u.name)} <span class="cp-meta">${esc(u.unit_type || "administrative unit")}</span></h1>
         ${u.name_local && u.name_local !== u.name ? `<p class="official-name">${esc(u.name_local)}</p>` : ""}
         <p class="cp-meta">${crumbs.join(' <span class="cp-meta">›</span> ')}</p>
         <p class="cp-meta">ADM level ${esc(String(u.adm_level))} · ${esc(tvalid)}</p>

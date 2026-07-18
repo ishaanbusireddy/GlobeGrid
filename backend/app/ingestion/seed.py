@@ -525,6 +525,65 @@ SOURCES += [
     # Tech, worldwide
     ("Rest of World (global tech)", "rss", "https://restofworld.org/feed/latest/", "center", "reported"),
     ("TechCabal (Africa tech)", "rss", "https://techcabal.com/feed/", "center", "reported"),
+
+    # --- v8.18 regional breadth pass (owner: "GO COUNTRY BY COUNTRY") ---------
+    # Africa
+    ("The Guardian Nigeria", "rss", "https://guardian.ng/feed/", "center", "reported"),
+    ("Premium Times (Nigeria)", "rss", "https://www.premiumtimesng.com/feed", "center", "reported"),
+    ("Daily Nation (Kenya)", "rss", "https://nation.africa/kenya/rss", "center", "reported"),
+    ("The Standard (Kenya)", "rss", "https://www.standardmedia.co.ke/rss/headlines.php", "center", "reported"),
+    ("GhanaWeb", "rss", "https://www.ghanaweb.com/GhanaHomePage/rss/news.xml", "center", "reported"),
+    ("News24 (South Africa)", "rss", "https://feeds.news24.com/articles/news24/TopStories/rss", "center", "reported"),
+    ("Daily Maverick (South Africa)", "rss", "https://www.dailymaverick.co.za/dmrss/", "center", "reported"),
+    ("Addis Standard (Ethiopia)", "rss", "https://addisstandard.com/feed/", "center", "reported"),
+    ("Egypt Independent", "rss", "https://egyptindependent.com/feed/", "center", "reported"),
+    ("Morocco World News", "rss", "https://www.moroccoworldnews.com/feed", "center", "reported"),
+    ("The Monitor (Uganda)", "rss", "https://www.monitor.co.ug/uganda/rss", "center", "reported"),
+    ("The Citizen (Tanzania)", "rss", "https://www.thecitizen.co.tz/tanzania/rss", "center", "reported"),
+    ("The Herald (Zimbabwe)", "rss", "https://www.herald.co.zw/feed/", "right", "reported"),
+    ("Dakaractu (Senegal)", "rss", "https://www.dakaractu.com/xml/syndication.rss", "center", "reported"),
+    # South & Central America
+    ("Buenos Aires Times (Argentina)", "rss", "https://www.batimes.com.ar/feed", "center", "reported"),
+    ("MercoPress (South Atlantic)", "rss", "https://en.mercopress.com/rss/", "center", "reported"),
+    ("Colombia Reports", "rss", "https://colombiareports.com/feed/", "center", "reported"),
+    ("Santiago Times (Chile)", "rss", "https://santiagotimes.cl/feed/", "center", "reported"),
+    ("Mexico News Daily", "rss", "https://mexiconewsdaily.com/feed/", "center", "reported"),
+    # South Asia
+    ("Dawn (Pakistan)", "rss", "https://www.dawn.com/feeds/home", "center", "reported"),
+    ("The Express Tribune (Pakistan)", "rss", "https://tribune.com.pk/feed/home", "center", "reported"),
+    ("The Daily Star (Bangladesh)", "rss", "https://www.thedailystar.net/frontpage/rss.xml", "center", "reported"),
+    ("The Kathmandu Post (Nepal)", "rss", "https://kathmandupost.com/rss", "center", "reported"),
+    ("Tolo News (Afghanistan)", "rss", "https://tolonews.com/rss.xml", "center", "reported"),
+    # Southeast Asia
+    ("Bangkok Post", "rss", "https://www.bangkokpost.com/rss/data/topstories.xml", "center", "reported"),
+    ("VnExpress International (Vietnam)", "rss", "https://e.vnexpress.net/rss/news.rss", "center", "reported"),
+    ("The Irrawaddy (Myanmar)", "rss", "https://www.irrawaddy.com/feed", "left", "reported"),
+    ("The Straits Times (Singapore)", "rss", "https://www.straitstimes.com/news/world/rss.xml", "center", "reported"),
+    ("Khmer Times (Cambodia)", "rss", "https://www.khmertimeskh.com/feed/", "center", "reported"),
+    # Central Asia
+    ("Eurasianet", "rss", "https://eurasianet.org/rss.xml", "center", "reported"),
+    ("Gazeta.uz (Uzbekistan)", "rss", "https://www.gazeta.uz/en/rss/", "center", "reported"),
+    ("24.kg (Kyrgyzstan)", "rss", "https://24.kg/rss/", "center", "reported"),
+    # Oceania
+    ("ABC News (Australia)", "rss", "https://www.abc.net.au/news/feed/51120/rss.xml", "center", "reported"),
+    ("The Sydney Morning Herald (world)", "rss", "https://www.smh.com.au/rss/world.xml", "center", "reported"),
+    ("Fiji Times", "rss", "https://www.fijitimes.com.fj/feed/", "center", "reported"),
+    # Arab world
+    ("Gulf News (UAE)", "rss", "https://gulfnews.com/rss?generatorType=Section&values=1.762", "center", "reported"),
+    ("The National (UAE)", "rss", "https://www.thenationalnews.com/rss", "center", "reported"),
+    ("Al-Monitor (Middle East)", "rss", "https://www.al-monitor.com/rss", "center", "reported"),
+    ("The Jordan Times", "rss", "https://www.jordantimes.com/rss.xml", "center", "reported"),
+    ("Rudaw (Iraqi Kurdistan)", "rss", "https://www.rudaw.net/rss/rss.aspx?category=english", "center", "reported"),
+    ("Middle East Eye", "rss", "https://www.middleeasteye.net/rss", "left", "reported"),
+    # Turkey / Iran / Caucasus (more)
+    ("Daily Sabah (Turkey)", "rss", "https://www.dailysabah.com/rssFeed/homepage", "right", "reported"),
+    ("Bianet (Turkey)", "rss", "https://bianet.org/rss/anasayfa.rss", "left", "reported"),
+    ("Iran International", "rss", "https://www.iranintl.com/en/rss.xml", "left", "reported"),
+    ("Tehran Times (Iran)", "rss", "https://www.tehrantimes.com/rss", "right", "reported"),
+    ("OC Media (Caucasus)", "rss", "https://oc-media.org/feed/", "center", "reported"),
+    ("Agenda.ge (Georgia)", "rss", "https://agenda.ge/en/rss", "center", "reported"),
+    ("News.am (Armenia)", "rss", "https://news.am/eng/rss/", "center", "reported"),
+    ("Trend News Agency (Azerbaijan)", "rss", "https://en.trend.az/feeds/index.rss", "right", "reported"),
 ]
 
 # v6 §2 — sources removed from the product entirely. Their rows persist for

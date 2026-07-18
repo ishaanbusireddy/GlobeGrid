@@ -643,10 +643,11 @@ export class Tier2Map {
       if (this.histRings && this.histRings.length) {
         this._drawRings(this.histRings, off, "rgba(242,178,82,0.92)", 1.2);
       }
-      // v8.13.5 — autonomous regions render like a real territory from their
-      // EXACT admin-unit polygons: a faint fill over the whole zone + a solid
-      // bright light-blue border on every member ring (clickable via the
-      // App-side outline hit-test → zone panel).
+      // v8.13.5/v8.18 — autonomous regions render from their EXACT admin-unit
+      // polygons with a FAINT fill + a FAINT thin border traced along the
+      // constituent admin-division edges (owner: "faint borders on the admin
+      // edges, not bright/rectangular"). Still clickable via the App-side
+      // outline hit-test → zone page.
       for (const z of this.autonomousZones) {
         for (const ring of z.rings) {
           ctx.beginPath();
@@ -655,11 +656,11 @@ export class Tier2Map {
             i ? ctx.lineTo(x + off, y) : ctx.moveTo(x + off, y);
           }
           ctx.closePath();
-          ctx.fillStyle = "rgba(120,200,255,0.10)";
+          ctx.fillStyle = "rgba(120,200,255,0.05)";
           ctx.fill();
         }
         for (const ring of z.rings)
-          this._drawRings([ring], off, "rgba(130,205,255,0.95)", 1.5);
+          this._drawRings([ring], off, "rgba(140,205,255,0.38)", 0.9);
       }
       // v5 §11 / v6 §21 — NSA territory zones: shaped polygons with a
       // pulsing dotted rough-boundary style (never solid rectangles);

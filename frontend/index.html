@@ -34,14 +34,17 @@
     <button id="palette-btn" aria-label="Search everything (press F)" title="Search everything (press F)">Find</button>
     <button id="stories-btn" title="Stories directory — threads, alliances, patterns, agendas">Stories</button>
     <button id="conflicts-btn" title="Conflicts — pick one to enter War Mode">Conflicts</button>
-    <button id="trackers-btn" title="Live tracking windows — military, trade & resources, markets, prediction markets, diplomacy">Trackers</button>
+    <span id="trackers-wrap">
+      <button id="trackers-btn" aria-haspopup="true" aria-expanded="false" title="Live tracking windows — pick one: Military, Trade & Resources, Markets, Prediction Markets, Diplomacy">Trackers ▾</button>
+      <div id="trackers-menu" class="hidden"></div>
+    </span>
     <button id="whatif-btn" title="Counterfactual Engine — simulate a what-if scenario against the live world state">What-If</button>
     <button id="un-btn" title="United Nations — councils, resolutions & how countries voted"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Flag_of_the_United_Nations.svg/40px-Flag_of_the_United_Nations.svg.png" alt="" aria-hidden="true" style="height:12px;vertical-align:-2px"> UN</button>
     <button id="briefing-btn" title="Daily briefing">Briefing</button>
-    <button id="audio-briefing-btn" title="Spoken personal briefing — a ~3-minute narrated digest of the stories you follow while the globe flies along" aria-label="Audio briefing">Audio</button>
+    <button id="audio-briefing-btn" title="Spoken personal briefing — a ~3-minute narrated digest of the stories you follow while the globe flies along" aria-label="Audio briefing"><span class="btn-ico" aria-hidden="true" data-no-translate>♪</span> Audio</button>
     <button id="graph-btn" title="Fact-chain graph explorer">Graph</button>
     <button id="watchlist-btn" title="Watchlist">Watchlist</button>
-    <button id="bookmarks-btn" title="Bookmarks / reading list" aria-label="Bookmarks">Saved</button>
+    <button id="bookmarks-btn" title="Bookmarks / reading list" aria-label="Bookmarks"><span class="btn-ico" aria-hidden="true" data-no-translate>☆</span> Saved</button>
     <!-- v6.1 — heatmap toggle removed (owner: unclear/unhelpful overlay) -->
     <button id="heatmap-toggle" class="hidden" title="Heatmap density overlay">Heat</button>
     <button id="borders-toggle" class="active" aria-pressed="true" title="Country borders — on by default">Borders</button>
@@ -53,13 +56,13 @@
       <option value="2">Div 2 · Counties / Districts</option>
       <option value="3">Div 3 · Sub-districts / Communes</option>
     </select>
-    <button id="activity-toggle" aria-pressed="false" title="Hotspots — light up the administrative units with the most tracked activity right now (heat map + ranking)">Hotspots</button>
+    <button id="activity-toggle" aria-pressed="false" title="Hotspots — light up the administrative units with the most tracked activity right now (heat map + ranking)"><span class="btn-ico" aria-hidden="true" data-no-translate>◉</span> Hotspots</button>
     <!-- v6.2 — terrain removed entirely (owner). v6.2 — country-name toggle -->
     <button id="names-toggle" class="active" aria-pressed="true" title="Country name labels on the map — toggle on/off">Names</button>
-    <button id="spin-toggle" aria-pressed="false" title="Auto-spin the globe — toggle on/off">Spin</button>
+    <button id="spin-toggle" aria-pressed="false" title="Auto-spin the globe — toggle on/off"><span class="btn-ico" aria-hidden="true" data-no-translate>⟳</span> Spin</button>
     <button id="modes-btn" title="Thematic data maps — HDI, GDP, population, religion, language">Map Modes</button>
     <button id="actors-toggle" aria-pressed="false" title="Non-state actors layer">Non-state Actors</button>
-    <button id="marked-toggle" aria-pressed="false" title="Strategic locations & infrastructure layer">Strategic Sites</button>
+    <button id="marked-toggle" aria-pressed="false" title="Strategic locations & infrastructure layer"><span class="btn-ico" aria-hidden="true" data-no-translate>◈</span> Strategic Sites</button>
     <button id="sat-toggle" aria-pressed="false" title="Live satellite overlay">Satellites</button>
     <button id="sensors-toggle" aria-pressed="false" title="Physical-sensor ground truth — thermal (FIRMS), air-traffic (OpenSky), seismic (USGS), ACLED, maritime (AIS), nighttime-lights (VIIRS) — the layer corroboration is scored against">Sensors</button>
     <!-- v6.1.1 — multi-select blocs: toggle several alliances at once -->
@@ -94,7 +97,7 @@
          showing every entry re-worded into the current language would be
          unreadable/unrecognizable. data-no-translate opts the whole select out. -->
     <select id="lang-btn" data-no-translate aria-label="Site language" title="Site-wide language — every panel and story translates instantly"></select>
-    <button id="settings-btn" title="Settings & API keys" aria-label="Settings">Settings</button>
+    <button id="settings-btn" title="Settings & API keys" aria-label="Settings"><span class="btn-ico" aria-hidden="true" data-no-translate>⚙</span> Settings</button>
     <button id="status-toggle" title="Source health">Sources</button>
   </div>
 </header>

@@ -67,11 +67,17 @@ stop_event = threading.Event()
 
 
 def _translate_recent() -> int:
-    """v6.6.8 — display translation is now on-demand (the site-wide DOM
-    translator), NOT a background arrival job. This is a no-op kept only so the
-    job registry entry stays valid; ingestion-time English normalization for
-    correlation still lives in extract.py."""
-    return 0
+    """v6.6.8 — display translation into OTHER languages is on-demand (the
+    site-wide DOM translator), not a background job. v8.18 — this background slot
+    now does the REVERSE: it pre-renders non-English feed content INTO English so
+    an English UI reads Russian/Ukrainian/Japanese headlines in English (owner
+    request). Best-effort; no provider → no-op. Ingestion-time English
+    normalization for correlation still lives in extract.py."""
+    from ..processing.translate import translate_recent_to_english
+    try:
+        return translate_recent_to_english()
+    except Exception:  # noqa: BLE001 — a background job never crashes the loop
+        return 0
 
 
 def _assign_threads() -> int:

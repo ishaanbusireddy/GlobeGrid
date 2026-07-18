@@ -71,6 +71,29 @@ ELEV_BY_ISO = {
     "PHL": 442, "VNM": 398, "THA": 287, "MMR": 702, "YEM": 999, "OMN": 310,
     "MAR": 909, "TUN": 246, "LBY": 423, "SDN": 568, "TCD": 543, "NER": 474,
     "MLI": 343, "AGO": 1112, "MOZ": 345, "MDG": 615, "GHA": 190, "NGA": 380,
+    # v8.18 — much wider curated mean-elevation coverage so the altitude map
+    # lights up worldwide (owner: "some countries have no altitude"). Values are
+    # approximate national mean elevations (m).
+    "PRT": 372, "BEL": 181, "LUX": 325, "IRL": 118, "DNK": 34, "CZE": 433,
+    "SVK": 458, "HUN": 143, "ROU": 414, "BGR": 472, "GRC": 498, "HRV": 331,
+    "SVN": 492, "SRB": 442, "BIH": 500, "MKD": 741, "ALB": 708, "MNE": 1086,
+    "XKX": 800, "MDA": 139, "BLR": 160, "LTU": 110, "LVA": 87, "EST": 61,
+    "CYP": 91, "MLT": 60, "IRQ": 312, "SYR": 514, "JOR": 812, "LBN": 1250,
+    "ISR": 508, "PSE": 795, "KWT": 108, "QAT": 28, "BHR": 20, "ARE": 149,
+    "UZB": 450, "TKM": 230, "AZE": 384, "LKA": 228, "MDV": 2, "KHM": 126,
+    "LAO": 710, "MYS": 538, "SGP": 15, "BRN": 478, "TLS": 500, "KOR": 282,
+    "PRK": 600, "TWN": 1150, "TZA": 1018, "UGA": 1187, "RWA": 1598, "BDI": 1504,
+    "MWI": 779, "SSD": 500, "SOM": 410, "DJI": 430, "ERI": 853, "CMR": 667,
+    "CAF": 635, "GAB": 377, "COG": 430, "GNQ": 577, "CIV": 250, "TGO": 236,
+    "BEN": 273, "BFA": 297, "SEN": 69, "GMB": 34, "GNB": 70, "GIN": 472,
+    "SLE": 279, "LBR": 243, "MRT": 276, "BWA": 1013, "SWZ": 305, "VEN": 450,
+    "ECU": 1117, "PRY": 178, "URY": 109, "GUY": 207, "SUR": 246, "CRI": 746,
+    "PAN": 360, "NIC": 298, "HND": 684, "GTM": 759, "SLV": 442, "BLZ": 173,
+    "CUB": 108, "DOM": 424, "HTI": 470, "JAM": 480, "TTO": 83, "PNG": 667,
+    "FJI": 273, "SLB": 300, "VUT": 220, "NCL": 260, "PYF": 200, "GEO": 1432,
+    "ARM": 1792, "KIR": 2, "TON": 100, "WSM": 300, "PLW": 30, "FSM": 130,
+    "MHL": 2, "NRU": 30, "TUV": 2, "COM": 300, "CPV": 350, "STP": 400,
+    "MUS": 420, "SYC": 60,
 }
 
 # --- sub-national climate overrides (iso3, lowercased atlas ADM1 name) ----------
@@ -145,7 +168,15 @@ def country_climate(iso3, lat=None):
 
 
 def country_elevation(iso3):
-    return ELEV_BY_ISO.get(iso3)
+    v = ELEV_BY_ISO.get(iso3)
+    if v is not None:
+        return v
+    # v8.18 — honest coarse fallback so NO country is blank on the altitude map
+    # (owner). A broad estimate from the country's climate class; a real curated
+    # value in ELEV_BY_ISO always wins over this approximation.
+    clim = country_climate(iso3)
+    return {"Highland": 1200, "Arid": 500, "Polar": 400,
+            "Continental": 350, "Tropical": 300}.get(clim, 300)
 
 
 def unit_climate(iso3, unit_name, country_value):
